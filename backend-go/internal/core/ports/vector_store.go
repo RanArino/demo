@@ -21,8 +21,11 @@ type VectorStore interface {
 	DeletePoints(ctx context.Context, collectionName string, pointIDs []string) error
 
 	// GetPoints retrieves points by their IDs
-	GetPoints(ctx context.Context, collectionName string, pointIDs []string) ([]*qdrant.PointStruct, error)
+	GetPoints(ctx context.Context, collectionName string, pointIDs []string) ([]*qdrant.RetrievedPoint, error)
 
 	// CountPoints returns the total number of points in a collection
 	CountPoints(ctx context.Context, collectionName string) (uint64, error)
 }
+
+// Note: This interface is implemented by internal/storage/qdrant.go QdrantClient
+// The implementation is validated by tests in internal/storage/qdrant_test.go
