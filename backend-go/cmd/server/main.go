@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,46 +9,46 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/textviz_demo/internal/api"
-	"github.com/textviz_demo/internal/config"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Load configuration
-	cfg, err := config.Load()
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
+	// Initialize Gin router
+	router := gin.Default()
 
-	// Initialize router
-	router := api.SetupRouter()
+	// Add health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "healthy",
+		})
+	})
 
 	// Create HTTP server
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
+	srv := &http.Server{
+		Addr:    ":8080",
 		Handler: router,
 	}
 
-	// Start the server in a goroutine
+	// Start server in a goroutine
 	go func() {
-		log.Printf("Server starting on port %d", cfg.Server.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Printf("Server starting on port 8080")
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shut down the server
+	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
 
-	// Create a deadline for server shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Give outstanding requests a deadline for completion
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
 	}
 
 	log.Println("Server exiting")
