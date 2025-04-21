@@ -1,10 +1,10 @@
 # Backend-Go Development Milestones
 
 ## Milestone 1: Project Setup
-- [ ] Initialize Go module and directory structure
-- [ ] Set up configuration management
-- [ ] Create Dockerfile and Docker Compose entry
-- [ ] Implement basic server with health check endpoint
+- [x] Initialize Go module and directory structure
+- [x] Set up configuration management
+- [x] Create Dockerfile and Docker Compose entry
+- [x] Implement basic server with health check endpoint
 
 ## Milestone 2: Core Data Models
 - [ ] Define document, chunk, and summary structs
