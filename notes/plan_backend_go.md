@@ -7,9 +7,9 @@
 - [x] Implement basic server with health check endpoint
 
 ## Milestone 2: Core Data Models
-- [ ] Define document, chunk, and summary structs
-- [ ] Implement data validation and transformation utilities
-- [ ] Create interfaces for storage and external services
+- [x] Define document, chunk, and summary structs
+- [x] Implement data validation and transformation utilities
+- [x] Create interfaces for storage and external services
 
 ## Milestone 3: File Processing
 - [ ] Implement file upload and parsing (.txt, .md)
