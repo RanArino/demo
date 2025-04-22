@@ -8,10 +8,12 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Server    ServerConfig
-	ML        MLServiceConfig
-	Qdrant    QdrantConfig
-	GeminiAPI GeminiConfig
+	Server      ServerConfig
+	ML          MLServiceConfig
+	Qdrant      QdrantConfig
+	GeminiAPI   GeminiConfig
+	VectorStore VectorStoreConfig
+	LLM         LLMConfig
 }
 
 // ServerConfig holds configuration for the HTTP server
@@ -36,6 +38,30 @@ type QdrantConfig struct {
 type GeminiConfig struct {
 	APIKey string
 }
+
+// VectorStoreConfig holds Qdrant-specific configuration
+type VectorStoreConfig struct {
+	Endpoint    string
+	APIKey      string
+	Collections struct {
+		Summaries string
+		Chunks    string
+	}
+}
+
+// LLMConfig holds Gemini-specific configuration
+type LLMConfig struct {
+	APIKey           string
+	EmbeddingModel   string
+	EmbeddingDim     uint64
+	MaxTokensPerCall int
+}
+
+// Default collection names
+const (
+	DefaultSummariesCollection = "doc_summaries"
+	DefaultChunksCollection    = "doc_chunks"
+)
 
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
@@ -91,5 +117,24 @@ func Load() (*Config, error) {
 		fmt.Println("Warning: GEMINI_API_KEY not set")
 	}
 
+	// Vector store config
+	cfg.VectorStore.Endpoint = getEnvOrDefault("QDRANT_ENDPOINT", "http://localhost:6334")
+	cfg.VectorStore.APIKey = os.Getenv("QDRANT_API_KEY")
+	cfg.VectorStore.Collections.Summaries = DefaultSummariesCollection
+	cfg.VectorStore.Collections.Chunks = DefaultChunksCollection
+
+	// LLM config
+	cfg.LLM.APIKey = os.Getenv("GEMINI_API_KEY")
+	cfg.LLM.EmbeddingModel = getEnvOrDefault("GEMINI_EMBEDDING_MODEL", "models/embedding-001")
+	cfg.LLM.EmbeddingDim = 768 // Default dimension for Gemini embeddings
+	cfg.LLM.MaxTokensPerCall = 1024
+
 	return cfg, nil
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
