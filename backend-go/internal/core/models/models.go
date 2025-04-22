@@ -23,6 +23,7 @@ type Document struct {
 	CreatedAt   time.Time        `json:"created_at"`
 	ProcessedAt *time.Time       `json:"processed_at,omitempty"`
 	Error       *string          `json:"error,omitempty"`
+	Keywords    []string         `json:"keywords,omitempty"`
 }
 
 // Chunk represents a segment of text from a document
@@ -33,10 +34,11 @@ type Chunk struct {
 	Text       string    `json:"text"`
 	TokenCount int       `json:"token_count"`
 	Embedding  []float32 `json:"embedding,omitempty"`
+	Keywords   []string  `json:"keywords,omitempty"`
 	// Visualization data (to be used later)
-	Coord2D   *[2]float32 `json:"coord_2d,omitempty"`
-	Coord3D   *[3]float32 `json:"coord_3d,omitempty"`
-	ClusterID *int        `json:"cluster_id,omitempty"`
+	Coord2D    *[2]float32 `json:"coord_2d,omitempty"`
+	Coord3D    *[3]float32 `json:"coord_3d,omitempty"`
+	ClusterIDs []int       `json:"cluster_ids,omitempty"`
 }
 
 // Summary represents an AI-generated summary of a document
