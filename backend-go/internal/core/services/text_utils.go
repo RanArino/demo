@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+// TODO: Currently uses whitespace splitting; to switch to LLM tokenizer, update here.
+func CountTokens(text string) int {
+	return len(strings.Fields(text))
+}
+
 // SegmentText splits raw text into chunks by grouping sentences until maxTokens is reached.
 func SegmentText(raw string, maxTokens int) ([]string, error) {
 	if maxTokens <= 0 {
@@ -18,7 +23,7 @@ func SegmentText(raw string, maxTokens int) ([]string, error) {
 	var curr []string
 	currCount := 0
 	for _, sent := range sentences {
-		tokCount := len(strings.Fields(sent))
+		tokCount := CountTokens(sent)
 		if tokCount == 0 {
 			continue
 		}
