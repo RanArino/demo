@@ -53,6 +53,19 @@ type Summary struct {
 	ClusterID *int        `json:"cluster_id,omitempty"`
 }
 
+// SearchResult is a vector search hit, used for similarity search results.
+type SearchResult struct {
+	ID    string
+	Score float64
+	Meta  map[string]interface{}
+}
+
+// Cluster groups items for visualization and clustering results.
+type Cluster struct {
+	Label     int
+	MemberIDs []string
+}
+
 // Validate checks if the Document struct has all required fields
 func (d *Document) Validate() error {
 	if d.ID == "" {
