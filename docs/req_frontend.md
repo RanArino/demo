@@ -66,3 +66,28 @@
     - Angle Adjustment (User Scroll): Mouse scrolling (when pointer is over this panel) adjusts the apparent viewing angle of the layers (making them look flatter or more edge-on) within a limited range that does not invert the hierarchy.
     - Zoom: Standard zoom (dolly) functionality is enabled (e.g., via scroll wheel).
     - Vertical Pan: Disabled.
+
+#### (2) Document Preview:
+- **Default View (No Node Selected)**: Displays a "Document List View".
+    - Lists all uploaded documents vertically.
+    - Each item shows: Title, Checkbox (Include/Exclude) for RAG/visualization scope, Overflow Menu (Delete option).
+    - Provides an "Add" button for document uploads -> Show up **Document Upload Components**.
+- **Active View (Node Selected)**: Displays a "Node Detail View".
+    - Shows relevant content or metadata for the selected node (Document, Cluster, or Chunk).
+    - If a node is selected, it simply auto-scrolling to the corresponding text section; Clicking Document Node -> the summary (top) section, Clicking Chunk Node -> the corresponding chunk section, Clicking Cluster Node -> the cluster (top) section.
+    - Includes a mechanism (e.g., "Back" button) to return to the Document List View.
+    - (Considering) node selection changes the canvas view to [**Textual Info Detail**](#textual-info-detail)
+
+
+### Textual Info Detail 
+- showing each child components of each layer.
+- 2D mindmap style; check the link (0:55) for the visual idea -> https://youtu.be/DTe6zF8U-XA?si=uWkPl0qFCy0B0W10&t=55
+
+#### Document Detail
+- centering a selected document with surrouding chunk clusters
+
+#### Cluster Detail
+- centering a selected cluster with surrouding chunks
+
+#### Chunk Detail
+- centering a selected chunk with surrounding related chunks
