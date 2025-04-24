@@ -78,6 +78,46 @@
     - Includes a mechanism (e.g., "Back" button) to return to the Document List View.
     - (Considering) node selection changes the canvas view to [**Textual Info Detail**](#textual-info-detail)
 
+#### (3) Chat Session:
+- **Core Functionality**: Provides an AI chat interface for users to interact with the RAG system by asking questions based on the included documents, or for general conversation.
+- **Input Methods**:
+    - Standard text input field.
+    - "Voice Input" button/icon enabling users to dictate their queries.
+- **Output Display Modes**:
+    1. **Standard Mode (Default)**:
+        - AI responses are displayed as text within the chat panel using streaming output (text appears progressively, word-by-word or chunk-by-chunk).
+        - The content view automatically scrolls down to keep the latest message visible.
+    2. **Annotation Mode (Optional)**:
+        - (Mechanism for activation needs definition - e.g., user toggle, specific prompt instructions).
+        - The response in the chat panel is short, structured, and acts as a summary or index to annotations placed elsewhere.
+        - Parts of the AI's findings/explanations are visualized directly as annotations (e.g., speech bubbles, comments) on the Canvas (associated with relevant nodes) and/or the Document Preview (associated with relevant text chunks).
+- **Message-Level Interactions (Applicable to both User Queries & AI Responses where appropriate)**:
+    - Standard Actions: Each message bubble/area should offer actions (e.g., via hover menu or context menu) such as:
+        - Edit: Modify the text of a user query (before re-execution) or potentially annotate/correct an AI response.
+        - Delete: Remove the message (and potentially its paired response/query) from the chat history.
+        - Re-execute: Rerun a specific user query.
+        - Branch: Start a new conversational thread diverging from this point in the history.
+        - Copy Text: Copy the message content to the clipboard.
+    - Context Linking (On Click):
+        - Clicking on a specific message bubble (either a user query or its corresponding AI response) triggers highlighting of the associated context used/retrieved during that conversational turn.
+        - Canvas Integration: Relevant nodes (Documents, Clusters, Chunks) on the Left Canvas are visually highlighted.
+        - Document Preview Integration: Relevant text chunks within the Right-Upper Panel are visually highlighted when the corresponding document is displayed.
+        - (Assumption: Each query-response pair internally stores the IDs of the documents, clusters, and chunks involved in its generation to enable this linking.)
+- **Context Highlighting (During/After Generation)**:
+    - Canvas Integration: Nodes on the Canvas (2D/3D visualization) that correspond to the documents/clusters/chunks used as retrieved context for the generated response are visually highlighted.
+    - Document Preview Integration: Specific text chunks within the Document Preview that were used as retrieved context are visually highlighted (e.g., background color change) when that document is displayed.
+- **Retrieval Transparency ("Thinking/Retrieval Process")**:
+    - Each AI response includes an optional, initially hidden section (e.g., implemented as an accordion or expandable element).
+    - When expanded by the user (e.g., by clicking), this section reveals details about the retrieval process used to generate the response (e.g., list of retrieved chunks/documents, relevance scores, potentially intermediate reasoning steps).
+
+
+## Other Components
+
+### Document Upload Section
+- refer to NotebookLM
+
+### Web Search Section
+- refer to NotebookLM
 
 ### Textual Info Detail 
 - showing each child components of each layer.
