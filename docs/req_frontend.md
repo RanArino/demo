@@ -25,8 +25,28 @@
     - if user click the column names of `title`, num of `shared_with`, `document_count`, `created_at`, `updated_at`, do the sorting; make sure to show up the sign of ascending or descending.
 
 3. Tree(Canvas) view:
-    - The created spaces are displayed as its tree structure on the canvas.
-    -  Showing `title`, `keywords`, `description`, `created_at` during hovering.
+
+- **Purpose**: Provides a visual, interactive way to browse Spaces. Displays each Space as a card featuring a mini keyword-graph preview, arranged in a navigable carousel. Allows quick entry into any Space's full canvas.
+- **Layout & Navigation**:
+    - Features a central 3D circular carousel of Space cards on a full-area canvas background.
+    - The front-most card is active (larger, fully opaque), while others recede visually (smaller scale, reduced opacity) to imply depth.
+    - Rotate the carousel using horizontal mouse scroll, drag/swipe, or keyboard arrow keys (←/→).
+- **Space Card**:
+        - Displays an interactive mini-graph preview of the Space's keyword structure (hover pans slightly, scroll zooms).
+    - Includes a title bar at the bottom.
+    - On hover, reveals Space description, keywords (first few), and created_at date.
+    - Single-click or Spacebar (␠) triggers a Quick Preview: a larger modal view of the card with full pan/zoom in the graph and "Open Canvas" / "Close" actions.
+    - Double-click, Enter (⏎), or "Open Canvas" button navigates to the Space's dedicated full canvas view.
+- **Mini-map**:
+    - A small thumbnail overview of the carousel is shown (e.g., bottom-left).
+    - Clicking on the mini-map jumps the carousel to the corresponding position.
+- **Interactions & Editing**:
+    - Right-click / long-press on a card opens a context menu (Rename, Change Icon, Delete, Duplicate).
+    - Drag-and-drop one card onto another initiates a "Merge Spaces" confirmation.
+    - Standard keyboard shortcuts (Esc, etc.) and accessibility features (ARIA roles, focus) are supported.
+- **Responsive Behavior**:
+    - The carousel layout adapts to different screen sizes, potentially simplifying to a horizontal list or single-card swipe view on smaller devices.
+
 
 
 ## Space Page (`spaces/{space_id}`)
