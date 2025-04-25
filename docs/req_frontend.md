@@ -50,9 +50,8 @@
     - The carousel layout adapts to different screen sizes, potentially simplifying to a horizontal list or single-card swipe view on smaller devices.
 
 
-
 ## Space Page (`spaces/{space_id}`)
-
+![Space Page](./images/space.png){ height=500px, width=800px }
 ### User Functinalities:
 - Owner/Admin can delete the space from the setting button. (Only Owner has explicit permission to delete spaces)
 - Owner/Admin can edit the title, image, description, and keywords of the space from the setting button. (Based on Owner/Admin's control) setting button.
