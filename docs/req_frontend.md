@@ -204,10 +204,43 @@
 4.  **Outcome:**
     - Successfully added sources (after processing/text extraction) appear in the **Document List View** in the Right-Upper Panel and become available for inclusion in the RAG system and visualization on the Left Canvas.
 
-
-
-
 ### Web Search Section
+1.  **Access Point & Interface Type:**
+    - Accessed via a button, labeled **"Search Sources"**, located within the **Right-Upper Panel** when it's in the default **"Document List View"**.
+
+2.  **UI Layout & Components (within the Modal):**
+    - **Title:** Clearly labeled (e.g., "Web Search").
+    - **Central Icon/Graphic:** A relevant icon (like the magnifying glass/exploration icon in the reference).
+    - **Prompt Text:** A guiding question (e.g., "What are you interested in?").
+    - **Query Input Area:**
+        - A prominent multi-line text area for users to type their search topic or question.
+        - Includes placeholder text (e.g., "Describe something you'd like to search about...").
+    - **Search Mode Toggle:**
+        - A clearly visible **toggle switch** or radio buttons allowing users to select between:
+            - **Normal Search (Default):** Executes the user's query directly to find relevant web sources.
+            - **Deep Search:** Executes the user's query, then uses AI to generate expanded/refined/step-by-step queries, executing those as well to find a more comprehensive set of sources.
+    - **Action Buttons:**
+        - **"Refine" Button:**
+            - When clicked, uses AI to rephrase the current text in the Query Input Area to be potentially more informative or clearer for searching.
+            - The rephrased query replaces the text in the input area, but the area **remains editable** by the user.
+        - **"Voice Input" Button:** An icon/button that activates microphone input, allowing users to dictate their query into the input area.
+        - **"Submit" / "Search" Button:** Initiates the search process using the current query text and the selected search mode (Normal/Deep).
+    - **Close Button:** Standard modal close ('X') button.
+
+3.  **Functionality & Workflow:**
+    - User enters a topic/question into the Query Input Area (via typing or voice).
+    - User selects the desired search mode (Normal or Deep) using the toggle.
+    - User can optionally click "Refine" to improve their query (and potentially edit further).
+    - User clicks "Submit".
+    - A **progress bar** or loading indicator is displayed prominently within the modal, indicating that the search is in progress. This applies to *both* Normal and Deep Search modes.
+    - The backend performs the search according to the selected mode.
+    - **Outcome:** Upon completion, the modal should present the discovered web sources (e.g., as a list of URLs/titles/snippets). The user should then be able to select which of these discovered sources they want to **add** to their main source list in the application (likely closing the search modal and updating the "Add Sources" list or the main Document List View).
+
+4.  **Backend Considerations:**
+    - Requires integration with a web search API (e.g., Google Search API, Bing Search API, Brave Search API, etc.).
+    - Requires an AI model (LLM) integration for the "Refine" functionality and for the query expansion/refinement steps in "Deep Search".
+    - Needs logic to handle the different processing paths for Normal vs. Deep Search. Deep Search will involve multiple sequential or parallel search API calls based on the generated sub-queries.
+    - Needs robust handling of search results (parsing, filtering duplicates if aggregating from sub-queries, extracting relevant metadata like title/URL/snippet).
 
 
 ### Textual Info Detail 
