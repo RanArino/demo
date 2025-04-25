@@ -7,7 +7,7 @@ This document outlines the system architecture for the Hierarchical Text Visuali
 The system consists of three main components:
 1.  **Frontend:** A Next.js application responsible for user interaction, data visualization, and communication with the backend.
 2.  **Backend (Go):** A Go service acting as the main API gateway, orchestrating file processing, managing metadata, interacting with the vector store (Qdrant), and communicating with the Python ML service.
-3.  **ML Service (Python):** A Python service (using Flask/FastAPI) responsible for computationally intensive ML tasks: text embedding, summarization, dimensionality reduction, and clustering.
+3.  **ML Service (Python):** A Python service (using gRPC or Flask/FastAPI) responsible for computationally intensive ML tasks: text embedding, summarization, dimensionality reduction, and clustering.
 
 ```mermaid
 graph LR
@@ -15,24 +15,33 @@ graph LR
         Frontend[Next.js Frontend]
     end
 
-    subgraph Server / Docker Compose
+    subgraph "Server / Docker Compose"
         Backend[Go Backend API]
         MLService[Python ML Service]
         VectorDB[(Qdrant Vector Database)]
-        UploadedFiles[Uploaded/Default Text Files]
+        Storage[(Persistent Storage / Volume)]
+    end
+
+    subgraph "External Services"
+        Gemini[Gemini API]
+    end
+
+    subgraph "Conceptual / Libraries"
+        style MLAlgorithms fill:#f9f,stroke:#333,stroke-width:2px
+        MLAlgorithms[ML Algorithms<br/>(Embedding, Reduction, Clustering)]
     end
 
     Frontend -- REST API --> Backend
     Backend -- REST API --> MLService
     Backend -- Qdrant Go Client --> VectorDB
-    Backend -- Reads --> UploadedFiles
-    Backend -- Gemini API --> Gemini[Gemini API]
-    MLService -- Reads/Uses --> MLAlgorithms[ML Algorithms]
+    Backend -- Manages/Reads --> Storage
+    Backend -- Direct API Call --> Gemini
+    MLService -- Uses --> MLAlgorithms
 
-    style MLAlgorithms fill:#f9f,stroke:#333,stroke-width:2px
     style VectorDB fill:#ccf,stroke:#333,stroke-width:2px
-    style UploadedFiles fill:#ccf,stroke:#333,stroke-width:2px
+    style Storage fill:#ccf,stroke:#333,stroke-width:2px
     style Gemini fill:#f9f,stroke:#333,stroke-width:2px
+
 ```
 
 ## 2. Data Storage
@@ -55,7 +64,7 @@ With the introduction of Qdrant and Gemini API, the data storage strategy is upd
 
 **(A) Document-Level Information (Potentially stored in a separate JSON file or Qdrant collection):**
 
-```json
+```
 // Example: Stored in documents.json or a dedicated Qdrant collection
 [
   {
@@ -75,7 +84,7 @@ With the introduction of Qdrant and Gemini API, the data storage strategy is upd
 
 **(Conceptual Qdrant Point Structure)**
 
-```json
+```
 // Stored within Qdrant chunk collection
 {
   "id": "vector_id_chunk_1_1", // Qdrant point ID (e.g., maps to chunkId or is chunkId)
@@ -94,35 +103,59 @@ With the introduction of Qdrant and Gemini API, the data storage strategy is upd
 ## 3. Folder Structures
 
 ### 3.1 Frontend (Next.js - App Router)
-
+```
 frontend/
-├── app/                  # Next.js App Router directory
-│   ├── api/              # API route handlers (if needed for server actions)
-│   │   ├── page.tsx        # Main visualization page component
-│   │   └── layout.tsx      # Layout for the visualization section
-│   ├── layout.tsx        # Root layout
-│   └── globals.css       # Global styles
-├── components/           # Reusable React components
-│   ├── ui/               # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
-│   ├── visualization/    # Visualization specific components
-│   │   ├── ForceGraph3D.tsx # Wrapper for react-force-graph-3d
-│   │   ├── NodeDetailsPanel.tsx # Panel to show node content
-│   │   └── SearchBar.tsx      # Search input component
-│   └── FileUpload.tsx      # Component for uploading files
-├── hooks/                # Custom React hooks (e.g., useGraphData, useApi)
-├── lib/                  # Utility functions, API client setup
-│   ├── api.ts            # Functions for calling the Go backend API
-│   └── utils.ts          # General utility functions
+├── src/                  # Main source code directory
+│   ├── app/              # Next.js App Router directory
+│   │   ├── api/          # API route handlers (if needed for server actions)
+│   │   ├── spaces/
+│   │   │   └── {space_id}/ # Dynamic route for individual space pages
+│   │   │       └── page.tsx # Space detail page component
+│   │   ├── page.tsx        # Homepage (/) component (Displays space overview/gallery)
+│   │   ├── layout.tsx    # Root layout
+│   │   └── globals.css   # Global styles
+│   ├── components/       # Reusable React components
+│   │   ├── ui/           # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
+│   │   ├── visualization/ # Visualization specific components
+│   │   │   ├── Canvas3D.tsx # Main 3D visualization component (handling layers, nodes)
+│   │   │   ├── NodeDetailsPanel.tsx # Panel to show node content/document preview
+│   │   │   ├── SearchBar.tsx      # Search input component
+│   │   │   ├── FlowView.tsx       # Git-style chat flow visualization
+│   │   │   ├── MiniMap.tsx        # Mini-map for Tree/Canvas view (Homepage)
+│   │   │   └── ...
+│   │   ├── home/           # Components specific to the homepage/spaces overview
+│   │   │   ├── SpaceCard.tsx      # Card component for gallery/tree view
+│   │   │   ├── SpaceGalleryView.tsx
+│   │   │   ├── SpaceListView.tsx
+│   │   │   ├── SpaceTreeView.tsx  # Carousel/Tree view component
+│   │   │   └── ...
+│   │   ├── shared/         # Components shared across different pages/features
+│   │   │   ├── DocumentUploadModal.tsx # Modal for uploading/adding documents
+│   │   │   ├── WebSearchModal.tsx      # Modal for web search functionality
+│   │   │   ├── ChatInterface.tsx       # Chat input/output component
+│   │   │   └── ...
+│   │   └── SettingsButton.tsx # Reusable settings access component
+│   ├── hooks/            # Custom React hooks (e.g., useGraphData, useApi, useChat)
+│   ├── lib/              # Utility functions, API client setup
+│   │   ├── api.ts        # Functions for calling the Go backend API
+│   │   └── utils.ts      # General utility functions
+│   └── styles/           # Styling files (if not using CSS-in-JS or Tailwind extensively)
 ├── public/               # Static assets (images, etc.)
-├── styles/               # Styling files (if not using CSS-in-JS or Tailwind extensively)
-├── data/                 # Default sample text data for demo
-├── next.config.js        # Next.js configuration
+├── data/                 # Default sample text data for demo (Consider moving to backend or dedicated storage)
+├── .env.local            # Environment variables (ensure in .gitignore)
+├── next.config.ts        # Next.js configuration
 ├── tsconfig.json         # TypeScript configuration
 ├── package.json          # Project dependencies
+├── package-lock.json     # Lockfile
+├── postcss.config.mjs    # PostCSS configuration
+├── eslint.config.mjs     # ESLint configuration
+├── .gitignore            # Git ignore file
+├── README.md             # Project README
 └── Dockerfile            # Dockerfile for building the frontend image
+```
 
 ### 3.2 Backend (Go)
-
+```
 backend-go/
 ├── cmd/
 │   └── server/           # Main application entry point
@@ -148,10 +181,27 @@ backend-go/
 ├── go.mod                # Go module definition
 ├── go.sum                # Go module checksums
 └── Dockerfile            # Dockerfile for building the Go backend image
+```
 
-### 3.3 ML Service (Python - Flask/FastAPI)
+### 3.3 ML Service (Python - gRPC or Flask/FastAPI)
+```
+// if gRPC
+backend-py/
+├── app/ # Main application source code
+│ ├── services/ # gRPC service implementations
+│ │ ├── reduction_service.py # Dimensionality reduction (UMAP)
+│ │ └── clustering_service.py # Clustering (GMM or HDBSCAN)
+│ ├── generated/ # Generated Python code from .proto files
+│ ├── utils/ # Utility functions
+│ └── server.py # gRPC server initialization and entry point
+├── proto/ # Protocol Buffer definitions (.proto files)
+├── data/ # Potential location for downloaded models (or use cache dir)
+├── requirements.txt # Python dependencies (including grpcio, grpcio-tools)
+└── Dockerfile # Dockerfile for building the Python ML service image
+```
 
-
+```
+// if Flask/FastAPI
 backend-py/
 ├── app/                  # Main application source code
 │   ├── api/              # API endpoint definitions
@@ -164,6 +214,7 @@ backend-py/
 ├── data/                 # Potential location for downloaded models (or use cache dir)
 ├── requirements.txt      # Python dependencies
 └── Dockerfile            # Dockerfile for building the Python ML service image
+```
 
 ## 4. Inter-service Communication
 
