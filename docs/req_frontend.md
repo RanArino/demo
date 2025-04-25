@@ -12,10 +12,12 @@
 
 ### Visual Requirement:
 1. Gallery view:
+![Home Gallery View](./images/home_gallery.png){ height=500px, width=800px }
     - The size of each space card can be changed to small, medium, large.
     - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords.
 
 2. List/Table view:
+![Home List View](./images/home_list.png){ height=500px, width=800px }
     - The created space displays the following metadata; 
         - (individual) icon, title, keywords, description(?), num of document_count, created_at, updated_at, visibility
         - (team) icon, title, keywords, description(?), num of shared_with, document_count, created_at, updated_at
@@ -25,7 +27,7 @@
     - if user click the column names of `title`, num of `shared_with`, `document_count`, `created_at`, `updated_at`, do the sorting; make sure to show up the sign of ascending or descending.
 
 3. Tree(Canvas) view:
-
+![Home Tree View](./images/home_tree.png){ height=500px, width=800px }
 - **Purpose**: Provides a visual, interactive way to browse Spaces. Displays each Space as a card featuring a mini keyword-graph preview, arranged in a navigable carousel. Allows quick entry into any Space's full canvas.
 - **Layout & Navigation**:
     - Features a central 3D circular carousel of Space cards on a full-area canvas background.
