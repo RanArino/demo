@@ -109,6 +109,49 @@
 - **Retrieval Transparency ("Thinking/Retrieval Process")**:
     - Each AI response includes an optional, initially hidden section (e.g., implemented as an accordion or expandable element).
     - When expanded by the user (e.g., by clicking), this section reveals details about the retrieval process used to generate the response (e.g., list of retrieved chunks/documents, relevance scores, potentially intermediate reasoning steps).
+- **Git-style Chat Flow Visualization**
+    1. Activation & Location:
+        - Implemented as a toggleable "Flow View" mode accessible within the main Right-Lower Chat Panel, alternating with the standard chronological message list view.
+    2. Visualization Layout & Style:
+        - Presents the chat history as an interactive diagram/graph, similar to Miro boards or Git visualizers.
+        - Linear sequences of query-response pairs flow vertically downwards by default.
+        - When a branch is created (via "+", edit, etc.), the new branch initially appears side-by-side with the original branch point.
+        - Users can manually reposition individual chat boxes within the flow view canvas for custom layout organization.
+        - Standard pan (click-drag background) and zoom (scroll wheel) controls are provided for navigating the flow view canvas.
+    3. Chat Box Component Details:
+        - Each box represents a single query-response pair.
+        - Content:
+            - Displays truncated text for both the User Query and the AI Answer.
+            - Includes a "more" button or similar mechanism within each box to expand and view the full text content.
+            - Features a "+" button at the bottom of each box to initiate a new branch from that specific point in the conversation.
+            - Provides access to Edit/Delete actions (e.g., via a context menu or hover icons).
+        - Metadata: Each box clearly displays its Timestamp and a Sequence Number/ID.
+        - (Recommendation: Use subtle visual differentiation (e.g., background color, icons) to distinguish the user query part from the AI answer part within the box).
+    4. Interactions & Logic:
+        - Clicking a Box:
+            - Highlights the associated context (nodes on Canvas, chunks in Document Preview).
+            - Scrolls the standard chat view (if visible/toggled) to the corresponding message pair.
+        - Clicking "+":
+            - Activates the main chat input field.
+            - The next submitted query creates a new chat box visually branching off from the box where "+" was clicked.
+            - The standard chat view also follows this new active branch.
+        - Deleting a Box:
+            - Prompts the user with a confirmation panel.
+            - Upon confirmation, removes the selected box AND all its descendant boxes/branches originating from it.
+        - Editing User Query:
+            - Always triggers a new AI generation based on the edited query text.
+            - If the edited box (let's call it B, with parent A and child C: A -> B -> C) has existing children (C):
+                - The original branch (A -> B -> C) remains untouched visually.
+                - A new box (B_edited) is created, branching off from the parent of the edited box (A), resulting in: A -> B -> C AND A -> B_edited.
+            - If the edited box has no children, it simply triggers regeneration and updates the answer in that box's branch. (Self-correction: Based on the logic for boxes with children, it's more consistent to always create a new branch upon editing a past query: A -> B, edit B => A -> B AND A -> B_edited). Let's adopt this: Editing a user query always creates a new branch from its parent.
+        - Editing AI Answer:
+            - Allows users to directly modify the text of a generated AI answer within a box.
+            - Crucially: This revision must be registered by the system and potentially used to influence or improve future chat generations (acting as a form of explicit feedback or correction for the RAG system). The exact mechanism for incorporating this feedback needs further definition based on the RAG system's capabilities.
+    5. Backend Processing:
+        - The backend (specified as Go-based) must support concurrent execution of AI generation requests when multiple branches are explored or generated simultaneously.
+    6. Complexity Management:
+        - Implement functionality to collapse/expand entire branches to simplify complex views.
+        - Provide an option or default behavior to highlight the K most recent chat boxes and their direct parent lineage, fading out older or less relevant branches.
 
 
 ## Other Components
