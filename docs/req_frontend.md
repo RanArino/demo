@@ -156,11 +156,59 @@
 
 ## Other Components
 
-### Document Upload Section
-- refer to NotebookLM
+### Document Upload Interface
+1.  **Access Point:**
+    - The interface for adding new sources is triggered by clicking the **"Add Docs" button** located within the **Right-Upper Panel** when it's in the default **"Document List View"**.
+    - The interface appears as a **Modal Dialog**, overlaying the main application window.
+
+2.  **Modal Interface Layout & Content:**
+    - **Title:** Clearly labeled (e.g., "Add Documents").
+    - **Informational Text:** Briefly explains the purpose (e.g., "Add document sources for the AI to use in its responses.").
+    - **Main Upload Area:**
+        -  A designated zone for **Drag & Drop** file uploads.
+        -  A **"Choose File" button** for standard file browser selection.
+        -  Lists **supported direct file types:** PDF, .txt, Markdown, Audio (.mp3), Video (.mp4).
+    - **Cloud Storage Integration:**
+        -  Dedicated sections or buttons for connecting to:
+            -  **Google Drive:** (Likely requires OAuth) Allows selecting Docs, Slides, potentially other text-based formats.
+            -  **OneDrive:** (Likely requires OAuth) Allows selecting relevant document formats.
+            -  **Notion:** (Likely requires OAuth/API Key) Allows selecting specific Notion Pages or Databases for import.
+    - **Web & Link Integration:**
+        -  A section for adding sources via links:
+            -  **Website URL:** Input field for website links.
+            -  **YouTube URL:** Input field for YouTube video links.
+    - **Text Input:**
+        -  An option to **Paste Text** directly into a text area.
+        -  Potentially a button to import **Copied Text** directly from the clipboard (as shown in the reference).
+    - **Source Limit Display:**
+        -  Visually displays the **current number of sources** added versus the **total limit**. (e.g., "13 / 30 Sources").
+        -  Uses a progress bar or similar visual indicator.
+        -  The limit is set to **30 sources** for the default/free user tier (under consideration).
+    - **Action Buttons:** Includes buttons like "Close" or "Done".
+
+3.  **Backend Processing & Handling:**
+    - **Direct File Uploads (PDF, TXT, MD):** Files are uploaded, text is extracted and stored.
+    - **Audio (.mp3) / Video (.mp4) Uploads:**
+        - Files are uploaded.
+        - Backend system **automatically extracts the audio transcript/script** using speech-to-text technology.
+        - The **extracted text** is stored and indexed for use by the RAG system. The original media file might be stored for reference but is not directly queried.
+    - **YouTube Links:**
+        - Backend system uses the **YouTube API** (or similar service) to fetch the video's **transcript**.
+        - The **extracted text transcript** is stored and indexed.
+    - **Website Links:**
+        - Backend system fetches the website content, parses the main text body (stripping boilerplate/ads), and stores the **extracted text**.
+    - **Cloud Storage:** Handled via API integrations after user authentication; relevant text content is fetched and stored.
+    - **Pasted/Copied Text:** Stored directly as a text source.
+    - **Feedback:** The UI should provide visual feedback during the upload and processing stages (e.g., progress bars per source, success/error indicators). Appropriate error handling for failed uploads, transcriptions, or unsupported formats must be implemented.
+
+4.  **Outcome:**
+    - Successfully added sources (after processing/text extraction) appear in the **Document List View** in the Right-Upper Panel and become available for inclusion in the RAG system and visualization on the Left Canvas.
+
+
+
 
 ### Web Search Section
-- refer to NotebookLM
+
 
 ### Textual Info Detail 
 - showing each child components of each layer.
