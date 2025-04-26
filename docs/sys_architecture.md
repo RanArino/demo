@@ -27,21 +27,20 @@ graph LR
     end
 
     subgraph "Conceptual / Libraries"
-        style MLAlgorithms fill:#f9f,stroke:#333,stroke-width:2px
-        MLAlgorithms[ML Algorithms<br/>(Embedding, Reduction, Clustering)]
+        style MLAlgorithms fill:#ff4aff,stroke:#333,stroke-width:2px
+        MLAlgorithms["ML Algorithms<br/>(Reduction, Clustering)"]
     end
 
     Frontend -- REST API --> Backend
-    Backend -- REST API --> MLService
+    Backend -- REST API or gRPC --> MLService
     Backend -- Qdrant Go Client --> VectorDB
     Backend -- Manages/Reads --> Storage
     Backend -- Direct API Call --> Gemini
     MLService -- Uses --> MLAlgorithms
 
-    style VectorDB fill:#ccf,stroke:#333,stroke-width:2px
-    style Storage fill:#ccf,stroke:#333,stroke-width:2px
-    style Gemini fill:#f9f,stroke:#333,stroke-width:2px
-
+    style VectorDB fill:#7a7afa,stroke:#333,stroke-width:2px
+    style Storage fill:#7a7afa,stroke:#333,stroke-width:2px
+    style Gemini fill:#ff4aff,stroke:#333,stroke-width:2px
 ```
 
 ## 2. Data Storage
