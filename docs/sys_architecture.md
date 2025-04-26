@@ -107,38 +107,38 @@ frontend/
 ├── src/                  # Main source code directory
 │   ├── app/              # Next.js App Router directory
 │   │   ├── api/          # API route handlers (if needed for server actions)
-│   │   ├── spaces/
-│   │   │   └── {space_id}/ # Dynamic route for individual space pages
-│   │   │       └── page.tsx # Space detail page component
-│   │   ├── page.tsx        # Homepage (/) component (Displays space overview/gallery)
-│   │   ├── layout.tsx    # Root layout
-│   │   └── globals.css   # Global styles
-│   ├── components/       # Reusable React components
-│   │   ├── ui/           # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
-│   │   ├── visualization/ # Visualization specific components
-│   │   │   ├── Canvas3D.tsx # Main 3D visualization component (handling layers, nodes)
-│   │   │   ├── NodeDetailsPanel.tsx # Panel to show node content/document preview
-│   │   │   ├── SearchBar.tsx      # Search input component
-│   │   │   ├── FlowView.tsx       # Git-style chat flow visualization
-│   │   │   ├── MiniMap.tsx        # Mini-map for Tree/Canvas view (Homepage)
-│   │   │   └── ...
-│   │   ├── home/           # Components specific to the homepage/spaces overview
-│   │   │   ├── SpaceCard.tsx      # Card component for gallery/tree view
-│   │   │   ├── SpaceGalleryView.tsx
-│   │   │   ├── SpaceListView.tsx
-│   │   │   ├── SpaceTreeView.tsx  # Carousel/Tree view component
-│   │   │   └── ...
-│   │   ├── shared/         # Components shared across different pages/features
-│   │   │   ├── DocumentUploadModal.tsx # Modal for uploading/adding documents
-│   │   │   ├── WebSearchModal.tsx      # Modal for web search functionality
-│   │   │   ├── ChatInterface.tsx       # Chat input/output component
-│   │   │   └── ...
-│   │   └── SettingsButton.tsx # Reusable settings access component
-│   ├── hooks/            # Custom React hooks (e.g., useGraphData, useApi, useChat)
-│   ├── lib/              # Utility functions, API client setup
-│   │   ├── api.ts        # Functions for calling the Go backend API
-│   │   └── utils.ts      # General utility functions
-│   └── styles/           # Styling files (if not using CSS-in-JS or Tailwind extensively)
+│   │   │   ├── spaces/
+│   │   │   │   └── {space_id}/ # Dynamic route for individual space pages
+│   │   │   │       └── page.tsx # Space detail page component
+│   │   │   ├── page.tsx        # Homepage (/) component (Displays space overview/gallery)
+│   │   │   ├── layout.tsx    # Root layout
+│   │   │   └── globals.css   # Global styles
+│   │   ├── components/       # Reusable React components
+│   │   │   ├── ui/           # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
+│   │   │   ├── visualization/ # Visualization specific components
+│   │   │   │   ├── Canvas3D.tsx # Main 3D visualization component (handling layers, nodes)
+│   │   │   │   ├── NodeDetailsPanel.tsx # Panel to show node content/document preview
+│   │   │   │   ├── SearchBar.tsx      # Search input component
+│   │   │   │   ├── FlowView.tsx       # Git-style chat flow visualization
+│   │   │   │   ├── MiniMap.tsx        # Mini-map for Tree/Canvas view (Homepage)
+│   │   │   │   └── ...
+│   │   │   ├── home/           # Components specific to the homepage/spaces overview
+│   │   │   │   ├── SpaceCard.tsx      # Card component for gallery/tree view
+│   │   │   │   ├── SpaceGalleryView.tsx
+│   │   │   │   ├── SpaceListView.tsx
+│   │   │   │   ├── SpaceTreeView.tsx  # Carousel/Tree view component
+│   │   │   │   └── ...
+│   │   │   ├── shared/         # Components shared across different pages/features
+│   │   │   │   ├── DocumentUploadModal.tsx # Modal for uploading/adding documents
+│   │   │   │   ├── WebSearchModal.tsx      # Modal for web search functionality
+│   │   │   │   ├── ChatInterface.tsx       # Chat input/output component
+│   │   │   │   └── ...
+│   │   │   └── SettingsButton.tsx # Reusable settings access component
+│   │   ├── hooks/            # Custom React hooks (e.g., useGraphData, useApi, useChat)
+│   │   ├── lib/              # Utility functions, API client setup
+│   │   │   ├── api.ts        # Functions for calling the Go backend API
+│   │   │   └── utils.ts      # General utility functions
+│   │   └── styles/           # Styling files (if not using CSS-in-JS or Tailwind extensively)
 ├── public/               # Static assets (images, etc.)
 ├── data/                 # Default sample text data for demo (Consider moving to backend or dedicated storage)
 ├── .env.local            # Environment variables (ensure in .gitignore)
@@ -161,20 +161,36 @@ backend-go/
 │       └── main.go
 ├── internal/             # Internal application code (not importable by others)
 │   ├── api/              # API handlers (e.g., Gin, Echo)
-│   │   ├── handlers.go   # Request handlers
-│   │   └── router.go     # API route definitions
+│   │   ├── handlers/     # Request handler implementations (Consider splitting further if complex)
+│   │   │   └── document_handler.go
+│   │   │   └── search_handler.go
+│   │   │   └── ...
+│   │   ├── middleware/   # API middleware (logging, auth, etc.)
+│   │   └── router.go     # API route definitions & setup
 │   ├── config/           # Configuration loading (env vars, files)
 │   │   └── config.go
-│   ├── core/             # Core business logic
-│   │   ├── document.go   # Structs/logic for documents, chunks, summaries
-│   │   ├── processing.go # Orchestration logic (calling Python, Qdrant)
-│   │   └── gemini.go     # Gemini API client and embedding/summarization logic
-│   ├── ml/               # Client for communicating with Python ML Service
-│   │   └── client.go
-│   ├── storage/          # Data persistence logic (Vector DB interaction)
-│   │   └── qdrant.go     # Client logic for interacting with Qdrant
-│   └── utils/            # Utility functions specific to backend
-├── pkg/                  # Shared libraries (if any, less common with `internal`)
+│   ├── core/             # Core business logic & domain types
+│   │   ├── models/       # Domain models (document, chunk, summary, etc.)
+│   │   │   └── document.go
+│   │   │   └── ...
+│   │   ├── service/      # Business logic services (orchestration)
+│   │   │   └── processing_service.go # Orchestrates embedding, ML calls, storage
+│   │   │   └── search_service.go    # Handles search logic
+│   │   │   └── ...
+│   │   └── ports/        # Interfaces defining contracts for external systems
+│   │       ├── ml_service.go      # Interface for ML service client
+│   │       ├── storage_service.go # Interface for vector storage
+│   │       └── llm_service.go     # Interface for Gemini/LLM client
+│   ├── adapters/         # Implementations for external services (fits Dependency Inversion)
+│   │   ├── geminiclient/ # Gemini API client implementation
+│   │   │   └── client.go
+│   │   ├── mlclient/     # Client for communicating with Python ML Service
+│   │   │   └── client.go
+│   │   ├── qdrant/       # Client logic for interacting with Qdrant
+│   │   │   └── client.go
+│   │   └── ...
+│   └── utils/            # General utility functions specific to backend
+│       └── utils.go
 ├── data/                 # Persistent storage mount point (e.g., for uploaded files) - Managed by Docker Volume
 ├── scripts/              # Helper scripts (build, run, etc.)
 ├── go.mod                # Go module definition
