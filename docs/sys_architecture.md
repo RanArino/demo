@@ -16,6 +16,7 @@ graph LR
     end
 
     subgraph "Server / Docker Compose"
+        Kong[Kong API Gateway]
         Backend[Go Backend API]
         MLService[Python ML Service]
         VectorDB[(Qdrant Vector Database)]
@@ -31,13 +32,16 @@ graph LR
         MLAlgorithms["ML Algorithms<br/>(Reduction, Clustering)"]
     end
 
-    Frontend -- REST API --> Backend
+    Frontend -- REST API --> Kong
+    Kong -- Routes Requests --> Backend
+
     Backend -- REST API or gRPC --> MLService
     Backend -- Qdrant Go Client --> VectorDB
     Backend -- Manages/Reads --> Storage
     Backend -- Direct API Call --> Gemini
     MLService -- Uses --> MLAlgorithms
 
+    style Kong fill:#158415,stroke:#333,stroke-width:2px
     style VectorDB fill:#7a7afa,stroke:#333,stroke-width:2px
     style Storage fill:#7a7afa,stroke:#333,stroke-width:2px
     style Gemini fill:#ff4aff,stroke:#333,stroke-width:2px
@@ -158,7 +162,7 @@ frontend/
 ```
 
 ### 3.2 Backend (Go)
-```
+```text
 backend-go/
 ├── cmd/
 │   └── server/           # Main application entry point
@@ -166,15 +170,22 @@ backend-go/
 ├── internal/             # Internal application code (not importable by others)
 │   ├── api/              # API handlers (e.g., Gin, Echo)
 │   │   ├── handlers/     # Request handler implementations (Consider splitting further if complex)
-│   │   │   └── document_handler.go
-│   │   │   └── search_handler.go
+│   │   │   │── document_handler.go
+│   │   │   │── search_handler.go
 │   │   │   └── ...
-│   │   ├── middleware/   # API middleware (logging, auth, etc.)
-│   │   └── router.go     # API route definitions & setup
+│   │   ├── middleware/          # API middleware (logging, auth, CORS, etc.)
+│   │   ├── internal_router.go   # Defines all internal API routes
+│   │   ├── gateway_router/
+│   │   │   ├── router.go  # Initializes all versions
+│   │   │   ├── v1.go
+│   │   │   ├── v2.go
+│   │   │   └── ...
+│   │   └── constants/      # API related constants
+│   │       └── version.go  # Defines API version constants (e.g., APIVersionV2)
 │   ├── config/           # Configuration loading (env vars, files)
 │   │   └── config.go
 │   ├── core/             # Core business logic & domain types
-│   │   ├── models/       # Domain models (document, chunk, summary, etc.)
+│   │   ├── models/       # Domain models (document, chunk, summary, space, etc.)
 │   │   │   └── document.go
 │   │   │   └── ...
 │   │   ├── service/      # Business logic services (orchestration)
@@ -195,6 +206,12 @@ backend-go/
 │   │   └── ...
 │   └── utils/            # General utility functions specific to backend
 │       └── utils.go
+├── gateway/              # Configuration for the API Gateway by Kong
+│   ├── v1/               # Version 1 specific gateway configuration
+│   │   └── gateway-config.yaml
+│   ├── v2/               # Version 2 specific gateway configuration
+│   │   └── gateway-config.yaml
+│   └── ...
 ├── data/                 # Persistent storage mount point (e.g., for uploaded files) - Managed by Docker Volume
 ├── scripts/              # Helper scripts (build, run, etc.)
 ├── go.mod                # Go module definition
