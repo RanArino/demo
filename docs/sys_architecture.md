@@ -102,46 +102,50 @@ With the introduction of Qdrant and Gemini API, the data storage strategy is upd
 ## 3. Folder Structures
 
 ### 3.1 Frontend (Next.js - App Router)
-```
+```text
 frontend/
 ├── src/                  # Main source code directory
 │   ├── app/              # Next.js App Router directory
-│   │   ├── api/          # API route handlers (if needed for server actions)
-│   │   │   ├── spaces/
-│   │   │   │   └── {space_id}/ # Dynamic route for individual space pages
-│   │   │   │       └── page.tsx # Space detail page component
-│   │   │   ├── page.tsx        # Homepage (/) component (Displays space overview/gallery)
-│   │   │   ├── layout.tsx    # Root layout
-│   │   │   └── globals.css   # Global styles
-│   │   ├── components/       # Reusable React components
-│   │   │   ├── ui/           # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
-│   │   │   ├── visualization/ # Visualization specific components
-│   │   │   │   ├── Canvas3D.tsx # Main 3D visualization component (handling layers, nodes)
-│   │   │   │   ├── NodeDetailsPanel.tsx # Panel to show node content/document preview
-│   │   │   │   ├── SearchBar.tsx      # Search input component
-│   │   │   │   ├── FlowView.tsx       # Git-style chat flow visualization
-│   │   │   │   ├── MiniMap.tsx        # Mini-map for Tree/Canvas view (Homepage)
-│   │   │   │   └── ...
-│   │   │   ├── home/           # Components specific to the homepage/spaces overview
-│   │   │   │   ├── SpaceCard.tsx      # Card component for gallery/tree view
-│   │   │   │   ├── SpaceGalleryView.tsx
-│   │   │   │   ├── SpaceListView.tsx
-│   │   │   │   ├── SpaceTreeView.tsx  # Carousel/Tree view component
-│   │   │   │   └── ...
-│   │   │   ├── shared/         # Components shared across different pages/features
-│   │   │   │   ├── DocumentUploadModal.tsx # Modal for uploading/adding documents
-│   │   │   │   ├── WebSearchModal.tsx      # Modal for web search functionality
-│   │   │   │   ├── ChatInterface.tsx       # Chat input/output component
-│   │   │   │   └── ...
-│   │   │   └── SettingsButton.tsx # Reusable settings access component
-│   │   ├── hooks/            # Custom React hooks (e.g., useGraphData, useApi, useChat)
-│   │   ├── lib/              # Utility functions, API client setup
-│   │   │   ├── api.ts        # Functions for calling the Go backend API
-│   │   │   └── utils.ts      # General utility functions
-│   │   └── styles/           # Styling files (if not using CSS-in-JS or Tailwind extensively)
+│   │   ├── page.tsx        # Homepage (/) component (Displays space overview/gallery)
+│   │   ├── layout.tsx    # Root layout
+│   │   ├── globals.css   # Global styles
+│   │   ├── spaces/       # # Routes related to viewing specific spaces
+│   │   │   └── [space_id]/ # # Dynamic route using space ID (e.g., /spaces/xyz789)
+│   │   │       └── page.tsx  # # Page component to display the visualization for a specific space
+│   │   └── ...  # new pages come in     
+│   ├── components/       # Reusable React components
+│   │   ├── ui/           # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
+│   │   ├── visualization/ # Visualization specific components
+│   │   │   ├── Canvas3D.tsx # Main 3D visualization component (handling layers, nodes)
+│   │   │   ├── NodeDetailsPanel.tsx # Panel to show node content/document preview
+│   │   │   ├── SearchBar.tsx      # Search input component
+│   │   │   ├── FlowView.tsx       # Git-style chat flow visualization
+│   │   │   ├── MiniMap.tsx        # Mini-map for Tree/Canvas view (Homepage)
+│   │   │   └── ...
+│   │   ├── home/           # Components specific to the homepage/spaces overview
+│   │   │   ├── SpaceCard.tsx      # Card component for gallery/tree view
+│   │   │   ├── SpaceGalleryView.tsx
+│   │   │   ├── SpaceListView.tsx
+│   │   │   ├── SpaceTreeView.tsx  # Carousel/Tree view component
+│   │   │   └── ...
+│   │   ├── shared/         # Components shared across different pages/features
+│   │   │   ├── DocumentUploadModal.tsx # Modal for uploading/adding documents
+│   │   │   ├── WebSearchModal.tsx      # Modal for web search functionality
+│   │   │   ├── ChatInterface.tsx       # Chat input/output component
+│   │   │   └── ...
+│   │   └── SettingsButton.tsx # Reusable settings access component
+│   ├── hooks/            # Custom React hooks (e.g., useGraphData, useApi, useChat)
+│   ├── lib/              # Utility functions, API client setup
+│   │   ├── api/          # # Centralized Go API client wrappers
+│   │   │   ├── fetcher.ts    # # Generic secure fetcher (handles credentials, tokens)
+│   │   │   ├── spaceClient.ts# # Client for space-related Go API endpoints
+│   │   │   ├── chatClient.ts # # Client for chat-related Go API endpoints
+│   │   │   └── ...         # # More clients as needed
+│   │   └── utils.ts      # General utility functions
+│   └── styles/           # Styling files (if not using CSS-in-JS or Tailwind extensively)
 ├── public/               # Static assets (images, etc.)
 ├── data/                 # Default sample text data for demo (Consider moving to backend or dedicated storage)
-├── .env.local            # Environment variables (ensure in .gitignore)
+├── .env.local            # # Contains NEXT_PUBLIC_API_URL for Go backend endpoint
 ├── next.config.ts        # Next.js configuration
 ├── tsconfig.json         # TypeScript configuration
 ├── package.json          # Project dependencies
