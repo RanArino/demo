@@ -1,50 +1,54 @@
 # Frontend Requirements
 
-## Homepage (`/`) or Spaces (` spaces/ `)
-- homepage after the user signed in and logged in 
-- the collection of the knowledge spaces
+## Spaces (` spaces/ `)
+- redirect logged-in users from / to /spaces automatically
+- the collection of the knowledge spaces with three distinctive views (Gallery, List, Canvas)
 - examples/references: homepage of the NotebookLM, Notion Database
 
 ### User Functinalities:
 - Owner/Admin can create a new knowledge space, a collection of contents/documents. (Based on Owner's full control, Admin's management capabilities)
-- Owner/Admin can delete a space from the setting button. (Only Owner has explicit permission to delete spaces)
-- Owner/Admin can edit the title, image, description, and keywords of the space from the setting button. (Based on Owner/Admin's control) setting button.
+- Owner can delete a space from the setting button. (Only Owner has explicit permission to delete spaces)
+- Owner/Admin can edit the title, image, description, and keywords of the space from the setting button (setting a button per space card). 
 
 ### Visual Requirement:
+0. Shared Sections
+- On top of the page, "search" section is established, keyword matching between user query and space title, keywords, and description.
+- On the left side (default is 30% of the entire screen), there is a sectin for filtering spaces through keyword tags (a list of tags with checkboxes)
+
 1. Gallery view:
 ![Home Gallery View](./images/home_gallery.png){ height=500px, width=800px }
-    - The size of each space card can be changed to small, medium, large.
-    - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords.
+    - The size of space cards can be changed to small, medium, large (but not individually). When user clicks setting button (controlling all three view settings), users can select it.
+    - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords as tooptip. 
 
 2. List/Table view:
 ![Home List View](./images/home_list.png){ height=500px, width=800px }
-    - The created space displays the following metadata; 
-        - (individual) icon, title, keywords, description(?), num of document_count, created_at, updated_at, visibility
-        - (team) icon, title, keywords, description(?), num of shared_with, document_count, created_at, updated_at
-    - `icon`(upload), `title`(text), `description`(text), `keywords`(multi-select), `visibility`(select) can be directly editable by clicking each section.
-    - if user click number of `shared_with`, the shared_with users list will be shown up; add new users from both spread sheet and manual way (idea).
-    - if user click number of `document_count`, the document list will be shown up.
+    - The created space displays the following metadata, depending on user registration type; 
+        - (individual) icon, title, keywords, description, num of document_count, created_at, updated_at, visibility
+        - (team) icon, title, keywords, description, num of shared_with, document_count, created_at, updated_at
+    - `title`(text), `description`(text), `keywords`(multi-select) can be directly editable by clicking each section. Once click them, change to text field; for keywords, selection.
+    - if user click number of `shared_with`, the shared_with users list will be shown up as a center modal.
+    - if user click number of `document_count`, the document list will be shown up as a center modal.
     - if user click the column names of `title`, num of `shared_with`, `document_count`, `created_at`, `updated_at`, do the sorting; make sure to show up the sign of ascending or descending.
 
 3. Tree(Canvas) view:
 ![Home Tree View](./images/home_tree.png){ height=500px, width=800px }
-- **Purpose**: Provides a visual, interactive way to browse Spaces. Displays each Space as a card featuring a mini keyword-graph preview, arranged in a navigable carousel. Allows quick entry into any Space's full canvas.
+- **Purpose**: Provides a visual, interactive way to browse Spaces. Displays each Space as a card featuring a 2D circular mind map preview of keywords, arranged in a navigable carousel. Allows quick entry into any Space's full canvas.
 - **Layout & Navigation**:
     - Features a central 3D circular carousel of Space cards on a full-area canvas background.
     - The front-most card is active (larger, fully opaque), while others recede visually (smaller scale, reduced opacity) to imply depth.
     - Rotate the carousel using horizontal mouse scroll, drag/swipe, or keyboard arrow keys (←/→).
 - **Space Card**:
-        - Displays an interactive mini-graph preview of the Space's keyword structure (hover pans slightly, scroll zooms).
+    - Displays an interactive 2D circular mind map preview of the Space's keyword structure. This preview shows a maximum of three layers: a central topic, up to four second-layer components connected to the center, and up to three third-layer keywords connected to each second-layer component.
+    - Standard 2D canvas interactions apply to the mind map preview: hover pans slightly, scroll zooms.
     - Includes a title bar at the bottom.
-    - On hover, reveals Space description, keywords (first few), and created_at date.
-    - Single-click or Spacebar (␠) triggers a Quick Preview: a larger modal view of the card with full pan/zoom in the graph and "Open Canvas" / "Close" actions.
+    - On hover over the card (outside the mind map area), reveals Space description, keywords (first few), and created_at date.
+    - Single-click or Spacebar (␠) triggers a Quick Preview: a larger modal view of the card with full pan/zoom capabilities in the mind map and "Open Canvas" / "Close" actions.
     - Double-click, Enter (⏎), or "Open Canvas" button navigates to the Space's dedicated full canvas view.
 - **Mini-map**:
     - A small thumbnail overview of the carousel is shown (e.g., bottom-left).
     - Clicking on the mini-map jumps the carousel to the corresponding position.
 - **Interactions & Editing**:
-    - Right-click / long-press on a card opens a context menu (Rename, Change Icon, Delete, Duplicate).
-    - Drag-and-drop one card onto another initiates a "Merge Spaces" confirmation.
+    - hovering on a card opens a setting (Rename, Change Icon, Delete, Duplicate).
     - Standard keyboard shortcuts (Esc, etc.) and accessibility features (ARIA roles, focus) are supported.
 - **Responsive Behavior**:
     - The carousel layout adapts to different screen sizes, potentially simplifying to a horizontal list or single-card swipe view on smaller devices.
