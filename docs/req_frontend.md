@@ -26,8 +26,9 @@
         - (individual) icon, title, keywords, description, num of document_count, created_at, updated_at, visibility
         - (team) icon, title, keywords, description, num of shared_with, document_count, created_at, updated_at
     - `title`(text), `description`(text), `keywords`(multi-select) can be directly editable by clicking each section. Once click them, change to text field; for keywords, selection.
-    - if user click number of `shared_with`, the shared_with users list will be shown up as a center modal.
-    - if user click number of `document_count`, the document list will be shown up as a center modal.
+    - Implementation using a **Parallel Route** (named `@modal` in the file system). This route captures the `space_id` parameter from the currently viewed space context. The parallel route allows these modals to appear overlaid on the current page without requiring a full page navigation.
+        - Clicking the number indicating `shared_with` users for a space will display a **center modal** listing the users who have access to that specific space.
+        - Clicking the number indicating `document_count` for a space will display a **center modal** listing the documents contained within that specific space.
     - if user click the column names of `title`, num of `shared_with`, `document_count`, `created_at`, `updated_at`, do the sorting; make sure to show up the sign of ascending or descending.
 
 3. Tree(Canvas) view:
