@@ -48,6 +48,7 @@
 - **Mini-map**:
     - A small thumbnail overview of the carousel is shown (e.g., bottom-left).
     - Clicking on the mini-map jumps the carousel to the corresponding position.
+    - An expanded preview of the mini-map can be opened (e.g., via a dedicated button or specific interaction). This preview is displayed using a **Parallel Route** (e.g., named `@miniMapModal` in the file system), allowing it to appear overlaid on the current page without requiring a full page navigation.
 - **Interactions & Editing**:
     - hovering on a card opens a setting (Rename, Change Icon, Delete, Duplicate).
     - Standard keyboard shortcuts (Esc, etc.) and accessibility features (ARIA roles, focus) are supported.
