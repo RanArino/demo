@@ -1,5 +1,31 @@
 -- Create tables for document service
 
+-- Spaces table for organizing documents
+CREATE TABLE IF NOT EXISTS spaces (
+    id VARCHAR(36) PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    icon TEXT,
+    cover_image TEXT,
+    keywords TEXT[],
+    owner_id VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_by VARCHAR(36) NOT NULL,
+    last_updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    last_updated_by VARCHAR(36) NOT NULL,
+    document_count INTEGER DEFAULT 0,
+    total_size_bytes BIGINT DEFAULT 0,
+    visibility VARCHAR(20) NOT NULL DEFAULT 'private', -- 'private', 'shared', 'public'
+    guest_access_enabled BOOLEAN DEFAULT FALSE,
+    guest_access_expiry TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'archived', 'deleted'
+    processing_status VARCHAR(20) DEFAULT NULL, -- 'processing', 'completed', 'failed'
+    is_personal BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    deleted_by VARCHAR(36)
+);
+
 -- Document metadata table
 CREATE TABLE IF NOT EXISTS documents (
     id VARCHAR(36) PRIMARY KEY,
