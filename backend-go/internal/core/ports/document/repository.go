@@ -66,6 +66,10 @@ type DocumentRepositoryPort interface {
 	// GetSpaceDocuments retrieves all documents assigned to a space
 	GetSpaceDocuments(ctx context.Context, spaceID string, userID string, offset, limit int) ([]*document.DocumentMetadata, int, error)
 
+	// GetUserRoleInSpace retrieves the user's role within a specific space.
+	// This is crucial for space-level permission checks.
+	GetUserRoleInSpace(ctx context.Context, userID string, spaceID string) (document.UserRole, error)
+
 	// WithTransaction starts a transaction and returns a repository that operates within it
 	// Used for operations that need to be atomic
 	WithTransaction(ctx context.Context) (DocumentRepositoryPort, error)
