@@ -737,3 +737,63 @@ func (r *DocumentRepository) GetSpaceDocuments(
 
 	return documents, totalCount, nil
 }
+
+// GetUserRoleInSpace retrieves the user's role within a specific space.
+func (r *DocumentRepository) GetUserRoleInSpace(
+	ctx context.Context,
+	userID string,
+	spaceID string,
+) (document.UserRole, error) {
+	query := `
+		SELECT role
+		FROM space_members
+		WHERE space_id = $1 AND user_id = $2 AND status = 'active'`
+
+	var roleStr string
+	err := r.get(ctx, &roleStr, query, spaceID, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// If user is the owner, they should have owner role even if not explicitly in space_members
+			ownerQuery := `
+				SELECT EXISTS (
+					SELECT 1 FROM spaces
+					WHERE id = $1 AND owner_id = $2
+				)`
+
+			var isOwner bool
+			err := r.get(ctx, &isOwner, ownerQuery, spaceID, userID)
+			if err != nil {
+				r.logger.Error("Error checking if user is space owner", "error", err, "space_id", spaceID, "user_id", userID)
+				return document.RoleGuest, nil
+			}
+
+			if isOwner {
+				return document.RoleOwner, nil
+			}
+
+			// Check for guest access
+			guestQuery := `
+				SELECT guest_access_enabled
+				FROM spaces
+				WHERE id = $1 AND guest_access_enabled = true 
+				AND (guest_access_expiry IS NULL OR guest_access_expiry > NOW())`
+
+			var guestEnabled bool
+			err = r.get(ctx, &guestEnabled, guestQuery, spaceID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				r.logger.Error("Error checking guest access", "error", err, "space_id", spaceID)
+			}
+
+			if guestEnabled {
+				return document.RoleGuest, nil
+			}
+
+			// If no explicit role in the space, default to Guest or a more restrictive role.
+			// Alternatively, could return an error if user must be an explicit member.
+			return document.RoleGuest, nil
+		}
+		return "", fmt.Errorf("failed to get user role in space: %w", err)
+	}
+
+	return document.UserRole(roleStr), nil
+}
