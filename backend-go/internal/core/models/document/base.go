@@ -118,11 +118,54 @@ type StructuredDocumentOutput struct {
 	MetadataJSON          string                 `json:"metadata_json,omitempty" db:"metadata_json"` // JSON serialized version of other metadata
 }
 
-// UserContext contains information about the user and their context
+// UserContext contains information about the user
 type UserContext struct {
 	UserID string `json:"user_id"`
+	// Tier and Domain might be examples of global attributes
 	Tier   string `json:"tier"`   // e.g., "free", "premium"
 	Domain string `json:"domain"` // e.g., "general", "academic", "financial"
+}
+
+// SpaceID is a unique identifier for a Space
+type SpaceID string
+
+// Space represents a container for documents and collaboration
+type Space struct {
+	ID                 SpaceID    `json:"id" db:"id"`
+	Title              string     `json:"title" db:"title"`
+	Description        string     `json:"description" db:"description"`
+	Icon               string     `json:"icon" db:"icon"`
+	CoverImage         string     `json:"cover_image" db:"cover_image"`
+	Keywords           []string   `json:"keywords" db:"keywords"`
+	OwnerID            string     `json:"owner_id" db:"owner_id"`
+	CreatedAt          time.Time  `json:"created_at" db:"created_at"`
+	CreatedBy          string     `json:"created_by" db:"created_by"`
+	LastUpdatedAt      time.Time  `json:"last_updated_at" db:"last_updated_at"`
+	LastUpdatedBy      string     `json:"last_updated_by" db:"last_updated_by"`
+	DocumentCount      int        `json:"document_count" db:"document_count"`
+	TotalSizeBytes     int64      `json:"total_size_bytes" db:"total_size_bytes"`
+	Visibility         string     `json:"visibility" db:"visibility"`
+	GuestAccessEnabled bool       `json:"guest_access_enabled" db:"guest_access_enabled"`
+	GuestAccessExpiry  *time.Time `json:"guest_access_expiry,omitempty" db:"guest_access_expiry"`
+	Status             string     `json:"status" db:"status"`
+	ProcessingStatus   string     `json:"processing_status" db:"processing_status"`
+	IsPersonal         bool       `json:"is_personal" db:"is_personal"`
+	IsDeleted          bool       `json:"is_deleted" db:"is_deleted"`
+	DeletedAt          *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
+	DeletedBy          string     `json:"deleted_by,omitempty" db:"deleted_by"`
+}
+
+// SpaceMember represents a user's membership and role within a Space
+type SpaceMember struct {
+	SpaceID           SpaceID         `json:"space_id" db:"space_id"`
+	UserID            string          `json:"user_id" db:"user_id"`
+	Email             string          `json:"email,omitempty" db:"email"`
+	Role              UserRole        `json:"role" db:"role"`
+	JoinedAt          time.Time       `json:"joined_at" db:"joined_at"`
+	InvitedBy         string          `json:"invited_by,omitempty" db:"invited_by"`
+	Status            string          `json:"status" db:"status"` // e.g., "active", "pending", "declined"
+	LastAccessAt      *time.Time      `json:"last_access_at,omitempty" db:"last_access_at"`
+	CustomPermissions map[string]bool `json:"custom_permissions,omitempty" db:"-"` // For any custom permissions overrides
 }
 
 // FileDownload contains information needed to download a file
@@ -160,6 +203,7 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   true,
 		"change_permissions": true,
 		"share":              true,
+		"upload_to_space":    true,
 	},
 	RoleAdmin: {
 		"view":               true,
@@ -170,6 +214,7 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   false,
 		"change_permissions": true,
 		"share":              true,
+		"upload_to_space":    true,
 	},
 	RoleEditor: {
 		"view":               true,
@@ -180,6 +225,7 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   false,
 		"change_permissions": false,
 		"share":              true,
+		"upload_to_space":    true,
 	},
 	RoleCommenter: {
 		"view":               true,
@@ -190,6 +236,7 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   false,
 		"change_permissions": false,
 		"share":              false,
+		"upload_to_space":    false,
 	},
 	RoleViewer: {
 		"view":               true,
@@ -200,6 +247,7 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   false,
 		"change_permissions": false,
 		"share":              false,
+		"upload_to_space":    false,
 	},
 	RoleGuest: {
 		"view":               true,
@@ -210,6 +258,7 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   false,
 		"change_permissions": false,
 		"share":              false,
+		"upload_to_space":    false,
 	},
 	RoleAuditor: {
 		"view":               true,
@@ -220,5 +269,20 @@ var RolePermissions = map[UserRole]map[string]bool{
 		"permanent_delete":   false,
 		"change_permissions": false,
 		"share":              false,
+		"upload_to_space":    false,
 	},
 }
+
+// Action strings (optional, for consistency)
+const (
+	ActionView              = "view"
+	ActionDownload          = "download"
+	ActionEdit              = "edit"
+	ActionComment           = "comment"
+	ActionDelete            = "delete"
+	ActionPermanentDelete   = "permanent_delete"
+	ActionChangePermissions = "change_permissions"
+	ActionShare             = "share"
+	ActionUploadToSpace     = "upload_to_space"
+	ActionProcessDocument   = "process" // Example, corresponds to "process" in ReprocessDocument
+)
