@@ -106,10 +106,14 @@ CREATE TABLE IF NOT EXISTS space_members (
 );
 
 -- Create indexes
+CREATE INDEX idx_spaces_owner_id ON spaces(owner_id);
+CREATE INDEX idx_spaces_visibility ON spaces(visibility);
 CREATE INDEX idx_documents_owner_id ON documents(owner_id);
 CREATE INDEX idx_documents_status ON documents(status);
 CREATE INDEX idx_doc_space_assignments_doc_id ON document_space_assignments(document_id);
 CREATE INDEX idx_doc_space_assignments_space_id ON document_space_assignments(space_id);
 CREATE INDEX idx_document_permissions_user_id ON document_permissions(user_id);
 CREATE INDEX idx_space_members_user_id ON space_members(user_id);
-CREATE INDEX idx_space_members_space_id ON space_members(space_id); 
+CREATE INDEX idx_space_members_space_id ON space_members(space_id);
+CREATE INDEX idx_space_members_email ON space_members(email);
+CREATE INDEX idx_space_members_status ON space_members(status); 
