@@ -49,7 +49,7 @@ func (m *DocumentLifecycleManager) HandleFileUpload(
 	file *document.DocumentContent,
 ) (*document.DocumentMetadata, error) {
 	// First, check if the user has permission to upload to this space
-	authorized, err := m.isUserAuthorizedForSpace(ctx, userID, spaceID, "upload")
+	authorized, err := m.isUserAuthorizedForSpace(ctx, userID, spaceID, "upload_to_space")
 	if err != nil {
 		return nil, fmt.Errorf("failed to check authorization: %w", err)
 	}
@@ -306,7 +306,7 @@ func (m *DocumentLifecycleManager) GetPresignedUploadURL(
 	contentType string,
 ) (*document.StorageUploadInfo, error) {
 	// Check permissions
-	authorized, err := m.isUserAuthorizedForSpace(ctx, userID, spaceID, "upload")
+	authorized, err := m.isUserAuthorizedForSpace(ctx, userID, spaceID, "upload_to_space")
 	if err != nil {
 		return nil, fmt.Errorf("failed to check authorization: %w", err)
 	}
@@ -561,28 +561,26 @@ func (m *DocumentLifecycleManager) isUserAuthorizedForSpace(
 	spaceID string,
 	action string,
 ) (bool, error) {
-	// In a real implementation, this would call a space service or use a space repository
-	// For the demo, we'll just assume the user is an Owner (for simplicity)
-	// This allows us to test the upload flow without implementing space permissions
-
-	// Normally we'd do something like:
-	// role, err := spaceService.GetUserRole(ctx, userID, spaceID)
-	// if err != nil {
-	//     return false, err
-	// }
-
-	// For demo purposes, assume everyone is an Owner
-	role := document.RoleOwner
+	// Get the user's role in the specified space
+	role, err := m.repository.GetUserRoleInSpace(ctx, userID, spaceID)
+	if err != nil {
+		// If GetUserRoleInSpace returns an error (e.g., DB connection issue),
+		// or if we want to be strict and not default to Guest on error here.
+		// For now, let's assume an error means not authorized, or the role couldn't be determined.
+		return false, fmt.Errorf("could not determine user role in space '%s': %w", spaceID, err)
+	}
 
 	// Check if the role has the required permission
 	permissions, exists := document.RolePermissions[role]
 	if !exists {
-		return false, fmt.Errorf("invalid role: %s", role)
+		// This case means the role itself is not defined in RolePermissions map, which is an issue.
+		return false, fmt.Errorf("invalid role '%s' found for user '%s' in space '%s'", role, userID, spaceID)
 	}
 
 	allowed, exists := permissions[action]
 	if !exists {
-		return false, fmt.Errorf("unknown action: %s", action)
+		// This means the action string is not a key in the permissions for that role.
+		return false, fmt.Errorf("unknown action '%s' for role '%s' in space '%s'", action, role, spaceID)
 	}
 
 	return allowed, nil
