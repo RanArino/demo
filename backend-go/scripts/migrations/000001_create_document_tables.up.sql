@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS documents (
 -- Document space assignments table for many-to-many relationship
 CREATE TABLE IF NOT EXISTS document_space_assignments (
     document_id VARCHAR(36) NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-    space_id VARCHAR(36) NOT NULL,
+    space_id VARCHAR(36) NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
     assigned_at TIMESTAMP WITH TIME ZONE NOT NULL,
     assigned_by VARCHAR(36) NOT NULL,
     PRIMARY KEY (document_id, space_id)
@@ -88,12 +88,18 @@ CREATE TABLE IF NOT EXISTS document_permissions (
     UNIQUE (document_id, user_id)
 );
 
--- Space members table for space-level permissions (simplified for this demo)
+-- Space members table for space-level permissions
 CREATE TABLE IF NOT EXISTS space_members (
     id SERIAL PRIMARY KEY,
-    space_id VARCHAR(36) NOT NULL,
+    space_id VARCHAR(36) NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
     user_id VARCHAR(36) NOT NULL,
+    email VARCHAR(255),
     role VARCHAR(20) NOT NULL,
+    joined_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    invited_by VARCHAR(36),
+    status VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'pending', 'declined'
+    last_access_at TIMESTAMP WITH TIME ZONE,
+    custom_permissions JSONB,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     UNIQUE (space_id, user_id)
