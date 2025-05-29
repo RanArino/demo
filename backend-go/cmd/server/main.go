@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	sqsQueue "github.com/ran/demo/backend-go/internal/infra/queue/sqs"
 	"github.com/ran/demo/backend-go/internal/infra/storage/postgres"
 	s3Storage "github.com/ran/demo/backend-go/internal/infra/storage/s3"
+	"github.com/ran/demo/backend-go/internal/workers"
 )
 
 func main() {
@@ -131,6 +133,27 @@ func main() {
 		logger,
 	)
 
+	// Create and start document parser worker
+	documentWorker := workers.NewDocumentParserWorker(
+		queueService,
+		documentRepo,
+		storageService,
+		parserOrchestrator,
+		logger,
+	)
+
+	// Start worker in a goroutine
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		logger.Info("Starting document parser worker")
+		documentWorker.Start(ctx)
+	}()
+
 	// Start server
 	go func() {
 		if err := server.Start(); err != nil {
@@ -146,10 +169,22 @@ func main() {
 
 	// Shutdown gracefully
 	logger.Info("Shutting down server...")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	// Cancel context to stop workers
+	cancel()
+
+	// Stop the worker gracefully
+	documentWorker.Stop()
+
+	// Wait for worker to finish
+	logger.Info("Waiting for workers to stop...")
+	wg.Wait()
+
+	// Shutdown server
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("Server shutdown failed", "error", err)
 	}
 
