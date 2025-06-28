@@ -7,6 +7,195 @@
 3. **Scalable Clustering**: No fixed hierarchy levels - clusters can contain clusters to any depth
 4. **Global vs Space Context**: Knowledge exists globally but can be organized differently in each space
 
+## Service Architecture Overview
+
+The following diagram illustrates the microservice boundaries and the key entities within each service:
+
+```mermaid
+erDiagram
+    %% --- User Service ---
+    USERS {
+        UUID id PK
+        string clerk_user_id
+        string email
+        string full_name
+    }
+    USER_PREFERENCES {
+        UUID user_id PK, FK
+        string theme
+        string language
+        jsonb canvas_settings
+    }
+
+    %% --- Knowledge Service ---
+    SPACES {
+        UUID id PK
+        string title
+        UUID owner_id FK
+        integer document_count
+    }
+    CONTENT_SOURCES {
+        UUID id PK
+        UUID owner_id FK
+        string title
+        char(64) original_blob_hash FK
+        char(64) processed_blob_hash FK
+    }
+    KNOWLEDGE_CONTENT_BLOBS {
+        char(64) blob_hash PK
+        string s3_bucket
+        string s3_key
+    }
+
+    %% --- Canvas Service ---
+    NODES {
+        UUID id PK
+        UUID space_id FK
+        UUID content_source_id FK
+        UUID parent_node_id FK
+        UUID clustering_model_version_id FK
+        UUID dr_model_version_id FK
+    }
+    EDGES {
+        string id PK
+        string start_node_id FK
+        string end_node_id FK
+    }
+    COMMENTS {
+        UUID id PK
+        UUID node_id FK
+        text content_comment
+        UUID created_by FK
+    }
+
+    %% --- ML Service ---
+    ML_MODELS {
+        UUID id PK
+        string model_name
+        UUID owner_id FK
+        UUID space_id FK
+        UUID active_version_id FK
+    }
+    ML_MODEL_VERSIONS {
+        UUID id PK
+        UUID model_id FK
+        integer version_number
+        string status
+    }
+
+    %% --- Chat Service ---
+    AI_AGENTS {
+        UUID id PK
+        string name
+        UUID created_by FK
+    }
+    CHAT_CONTENT_BLOBS {
+        char(64) blob_hash PK
+        string s3_bucket
+        string s3_key
+    }
+    CHAT_SESSIONS {
+        UUID id PK
+        UUID space_id FK
+        UUID user_id FK
+    }
+    CHAT_BRANCHES {
+        UUID id PK
+        UUID session_id FK
+        UUID tip_message_id FK
+        UUID fork_message_id FK
+        UUID parent_branch_id FK
+        UUID created_by FK
+    }
+    CHAT_MESSAGES {
+        UUID id PK
+        UUID session_id FK
+        UUID parent_message_id FK
+        char(64) content_blob_hash FK
+    }
+    AGENT_GENERATIONS {
+        UUID id PK
+        UUID final_message_id FK
+        UUID agent_id FK
+        char(64) content_blob_hash FK
+    }
+    MESSAGE_CONTEXT_LINKS {
+        UUID id PK
+        UUID query_message_id FK
+        UUID response_message_id FK
+        UUID node_id FK
+    }
+
+    %% --- Vector Service (Qdrant) ---
+    USER_VECTORS {
+        string collection_name "USER_VECTORS_{user_id}"
+        string description "Per-user private content"
+    }
+    WEB_VECTORS {
+        string collection_name "public_web_vectors"
+        string description "Shared public web content"
+    }
+
+    %% --- Relationships ---
+    USERS ||--|{ USER_PREFERENCES : "has"
+    USERS ||--o{ SPACES : "owns"
+    USERS ||--o{ CONTENT_SOURCES : "owns"
+    USERS ||--o{ ML_MODELS : "owns"
+    USERS ||--o{ AI_AGENTS : "creates"
+    USERS ||--o{ COMMENTS : "creates"
+    USERS ||--o{ CHAT_SESSIONS : "initiates"
+    USERS ||--o{ CHAT_BRANCHES : "creates"
+
+    SPACES ||--o{ NODES : "contains"
+    SPACES ||--o{ CHAT_SESSIONS : "hosts"
+    SPACES ||--o{ ML_MODELS : "is_specific_to"
+
+    CONTENT_SOURCES ||--o{ NODES : "is_represented_by"
+    CONTENT_SOURCES }|--|| KNOWLEDGE_CONTENT_BLOBS : "has_original_blob"
+    CONTENT_SOURCES }|--|| KNOWLEDGE_CONTENT_BLOBS : "has_processed_blob"
+
+    %% Conceptual link to Vector DB
+    USERS }o..o{ USER_VECTORS : "identifies collection"
+    CONTENT_SOURCES }o..o{ USER_VECTORS : "is stored in"
+    CONTENT_SOURCES }o..o{ WEB_VECTORS : "is stored in"
+
+    NODES ||--o{ EDGES : "is_start_of"
+    NODES ||--o{ EDGES : "is_end_of"
+    NODES ||--o{ COMMENTS : "has"
+    NODES }o--o{ NODES : "is_child_of"
+    NODES ||--o{ MESSAGE_CONTEXT_LINKS : "provides_context_for"
+    
+    ML_MODELS ||--o{ ML_MODEL_VERSIONS : "has"
+    ML_MODELS }o--|| ML_MODEL_VERSIONS : "has_active_version"
+    ML_MODEL_VERSIONS ||--o{ NODES : "informs_clustering"
+    ML_MODEL_VERSIONS ||--o{ NODES : "informs_dr"
+
+    CHAT_SESSIONS ||--o{ CHAT_BRANCHES : "contains"
+    CHAT_SESSIONS ||--o{ CHAT_MESSAGES : "contains"
+
+    CHAT_BRANCHES }o--o{ CHAT_BRANCHES : "forks_from"
+    CHAT_BRANCHES }o--|| CHAT_MESSAGES : "has_tip_message"
+    CHAT_BRANCHES }o--o{ CHAT_MESSAGES : "forks_from_message"
+
+    CHAT_MESSAGES }o--o{ CHAT_MESSAGES : "is_reply_to"
+    CHAT_MESSAGES }|--o{ CHAT_CONTENT_BLOBS : "has_content_in"
+    CHAT_MESSAGES ||--o{ AGENT_GENERATIONS : "is_result_of"
+    CHAT_MESSAGES ||--o{ MESSAGE_CONTEXT_LINKS : "is_query_for"
+    CHAT_MESSAGES ||--o{ MESSAGE_CONTEXT_LINKS : "is_response_for"
+    
+    AGENT_GENERATIONS ||--o{ AI_AGENTS : "is_performed_by"
+    AGENT_GENERATIONS }|--o{ CHAT_CONTENT_BLOBS : "has_content_in"
+
+```
+
+This architecture demonstrates the clear separation of concerns across six distinct services:
+- **User Service**: User management and preferences
+- **Knowledge Service**: Content sources and blob storage
+- **Canvas Service**: Interactive node visualization (DynamoDB)
+- **Vector Service**: Embeddings and semantic search (Qdrant)
+- **ML Service**: Machine learning models and versioning
+- **Chat Service**: Conversational AI and agent orchestration
+
 ---
 
 ## Knowledge Service
