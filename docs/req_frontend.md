@@ -7,28 +7,34 @@
 
 ### User Functinalities:
 - Owner/Admin can create a new knowledge space, a collection of contents/documents. (Based on Owner's full control, Admin's management capabilities)
+    - When a new space is created, a modal should immediately appear, prompting the user to upload content (e.g., via a drag-and-drop interface that shows progress).
 - Owner can delete a space from the setting button. (Only Owner has explicit permission to delete spaces)
+    - Deletion will be a "soft delete," moving the space to an archived state with a potential recovery option.
+    - To confirm deletion, the user must type the name of the space into a confirmation dialog.
 - Owner/Admin can edit the title, image, description, and keywords of the space from the setting button (setting a button per space card). 
 
 ### Visual Requirement:
 0. Shared Sections
-- On top of the page, "search" section is established, keyword matching between user query and space title, keywords, and description.
-- On the left side (default is 30% of the entire screen), there is a sectin for filtering spaces through keyword tags (a list of tags with checkboxes)
+- On top of the page, a "search" section is established for querying space titles, keywords, and descriptions.
+    - The search should trigger automatically as the user types or when they navigate away from the search input.
+- On the left side (default is 30% of the entire screen), there is a section for filtering spaces using keyword tags.
+    - Filtering logic: The final list of spaces will be the result of `Tags` AND `Search Query`. Within the tag list, the logic is OR (e.g., selecting "tag1" and "tag2" shows spaces with either tag).
+    - Tag generation: The list will display all unique tags from all spaces, limited to showing the first 30 tags, with the rest accessible via a scrollbar.
 
 1. Gallery view:
 ![Home Gallery View](./images/home_gallery.png){ height=500px, width=800px }
     - The size of space cards can be changed to small, medium, large (but not individually). When user clicks setting button (controlling all three view settings), users can select it.
-    - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords as tooptip. 
+    - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords as a tooltip. Users can upload custom images for the cover.
 
 2. List/Table view:
 ![Home List View](./images/home_list.png){ height=500px, width=800px }
     - The created space displays the following metadata, depending on user registration type; 
         - (individual) icon, title, keywords, description, num of document_count, created_at, updated_at, visibility
         - (team) icon, title, keywords, description, num of shared_with, document_count, created_at, updated_at
-    - `title`(text), `description`(text), `keywords`(multi-select) can be directly editable by clicking each section. Once click them, change to text field; for keywords, selection.
+    - `title`(text) and `description`(text) can be directly edited. `keywords` are managed via a free-text field with auto-completion for existing tags. Changes are saved automatically when the user clicks away from the edited field (on-blur), requiring no explicit "Save" button.
     - Implementation using a **Parallel Route** (named `@modal` in the file system). This route captures the `space_id` parameter from the currently viewed space context. The parallel route allows these modals to appear overlaid on the current page without requiring a full page navigation.
         - Clicking the number indicating `shared_with` users for a space will display a **center modal** listing the users who have access to that specific space.
-        - Clicking the number indicating `document_count` for a space will display a **center modal** listing the documents contained within that specific space.
+        - Clicking the number indicating `document_count` for a space will display a **center modal** listing the documents contained within that specific space. For now, this is a view-only list.
     - if user click the column names of `title`, num of `shared_with`, `document_count`, `created_at`, `updated_at`, do the sorting; make sure to show up the sign of ascending or descending.
 
 3. Tree(Canvas) view:
@@ -37,6 +43,7 @@
 - **Layout & Navigation**:
     - Features a central 3D circular carousel of Space cards on a full-area canvas background.
     - The front-most card is active (larger, fully opaque), while others recede visually (smaller scale, reduced opacity) to imply depth.
+    - **Background Theme:** The canvas background will be themed. A "galaxy" theme will be used for dark mode, and a "nature/tree" theme for light mode.
     - Rotate the carousel using horizontal mouse scroll, drag/swipe, or keyboard arrow keys (←/→).
 - **Space Card**:
     - Displays an interactive 2D circular mind map preview of the Space's keyword structure. This preview shows a maximum of three layers: a central topic, up to four second-layer components connected to the center, and up to three third-layer keywords connected to each second-layer component.
