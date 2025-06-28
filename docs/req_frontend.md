@@ -65,7 +65,14 @@
 
 ## Space Page (`spaces/{space_id}`)
 ![Space Page](./images/space.png){ height=500px, width=800px }
+
+### Layout
+- The default view for laptop screens will be a 3-part layout: Canvas (left), Document Preview (middle), and Chat (right).
+- All three panels must be resizable.
+- Each panel must be individually collapsible via a dedicated button, allowing the user to focus on one or two panels at a time.
+
 ### User Functinalities:
+- **Role Management**: A "Share" or "Manage Access" button must be present. Clicking this button will open a modal where Owners/Admins can invite other users and assign them roles (Editor, Commenter, Viewer, etc.).
 - Owner/Admin can delete the space from the setting button. (Only Owner has explicit permission to delete spaces)
 - Owner/Admin can edit the title, image, description, and keywords of the space from the setting button. (Based on Owner/Admin's control) setting button.
 - Editors can upload and delete documents, use of chat session.
@@ -109,7 +116,7 @@
 - **Active View (Node Selected)**: Displays a "Node Detail View".
     - Shows relevant content or metadata for the selected node (Document, Cluster, or Chunk).
     - If a node is selected, it simply auto-scrolling to the corresponding text section; Clicking Document Node -> the summary (top) section, Clicking Chunk Node -> the corresponding chunk section, Clicking Cluster Node -> the cluster (top) section.
-    - Includes a mechanism (e.g., "Back" button) to return to the Document List View.
+    - Includes a mechanism (e.g., "Back" button) to return to the Document List View. This view remains active until the user either clicks the "Back" button, selects a *different* node on the canvas, or presses the `Escape` key.
     - (Considering) node selection changes the canvas view to [**Textual Info Detail**](#textual-info-detail)
 
 #### (3) Chat Session:
@@ -121,8 +128,8 @@
     1. **Standard Mode (Default)**:
         - AI responses are displayed as text within the chat panel using streaming output (text appears progressively, word-by-word or chunk-by-chunk).
         - The content view automatically scrolls down to keep the latest message visible.
-    2. **Annotation Mode (Optional)**:
-        - (Mechanism for activation needs definition - e.g., user toggle, specific prompt instructions).
+    2. **Annotation Mode**:
+        - Activated via a dedicated toggle switch.
         - The response in the chat panel is short, structured, and acts as a summary or index to annotations placed elsewhere.
         - Parts of the AI's findings/explanations are visualized directly as annotations (e.g., speech bubbles, comments) on the Canvas (associated with relevant nodes) and/or the Document Preview (associated with relevant text chunks).
 - **Message-Level Interactions (Applicable to both User Queries & AI Responses where appropriate)**:
@@ -136,6 +143,7 @@
         - Clicking on a specific message bubble (either a user query or its corresponding AI response) triggers highlighting of the associated context used/retrieved during that conversational turn.
         - Canvas Integration: Relevant nodes (Documents, Clusters, Chunks) on the Left Canvas are visually highlighted.
         - Document Preview Integration: Relevant text chunks within the Right-Upper Panel are visually highlighted when the corresponding document is displayed.
+        - This highlighting will use a distinct style (e.g., different border color) and will increase the transparency of all non-highlighted elements to focus user attention.
         - (Assumption: Each query-response pair internally stores the IDs of the documents, clusters, and chunks involved in its generation to enable this linking.)
 - **Context Highlighting (During/After Generation)**:
     - Canvas Integration: Nodes on the Canvas (2D/3D visualization) that correspond to the documents/clusters/chunks used as retrieved context for the generated response are visually highlighted.
@@ -145,7 +153,7 @@
     - When expanded by the user (e.g., by clicking), this section reveals details about the retrieval process used to generate the response (e.g., list of retrieved chunks/documents, relevance scores, potentially intermediate reasoning steps).
 - **Git-style Chat Flow Visualization**
     1. Activation & Location:
-        - Implemented as a toggleable "Flow View" mode accessible within the main Right-Lower Chat Panel, alternating with the standard chronological message list view.
+        - Activated via a toggle switch in the chat panel, alternating with the standard chronological list view.
     2. Visualization Layout & Style:
         - Presents the chat history as an interactive diagram/graph, similar to Miro boards or Git visualizers.
         - Linear sequences of query-response pairs flow vertically downwards by default.
@@ -178,11 +186,12 @@
                 - The original branch (A -> B -> C) remains untouched visually.
                 - A new box (B_edited) is created, branching off from the parent of the edited box (A), resulting in: A -> B -> C AND A -> B_edited.
             - If the edited box has no children, it simply triggers regeneration and updates the answer in that box's branch. (Self-correction: Based on the logic for boxes with children, it's more consistent to always create a new branch upon editing a past query: A -> B, edit B => A -> B AND A -> B_edited). Let's adopt this: Editing a user query always creates a new branch from its parent.
+        - **Branching in Linear View**: The standard (linear) chat view will *always* remain sorted chronologically based on when a query was initiated. It does not re-order to show branches contiguously.
         - Editing AI Answer:
             - Allows users to directly modify the text of a generated AI answer within a box.
             - Crucially: This revision must be registered by the system and potentially used to influence or improve future chat generations (acting as a form of explicit feedback or correction for the RAG system). The exact mechanism for incorporating this feedback needs further definition based on the RAG system's capabilities.
     5. Backend Processing:
-        - The backend (specified as Go-based) must support concurrent execution of AI generation requests when multiple branches are explored or generated simultaneously.
+        - The backend must support concurrent execution of AI generation requests. The frontend UI must show distinct "generating..." indicators for each concurrent request in the flow view.
     6. Complexity Management:
         - Implement functionality to collapse/expand entire branches to simplify complex views.
         - Provide an option or default behavior to highlight the K most recent chat boxes and their direct parent lineage, fading out older or less relevant branches.
