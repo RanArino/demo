@@ -1,11 +1,11 @@
 # Architecture Decision Report: Hierarchical Text Visualization System
 
-**Document Version:** 1.0  
-**Last Updated:** 2025-05-23  
+**Document Version:** 3.0  
+**Last Updated:** 2025-06-23    
 
 ## Executive Summary
 
-This document outlines the architectural decision process and final design for the Hierarchical Text Visualization production system. After evaluating multiple architectural patterns, we have adopted a **Hybrid Shared-Database Distributed Services Architecture** with selective microservice extraction, supported by a **multi-protocol communication strategy**.
+This document outlines the architectural decision process and final design for the Hierarchical Text Visualization production system. After evaluating multiple architectural patterns, we have adopted a **Full Microservices Architecture** with service-specific databases, supported by a **multi-repository distribution strategy** and **event-driven communication** patterns.
 
 ## 1. Initial Architecture Considerations
 
@@ -19,10 +19,11 @@ This document outlines the architectural decision process and final design for t
 
 **Identified Risks and Challenges:**
 ```
-❌ Network Latency Issues:
-- Real-time 3D visualization requires <50ms response times
-- Chat streaming would be interrupted by service boundaries
-- Interactive search highlighting needs immediate data access
+✅ Network Latency Solutions:
+- RESTful API design with efficient caching strategies
+- Event streaming for real-time updates (Apache Kafka)
+- Intelligent caching layers and CDN integration
+- gRPC for high-performance inter-service communication
 
 ❌ Database Complexity:
 - Document ↔ Space ↔ User relationships require ACID transactions
@@ -81,7 +82,7 @@ chat_messages ←→ chat_context_links
 - ❌ Technology stack limitations
 - ❌ Team boundary enforcement challenges
 
-### 2.2 Requirements for Service Separation
+### 2.2 Shared-Database Distributed Services (Selected Solution)
 
 **Scalability Requirements:**
 - ML processing needs GPU resources
@@ -89,511 +90,341 @@ chat_messages ←→ chat_context_links
 - Document processing has burst workloads
 - Visualization generation is compute-intensive
 
-**Management Requirements:**
-- Independent deployment cycles
-- Service-specific monitoring and alerting
-- Technology stack flexibility
-- Team ownership boundaries
+**Strategic Benefits:**
+- ACID transactions across all entities maintained
+- Low latency for real-time features preserved
+- Service boundaries established for future evolution
+- Reduced operational overhead compared to full microservices
+- Technology stack flexibility for specific services
 
-## 3. Final Architecture Decision
+**Managed Trade-offs:**
+- Service coordination through shared database schema
+- Careful API design to maintain service boundaries
+- Gradual evolution path to full microservices when needed
+- Shared infrastructure reduces operational complexity
 
-### 3.1 Hybrid Shared-Database Distributed Services
+## 3. Initial Architecture Decision: Shared-Database Distributed Services (Phase 1)
 
-**Core Principle:** Separate services for operational flexibility while maintaining shared data access for consistency.
+**Decision Rationale:** Based on the evaluation in section 2, we initially selected the Shared-Database Distributed Services approach to balance operational simplicity with service autonomy.
 
-```
-Architecture Components:
+### 3.1 Multi-Repository Strategy with Shared Database
 
-🔄 Shared-Database Services (Uncertain Boundaries):
-├── Document Service       # Document processing and metadata
-├── Space Service         # Space management and organization  
-├── Chat Service          # RAG chat and conversation management
-├── Search Service        # Vector search and indexing
-├── Visualization Service # Graph layout and coordinate generation
-└── User Profile Service  # User preferences and settings
+**Core Principle:** Distributed repository management with centralized orchestration and shared-database services for operational flexibility.
 
-🔒 Dedicated Microservices (Clear Boundaries):
-├── Authentication Service # User auth, sessions, tokens
-├── Notification Service   # Email, push, in-app notifications
-├── File Storage Service   # S3 integration and file management
-└── Audit Service         # Logging and compliance tracking
+**Repository Distribution (Phase 1 Plan):**
 
-🌐 External Services:
-├── ML Service (Python)   # Embeddings, clustering, dimensionality reduction
-├── Qdrant Vector Store   # Vector similarity search
-├── Gemini API           # LLM text generation
-└── AWS Infrastructure   # S3, SQS, monitoring
-```
+**scaler (Central Hub Repository):**
+- Orchestration & Deployment infrastructure
+- API Gateway (Kong) configuration for public APIs
+- Architecture documentation and service specifications
+- Repository governance and feature implementation guidelines
 
-### 3.2 Service Boundary Decision Matrix
+**scaler-hub (Shared-Database Services):**
+- Document Service for document processing and metadata
+- Chat Service for RAG chat and conversation management  
+- Vector Service for vector similarity search and indexing
+- ML Service for document clustering, 2D/3D positioning, and model management
+- Shared PostgreSQL database with coordinated schema management
+- Common business logic and external service wrappers
+- Internal gRPC APIs for service communication
 
-```go
-type ServiceClassification struct {
-    // Immediate Microservice Criteria
-    WellUnderstoodDomain     bool  // Auth, storage, notifications
-    RegulatoryRequirements   bool  // Security isolation needs
-    IndependentBusinessValue bool  // Can be monetized separately
-    ClearDataOwnership      bool  // No foreign key dependencies
-    
-    // Shared-Database Service Criteria  
-    UncertainBoundaries     bool  // Document vs Space ownership unclear
-    TightDataCoupling       bool  // Complex cross-entity transactions
-    FrequentDataAccess      bool  // Real-time features requiring low latency
-    SharedBusinessLogic     bool  // Overlapping business rules
-}
+**scaler-front (Frontend Repository):**
+- Next.js application with RESTful API integration
+- 3D visualization components and real-time chat interface
+- WebSocket management for real-time features
 
-// Decision Logic:
-func ClassifyService(name string, criteria ServiceClassification) ServiceType {
-    if criteria.WellUnderstoodDomain && 
-       criteria.ClearDataOwnership && 
-       !criteria.TightDataCoupling {
-        return MICROSERVICE
-    }
-    
-    if criteria.UncertainBoundaries || 
-       criteria.TightDataCoupling || 
-       criteria.FrequentDataAccess {
-        return SHARED_DATABASE_SERVICE
-    }
-    
-    return EVALUATE_LATER
-}
-```
+**Individual Microservices (Selective Extraction):**
+- scaler-auth for user authentication and sessions
+- scaler-audit for logging and compliance tracking
+- scaler-notifications for messaging services
 
-### 3.3 Architecture Evolution Strategy
+### 3.2 Database Strategy (Phase 1)
 
-**Progressive Service Extraction:**
-```
-Phase 1: Hybrid Launch
-├── Start with immediate microservices (auth, notifications)
-├── Deploy shared-database services for core business logic
-└── Monitor service boundaries and data access patterns
+**Shared Database Approach:**
+- Central PostgreSQL database for core business entities
+- Coordinated schema management across services
+- ACID transactions maintained across service boundaries
+- Selective polyglot persistence for specialized needs (DynamoDB for Canvas, ClickHouse for Activity)
 
-Phase 2: Boundary Emergence
-├── Analyze actual data access patterns
-├── Identify clear service ownership
-├── Monitor scaling and team boundary formation
-└── Measure extraction criteria satisfaction
+### 3.3 Communication Strategy (Phase 1)
 
-Phase 3: Selective Extraction
-├── Extract services meeting microservice criteria
-├── Migrate dedicated data models
-├── Implement service-to-service communication
-└── Maintain shared database for remaining services
-```
+**Hybrid Communication Patterns:**
+- RESTful APIs for public endpoints via Kong gateway
+- gRPC for internal service-to-service communication
+- WebSockets for real-time features
+- Shared database access for complex queries requiring joins
 
-**Extraction Triggers:**
-```go
-func ShouldExtractService(serviceName string) bool {
-    return (HasClearDataOwnership(serviceName) && 
-            HasDedicatedTeam(serviceName)) ||
-           (RequiresDifferentScaling(serviceName) && 
-            HasStableInterfaces(serviceName)) ||
-           (RegulatoryIsolationRequired(serviceName))
-}
-```
+## 4. Revised Final Architecture: Full Microservices (Phase 2)
 
-## 4. Communication Strategy
+**Architecture Evolution Rationale:**
 
-### 4.1 Multi-Protocol Approach
+During the database table development phase, detailed analysis revealed that the service boundaries were clearer than initially anticipated, and the data relationships could be effectively managed through event-driven patterns. This discovery, combined with the team's growing confidence in microservices patterns and the need for independent scaling, led to the decision to transition to a full microservices architecture.
 
-Our hybrid architecture employs different communication protocols optimized for specific interaction patterns:
+**Key Factors Leading to Revision:**
+- **Clear Service Boundaries**: Database design revealed natural domain boundaries with minimal cross-service dependencies
+- **Independent Scaling Requirements**: Different services showed distinct scaling patterns (GPU for ML, high concurrency for chat, storage optimization for knowledge)
+- **Technology Optimization**: Opportunity to use optimal technology stacks per service (Go for performance, Python for ML)
+- **Team Growth**: Increased confidence in distributed systems patterns and operational capabilities
+- **Event-Driven Maturity**: Better understanding of event streaming and eventual consistency patterns
+
+### 4.1 Complete Microservices Architecture
+
+**Core Business Microservices:**
 
 ```
-Frontend ↔ Backend:     REST + WebSockets
-Service ↔ Service:      gRPC  
-Backend ↔ External:     REST
+🔍 Knowledge Service (scaler-knowledge):
+- Document upload, processing, metadata management
+- Content source management and blob storage
+- Space creation, settings, and permissions
+- Content extraction and indexing
+- Dedicated PostgreSQL database
+
+🎨 Canvas Service (scaler-canvas):
+- Node positioning and visualization management
+- Real-time collaboration state management
+- Dedicated DynamoDB for nodes/edges + Redis for real-time state
+
+💬 Chat Service (scaler-chat):
+- RAG-based conversation management
+- Context retrieval and response generation
+- Chat history, sessions, and branching
+- AI agent orchestration and workflow
+- Dedicated PostgreSQL database + blob storage
+
+🔎 Vector Service (scaler-vector):
+- Vector similarity search and indexing
+- Manages vector embeddings and their metadata
+- Dedicated Qdrant vector database + Redis cache for performance
+
+🔐 Authentication Service (scaler-auth):
+- User registration, login, session management
+- JWT token generation and validation
+- OAuth integration and RBAC
+- Permission evaluation and enforcement
+- Dedicated PostgreSQL database
+
+📊 Activity Service (scaler-activity):
+- User behavior tracking and analytics
+- System event logging and audit trails
+- Engagement scoring and metrics
+- Compliance and security monitoring
+- Dedicated ClickHouse/TimescaleDB + Redis
+
+📱 Notification Service (scaler-notifications):
+- Email notifications and templates
+- Push notifications and in-app messaging
+- Notification preferences and delivery
+- Event-driven notification triggers
+- Dedicated PostgreSQL database + message queues
+
+🤖 ML Service (scaler-ml):
+- ML model training, versioning, and deployment
+- Document clustering and 2D/3D coordinate calculation for visualization
+- Embedding generation and batch processing
+- Model serving and inference pipelines
+- Performance monitoring and drift detection
+- Dedicated PostgreSQL for metadata + S3 for models
 ```
 
-### 4.2 Protocol Selection Rationale
+### 4.2 API Gateway & Service Mesh Architecture
 
-#### 4.2.1 Frontend Communication: REST + WebSockets
+**RESTful API Gateway + Service Mesh Strategy:**
 
-**REST for CRUD Operations:**
-```typescript
-// Standard HTTP operations
-GET    /api/v1/spaces/{id}
-POST   /api/v1/documents/upload  
-PUT    /api/v1/spaces/{id}/settings
-DELETE /api/v1/documents/{id}
-```
+The platform employs a comprehensive API gateway strategy centered exclusively on RESTful APIs for public communication:
+
+**Public API Gateway (Kong):**
+- RESTful API endpoints for all public operations and CRUD functionality
+- WebSocket gateway for real-time features and live updates
+- Strict rate limiting, authentication, and authorization policies
+- Enforced API versioning and comprehensive HTTP caching strategies
+- Public endpoint exposure through a well-defined `/api/v1/*` path structure
+
+**Service Mesh (Istio):**
+Istio is selected as our service mesh to provide a comprehensive solution for connecting, securing, controlling, and observing our microservices. It was chosen over alternatives like Linkerd and Consul for its superior capabilities in key areas that align with our architecture.
+- **Unmatched Traffic Management:** Granular traffic control for canary releases, A/B testing, and fault injection supports our independent deployment goals.
+- **Deep Observability:** Automatically generates detailed metrics, logs, and distributed traces for all service-to-service traffic (including gRPC) without application code changes.
+- **Kubernetes-Native Experience:** Its native integration with Kubernetes using CRDs provides a seamless workflow for our team.
+- **Policy-Driven Security:** Enables a zero-trust network by default with automatic mTLS encryption and powerful, fine-grained authorization policies.
+- **Resilience and Discovery:** Provides service discovery, intelligent load balancing, circuit breakers, and retry policies.
+
+**Event Streaming (Apache Kafka):**
+Apache Kafka is our chosen platform for event-driven communication, with a strong recommendation to use a managed service (e.g., AWS MSK, Confluent Cloud) to reduce operational complexity. Kafka's design as a durable, replayable commit log is perfectly aligned with our system's core requirements.
+- **Event Sourcing & Replayability:** Kafka's persistent log is ideal for event sourcing, audit trails (`scaler-activity`), and replaying events to rebuild service state, supporting our "zero data loss" goal.
+- **High Throughput & Scalability:** Horizontally scalable to handle massive event loads from services like `scaler-activity` and `scaler-ml`.
+- **Durability & Reliability:** Provides strong durability guarantees with configurable replication, supporting dead-letter queues and retry mechanisms.
+- **Rich Integration Ecosystem:** The mature ecosystem, especially **Kafka Connect**, allows for low-code integration with our diverse databases (PostgreSQL, ClickHouse, etc.), accelerating development.
+- **Asynchronous Decoupling:** Ensures services remain loosely coupled, allowing teams to develop, deploy, and scale independently.
+
+### 4.3 Microservice Allocation Framework
+
+**Service Boundary Decision Criteria:**
+
+The framework for determining service boundaries considers multiple dimensions:
+
+**Domain Characteristics:**
+- Business Capability: Core domain areas such as knowledge management, chat, search, visualization
+- Data Ownership: Clear ownership of specific data entities and business logic
+- Business Boundary: Well-defined functional boundaries with minimal overlap
+
+**Technical Requirements:**
+- Scaling Pattern: Different scaling needs (compute, storage, memory, GPU, concurrent users)
+- Technology Stack: Optimization opportunities for specific languages (Go, Python, Node.js)
+- Database Requirements: Optimal database choices (PostgreSQL, DynamoDB, ClickHouse, etc.)
+
+**Operational Requirements:**
+- Deployment Cadence: Independent release cycles and deployment flexibility
+- Team Ownership: Dedicated team responsibility and accountability
+- Monitoring Requirements: Service-specific SLAs and performance metrics
+
+**Integration Patterns:**
+- Event Publishing: Events that services publish to the system
+- Event Consuming: Events that services consume from other services
+- Synchronous API Requirements: Direct API dependencies between services
+
+Service allocation follows a clear mapping to business capabilities, with fallback to creating new services for undefined domains.
+
+## 5. RESTful + Event-Driven Communication Strategy
+
+### 5.1 Multi-Protocol Communication Approach
+
+Our microservices architecture employs layered communication patterns optimized for different interaction types:
+
+**Frontend to API Gateway:**
+- RESTful APIs as the primary interface for all operations
+- WebSockets for real-time features and live updates
+
+**Service to Service (Synchronous):**
+- gRPC via Service Mesh (Istio) for high-performance internal communication
+
+**Service to Service (Asynchronous):**
+- Event Streaming via Kafka for loose coupling
+
+**Service to External Systems:**
+- REST APIs with circuit breakers and retry logic for resilience
+
+### 5.2 Protocol Selection Rationale
+
+#### 5.2.1 Frontend Communication: REST-First + WebSockets
+
+**RESTful APIs for Standard Operations:**
+RESTful APIs serve as the primary interface for all CRUD operations, providing clear resource-based endpoints for knowledge management, space operations, document handling, and search functionality. This approach offers excellent HTTP caching capabilities, broad client compatibility, and straightforward debugging through standard browser tools.
 
 **WebSockets for Real-time Features:**
-```typescript
-// Real-time streaming connections
-ws://api/ws/chat/{space_id}           // Streaming chat responses
-ws://api/ws/visualization/{space_id}  // Live graph updates  
-ws://api/ws/processing/{doc_id}       // Document processing status
-```
+WebSocket connections handle streaming chat responses, live graph/canvas updates, and document processing status updates. This ensures low-latency real-time functionality while maintaining the simplicity of REST for standard operations.
 
 **Benefits:**
-- ✅ Native browser support, no additional libraries
-- ✅ Excellent debugging tools (browser DevTools, Postman)
-- ✅ HTTP caching for static data
-- ✅ Real-time capabilities via WebSockets
-- ✅ Simple error handling and retry logic
+- Native browser support with no additional client libraries required
+- Excellent debugging tools available in browser DevTools and API testing tools
+- Comprehensive HTTP caching for static data and improved performance
+- Real-time capabilities via WebSockets for dynamic features
+- Simple error handling and retry logic patterns
 
-#### 4.2.2 Service-to-Service Communication: gRPC
+#### 5.2.2 Service-to-Service Communication: gRPC
 
-**Protocol Buffer Definitions:**
-```protobuf
-service DocumentService {
-  rpc ProcessDocument(ProcessDocumentRequest) returns (ProcessDocumentResponse);
-  rpc GetRelevantDocuments(SearchRequest) returns (DocumentList);
-  rpc StreamProcessingStatus(StatusRequest) returns (stream ProcessingUpdate);
-}
-
-service ChatService {
-  rpc GenerateResponse(ChatRequest) returns (stream ChatChunk);
-  rpc GetChatHistory(HistoryRequest) returns (ChatHistory);
-}
-```
+**High-Performance Internal Communication:**
+gRPC serves as the internal communication protocol between microservices, providing type-safe, high-performance binary communication with HTTP/2 multiplexing. Protocol Buffer definitions ensure API contract validation and enable automatic client/server code generation.
 
 **Benefits:**
-- ✅ High performance: Binary protocol with HTTP/2 multiplexing
-- ✅ Type safety: Protocol Buffers prevent API contract violations
-- ✅ Streaming support: Perfect for chat and processing updates
-- ✅ Code generation: Automatic client/server stub generation
-- ✅ Observability: Built-in metrics and tracing support
+- High performance through binary protocol with HTTP/2 multiplexing
+- Type safety through Protocol Buffers preventing API contract violations
+- Built-in streaming support ideal for chat and processing updates
+- Automatic code generation for client/server stubs
+- Comprehensive observability with built-in metrics and tracing support
 
-#### 4.2.3 External Service Communication: REST
+#### 5.2.3 External Service Communication: REST
 
 **External Service Integration:**
-```go
-type ExternalClients struct {
-    MLService    *http.Client      // Python ML service REST API
-    QdrantClient *qdrant.Client    // Qdrant Go client (REST wrapper)
-    GeminiClient *genai.Client     // Google Gemini API client
-    S3Client     *s3.Client        // AWS S3 SDK
-}
-```
+All external service integrations use RESTful APIs enhanced with circuit breakers, retry logic, and comprehensive logging. Service-specific external client implementations handle integrations with vector databases, LLM services, cloud storage, and caching systems.
 
 **Benefits:**
-- ✅ Standard protocol support across all external services
-- ✅ Extensive tooling and debugging support
-- ✅ Wide library availability in all languages
-- ✅ Simple integration with cloud services
+- Standard protocol support across all external services
+- Extensive tooling and debugging support in the ecosystem
+- Wide library availability across all programming languages
+- Simple integration patterns with cloud services
+- Enhanced observability through internal logging and analytics wrappers
 
-### 4.3 Communication Architecture Implementation
+## 6. Microservices Governance & Decision Guidelines
 
-```go
-// API Gateway orchestrating multiple protocols
-type APIGateway struct {
-    // HTTP/REST server
-    restServer *gin.Engine
-    
-    // WebSocket hubs for real-time features
-    chatHub          *websocket.Hub
-    visualizationHub *websocket.Hub
-    processingHub    *websocket.Hub
-    
-    // gRPC clients for internal services
-    documentClient    pb.DocumentServiceClient
-    chatClient        pb.ChatServiceClient  
-    visualClient      pb.VisualizationServiceClient
-    searchClient      pb.SearchServiceClient
-    
-    // REST clients for external services
-    mlClient       *MLServiceClient
-    storageClient  *StorageServiceClient
-}
+### 6.1 Service Allocation Decision Tree
 
-// Example: Chat request flow using multiple protocols
-func (gw *APIGateway) HandleChatMessage(ws *websocket.Conn, msg ChatMessage) error {
-    // 1. Get relevant documents via gRPC
-    docs, err := gw.documentClient.GetRelevantDocuments(context.Background(), 
-        &pb.SearchRequest{
-            SpaceId: msg.SpaceID,
-            Query:   msg.Content,
-        })
-    
-    // 2. Get vector embeddings via gRPC  
-    vectors, err := gw.searchClient.VectorSearch(context.Background(),
-        &pb.VectorSearchRequest{
-            Query: msg.Content,
-            TopK:  10,
-        })
-    
-    // 3. Generate response via external REST API
-    response, err := gw.mlClient.GenerateResponse(context.Background(), MLRequest{
-        Query:     msg.Content,
-        Context:   docs,
-        Vectors:   vectors,
-    })
-    
-    // 4. Stream response back via WebSocket
-    return gw.streamChatResponse(ws, response)
-}
-```
+**When implementing a new feature, follow this service allocation process:**
 
-## 5. Implementation Architecture
+**Step 1: Frontend vs Backend Classification**
+Determine if the feature is a UI/UX component or user interaction. If yes, implement in scaler-front. Otherwise, proceed to step 2.
 
-### 5.1 Repository Structure
+**Step 2: Platform vs Business Logic Classification**
+Identify if the feature involves platform infrastructure, orchestration, or cross-service tooling. If yes, implement in scaler (platform). Otherwise, proceed to step 3.
 
-```
-demo-production/
-├── cmd/                          # Service entry points
-│   ├── orchestrator/             # Main API gateway
-│   ├── auth-service/             # Authentication microservice
-│   ├── notification-service/     # Notification microservice
-│   ├── document-service/         # Document processing service
-│   ├── chat-service/             # Chat/RAG service
-│   └── visualization-service/    # Graph generation service
-│
-├── internal/                     # Shared internal packages
-│   ├── orchestrator/             # API gateway logic
-│   │   ├── handlers/             # HTTP/WebSocket handlers
-│   │   ├── grpc_clients/         # gRPC client implementations
-│   │   └── websocket/            # WebSocket hub management
-│   │
-│   ├── services/                 # Business logic implementations
-│   │   ├── document/             # Document service logic
-│   │   ├── chat/                 # Chat service logic
-│   │   ├── visualization/        # Visualization logic
-│   │   └── shared/               # Common business utilities
-│   │
-│   ├── repository/               # Data access layer
-│   │   ├── document_repo.go      # Document database operations
-│   │   ├── space_repo.go         # Space database operations
-│   │   ├── chat_repo.go          # Chat database operations
-│   │   └── vector_repo.go        # Vector metadata operations
-│   │
-│   └── clients/                  # External service clients
-│       ├── ml_client.go          # ML service REST client
-│       ├── storage_client.go     # S3 storage client
-│       └── gemini_client.go      # Gemini API client
-│
-├── pkg/                          # Public packages
-│   ├── api/                      # API definitions
-│   │   ├── proto/                # gRPC Protocol Buffers
-│   │   ├── rest/                 # REST API schemas
-│   │   └── websocket/            # WebSocket message types
-│   │
-│   ├── models/                   # Shared data models
-│   └── database/                 # Database utilities
-│
-├── deployments/                  # Deployment configurations
-│   ├── docker-compose.full.yml   # All services distributed
-│   ├── docker-compose.minimal.yml# Orchestrator only
-│   └── kubernetes/               # K8s manifests
-│
-├── migrations/                   # Database schema migrations
-│   ├── shared/                   # Shared database tables
-│   └── auth/                     # Auth service dedicated tables
-│
-└── scripts/                      # Operational scripts
-    ├── deploy-service.sh         # Deploy individual service
-    ├── migrate-to-microservice.sh# Extract service to microservice
-    └── monitor-boundaries.sh     # Monitor service extraction signals
-```
+**Step 3: Business Domain Identification**
+Map the feature to its primary business domain:
+- Document/Content Management → scaler-knowledge
+- Visualization/Hierarchical Graph/Tree → scaler-canvas  
+- Conversation/AI → scaler-chat
+- Search/Indexing → scaler-vector
+- User Auth/Permissions → scaler-auth
+- Analytics/Audit → scaler-activity
+- Notifications/Messaging → scaler-notifications
+- ML/Model Management → scaler-ml
+- New Domain → Create new microservice
 
-### 5.2 Database Architecture
+**Step 4: Cross-Cutting Concerns**
+Handle cross-cutting concerns through established patterns:
+- Shared Libraries for common functionality across services
+- Events for asynchronous integration between services
+- RESTful API composition for synchronous data aggregation
 
-```sql
--- Shared Core Database (PostgreSQL)
-CREATE DATABASE demo_core;
+### 6.2 New Microservice Creation Guidelines
 
--- Core business entities (shared across services)
-CREATE TABLE spaces (...);
-CREATE TABLE documents (...);
-CREATE TABLE document_space_assignments (...);
-CREATE TABLE document_content (...);
-CREATE TABLE chat_messages (...);
-CREATE TABLE chat_sessions (...);
-CREATE TABLE vector_metadata (...);
-CREATE TABLE search_indexes (...);
+**Criteria for creating a new microservice:**
 
--- Dedicated Microservice Databases
-CREATE DATABASE auth_service;
-CREATE DATABASE notification_service;
+A new microservice should be created when a domain has distinct business capability, clear data ownership, and can operate independently. Additional factors that justify microservice creation include unique scaling requirements, specialized technology requirements, dedicated team ownership, or regulatory isolation needs.
 
--- External Databases
--- Qdrant: Vector embeddings and similarity search
--- Redis: Caching and session storage
-```
-
-### 5.3 Deployment Strategy
-
-```yaml
-# docker-compose.full.yml - Production deployment
-version: '3.8'
-services:
-  # API Gateway
-  orchestrator:
-    build: ./cmd/orchestrator
-    ports: ["8080:8080"]
-    environment:
-      - SHARED_DB_URL=postgresql://user:pass@postgres:5432/demo_core
-      - AUTH_SERVICE_URL=http://auth-service:8081
-      - DOCUMENT_SERVICE_URL=http://document-service:8082
-      - CHAT_SERVICE_URL=http://chat-service:8083
-    depends_on: [postgres, auth-service]
-    
-  # Microservices (dedicated databases)  
-  auth-service:
-    build: ./cmd/auth-service
-    environment:
-      - AUTH_DB_URL=postgresql://user:pass@postgres:5432/auth_service
-    depends_on: [postgres]
-    
-  notification-service:
-    build: ./cmd/notification-service  
-    environment:
-      - NOTIFICATION_DB_URL=postgresql://user:pass@postgres:5432/notification_service
-    depends_on: [postgres]
-    
-  # Shared-database services
-  document-service:
-    build: ./cmd/document-service
-    environment:
-      - SHARED_DB_URL=postgresql://user:pass@postgres:5432/demo_core
-      - QDRANT_URL=http://qdrant:6333
-    depends_on: [postgres, qdrant]
-    
-  chat-service:
-    build: ./cmd/chat-service
-    environment:
-      - SHARED_DB_URL=postgresql://user:pass@postgres:5432/demo_core
-      - QDRANT_URL=http://qdrant:6333
-      - ML_SERVICE_URL=http://ml-service:8084
-    depends_on: [postgres, qdrant, ml-service]
-    
-  visualization-service:
-    build: ./cmd/visualization-service
-    environment:
-      - SHARED_DB_URL=postgresql://user:pass@postgres:5432/demo_core
-      - QDRANT_URL=http://qdrant:6333
-    depends_on: [postgres, qdrant]
-    
-  # External services
-  ml-service:
-    build: ./ml-service
-    environment:
-      - QDRANT_URL=http://qdrant:6333
-    depends_on: [qdrant]
-    
-  # Infrastructure
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: demo_core
-      POSTGRES_USER: user  
-      POSTGRES_PASSWORD: pass
-    volumes: [postgres_data:/var/lib/postgresql/data]
-    
-  qdrant:
-    image: qdrant/qdrant
-    volumes: [qdrant_data:/qdrant/storage]
-    
-  redis:
-    image: redis:7
-    volumes: [redis_data:/data]
-```
-
-## 6. Benefits and Trade-offs
-
-### 6.1 Architecture Benefits
-
-**Performance Optimization:**
-```
-✅ Low Latency: Shared database eliminates network calls for data access
-✅ Real-time Features: WebSocket streaming without service boundaries
-✅ Efficient Communication: gRPC for high-frequency service calls
-✅ Optimized Protocols: Right protocol for each interaction pattern
-```
-
-**Development Experience:**
-```
-✅ Rapid Development: Shared types and database schemas
-✅ Easy Debugging: Single database for transaction tracing
-✅ Simple Testing: Can run entire system locally
-✅ Flexible Deployment: Services can be combined or separated
-```
-
-**Operational Simplicity:**
-```
-✅ Single Database: Simplified backup, monitoring, and maintenance
-✅ Gradual Evolution: Can extract microservices when boundaries clarify
-✅ Cost Efficiency: No premature infrastructure complexity
-✅ Risk Mitigation: Proven patterns with escape hatches
-```
-
-### 6.2 Trade-offs and Limitations
-
-**Potential Constraints:**
-```
-⚠️ Database Bottleneck: Shared database may become scaling constraint
-⚠️ Schema Coordination: Changes require coordination across services
-⚠️ Technology Lock-in: Services must use compatible database drivers
-⚠️ Deployment Coupling: Some schema changes affect multiple services
-```
-
-**Mitigation Strategies:**
-```
-✅ Database Optimization: Connection pooling, read replicas, caching
-✅ Schema Versioning: Backward-compatible migration strategies
-✅ Service Extraction: Clear criteria for microservice promotion
-✅ Monitoring: Track extraction signals and performance metrics
-```
+**Examples of strong microservice candidates:**
+- Payment processing requiring PCI compliance isolation
+- Real-time collaboration engine with specialized WebSocket and event processing needs
+- Video processing service requiring GPU resources and specialized technology stack
+- Compliance/GDPR service needing regulatory isolation requirements
 
 ## 7. Success Metrics and Evolution Criteria
 
 ### 7.1 Performance Targets
 
-```
-Real-time Features:
-├── 3D Visualization Response: < 50ms
-├── Chat Message Streaming: < 100ms first token
-├── Search Result Highlighting: < 200ms
-└── Document Processing Updates: < 500ms
+**Real-time Features:**
+- 3D Visualization Response: Less than 50ms for optimal user experience
+- Chat Message Streaming: Less than 100ms for first token delivery
+- Search Result Highlighting: Less than 200ms for responsive search
+- Document Processing Updates: Less than 500ms for status notifications
 
-System Reliability:
-├── API Gateway Uptime: 99.9%
-├── Database Availability: 99.95%
-├── Service Communication: < 1% error rate
-└── Data Consistency: Zero data loss tolerance
-```
+**System Reliability:**
+- API Gateway Uptime: 99.9% availability target
+- Database Availability: 99.95% availability requirement
+- Service Communication: Less than 1% error rate across all inter-service calls
+- Data Consistency: Zero data loss tolerance with eventual consistency guarantees
 
-### 7.2 Microservice Extraction Criteria
+### 7.2 Microservice Evolution Monitoring
 
-```go
-// Automated monitoring for extraction signals
-type ExtractionMetrics struct {
-    DataOwnershipClarity    float64  // % of tables owned by single service
-    ScalingDivergence      float64  // Coefficient of variation in resource usage
-    TeamBoundaryFormation  bool     // Dedicated team assignment
-    CrossServiceQueries    int      // Number of cross-service data queries
-    DatabaseContention     float64  // Lock wait time percentage
-}
+**Key Evolution Indicators:**
 
-func MonitorExtractionSignals() {
-    metrics := collectMetrics()
-    
-    if metrics.DataOwnershipClarity > 0.8 &&
-       metrics.ScalingDivergence > 0.5 &&
-       metrics.TeamBoundaryFormation &&
-       metrics.CrossServiceQueries < 10 {
-        
-        recommendMicroserviceExtraction()
-    }
-}
-```
+The system monitors several metrics to identify when microservice boundaries should be reconsidered. Data ownership clarity measures the percentage of tables owned by a single service. Scaling divergence tracks the coefficient of variation in resource usage patterns across services. Team boundary formation indicates when dedicated team assignments emerge for specific domains.
+
+Cross-service queries are counted to identify potential service boundary issues, while database contention is measured through lock wait time percentages. These metrics inform architectural evolution decisions and help maintain optimal service boundaries as the system grows and requirements change.
 
 ## 8. Conclusion
 
-The **Hybrid Shared-Database Distributed Services Architecture** provides an optimal balance for our hierarchical text visualization system by:
+The **Full Microservices Architecture with Event-Driven Communication** provides a scalable and resilient foundation for our hierarchical text visualization system by:
 
-1. **Addressing Initial Concerns:** Eliminates network latency and database consistency issues while maintaining service separation capabilities
+1. **Service Autonomy:** Each microservice owns its data, deployment cycle, and technology stack
+2. **Event-Driven Integration:** Asynchronous communication patterns ensure loose coupling and high availability
+3. **Independent Scaling:** Services can scale based on specific demands (GPU for ML, concurrency for chat, storage for knowledge)
+4. **Technology Optimization:** Go for performance-critical services, Python for ML, optimal databases per service
+5. **Operational Excellence:** Service mesh, observability, and infrastructure automation enable reliable distributed operations
 
-2. **Supporting Evolution:** Provides clear criteria and mechanisms for transitioning to microservices when boundaries clarify
+This architecture embraces the complexity of distributed systems while providing concrete patterns and frameworks to manage that complexity effectively:
 
-3. **Optimizing Communication:** Uses appropriate protocols (REST, WebSocket, gRPC) for different interaction patterns
+- **RESTful API Composition** for efficient frontend data aggregation and cross-service integration
+- **Event Sourcing and CQRS (Command Query Responsibility Segregation)** to ensure data consistency and create comprehensive audit trails by separating read and write operations.
+- **Circuit Breakers and Retry Logic** for resilience against external service failures
+- **Infrastructure as Code** for reproducible deployments and operational consistency
+- **Service Mesh** for secure inter-service communication and observability
 
-4. **Enabling Scalability:** Allows independent scaling of services while maintaining data consistency
-
-5. **Facilitating Development:** Supports rapid iteration with clear service boundaries and shared infrastructure
-
-This architecture acknowledges the uncertainty inherent in early-stage system design while providing concrete mechanisms for evolution based on real-world usage patterns and organizational growth.
-
-The decision represents a pragmatic approach to modern software architecture that prioritizes **business value delivery** over **architectural purity**, while maintaining **clear evolution paths** for future growth.
-
+The decision represents a forward-looking approach to modern software architecture that prioritizes **horizontal scalability**, **technological flexibility**, and **team autonomy** while providing **robust operational patterns** for managing distributed system complexity.
