@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CAMERA_CONFIG, LAYER_CONFIG, ANIMATION_CONFIG } from './config';
-import { calculateDynamicZoom } from './helpers';
 import { MockNode } from './types';
 
 export function AnimatedCamera({ 
@@ -15,7 +14,7 @@ export function AnimatedCamera({
   nodes
 }: {
   focusedLayer: string | null;
-  preFocusViewState: { position: THREE.Vector3; target: THREE.Vector3; zoom: number } | null;
+  preFocusViewState: { position: THREE.Vector3; target: THREE.Vector3; fov: number } | null;
   onAnimationComplete?: () => void;
   controlsRef: React.RefObject<any>;
   nodes: MockNode[];
@@ -23,9 +22,11 @@ export function AnimatedCamera({
   const { camera } = useThree();
   const [isAnimating, setIsAnimating] = useState(false);
   const animationStartTime = useRef<number | null>(null);
-  const startPosition = useRef<THREE.Vector3>(new THREE.Vector3());
-  const startTarget = useRef<THREE.Vector3>(new THREE.Vector3());
-  const startZoom = useRef<number>(1);
+  const startState = useRef<{ position: THREE.Vector3; target: THREE.Vector3; fov: number; }>({
+    position: new THREE.Vector3(),
+    target: new THREE.Vector3(),
+    fov: 50
+  });
   const previousFocusState = useRef<string | null>(null);
 
   useFrame(() => {
@@ -36,52 +37,40 @@ export function AnimatedCamera({
     
     // Easing function (ease-in-out)
     const easeProgress = progress < 0.5 
-      ? 2 * progress * progress 
+      ? 4 * progress * progress * progress
       : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
     let targetPosition: THREE.Vector3;
     let targetLookAt: THREE.Vector3;
-    let targetZoom: number;
+    let targetFov: number;
 
     if (focusedLayer) {
       const layerConfig = LAYER_CONFIG[focusedLayer as keyof typeof LAYER_CONFIG];
-      targetPosition = new THREE.Vector3(...CAMERA_CONFIG.focusPosition);
-      targetPosition.y = layerConfig.y + 200; // Position above the focused layer
+      const distance = layerConfig.radius * 2.5; // Adjust distance based on layer size
+      targetPosition = new THREE.Vector3(0, layerConfig.y, distance);
       targetLookAt = new THREE.Vector3(0, layerConfig.y, 0);
-      targetZoom = calculateDynamicZoom(nodes.length, layerConfig.radius);
+      targetFov = 60;
     } else {
-      // When returning from focus mode, use the saved state
       if (preFocusViewState) {
         targetPosition = preFocusViewState.position.clone();
         targetLookAt = preFocusViewState.target.clone();
-        targetZoom = preFocusViewState.zoom;
+        targetFov = preFocusViewState.fov;
       } else {
-        // Fallback to default position
         targetPosition = new THREE.Vector3(...CAMERA_CONFIG.position);
         targetLookAt = new THREE.Vector3(...CAMERA_CONFIG.target);
-        targetZoom = CAMERA_CONFIG.zoom;
+        targetFov = 50;
       }
     }
 
-    // Arc trajectory - create a curved path
-    const midPoint = new THREE.Vector3().lerpVectors(startPosition.current, targetPosition, 0.5);
-    midPoint.y += 100; // Raise the midpoint to create an arc
-    
-    let currentPosition: THREE.Vector3;
-    if (progress < 0.5) {
-      currentPosition = new THREE.Vector3().lerpVectors(startPosition.current, midPoint, easeProgress * 2);
-    } else {
-      currentPosition = new THREE.Vector3().lerpVectors(midPoint, targetPosition, (easeProgress - 0.5) * 2);
-    }
-
-    const currentTarget = new THREE.Vector3().lerpVectors(startTarget.current, targetLookAt, easeProgress);
-    const currentZoom = THREE.MathUtils.lerp(startZoom.current, targetZoom, easeProgress);
+    // Interpolate camera properties
+    const currentPosition = new THREE.Vector3().lerpVectors(startState.current.position, targetPosition, easeProgress);
+    const currentTarget = new THREE.Vector3().lerpVectors(startState.current.target, targetLookAt, easeProgress);
+    const currentFov = THREE.MathUtils.lerp(startState.current.fov, targetFov, easeProgress);
 
     camera.position.copy(currentPosition);
-    (camera as THREE.OrthographicCamera).zoom = currentZoom;
+    (camera as THREE.PerspectiveCamera).fov = currentFov;
     camera.updateProjectionMatrix();
 
-    // Update OrbitControls target during animation
     if (controlsRef.current) {
       controlsRef.current.target.copy(currentTarget);
       controlsRef.current.update();
@@ -92,9 +81,9 @@ export function AnimatedCamera({
       animationStartTime.current = null;
       previousFocusState.current = focusedLayer;
       
-      // Ensure final camera position is set correctly
+      // Ensure final state is set
       camera.position.copy(targetPosition);
-      (camera as THREE.OrthographicCamera).zoom = targetZoom;
+      (camera as THREE.PerspectiveCamera).fov = targetFov;
       camera.updateProjectionMatrix();
       
       if (controlsRef.current) {
@@ -107,18 +96,18 @@ export function AnimatedCamera({
   });
 
   useEffect(() => {
-    // Only start animation when focus state actually changes
     if (focusedLayer !== previousFocusState.current) {
-      // Start animation
-      const cam = camera as THREE.OrthographicCamera;
-      startPosition.current.copy(camera.position);
-      startTarget.current.copy(new THREE.Vector3(...CAMERA_CONFIG.target));
-      startZoom.current = cam.zoom;
+      const cam = camera as THREE.PerspectiveCamera;
+      startState.current = {
+        position: cam.position.clone(),
+        target: controlsRef.current ? controlsRef.current.target.clone() : new THREE.Vector3(),
+        fov: cam.fov,
+      };
  
       animationStartTime.current = Date.now();
       setIsAnimating(true);
     }
-  }, [focusedLayer, camera]);
+  }, [focusedLayer, camera, controlsRef]);
 
   return null;
 } 

@@ -6,17 +6,12 @@ export const LAYER_CONFIG = {
 };
 
 export const CAMERA_CONFIG = {
-  position: [350, 250, 350] as [number, number, number],
-  zoom: 1, // Default zoom level, smaller is wider.
-  target: [0, -10, 0] as [number, number, number],
-  // Focus view camera settings
-  focusPosition: [0, 300, 0] as [number, number, number],
-  baseFocusZoom: 1, // Base zoom level for focus mode
-  focusTarget: [0, 0, 0] as [number, number, number]
+  position: [400, 250, 400] as [number, number, number],
+  target: [0, -40, 0] as [number, number, number]
 };
 
 export const ROTATION_CONFIG = {
-  sensitivity: 0.01,
+  sensitivity: 0.005,
   autoRotateSpeed: 0.1
 };
 

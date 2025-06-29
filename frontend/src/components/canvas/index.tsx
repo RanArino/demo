@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, OrthographicCamera } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { Graph3DCanvasProps } from './types';
 import { CAMERA_CONFIG } from './config';
@@ -22,18 +22,18 @@ export default function Graph3DCanvas({
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [focusedLayer, setFocusedLayer] = useState<string | null>(null);
   const [hoveredLayer, setHoveredLayer] = useState<string | null>(null);
-  const [preFocusViewState, setPreFocusViewState] = useState<{ position: THREE.Vector3; target: THREE.Vector3; zoom: number } | null>(null);
+  const [preFocusViewState, setPreFocusViewState] = useState<{ position: THREE.Vector3; target: THREE.Vector3; fov: number } | null>(null);
   const controlsRef = useRef<any>(null);
 
   const handleLayerClick = (layerKey: string) => {
     if (focusedLayer === layerKey) return;
 
     if (!focusedLayer && controlsRef.current) {
-      const camera = controlsRef.current.object as THREE.OrthographicCamera;
+      const camera = controlsRef.current.object as THREE.PerspectiveCamera;
       setPreFocusViewState({
         position: camera.position.clone(),
         target: controlsRef.current.target.clone(),
-        zoom: camera.zoom,
+        fov: camera.fov,
       });
     }
     setFocusedLayer(layerKey);
@@ -50,15 +50,15 @@ export default function Graph3DCanvas({
       <BackButton onBack={handleBackClick} isVisible={!!focusedLayer} />
       
       <Canvas
-        style={{ background: 'linear-gradient(to bottom, #f0f0f0, #e0e0e0)' }}
+        style={{ background: 'linear-gradient(to bottom, #111111, #222222)' }}
       >
-        {/* Use Orthographic Camera for a parallel projection, eliminating perspective distortion */}
-        <OrthographicCamera 
+        {/* Use Perspective Camera for a cinematic, 3D feel */}
+        <PerspectiveCamera 
           makeDefault
           position={CAMERA_CONFIG.position}
-          zoom={CAMERA_CONFIG.zoom}
-          near={1}
-          far={2000}
+          fov={50} // Field of view, defines the extent of the scene that is seen
+          near={0.1}
+          far={5000}
         />
 
         <AnimatedCamera 
@@ -74,18 +74,21 @@ export default function Graph3DCanvas({
           }}
         />
 
-        <ambientLight intensity={0.8} />
-        <directionalLight position={[100, 200, 100]} intensity={0.6} />
-        <pointLight position={[0, 150, 200]} intensity={0.4} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={1} />
+        <pointLight position={[0, -200, 0]} intensity={2} color="#5555ff" />
+        <spotLight position={[300, 300, 300]} angle={0.3} penumbra={1} intensity={2} castShadow />
         
         <OrbitControls 
           ref={controlsRef}
           makeDefault
-          enableRotate={false}
+          enableRotate={!focusedLayer} // Allow rotation only in overview
           enablePan={!focusedLayer}
           enableZoom={true}
-          zoomSpeed={0.5}
+          zoomSpeed={0.8}
           target={CAMERA_CONFIG.target}
+          minDistance={100} // Set min zoom distance
+          maxDistance={1200} // Set max zoom distance
         />
         
         <RotatingScene
@@ -103,7 +106,7 @@ export default function Graph3DCanvas({
         
         {!focusedLayer && (
           <gridHelper 
-            args={[400, 20, '#cccccc', '#dddddd']} 
+            args={[1000, 20, '#444444', '#888888']} 
             position={[0, -200, 0]} 
           />
         )}

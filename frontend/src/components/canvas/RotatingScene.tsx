@@ -34,16 +34,14 @@ export function RotatingScene({
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const { gl, camera } = useThree();
-  const [isDragging, setIsDragging] = useState(false);
-  const [previousMouseX, setPreviousMouseX] = useState(0);
   const [targetRotation, setTargetRotation] = useState(0);
-  const [currentRotation, setCurrentRotation] = useState(0);
+  const currentRotation = useRef(0);
 
   // Calculate node positions once and memoize
   const allNodesWithPositions = useMemo(() => {
     const positionize = (nodeList: MockNode[], layerKey: keyof typeof LAYER_CONFIG) => {
       const config = LAYER_CONFIG[layerKey];
-      const radius = focusedLayer === layerKey ? config.radius * NODE_CONFIG.focusScaleMultiplier : config.radius;
+      const radius = config.radius;
       
       return nodeList.map((node, index) => {
         const angle = (index / nodeList.length) * Math.PI * 2;
@@ -58,78 +56,50 @@ export function RotatingScene({
       ...positionize(nodes.filter(n => n.content_entity_type === 'chunk_cluster'), 'clusters'),
       ...positionize(nodes.filter(n => n.content_entity_type === 'content_chunk'), 'chunks')
     ];
-  }, [nodes, focusedLayer]);
+  }, [nodes]);
 
   const documentNodes = allNodesWithPositions.filter(n => n.content_entity_type === 'content_source');
   const clusterNodes = allNodesWithPositions.filter(n => n.content_entity_type === 'chunk_cluster');
   const chunkNodes = allNodesWithPositions.filter(n => n.content_entity_type === 'content_chunk');
 
-  // Animate rotation towards target (disabled in focus mode)
+  // Animate rotation towards target
   useFrame(() => {
-    if (!isDragging && !focusedLayer && groupRef.current && Math.abs(targetRotation - currentRotation) > 0.001) {
-      const newRotation = THREE.MathUtils.lerp(currentRotation, targetRotation, ROTATION_CONFIG.autoRotateSpeed);
-      groupRef.current.rotation.y = newRotation;
-      setCurrentRotation(newRotation);
+    if (groupRef.current) {
+      const currentY = groupRef.current.rotation.y;
+      if (Math.abs(targetRotation - currentY) > 0.001) {
+        const newRotation = THREE.MathUtils.lerp(currentY, targetRotation, ROTATION_CONFIG.autoRotateSpeed);
+        groupRef.current.rotation.y = newRotation;
+      }
     }
   });
 
-  // Handle node click for auto-rotation (disabled in focus mode)
+  // Handle node click to center it
   const handleNodeClick = (nodeId: string) => {
     if (!focusedLayer) {
       const clickedNode = allNodesWithPositions.find(n => n.id === nodeId);
       if (clickedNode && groupRef.current) {
-        const frontAngle = Math.atan2(camera.position.x, camera.position.z);
-        const nodeAngle = Math.atan2(clickedNode.position_3d.x, clickedNode.position_3d.z);
+        // Calculate the angle of the camera in the XZ plane
+        const cameraAngle = Math.atan2(camera.position.x, camera.position.z);
         
-        let finalTarget = frontAngle - nodeAngle;
+        // The node's current world angle is its local angle plus the group's rotation
+        const nodeLocalAngle = Math.atan2(clickedNode.position_3d.x, clickedNode.position_3d.z);
+        const currentGroupRotation = groupRef.current.rotation.y;
         
+        // We want the node's final world angle to be the same as the camera's angle
+        // targetGroupRotation + nodeLocalAngle = cameraAngle
+        const targetGroupRotation = cameraAngle - nodeLocalAngle;
+        
+        // Find the shortest rotation path
         const twoPi = Math.PI * 2;
-        let diff = (finalTarget - groupRef.current.rotation.y) % twoPi;
+        let diff = (targetGroupRotation - currentGroupRotation) % twoPi;
         if (diff < -Math.PI) diff += twoPi;
         if (diff > Math.PI) diff -= twoPi;
-
-        setTargetRotation(groupRef.current.rotation.y + diff);
+        
+        setTargetRotation(currentGroupRotation + diff);
       }
     }
     onNodeClick(nodeId);
   };
-
-  useEffect(() => {
-    // Disable drag controls in focus mode
-    if (focusedLayer) return;
-
-    const handleMouseDown = (event: MouseEvent) => {
-      setIsDragging(true);
-      setPreviousMouseX(event.clientX);
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!isDragging || !groupRef.current) return;
-      const deltaX = event.clientX - previousMouseX;
-      const newRotation = currentRotation + deltaX * ROTATION_CONFIG.sensitivity;
-      
-      setCurrentRotation(newRotation);
-      setTargetRotation(newRotation);
-      groupRef.current.rotation.y = newRotation;
-      
-      setPreviousMouseX(event.clientX);
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-    
-    const domElement = gl.domElement;
-    domElement.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      domElement.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [gl.domElement, isDragging, previousMouseX, currentRotation, focusedLayer]);
 
   return (
     <group ref={groupRef}>
