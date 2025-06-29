@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 // Import components
-import Graph3DCanvas from '@/components/canvas/graph-3d';
+import Graph3DCanvas from '@/components/canvas';
 import DocumentListView from './components/document-list-view';
 import NodeDetailView from './components/node-detail-view';
 import ChatInterface from './components/chat-interface';
