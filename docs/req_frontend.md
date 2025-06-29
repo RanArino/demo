@@ -7,28 +7,34 @@
 
 ### User Functinalities:
 - Owner/Admin can create a new knowledge space, a collection of contents/documents. (Based on Owner's full control, Admin's management capabilities)
+    - When a new space is created, a modal should immediately appear, prompting the user to upload content (e.g., via a drag-and-drop interface that shows progress).
 - Owner can delete a space from the setting button. (Only Owner has explicit permission to delete spaces)
+    - Deletion will be a "soft delete," moving the space to an archived state with a potential recovery option.
+    - To confirm deletion, the user must type the name of the space into a confirmation dialog.
 - Owner/Admin can edit the title, image, description, and keywords of the space from the setting button (setting a button per space card). 
 
 ### Visual Requirement:
 0. Shared Sections
-- On top of the page, "search" section is established, keyword matching between user query and space title, keywords, and description.
-- On the left side (default is 30% of the entire screen), there is a sectin for filtering spaces through keyword tags (a list of tags with checkboxes)
+- On top of the page, a "search" section is established for querying space titles, keywords, and descriptions.
+    - The search should trigger automatically as the user types or when they navigate away from the search input.
+- On the left side (default is 30% of the entire screen), there is a section for filtering spaces using keyword tags.
+    - Filtering logic: The final list of spaces will be the result of `Tags` AND `Search Query`. Within the tag list, the logic is OR (e.g., selecting "tag1" and "tag2" shows spaces with either tag).
+    - Tag generation: The list will display all unique tags from all spaces, limited to showing the first 30 tags, with the rest accessible via a scrollbar.
 
 1. Gallery view:
 ![Home Gallery View](./images/home_gallery.png){ height=500px, width=800px }
     - The size of space cards can be changed to small, medium, large (but not individually). When user clicks setting button (controlling all three view settings), users can select it.
-    - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords as tooptip. 
+    - The created space displays the `icon`, `title`, `cover_image`, `created_at`, `document_count`; on hover, showing the descriptions and keywords as a tooltip. Users can upload custom images for the cover.
 
 2. List/Table view:
 ![Home List View](./images/home_list.png){ height=500px, width=800px }
     - The created space displays the following metadata, depending on user registration type; 
         - (individual) icon, title, keywords, description, num of document_count, created_at, updated_at, visibility
         - (team) icon, title, keywords, description, num of shared_with, document_count, created_at, updated_at
-    - `title`(text), `description`(text), `keywords`(multi-select) can be directly editable by clicking each section. Once click them, change to text field; for keywords, selection.
+    - `title`(text) and `description`(text) can be directly edited. `keywords` are managed via a free-text field with auto-completion for existing tags. Changes are saved automatically when the user clicks away from the edited field (on-blur), requiring no explicit "Save" button.
     - Implementation using a **Parallel Route** (named `@modal` in the file system). This route captures the `space_id` parameter from the currently viewed space context. The parallel route allows these modals to appear overlaid on the current page without requiring a full page navigation.
         - Clicking the number indicating `shared_with` users for a space will display a **center modal** listing the users who have access to that specific space.
-        - Clicking the number indicating `document_count` for a space will display a **center modal** listing the documents contained within that specific space.
+        - Clicking the number indicating `document_count` for a space will display a **center modal** listing the documents contained within that specific space. For now, this is a view-only list.
     - if user click the column names of `title`, num of `shared_with`, `document_count`, `created_at`, `updated_at`, do the sorting; make sure to show up the sign of ascending or descending.
 
 3. Tree(Canvas) view:
@@ -37,6 +43,7 @@
 - **Layout & Navigation**:
     - Features a central 3D circular carousel of Space cards on a full-area canvas background.
     - The front-most card is active (larger, fully opaque), while others recede visually (smaller scale, reduced opacity) to imply depth.
+    - **Background Theme:** The canvas background will be themed. A "galaxy" theme will be used for dark mode, and a "nature/tree" theme for light mode.
     - Rotate the carousel using horizontal mouse scroll, drag/swipe, or keyboard arrow keys (←/→).
 - **Space Card**:
     - Displays an interactive 2D circular mind map preview of the Space's keyword structure. This preview shows a maximum of three layers: a central topic, up to four second-layer components connected to the center, and up to three third-layer keywords connected to each second-layer component.
@@ -58,7 +65,14 @@
 
 ## Space Page (`spaces/{space_id}`)
 ![Space Page](./images/space.png){ height=500px, width=800px }
+
+### Layout
+- The default view for laptop screens will be a 3-part layout: Canvas (left), Document Preview (middle), and Chat (right).
+- All three panels must be resizable.
+- Each panel must be individually collapsible via a dedicated button, allowing the user to focus on one or two panels at a time.
+
 ### User Functinalities:
+- **Role Management**: A "Share" or "Manage Access" button must be present. Clicking this button will open a modal where Owners/Admins can invite other users and assign them roles (Editor, Commenter, Viewer, etc.).
 - Owner/Admin can delete the space from the setting button. (Only Owner has explicit permission to delete spaces)
 - Owner/Admin can edit the title, image, description, and keywords of the space from the setting button. (Based on Owner/Admin's control) setting button.
 - Editors can upload and delete documents, use of chat session.
@@ -102,7 +116,7 @@
 - **Active View (Node Selected)**: Displays a "Node Detail View".
     - Shows relevant content or metadata for the selected node (Document, Cluster, or Chunk).
     - If a node is selected, it simply auto-scrolling to the corresponding text section; Clicking Document Node -> the summary (top) section, Clicking Chunk Node -> the corresponding chunk section, Clicking Cluster Node -> the cluster (top) section.
-    - Includes a mechanism (e.g., "Back" button) to return to the Document List View.
+    - Includes a mechanism (e.g., "Back" button) to return to the Document List View. This view remains active until the user either clicks the "Back" button, selects a *different* node on the canvas, or presses the `Escape` key.
     - (Considering) node selection changes the canvas view to [**Textual Info Detail**](#textual-info-detail)
 
 #### (3) Chat Session:
@@ -114,8 +128,8 @@
     1. **Standard Mode (Default)**:
         - AI responses are displayed as text within the chat panel using streaming output (text appears progressively, word-by-word or chunk-by-chunk).
         - The content view automatically scrolls down to keep the latest message visible.
-    2. **Annotation Mode (Optional)**:
-        - (Mechanism for activation needs definition - e.g., user toggle, specific prompt instructions).
+    2. **Annotation Mode**:
+        - Activated via a dedicated toggle switch.
         - The response in the chat panel is short, structured, and acts as a summary or index to annotations placed elsewhere.
         - Parts of the AI's findings/explanations are visualized directly as annotations (e.g., speech bubbles, comments) on the Canvas (associated with relevant nodes) and/or the Document Preview (associated with relevant text chunks).
 - **Message-Level Interactions (Applicable to both User Queries & AI Responses where appropriate)**:
@@ -129,6 +143,7 @@
         - Clicking on a specific message bubble (either a user query or its corresponding AI response) triggers highlighting of the associated context used/retrieved during that conversational turn.
         - Canvas Integration: Relevant nodes (Documents, Clusters, Chunks) on the Left Canvas are visually highlighted.
         - Document Preview Integration: Relevant text chunks within the Right-Upper Panel are visually highlighted when the corresponding document is displayed.
+        - This highlighting will use a distinct style (e.g., different border color) and will increase the transparency of all non-highlighted elements to focus user attention.
         - (Assumption: Each query-response pair internally stores the IDs of the documents, clusters, and chunks involved in its generation to enable this linking.)
 - **Context Highlighting (During/After Generation)**:
     - Canvas Integration: Nodes on the Canvas (2D/3D visualization) that correspond to the documents/clusters/chunks used as retrieved context for the generated response are visually highlighted.
@@ -138,7 +153,7 @@
     - When expanded by the user (e.g., by clicking), this section reveals details about the retrieval process used to generate the response (e.g., list of retrieved chunks/documents, relevance scores, potentially intermediate reasoning steps).
 - **Git-style Chat Flow Visualization**
     1. Activation & Location:
-        - Implemented as a toggleable "Flow View" mode accessible within the main Right-Lower Chat Panel, alternating with the standard chronological message list view.
+        - Activated via a toggle switch in the chat panel, alternating with the standard chronological list view.
     2. Visualization Layout & Style:
         - Presents the chat history as an interactive diagram/graph, similar to Miro boards or Git visualizers.
         - Linear sequences of query-response pairs flow vertically downwards by default.
@@ -171,11 +186,12 @@
                 - The original branch (A -> B -> C) remains untouched visually.
                 - A new box (B_edited) is created, branching off from the parent of the edited box (A), resulting in: A -> B -> C AND A -> B_edited.
             - If the edited box has no children, it simply triggers regeneration and updates the answer in that box's branch. (Self-correction: Based on the logic for boxes with children, it's more consistent to always create a new branch upon editing a past query: A -> B, edit B => A -> B AND A -> B_edited). Let's adopt this: Editing a user query always creates a new branch from its parent.
+        - **Branching in Linear View**: The standard (linear) chat view will *always* remain sorted chronologically based on when a query was initiated. It does not re-order to show branches contiguously.
         - Editing AI Answer:
             - Allows users to directly modify the text of a generated AI answer within a box.
             - Crucially: This revision must be registered by the system and potentially used to influence or improve future chat generations (acting as a form of explicit feedback or correction for the RAG system). The exact mechanism for incorporating this feedback needs further definition based on the RAG system's capabilities.
     5. Backend Processing:
-        - The backend (specified as Go-based) must support concurrent execution of AI generation requests when multiple branches are explored or generated simultaneously.
+        - The backend must support concurrent execution of AI generation requests. The frontend UI must show distinct "generating..." indicators for each concurrent request in the flow view.
     6. Complexity Management:
         - Implement functionality to collapse/expand entire branches to simplify complex views.
         - Provide an option or default behavior to highlight the K most recent chat boxes and their direct parent lineage, fading out older or less relevant branches.
