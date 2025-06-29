@@ -103,13 +103,6 @@ export default function Graph3DCanvas({
           onLayerClick={handleLayerClick}
           onLayerHover={setHoveredLayer}
         />
-        
-        {!focusedLayer && (
-          <gridHelper 
-            args={[1000, 20, '#444444', '#888888']} 
-            position={[0, -200, 0]} 
-          />
-        )}
       </Canvas>
     </div>
   );
