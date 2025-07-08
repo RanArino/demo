@@ -1,5 +1,17 @@
 package main
-import "fmt"
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
 func main() {
-	fmt.Println("Hello from the ms_canvas service!")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello from the ms_canvas service!")
+	})
+
+	port := ":8080"
+	fmt.Printf("ms_canvas service starting on port %s\n", port)
+	log.Fatal(http.ListenAndServe(port, nil))
 }
