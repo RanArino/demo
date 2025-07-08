@@ -1,35 +1,75 @@
 version: '3.8'
 
 services:
-  backend-go:
+  # Go-based microservices
+  ms_canvas:
     build:
-      context: ./backend-go
+      context: ./ms_canvas
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8001:8080"
     environment:
       - SERVER_PORT=8080
-      # - ML_SERVICE_URL=http://backend-py:5000
-      # - QDRANT_HOST=qdrant
-      # - QDRANT_PORT=6333
-      # - GEMINI_API_KEY=${GEMINI_API_KEY}
-    volumes:
-      - ./data:/app/data
-    # depends_on:
-    #   - qdrant
-    #   - backend-py
     restart: unless-stopped
 
-  backend-py:
+  ms_knowledge:
     build:
-      context: ./backend-py
+      context: ./ms_knowledge
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "8002:8080"
+    environment:
+      - SERVER_PORT=8080
     volumes:
       - ./data:/app/data
     restart: unless-stopped
 
+  ms_vector:
+    build:
+      context: ./ms_vector
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8080"
+    environment:
+      - SERVER_PORT=8080
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+    depends_on:
+      - qdrant
+    restart: unless-stopped
+
+  ms_user:
+    build:
+      context: ./ms_user
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8080"
+    environment:
+      - SERVER_PORT=8080
+    restart: unless-stopped
+
+  # Python-based microservices
+  ms_chat:
+    build:
+      context: ./ms_chat
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped
+
+  ms_ml:
+    build:
+      context: ./ms_ml
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # Infrastructure services
   qdrant:
     image: qdrant/qdrant:latest
     ports:
@@ -39,6 +79,7 @@ services:
       - qdrant_data:/qdrant/storage
     restart: unless-stopped
 
+  # Frontend
   frontend:
     build:
       context: ./frontend
@@ -46,9 +87,20 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_MS_CANVAS_URL=http://localhost:8001
+      - NEXT_PUBLIC_MS_KNOWLEDGE_URL=http://localhost:8002
+      - NEXT_PUBLIC_MS_VECTOR_URL=http://localhost:8003
+      - NEXT_PUBLIC_MS_USER_URL=http://localhost:8004
+      - NEXT_PUBLIC_MS_CHAT_URL=http://localhost:8005
+      - NEXT_PUBLIC_MS_ML_URL=http://localhost:8006
     depends_on:
-      - backend-go
+      - ms_canvas
+      - ms_knowledge
+      - ms_vector
+      - ms_user
+      - ms_chat
+      - ms_ml
     restart: unless-stopped
 
 volumes:
