@@ -1,4 +1,6 @@
-test/
+test-files/
 .env
+.env.local
 .cursor/
 notes/
+Todo
