@@ -28,7 +28,6 @@ message User {
   string email = 3;
   string full_name = 4;
   string username = 5;
-  string profile_picture_url = 6;
   int64 storage_used_bytes = 7;
   int64 storage_quota_bytes = 8;
   string status = 9;
@@ -56,7 +55,6 @@ message CreateUserRequest {
   string email = 2;
   string full_name = 3;
   string username = 4;
-  string profile_picture_url = 5;
 }
 
 // Response after creating a user.
@@ -81,7 +79,6 @@ message UpdateUserRequest {
   optional string email = 2;
   optional string full_name = 3;
   optional string username = 4;
-  optional string profile_picture_url = 5;
 }
 
 // Response after updating a user.
