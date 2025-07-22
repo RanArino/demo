@@ -40,7 +40,6 @@ type UserMutation struct {
 	email                  *string
 	full_name              *string
 	username               *string
-	profile_picture_url    *string
 	storage_used_bytes     *int64
 	addstorage_used_bytes  *int64
 	storage_quota_bytes    *int64
@@ -316,55 +315,6 @@ func (m *UserMutation) UsernameCleared() bool {
 func (m *UserMutation) ResetUsername() {
 	m.username = nil
 	delete(m.clearedFields, user.FieldUsername)
-}
-
-// SetProfilePictureURL sets the "profile_picture_url" field.
-func (m *UserMutation) SetProfilePictureURL(s string) {
-	m.profile_picture_url = &s
-}
-
-// ProfilePictureURL returns the value of the "profile_picture_url" field in the mutation.
-func (m *UserMutation) ProfilePictureURL() (r string, exists bool) {
-	v := m.profile_picture_url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProfilePictureURL returns the old "profile_picture_url" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldProfilePictureURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProfilePictureURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProfilePictureURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProfilePictureURL: %w", err)
-	}
-	return oldValue.ProfilePictureURL, nil
-}
-
-// ClearProfilePictureURL clears the value of the "profile_picture_url" field.
-func (m *UserMutation) ClearProfilePictureURL() {
-	m.profile_picture_url = nil
-	m.clearedFields[user.FieldProfilePictureURL] = struct{}{}
-}
-
-// ProfilePictureURLCleared returns if the "profile_picture_url" field was cleared in this mutation.
-func (m *UserMutation) ProfilePictureURLCleared() bool {
-	_, ok := m.clearedFields[user.FieldProfilePictureURL]
-	return ok
-}
-
-// ResetProfilePictureURL resets all changes to the "profile_picture_url" field.
-func (m *UserMutation) ResetProfilePictureURL() {
-	m.profile_picture_url = nil
-	delete(m.clearedFields, user.FieldProfilePictureURL)
 }
 
 // SetStorageUsedBytes sets the "storage_used_bytes" field.
@@ -709,7 +659,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 10)
 	if m.clerk_user_id != nil {
 		fields = append(fields, user.FieldClerkUserID)
 	}
@@ -721,9 +671,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
-	}
-	if m.profile_picture_url != nil {
-		fields = append(fields, user.FieldProfilePictureURL)
 	}
 	if m.storage_used_bytes != nil {
 		fields = append(fields, user.FieldStorageUsedBytes)
@@ -759,8 +706,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.FullName()
 	case user.FieldUsername:
 		return m.Username()
-	case user.FieldProfilePictureURL:
-		return m.ProfilePictureURL()
 	case user.FieldStorageUsedBytes:
 		return m.StorageUsedBytes()
 	case user.FieldStorageQuotaBytes:
@@ -790,8 +735,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldFullName(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
-	case user.FieldProfilePictureURL:
-		return m.OldProfilePictureURL(ctx)
 	case user.FieldStorageUsedBytes:
 		return m.OldStorageUsedBytes(ctx)
 	case user.FieldStorageQuotaBytes:
@@ -840,13 +783,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsername(v)
-		return nil
-	case user.FieldProfilePictureURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProfilePictureURL(v)
 		return nil
 	case user.FieldStorageUsedBytes:
 		v, ok := value.(int64)
@@ -950,9 +886,6 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldUsername) {
 		fields = append(fields, user.FieldUsername)
 	}
-	if m.FieldCleared(user.FieldProfilePictureURL) {
-		fields = append(fields, user.FieldProfilePictureURL)
-	}
 	if m.FieldCleared(user.FieldDeletedAt) {
 		fields = append(fields, user.FieldDeletedAt)
 	}
@@ -972,9 +905,6 @@ func (m *UserMutation) ClearField(name string) error {
 	switch name {
 	case user.FieldUsername:
 		m.ClearUsername()
-		return nil
-	case user.FieldProfilePictureURL:
-		m.ClearProfilePictureURL()
 		return nil
 	case user.FieldDeletedAt:
 		m.ClearDeletedAt()
@@ -998,9 +928,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUsername:
 		m.ResetUsername()
-		return nil
-	case user.FieldProfilePictureURL:
-		m.ResetProfilePictureURL()
 		return nil
 	case user.FieldStorageUsedBytes:
 		m.ResetStorageUsedBytes()

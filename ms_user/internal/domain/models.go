@@ -14,7 +14,6 @@ type User struct {
 	Email             string
 	FullName          string
 	Username          string
-	ProfilePictureURL string
 	StorageUsedBytes  int64
 	StorageQuotaBytes int64
 	Status            string

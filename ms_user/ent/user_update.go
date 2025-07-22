@@ -92,26 +92,6 @@ func (uu *UserUpdate) ClearUsername() *UserUpdate {
 	return uu
 }
 
-// SetProfilePictureURL sets the "profile_picture_url" field.
-func (uu *UserUpdate) SetProfilePictureURL(s string) *UserUpdate {
-	uu.mutation.SetProfilePictureURL(s)
-	return uu
-}
-
-// SetNillableProfilePictureURL sets the "profile_picture_url" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableProfilePictureURL(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetProfilePictureURL(*s)
-	}
-	return uu
-}
-
-// ClearProfilePictureURL clears the value of the "profile_picture_url" field.
-func (uu *UserUpdate) ClearProfilePictureURL() *UserUpdate {
-	uu.mutation.ClearProfilePictureURL()
-	return uu
-}
-
 // SetStorageUsedBytes sets the "storage_used_bytes" field.
 func (uu *UserUpdate) SetStorageUsedBytes(i int64) *UserUpdate {
 	uu.mutation.ResetStorageUsedBytes()
@@ -284,12 +264,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.UsernameCleared() {
 		_spec.ClearField(user.FieldUsername, field.TypeString)
 	}
-	if value, ok := uu.mutation.ProfilePictureURL(); ok {
-		_spec.SetField(user.FieldProfilePictureURL, field.TypeString, value)
-	}
-	if uu.mutation.ProfilePictureURLCleared() {
-		_spec.ClearField(user.FieldProfilePictureURL, field.TypeString)
-	}
 	if value, ok := uu.mutation.StorageUsedBytes(); ok {
 		_spec.SetField(user.FieldStorageUsedBytes, field.TypeInt64, value)
 	}
@@ -422,26 +396,6 @@ func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
 // ClearUsername clears the value of the "username" field.
 func (uuo *UserUpdateOne) ClearUsername() *UserUpdateOne {
 	uuo.mutation.ClearUsername()
-	return uuo
-}
-
-// SetProfilePictureURL sets the "profile_picture_url" field.
-func (uuo *UserUpdateOne) SetProfilePictureURL(s string) *UserUpdateOne {
-	uuo.mutation.SetProfilePictureURL(s)
-	return uuo
-}
-
-// SetNillableProfilePictureURL sets the "profile_picture_url" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableProfilePictureURL(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetProfilePictureURL(*s)
-	}
-	return uuo
-}
-
-// ClearProfilePictureURL clears the value of the "profile_picture_url" field.
-func (uuo *UserUpdateOne) ClearProfilePictureURL() *UserUpdateOne {
-	uuo.mutation.ClearProfilePictureURL()
 	return uuo
 }
 
@@ -646,12 +600,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.UsernameCleared() {
 		_spec.ClearField(user.FieldUsername, field.TypeString)
-	}
-	if value, ok := uuo.mutation.ProfilePictureURL(); ok {
-		_spec.SetField(user.FieldProfilePictureURL, field.TypeString, value)
-	}
-	if uuo.mutation.ProfilePictureURLCleared() {
-		_spec.ClearField(user.FieldProfilePictureURL, field.TypeString)
 	}
 	if value, ok := uuo.mutation.StorageUsedBytes(); ok {
 		_spec.SetField(user.FieldStorageUsedBytes, field.TypeInt64, value)

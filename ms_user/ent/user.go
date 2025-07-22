@@ -27,8 +27,6 @@ type User struct {
 	FullName string `json:"full_name,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
-	// ProfilePictureURL holds the value of the "profile_picture_url" field.
-	ProfilePictureURL string `json:"profile_picture_url,omitempty"`
 	// StorageUsedBytes holds the value of the "storage_used_bytes" field.
 	StorageUsedBytes int64 `json:"storage_used_bytes,omitempty"`
 	// StorageQuotaBytes holds the value of the "storage_quota_bytes" field.
@@ -74,7 +72,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldStorageUsedBytes, user.FieldStorageQuotaBytes:
 			values[i] = new(sql.NullInt64)
-		case user.FieldClerkUserID, user.FieldEmail, user.FieldFullName, user.FieldUsername, user.FieldProfilePictureURL, user.FieldStatus:
+		case user.FieldClerkUserID, user.FieldEmail, user.FieldFullName, user.FieldUsername, user.FieldStatus:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -124,12 +122,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
 				u.Username = value.String
-			}
-		case user.FieldProfilePictureURL:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field profile_picture_url", values[i])
-			} else if value.Valid {
-				u.ProfilePictureURL = value.String
 			}
 		case user.FieldStorageUsedBytes:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -220,9 +212,6 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(u.Username)
-	builder.WriteString(", ")
-	builder.WriteString("profile_picture_url=")
-	builder.WriteString(u.ProfilePictureURL)
 	builder.WriteString(", ")
 	builder.WriteString("storage_used_bytes=")
 	builder.WriteString(fmt.Sprintf("%v", u.StorageUsedBytes))
