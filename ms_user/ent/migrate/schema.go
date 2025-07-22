@@ -15,7 +15,6 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "full_name", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Nullable: true},
-		{Name: "profile_picture_url", Type: field.TypeString, Nullable: true},
 		{Name: "storage_used_bytes", Type: field.TypeInt64, Default: 0},
 		{Name: "storage_quota_bytes", Type: field.TypeInt64, Default: 5368709120},
 		{Name: "status", Type: field.TypeString, Default: "active"},

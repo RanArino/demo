@@ -27,7 +27,6 @@ func (r *entUserRepository) Create(ctx context.Context, user *domain.User) (*dom
 		SetEmail(user.Email).
 		SetFullName(user.FullName).
 		SetUsername(user.Username).
-		SetProfilePictureURL(user.ProfilePictureURL).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -70,9 +69,6 @@ func (r *entUserRepository) Update(ctx context.Context, id uuid.UUID, updates ma
 	}
 	if val, ok := updates["username"]; ok {
 		updater.SetUsername(val.(string))
-	}
-	if val, ok := updates["profile_picture_url"]; ok {
-		updater.SetProfilePictureURL(val.(string))
 	}
 
 	_, err := updater.Save(ctx)
@@ -152,7 +148,6 @@ func toDomainUser(entUser *ent.User) *domain.User {
 		Email:             entUser.Email,
 		FullName:          entUser.FullName,
 		Username:          entUser.Username,
-		ProfilePictureURL: entUser.ProfilePictureURL,
 		StorageUsedBytes:  entUser.StorageUsedBytes,
 		StorageQuotaBytes: entUser.StorageQuotaBytes,
 		Status:            entUser.Status,

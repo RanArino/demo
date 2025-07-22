@@ -23,8 +23,6 @@ const (
 	FieldFullName = "full_name"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
-	// FieldProfilePictureURL holds the string denoting the profile_picture_url field in the database.
-	FieldProfilePictureURL = "profile_picture_url"
 	// FieldStorageUsedBytes holds the string denoting the storage_used_bytes field in the database.
 	FieldStorageUsedBytes = "storage_used_bytes"
 	// FieldStorageQuotaBytes holds the string denoting the storage_quota_bytes field in the database.
@@ -57,7 +55,6 @@ var Columns = []string{
 	FieldEmail,
 	FieldFullName,
 	FieldUsername,
-	FieldProfilePictureURL,
 	FieldStorageUsedBytes,
 	FieldStorageQuotaBytes,
 	FieldStatus,
@@ -119,11 +116,6 @@ func ByFullName(opts ...sql.OrderTermOption) OrderOption {
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
-}
-
-// ByProfilePictureURL orders the results by the profile_picture_url field.
-func ByProfilePictureURL(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldProfilePictureURL, opts...).ToFunc()
 }
 
 // ByStorageUsedBytes orders the results by the storage_used_bytes field.

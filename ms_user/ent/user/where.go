@@ -76,11 +76,6 @@ func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
 }
 
-// ProfilePictureURL applies equality check predicate on the "profile_picture_url" field. It's identical to ProfilePictureURLEQ.
-func ProfilePictureURL(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldProfilePictureURL, v))
-}
-
 // StorageUsedBytes applies equality check predicate on the "storage_used_bytes" field. It's identical to StorageUsedBytesEQ.
 func StorageUsedBytes(v int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStorageUsedBytes, v))
@@ -379,81 +374,6 @@ func UsernameEqualFold(v string) predicate.User {
 // UsernameContainsFold applies the ContainsFold predicate on the "username" field.
 func UsernameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldUsername, v))
-}
-
-// ProfilePictureURLEQ applies the EQ predicate on the "profile_picture_url" field.
-func ProfilePictureURLEQ(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLNEQ applies the NEQ predicate on the "profile_picture_url" field.
-func ProfilePictureURLNEQ(v string) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLIn applies the In predicate on the "profile_picture_url" field.
-func ProfilePictureURLIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldIn(FieldProfilePictureURL, vs...))
-}
-
-// ProfilePictureURLNotIn applies the NotIn predicate on the "profile_picture_url" field.
-func ProfilePictureURLNotIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldProfilePictureURL, vs...))
-}
-
-// ProfilePictureURLGT applies the GT predicate on the "profile_picture_url" field.
-func ProfilePictureURLGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLGTE applies the GTE predicate on the "profile_picture_url" field.
-func ProfilePictureURLGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLLT applies the LT predicate on the "profile_picture_url" field.
-func ProfilePictureURLLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLLTE applies the LTE predicate on the "profile_picture_url" field.
-func ProfilePictureURLLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLContains applies the Contains predicate on the "profile_picture_url" field.
-func ProfilePictureURLContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLHasPrefix applies the HasPrefix predicate on the "profile_picture_url" field.
-func ProfilePictureURLHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLHasSuffix applies the HasSuffix predicate on the "profile_picture_url" field.
-func ProfilePictureURLHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLIsNil applies the IsNil predicate on the "profile_picture_url" field.
-func ProfilePictureURLIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldProfilePictureURL))
-}
-
-// ProfilePictureURLNotNil applies the NotNil predicate on the "profile_picture_url" field.
-func ProfilePictureURLNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldProfilePictureURL))
-}
-
-// ProfilePictureURLEqualFold applies the EqualFold predicate on the "profile_picture_url" field.
-func ProfilePictureURLEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldProfilePictureURL, v))
-}
-
-// ProfilePictureURLContainsFold applies the ContainsFold predicate on the "profile_picture_url" field.
-func ProfilePictureURLContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldProfilePictureURL, v))
 }
 
 // StorageUsedBytesEQ applies the EQ predicate on the "storage_used_bytes" field.

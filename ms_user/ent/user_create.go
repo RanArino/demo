@@ -54,20 +54,6 @@ func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
 	return uc
 }
 
-// SetProfilePictureURL sets the "profile_picture_url" field.
-func (uc *UserCreate) SetProfilePictureURL(s string) *UserCreate {
-	uc.mutation.SetProfilePictureURL(s)
-	return uc
-}
-
-// SetNillableProfilePictureURL sets the "profile_picture_url" field if the given value is not nil.
-func (uc *UserCreate) SetNillableProfilePictureURL(s *string) *UserCreate {
-	if s != nil {
-		uc.SetProfilePictureURL(*s)
-	}
-	return uc
-}
-
 // SetStorageUsedBytes sets the "storage_used_bytes" field.
 func (uc *UserCreate) SetStorageUsedBytes(i int64) *UserCreate {
 	uc.mutation.SetStorageUsedBytes(i)
@@ -322,10 +308,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
-	}
-	if value, ok := uc.mutation.ProfilePictureURL(); ok {
-		_spec.SetField(user.FieldProfilePictureURL, field.TypeString, value)
-		_node.ProfilePictureURL = value
 	}
 	if value, ok := uc.mutation.StorageUsedBytes(); ok {
 		_spec.SetField(user.FieldStorageUsedBytes, field.TypeInt64, value)
