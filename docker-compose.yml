@@ -43,9 +43,14 @@ services:
       context: ./ms_user
       dockerfile: Dockerfile
     ports:
-      - "8004:8080"
+      - "50051:50051"  # gRPC server
+      - "8081:8081"    # webhook server
     environment:
-      - SERVER_PORT=8080
+      - GRPC_PORT=50051
+      - WEBHOOK_PORT=8081
+      - DATABASE_URL=${DATABASE_URL}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
     restart: unless-stopped
 
   # Python-based microservices
@@ -79,19 +84,32 @@ services:
       - qdrant_data:/qdrant/storage
     restart: unless-stopped
 
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=user_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   # Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3002:3002"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_API_URL=http://localhost:3002
       - NEXT_PUBLIC_MS_CANVAS_URL=http://localhost:8001
       - NEXT_PUBLIC_MS_KNOWLEDGE_URL=http://localhost:8002
       - NEXT_PUBLIC_MS_VECTOR_URL=http://localhost:8003
-      - NEXT_PUBLIC_MS_USER_URL=http://localhost:8004
+      - NEXT_PUBLIC_MS_USER_URL=http://localhost:50051
       - NEXT_PUBLIC_MS_CHAT_URL=http://localhost:8005
       - NEXT_PUBLIC_MS_ML_URL=http://localhost:8006
     depends_on:
@@ -104,4 +122,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  qdrant_data: 
+  qdrant_data:
+  postgres_data: 
