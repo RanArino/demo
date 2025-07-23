@@ -19,6 +19,8 @@ service UserService {
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
   // Updates a user's preferences.
   rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UpdateUserPreferencesResponse);
+  // Checks if user needs profile completion.
+  rpc CheckUserStatus(CheckUserStatusRequest) returns (CheckUserStatusResponse);
 }
 
 // User represents a user account in the system.
@@ -108,4 +110,15 @@ message UpdateUserPreferencesRequest {
 // Response after updating user preferences.
 message UpdateUserPreferencesResponse {
   UserPreferences preferences = 1;
+}
+
+// Request to check user status.
+message CheckUserStatusRequest {}
+
+// User status information.
+message CheckUserStatusResponse {
+  bool profile_completed = 1;
+  bool needs_redirect = 2;
+  string redirect_url = 3;
+  User user = 4;
 }
