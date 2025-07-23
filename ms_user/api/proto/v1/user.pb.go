@@ -796,6 +796,112 @@ func (x *UpdateUserPreferencesResponse) GetPreferences() *UserPreferences {
 	return nil
 }
 
+// Request to check user status.
+type CheckUserStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckUserStatusRequest) Reset() {
+	*x = CheckUserStatusRequest{}
+	mi := &file_api_proto_v1_user_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckUserStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckUserStatusRequest) ProtoMessage() {}
+
+func (x *CheckUserStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_user_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckUserStatusRequest.ProtoReflect.Descriptor instead.
+func (*CheckUserStatusRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_user_proto_rawDescGZIP(), []int{12}
+}
+
+// User status information.
+type CheckUserStatusResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ProfileCompleted bool                   `protobuf:"varint,1,opt,name=profile_completed,json=profileCompleted,proto3" json:"profile_completed,omitempty"`
+	NeedsRedirect    bool                   `protobuf:"varint,2,opt,name=needs_redirect,json=needsRedirect,proto3" json:"needs_redirect,omitempty"`
+	RedirectUrl      string                 `protobuf:"bytes,3,opt,name=redirect_url,json=redirectUrl,proto3" json:"redirect_url,omitempty"`
+	User             *User                  `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *CheckUserStatusResponse) Reset() {
+	*x = CheckUserStatusResponse{}
+	mi := &file_api_proto_v1_user_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckUserStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckUserStatusResponse) ProtoMessage() {}
+
+func (x *CheckUserStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_user_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckUserStatusResponse.ProtoReflect.Descriptor instead.
+func (*CheckUserStatusResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_user_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CheckUserStatusResponse) GetProfileCompleted() bool {
+	if x != nil {
+		return x.ProfileCompleted
+	}
+	return false
+}
+
+func (x *CheckUserStatusResponse) GetNeedsRedirect() bool {
+	if x != nil {
+		return x.NeedsRedirect
+	}
+	return false
+}
+
+func (x *CheckUserStatusResponse) GetRedirectUrl() string {
+	if x != nil {
+		return x.RedirectUrl
+	}
+	return ""
+}
+
+func (x *CheckUserStatusResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 var File_api_proto_v1_user_proto protoreflect.FileDescriptor
 
 const file_api_proto_v1_user_proto_rawDesc = "" +
@@ -869,7 +975,13 @@ const file_api_proto_v1_user_proto_rawDesc = "" +
 	"\x16_notification_settingsB\x19\n" +
 	"\x17_accessibility_settings\"[\n" +
 	"\x1dUpdateUserPreferencesResponse\x12:\n" +
-	"\vpreferences\x18\x01 \x01(\v2\x18.user.v1.UserPreferencesR\vpreferences2\x88\x03\n" +
+	"\vpreferences\x18\x01 \x01(\v2\x18.user.v1.UserPreferencesR\vpreferences\"\x18\n" +
+	"\x16CheckUserStatusRequest\"\xb3\x01\n" +
+	"\x17CheckUserStatusResponse\x12+\n" +
+	"\x11profile_completed\x18\x01 \x01(\bR\x10profileCompleted\x12%\n" +
+	"\x0eneeds_redirect\x18\x02 \x01(\bR\rneedsRedirect\x12!\n" +
+	"\fredirect_url\x18\x03 \x01(\tR\vredirectUrl\x12!\n" +
+	"\x04user\x18\x04 \x01(\v2\r.user.v1.UserR\x04user2\xde\x03\n" +
 	"\vUserService\x12E\n" +
 	"\n" +
 	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\x12<\n" +
@@ -878,7 +990,8 @@ const file_api_proto_v1_user_proto_rawDesc = "" +
 	"UpdateUser\x12\x1a.user.v1.UpdateUserRequest\x1a\x1b.user.v1.UpdateUserResponse\x12E\n" +
 	"\n" +
 	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponse\x12f\n" +
-	"\x15UpdateUserPreferences\x12%.user.v1.UpdateUserPreferencesRequest\x1a&.user.v1.UpdateUserPreferencesResponseB\x1bZ\x19demo/ms_user/api/proto/v1b\x06proto3"
+	"\x15UpdateUserPreferences\x12%.user.v1.UpdateUserPreferencesRequest\x1a&.user.v1.UpdateUserPreferencesResponse\x12T\n" +
+	"\x0fCheckUserStatus\x12\x1f.user.v1.CheckUserStatusRequest\x1a .user.v1.CheckUserStatusResponseB\x1bZ\x19demo/ms_user/api/proto/v1b\x06proto3"
 
 var (
 	file_api_proto_v1_user_proto_rawDescOnce sync.Once
@@ -892,7 +1005,7 @@ func file_api_proto_v1_user_proto_rawDescGZIP() []byte {
 	return file_api_proto_v1_user_proto_rawDescData
 }
 
-var file_api_proto_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_api_proto_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_api_proto_v1_user_proto_goTypes = []any{
 	(*User)(nil),                          // 0: user.v1.User
 	(*UserPreferences)(nil),               // 1: user.v1.UserPreferences
@@ -906,40 +1019,45 @@ var file_api_proto_v1_user_proto_goTypes = []any{
 	(*DeleteUserResponse)(nil),            // 9: user.v1.DeleteUserResponse
 	(*UpdateUserPreferencesRequest)(nil),  // 10: user.v1.UpdateUserPreferencesRequest
 	(*UpdateUserPreferencesResponse)(nil), // 11: user.v1.UpdateUserPreferencesResponse
-	(*timestamppb.Timestamp)(nil),         // 12: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),               // 13: google.protobuf.Struct
+	(*CheckUserStatusRequest)(nil),        // 12: user.v1.CheckUserStatusRequest
+	(*CheckUserStatusResponse)(nil),       // 13: user.v1.CheckUserStatusResponse
+	(*timestamppb.Timestamp)(nil),         // 14: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),               // 15: google.protobuf.Struct
 }
 var file_api_proto_v1_user_proto_depIdxs = []int32{
-	12, // 0: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	12, // 1: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	12, // 2: user.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
-	13, // 3: user.v1.UserPreferences.canvas_settings:type_name -> google.protobuf.Struct
-	13, // 4: user.v1.UserPreferences.notification_settings:type_name -> google.protobuf.Struct
-	13, // 5: user.v1.UserPreferences.accessibility_settings:type_name -> google.protobuf.Struct
-	12, // 6: user.v1.UserPreferences.created_at:type_name -> google.protobuf.Timestamp
-	12, // 7: user.v1.UserPreferences.updated_at:type_name -> google.protobuf.Timestamp
+	14, // 0: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	14, // 1: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	14, // 2: user.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
+	15, // 3: user.v1.UserPreferences.canvas_settings:type_name -> google.protobuf.Struct
+	15, // 4: user.v1.UserPreferences.notification_settings:type_name -> google.protobuf.Struct
+	15, // 5: user.v1.UserPreferences.accessibility_settings:type_name -> google.protobuf.Struct
+	14, // 6: user.v1.UserPreferences.created_at:type_name -> google.protobuf.Timestamp
+	14, // 7: user.v1.UserPreferences.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 8: user.v1.CreateUserResponse.user:type_name -> user.v1.User
 	0,  // 9: user.v1.GetUserResponse.user:type_name -> user.v1.User
 	0,  // 10: user.v1.UpdateUserResponse.user:type_name -> user.v1.User
-	13, // 11: user.v1.UpdateUserPreferencesRequest.canvas_settings:type_name -> google.protobuf.Struct
-	13, // 12: user.v1.UpdateUserPreferencesRequest.notification_settings:type_name -> google.protobuf.Struct
-	13, // 13: user.v1.UpdateUserPreferencesRequest.accessibility_settings:type_name -> google.protobuf.Struct
+	15, // 11: user.v1.UpdateUserPreferencesRequest.canvas_settings:type_name -> google.protobuf.Struct
+	15, // 12: user.v1.UpdateUserPreferencesRequest.notification_settings:type_name -> google.protobuf.Struct
+	15, // 13: user.v1.UpdateUserPreferencesRequest.accessibility_settings:type_name -> google.protobuf.Struct
 	1,  // 14: user.v1.UpdateUserPreferencesResponse.preferences:type_name -> user.v1.UserPreferences
-	2,  // 15: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
-	4,  // 16: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
-	6,  // 17: user.v1.UserService.UpdateUser:input_type -> user.v1.UpdateUserRequest
-	8,  // 18: user.v1.UserService.DeleteUser:input_type -> user.v1.DeleteUserRequest
-	10, // 19: user.v1.UserService.UpdateUserPreferences:input_type -> user.v1.UpdateUserPreferencesRequest
-	3,  // 20: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
-	5,  // 21: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
-	7,  // 22: user.v1.UserService.UpdateUser:output_type -> user.v1.UpdateUserResponse
-	9,  // 23: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
-	11, // 24: user.v1.UserService.UpdateUserPreferences:output_type -> user.v1.UpdateUserPreferencesResponse
-	20, // [20:25] is the sub-list for method output_type
-	15, // [15:20] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	0,  // 15: user.v1.CheckUserStatusResponse.user:type_name -> user.v1.User
+	2,  // 16: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
+	4,  // 17: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
+	6,  // 18: user.v1.UserService.UpdateUser:input_type -> user.v1.UpdateUserRequest
+	8,  // 19: user.v1.UserService.DeleteUser:input_type -> user.v1.DeleteUserRequest
+	10, // 20: user.v1.UserService.UpdateUserPreferences:input_type -> user.v1.UpdateUserPreferencesRequest
+	12, // 21: user.v1.UserService.CheckUserStatus:input_type -> user.v1.CheckUserStatusRequest
+	3,  // 22: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
+	5,  // 23: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
+	7,  // 24: user.v1.UserService.UpdateUser:output_type -> user.v1.UpdateUserResponse
+	9,  // 25: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
+	11, // 26: user.v1.UserService.UpdateUserPreferences:output_type -> user.v1.UpdateUserPreferencesResponse
+	13, // 27: user.v1.UserService.CheckUserStatus:output_type -> user.v1.CheckUserStatusResponse
+	22, // [22:28] is the sub-list for method output_type
+	16, // [16:22] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_v1_user_proto_init() }
@@ -955,7 +1073,7 @@ func file_api_proto_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_v1_user_proto_rawDesc), len(file_api_proto_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

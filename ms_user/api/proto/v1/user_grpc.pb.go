@@ -24,6 +24,7 @@ const (
 	UserService_UpdateUser_FullMethodName            = "/user.v1.UserService/UpdateUser"
 	UserService_DeleteUser_FullMethodName            = "/user.v1.UserService/DeleteUser"
 	UserService_UpdateUserPreferences_FullMethodName = "/user.v1.UserService/UpdateUserPreferences"
+	UserService_CheckUserStatus_FullMethodName       = "/user.v1.UserService/CheckUserStatus"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -42,6 +43,8 @@ type UserServiceClient interface {
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	// Updates a user's preferences.
 	UpdateUserPreferences(ctx context.Context, in *UpdateUserPreferencesRequest, opts ...grpc.CallOption) (*UpdateUserPreferencesResponse, error)
+	// Checks if user needs profile completion.
+	CheckUserStatus(ctx context.Context, in *CheckUserStatusRequest, opts ...grpc.CallOption) (*CheckUserStatusResponse, error)
 }
 
 type userServiceClient struct {
@@ -102,6 +105,16 @@ func (c *userServiceClient) UpdateUserPreferences(ctx context.Context, in *Updat
 	return out, nil
 }
 
+func (c *userServiceClient) CheckUserStatus(ctx context.Context, in *CheckUserStatusRequest, opts ...grpc.CallOption) (*CheckUserStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckUserStatusResponse)
+	err := c.cc.Invoke(ctx, UserService_CheckUserStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -118,6 +131,8 @@ type UserServiceServer interface {
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	// Updates a user's preferences.
 	UpdateUserPreferences(context.Context, *UpdateUserPreferencesRequest) (*UpdateUserPreferencesResponse, error)
+	// Checks if user needs profile completion.
+	CheckUserStatus(context.Context, *CheckUserStatusRequest) (*CheckUserStatusResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -142,6 +157,9 @@ func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserReq
 }
 func (UnimplementedUserServiceServer) UpdateUserPreferences(context.Context, *UpdateUserPreferencesRequest) (*UpdateUserPreferencesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserPreferences not implemented")
+}
+func (UnimplementedUserServiceServer) CheckUserStatus(context.Context, *CheckUserStatusRequest) (*CheckUserStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckUserStatus not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -254,6 +272,24 @@ func _UserService_UpdateUserPreferences_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_CheckUserStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckUserStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CheckUserStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CheckUserStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CheckUserStatus(ctx, req.(*CheckUserStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +316,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserPreferences",
 			Handler:    _UserService_UpdateUserPreferences_Handler,
+		},
+		{
+			MethodName: "CheckUserStatus",
+			Handler:    _UserService_CheckUserStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
