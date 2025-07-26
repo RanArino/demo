@@ -50,29 +50,31 @@ Docs Links:
 *   **新たなインサイト発見:** 可視化された情報構造の中から、予期せぬ関連性や新たな知識を発見する機会を創出。
 *   **知識基盤:** API や MCP (Message Control Protocol) を通じて、AIが自律的に情報を構造化・検索・理解するためのワークフローコンポーネントとして機能
 
-## 技術スタック・その他の機能群（案）：
-### 主要技術
-*   **Frontend:** Next.js
-    *   UIコンポーネント: Shadcn UI, HeroUI, Tailwind CSS, etc.
-    *   3D可視化: react-force-graph-3d, Three.js, etc.
-*   **Backend(Main):** Go
-    *   API: RESTful API, gRPC (検討中)
-    *   主な目的: DB連携、API処理、並行処理, LLM API
+## Technology Stack & Other Features (Proposed):
+### Core Technologies
+*   **Frontend:** Next.js (Hybrid Architecture)
+    *   **Communication:** Next.js Server Actions (for request-response), gRPC-web (for one-way server streams), WebSockets (for two-way interactive streams).
+    *   **UI Components:** Shadcn UI, HeroUI, Tailwind CSS, etc.
+    *   **3D Visualization:** react-force-graph-3d, Three.js, etc.
+*   **Backend (Polyglot Microservices):**
+    *   **Go Services:** For high-performance, low-latency operations (e.g., User Service, API Gateway), CPU-intensive computations, and services requiring minimal memory footprint.
+    *   **Python Services:** For AI/ML workloads, data processing (e.g., Knowledge Service, ML Model Serving), and integration with Python-specific libraries.
+    *   **Internal Communication:** gRPC (service-to-service).
+    *   **External Communication:** gRPC (via Server Actions), gRPC-web (via Envoy proxy), WebSockets (via dedicated service).
 *   **Vector Database:** Qdrant
-    *   主な目的: ベクトル検索、データ管理
-    *   連携: Go SDK (qdrant-go-client)
-*   **Machine Learning / AI:** Python
-    *   主な目的: 次元削減、クラスタリング、(将来的には)LLMファインチューニング
-    *   連携: GoバックエンドとのAPI連携 (gRPC等)
-*   **LLM & Embedding:** 
-    *   モデル：Gemini/Vertex AI（主要モデル）, OpenRouter（多様なモデルの選択肢を提供する場合）
-    *   主な目的：テキストの要約、文章の分割、文脈の理解
+    *   **Purpose:** Vector search, data management.
+    *   **Integration:** Go SDK (qdrant-go-client).
+*   **LLM & Embedding:**
+    *   **Models:** Gemini/Vertex AI (primary), OpenRouter (for diverse model options).
+    *   **Purpose:** Text summarization, document segmentation, context understanding.
+
 
 ### 開発者向け機能 (Developer Features)
 外部システムやAIエージェントとの連携を可能にするためのバックエンド機能について
-*   **RESTful API:**
-    *   主要な機能（ドキュメントのアップロード、構造化の開始、検索クエリの実行、ステータス確認など）をプログラムから操作するための標準的なHTTPベースのAPI。
-    *   これにより、カスタムアプリケーションや他のサービスとの統合を実現。
+*   **gRPC API:**
+    *   主要な機能（ドキュメントのアップロード、構造化の開始、検索クエリの実行、ステータス確認など）をプログラムから操作するためのtype-safeで高性能なAPI。
+    *   Protocol Bufferによる型安全性とパフォーマンスを提供し、カスタムアプリケーションや他のサービスとの統合を実現。
+    *   **Note:** For gRPC-Web proxying, refer to concepts like [Google Cloud Endpoints gRPC Transcoding](https://cloud.google.com/endpoints/docs/grpc/transcoding).
 *   **MCP (Message Control Protocol) (検討中):**
     *   AIエージェントが本ソフトウェアの機能をより自律的に利用するための、専用プロトコル（メッセージングベース等を想定）の提供を検討。
     *   AIエージェントが情報を投入し、構造化された結果を受け取り、それに基づいて次のアクションを決定するような、複雑なワークフローを円滑に実行することを想定。
