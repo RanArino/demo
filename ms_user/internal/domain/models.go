@@ -26,16 +26,24 @@ type User struct {
 
 // UserPreferences holds settings for a user.
 type UserPreferences struct {
-	ID                   uuid.UUID
-	UserID               uuid.UUID
-	Theme                string
-	Language             string
-	Timezone             string
-	CanvasSettings       map[string]interface{}
-	NotificationSettings map[string]interface{}
+	ID                    uuid.UUID
+	UserID                uuid.UUID
+	Theme                 string
+	Language              string
+	Timezone              string
+	CanvasSettings        map[string]interface{}
+	NotificationSettings  map[string]interface{}
 	AccessibilitySettings map[string]interface{}
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+}
+
+// UserStatus represents the status of a user's profile completion
+type UserStatus struct {
+	ProfileCompleted bool
+	NeedsRedirect    bool
+	RedirectURL      string
+	User             *User
 }
 
 // UserRepository defines the interface for interacting with user data.
