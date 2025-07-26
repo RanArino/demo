@@ -14,7 +14,7 @@ type User struct {
 	Email             string
 	FullName          string
 	Username          string
-	Role              string
+	Role              string // Role for authorization (admin, user, etc.)
 	StorageUsedBytes  int64
 	StorageQuotaBytes int64
 	Status            string
