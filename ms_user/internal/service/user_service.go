@@ -4,8 +4,11 @@ import (
 	"context"
 	"demo/ms_user/internal/domain"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2/user"
+	"github.com/google/uuid"
 )
 
 // UserService provides user-related business logic.
@@ -18,9 +21,32 @@ func NewUserService(repo domain.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-// CreateUser is deprecated in favor of the user.created webhook handler.
+// CreateUser creates a user during profile completion flow.
 func (s *UserService) CreateUser(ctx context.Context, clerkID, email, fullName, username string) (*domain.User, error) {
-	return nil, fmt.Errorf("CreateUser is deprecated")
+	user := &domain.User{
+		ID:                uuid.New(),
+		ClerkUserID:       clerkID,
+		Email:             email,
+		FullName:          fullName,
+		Username:          username,
+		StorageUsedBytes:  0,
+		StorageQuotaBytes: 5 * 1024 * 1024 * 1024, // 5GB default quota
+		Status:            "active",
+		Role:              "user", // Default role for new users
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
+	}
+
+	createdUser, err := s.repo.Create(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Audit log: User creation via gRPC
+	log.Printf("AUDIT: user created via gRPC - clerk_id=%s, email=%s, username=%s, id=%s, timestamp=%s",
+		clerkID, email, username, createdUser.ID.String(), time.Now().UTC().Format(time.RFC3339))
+
+	return createdUser, nil
 }
 
 // GetUser retrieves a user by their Clerk ID from the context.
@@ -64,7 +90,7 @@ func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username 
 
 		if _, err := user.Update(ctx, clerkUserID, params); err != nil {
 			// Log the error but don't block the local update
-			fmt.Printf("failed to update user on clerk: %v\n", err)
+			log.Printf("failed to update user on clerk")
 		}
 	}
 
