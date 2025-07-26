@@ -27,6 +27,8 @@ func (User) Fields() []ent.Field {
 		field.String("full_name"),
 		field.String("username").
 			Optional(),
+		field.String("role").
+			Default("user"),
 		field.Int64("storage_used_bytes").
 			Default(0),
 		field.Int64("storage_quota_bytes").

@@ -23,6 +23,8 @@ const (
 	FieldFullName = "full_name"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 	// FieldStorageUsedBytes holds the string denoting the storage_used_bytes field in the database.
 	FieldStorageUsedBytes = "storage_used_bytes"
 	// FieldStorageQuotaBytes holds the string denoting the storage_quota_bytes field in the database.
@@ -55,6 +57,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldFullName,
 	FieldUsername,
+	FieldRole,
 	FieldStorageUsedBytes,
 	FieldStorageQuotaBytes,
 	FieldStatus,
@@ -74,6 +77,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultRole holds the default value on creation for the "role" field.
+	DefaultRole string
 	// DefaultStorageUsedBytes holds the default value on creation for the "storage_used_bytes" field.
 	DefaultStorageUsedBytes int64
 	// DefaultStorageQuotaBytes holds the default value on creation for the "storage_quota_bytes" field.
@@ -116,6 +121,11 @@ func ByFullName(opts ...sql.OrderTermOption) OrderOption {
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
+}
+
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
 }
 
 // ByStorageUsedBytes orders the results by the storage_used_bytes field.

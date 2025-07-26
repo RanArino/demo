@@ -17,24 +17,28 @@ import (
 func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
+	// userDescRole is the schema descriptor for role field.
+	userDescRole := userFields[5].Descriptor()
+	// user.DefaultRole holds the default value on creation for the role field.
+	user.DefaultRole = userDescRole.Default.(string)
 	// userDescStorageUsedBytes is the schema descriptor for storage_used_bytes field.
-	userDescStorageUsedBytes := userFields[5].Descriptor()
+	userDescStorageUsedBytes := userFields[6].Descriptor()
 	// user.DefaultStorageUsedBytes holds the default value on creation for the storage_used_bytes field.
 	user.DefaultStorageUsedBytes = userDescStorageUsedBytes.Default.(int64)
 	// userDescStorageQuotaBytes is the schema descriptor for storage_quota_bytes field.
-	userDescStorageQuotaBytes := userFields[6].Descriptor()
+	userDescStorageQuotaBytes := userFields[7].Descriptor()
 	// user.DefaultStorageQuotaBytes holds the default value on creation for the storage_quota_bytes field.
 	user.DefaultStorageQuotaBytes = userDescStorageQuotaBytes.Default.(int64)
 	// userDescStatus is the schema descriptor for status field.
-	userDescStatus := userFields[7].Descriptor()
+	userDescStatus := userFields[8].Descriptor()
 	// user.DefaultStatus holds the default value on creation for the status field.
 	user.DefaultStatus = userDescStatus.Default.(string)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[8].Descriptor()
+	userDescCreatedAt := userFields[9].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[9].Descriptor()
+	userDescUpdatedAt := userFields[10].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

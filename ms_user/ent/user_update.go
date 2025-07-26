@@ -92,6 +92,20 @@ func (uu *UserUpdate) ClearUsername() *UserUpdate {
 	return uu
 }
 
+// SetRole sets the "role" field.
+func (uu *UserUpdate) SetRole(s string) *UserUpdate {
+	uu.mutation.SetRole(s)
+	return uu
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableRole(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetRole(*s)
+	}
+	return uu
+}
+
 // SetStorageUsedBytes sets the "storage_used_bytes" field.
 func (uu *UserUpdate) SetStorageUsedBytes(i int64) *UserUpdate {
 	uu.mutation.ResetStorageUsedBytes()
@@ -264,6 +278,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.UsernameCleared() {
 		_spec.ClearField(user.FieldUsername, field.TypeString)
 	}
+	if value, ok := uu.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeString, value)
+	}
 	if value, ok := uu.mutation.StorageUsedBytes(); ok {
 		_spec.SetField(user.FieldStorageUsedBytes, field.TypeInt64, value)
 	}
@@ -396,6 +413,20 @@ func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
 // ClearUsername clears the value of the "username" field.
 func (uuo *UserUpdateOne) ClearUsername() *UserUpdateOne {
 	uuo.mutation.ClearUsername()
+	return uuo
+}
+
+// SetRole sets the "role" field.
+func (uuo *UserUpdateOne) SetRole(s string) *UserUpdateOne {
+	uuo.mutation.SetRole(s)
+	return uuo
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableRole(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetRole(*s)
+	}
 	return uuo
 }
 
@@ -600,6 +631,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.UsernameCleared() {
 		_spec.ClearField(user.FieldUsername, field.TypeString)
+	}
+	if value, ok := uuo.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.StorageUsedBytes(); ok {
 		_spec.SetField(user.FieldStorageUsedBytes, field.TypeInt64, value)

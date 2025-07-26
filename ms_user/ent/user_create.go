@@ -54,6 +54,20 @@ func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
 	return uc
 }
 
+// SetRole sets the "role" field.
+func (uc *UserCreate) SetRole(s string) *UserCreate {
+	uc.mutation.SetRole(s)
+	return uc
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uc *UserCreate) SetNillableRole(s *string) *UserCreate {
+	if s != nil {
+		uc.SetRole(*s)
+	}
+	return uc
+}
+
 // SetStorageUsedBytes sets the "storage_used_bytes" field.
 func (uc *UserCreate) SetStorageUsedBytes(i int64) *UserCreate {
 	uc.mutation.SetStorageUsedBytes(i)
@@ -206,6 +220,10 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.Role(); !ok {
+		v := user.DefaultRole
+		uc.mutation.SetRole(v)
+	}
 	if _, ok := uc.mutation.StorageUsedBytes(); !ok {
 		v := user.DefaultStorageUsedBytes
 		uc.mutation.SetStorageUsedBytes(v)
@@ -242,6 +260,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.FullName(); !ok {
 		return &ValidationError{Name: "full_name", err: errors.New(`ent: missing required field "User.full_name"`)}
+	}
+	if _, ok := uc.mutation.Role(); !ok {
+		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "User.role"`)}
 	}
 	if _, ok := uc.mutation.StorageUsedBytes(); !ok {
 		return &ValidationError{Name: "storage_used_bytes", err: errors.New(`ent: missing required field "User.storage_used_bytes"`)}
@@ -308,6 +329,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
+	}
+	if value, ok := uc.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeString, value)
+		_node.Role = value
 	}
 	if value, ok := uc.mutation.StorageUsedBytes(); ok {
 		_spec.SetField(user.FieldStorageUsedBytes, field.TypeInt64, value)
