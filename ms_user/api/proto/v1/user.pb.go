@@ -31,6 +31,7 @@ type User struct {
 	Email             string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	FullName          string                 `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
 	Username          string                 `protobuf:"bytes,5,opt,name=username,proto3" json:"username,omitempty"`
+	Role              string                 `protobuf:"bytes,6,opt,name=role,proto3" json:"role,omitempty"`
 	StorageUsedBytes  int64                  `protobuf:"varint,7,opt,name=storage_used_bytes,json=storageUsedBytes,proto3" json:"storage_used_bytes,omitempty"`
 	StorageQuotaBytes int64                  `protobuf:"varint,8,opt,name=storage_quota_bytes,json=storageQuotaBytes,proto3" json:"storage_quota_bytes,omitempty"`
 	Status            string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
@@ -102,6 +103,13 @@ func (x *User) GetFullName() string {
 func (x *User) GetUsername() string {
 	if x != nil {
 		return x.Username
+	}
+	return ""
+}
+
+func (x *User) GetRole() string {
+	if x != nil {
+		return x.Role
 	}
 	return ""
 }
@@ -264,6 +272,7 @@ type CreateUserRequest struct {
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	FullName      string                 `protobuf:"bytes,3,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
 	Username      string                 `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
+	Role          string                 `protobuf:"bytes,5,opt,name=role,proto3" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -322,6 +331,13 @@ func (x *CreateUserRequest) GetFullName() string {
 func (x *CreateUserRequest) GetUsername() string {
 	if x != nil {
 		return x.Username
+	}
+	return ""
+}
+
+func (x *CreateUserRequest) GetRole() string {
+	if x != nil {
+		return x.Role
 	}
 	return ""
 }
@@ -469,6 +485,7 @@ type UpdateUserRequest struct {
 	Email         *string `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	FullName      *string `protobuf:"bytes,3,opt,name=full_name,json=fullName,proto3,oneof" json:"full_name,omitempty"`
 	Username      *string `protobuf:"bytes,4,opt,name=username,proto3,oneof" json:"username,omitempty"`
+	Role          *string `protobuf:"bytes,5,opt,name=role,proto3,oneof" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -527,6 +544,13 @@ func (x *UpdateUserRequest) GetFullName() string {
 func (x *UpdateUserRequest) GetUsername() string {
 	if x != nil && x.Username != nil {
 		return *x.Username
+	}
+	return ""
+}
+
+func (x *UpdateUserRequest) GetRole() string {
+	if x != nil && x.Role != nil {
+		return *x.Role
 	}
 	return ""
 }
@@ -906,13 +930,14 @@ var File_api_proto_v1_user_proto protoreflect.FileDescriptor
 
 const file_api_proto_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x17api/proto/v1/user.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xb0\x03\n" +
+	"\x17api/proto/v1/user.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xc4\x03\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\rclerk_user_id\x18\x02 \x01(\tR\vclerkUserId\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x1b\n" +
 	"\tfull_name\x18\x04 \x01(\tR\bfullName\x12\x1a\n" +
-	"\busername\x18\x05 \x01(\tR\busername\x12,\n" +
+	"\busername\x18\x05 \x01(\tR\busername\x12\x12\n" +
+	"\x04role\x18\x06 \x01(\tR\x04role\x12,\n" +
 	"\x12storage_used_bytes\x18\a \x01(\x03R\x10storageUsedBytes\x12.\n" +
 	"\x13storage_quota_bytes\x18\b \x01(\x03R\x11storageQuotaBytes\x12\x16\n" +
 	"\x06status\x18\t \x01(\tR\x06status\x129\n" +
@@ -934,27 +959,30 @@ const file_api_proto_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x86\x01\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x9a\x01\n" +
 	"\x11CreateUserRequest\x12\"\n" +
 	"\rclerk_user_id\x18\x01 \x01(\tR\vclerkUserId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1b\n" +
 	"\tfull_name\x18\x03 \x01(\tR\bfullName\x12\x1a\n" +
-	"\busername\x18\x04 \x01(\tR\busername\"7\n" +
+	"\busername\x18\x04 \x01(\tR\busername\x12\x12\n" +
+	"\x04role\x18\x05 \x01(\tR\x04role\"7\n" +
 	"\x12CreateUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\")\n" +
 	"\x0eGetUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"4\n" +
 	"\x0fGetUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"\xaf\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"\xd1\x01\n" +
 	"\x11UpdateUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
 	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12 \n" +
 	"\tfull_name\x18\x03 \x01(\tH\x01R\bfullName\x88\x01\x01\x12\x1f\n" +
-	"\busername\x18\x04 \x01(\tH\x02R\busername\x88\x01\x01B\b\n" +
+	"\busername\x18\x04 \x01(\tH\x02R\busername\x88\x01\x01\x12\x17\n" +
+	"\x04role\x18\x05 \x01(\tH\x03R\x04role\x88\x01\x01B\b\n" +
 	"\x06_emailB\f\n" +
 	"\n" +
 	"_full_nameB\v\n" +
-	"\t_username\"7\n" +
+	"\t_usernameB\a\n" +
+	"\x05_role\"7\n" +
 	"\x12UpdateUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\",\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
