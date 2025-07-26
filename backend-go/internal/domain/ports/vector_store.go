@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/ran/demo/backend-go/internal/core/models"
+	"github.com/ran/demo/backend-go/internal/domain/models"
 )
 
 // Use core models for domain entities

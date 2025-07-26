@@ -32,10 +32,10 @@ graph LR
         MLAlgorithms["ML Algorithms<br/>(Reduction, Clustering)"]
     end
 
-    Frontend -- REST API --> Kong
-    Kong -- Routes Requests --> Backend
+    Frontend -- gRPC-Web --> Kong
+    Kong -- Routes gRPC-Web --> Backend
 
-    Backend -- REST API or gRPC --> MLService
+    Backend -- gRPC --> MLService
     Backend -- Qdrant Go Client --> VectorDB
     Backend -- Manages/Reads --> Storage
     Backend -- Direct API Call --> Gemini
@@ -105,159 +105,69 @@ With the introduction of Qdrant and Gemini API, the data storage strategy is upd
 
 ## 3. Folder Structures
 
-### 3.1 Frontend (Next.js - App Router)
+### 3.1 Frontend (Next.js)
+
 ```text
 frontend/
-├── src/                  # Main source code directory
-│   ├── app/              # Next.js App Router directory
-│   │   ├── page.tsx        # Homepage (/) component (Displays space overview/gallery)
-│   │   ├── layout.tsx    # Root layout
-│   │   ├── globals.css   # Global styles
-│   │   ├── spaces/       # # Routes related to viewing specific spaces
-│   │   │   └── [space_id]/ # # Dynamic route using space ID (e.g., /spaces/xyz789)
-│   │   │       └── page.tsx  # # Page component to display the visualization for a specific space
-│   │   └── ...  # new pages come in     
-│   ├── components/       # Reusable React components
-│   │   ├── ui/           # General UI elements (buttons, inputs etc. - shadcn/ui potentially)
-│   │   ├── visualization/ # Visualization specific components
-│   │   │   ├── Canvas3D.tsx # Main 3D visualization component (handling layers, nodes)
-│   │   │   ├── NodeDetailsPanel.tsx # Panel to show node content/document preview
-│   │   │   ├── SearchBar.tsx      # Search input component
-│   │   │   ├── FlowView.tsx       # Git-style chat flow visualization
-│   │   │   ├── MiniMap.tsx        # Mini-map for Tree/Canvas view (Homepage)
-│   │   │   └── ...
-│   │   ├── home/           # Components specific to the homepage/spaces overview
-│   │   │   ├── SpaceCard.tsx      # Card component for gallery/tree view
-│   │   │   ├── SpaceGalleryView.tsx
-│   │   │   ├── SpaceListView.tsx
-│   │   │   ├── SpaceTreeView.tsx  # Carousel/Tree view component
-│   │   │   └── ...
-│   │   ├── shared/         # Components shared across different pages/features
-│   │   │   ├── DocumentUploadModal.tsx # Modal for uploading/adding documents
-│   │   │   ├── WebSearchModal.tsx      # Modal for web search functionality
-│   │   │   ├── ChatInterface.tsx       # Chat input/output component
-│   │   │   └── ...
-│   │   └── SettingsButton.tsx # Reusable settings access component
-│   ├── hooks/            # Custom React hooks (e.g., useGraphData, useApi, useChat)
-│   ├── lib/              # Utility functions, API client setup
-│   │   ├── api/          # # Centralized Go API client wrappers
-│   │   │   ├── fetcher.ts    # # Generic secure fetcher (handles credentials, tokens)
-│   │   │   ├── spaceClient.ts# # Client for space-related Go API endpoints
-│   │   │   ├── chatClient.ts # # Client for chat-related Go API endpoints
-│   │   │   └── ...         # # More clients as needed
-│   │   └── utils.ts      # General utility functions
-│   └── styles/           # Styling files (if not using CSS-in-JS or Tailwind extensively)
-├── public/               # Static assets (images, etc.)
-├── data/                 # Default sample text data for demo (Consider moving to backend or dedicated storage)
-├── .env.local            # # Contains NEXT_PUBLIC_API_URL for Go backend endpoint
-├── next.config.ts        # Next.js configuration
-├── tsconfig.json         # TypeScript configuration
-├── package.json          # Project dependencies
-├── package-lock.json     # Lockfile
-├── postcss.config.mjs    # PostCSS configuration
-├── eslint.config.mjs     # ESLint configuration
-├── .gitignore            # Git ignore file
-├── README.md             # Project README
-└── Dockerfile            # Dockerfile for building the frontend image
+└── src/
+    ├── api/
+    │   ├── generated/         # Universal TS code from .proto files
+    │   ├── actions/           # All Server Actions
+    │   │   └── canvasActions.ts
+    │   ├── client.ts          # Exports CLIENT-side factories (gRPC-web, WS)
+    │   └── server-client.ts   # Exports SERVER-side gRPC client singleton
+    ├── app/                   # Next.js App Router (Pages & Layouts)
+    ├── components/            # Reusable UI Components
+    ├── features/              # Components & logic for specific features
+    └── hooks/                 # Custom React Hooks (Client-side)
 ```
 
-### 3.2 Backend (Go)
+### 3.2 Backend (Go Microservice)
+
 ```text
-backend-go/
-├── cmd/
-│   └── server/           # Main application entry point
-│       └── main.go
-├── internal/             # Internal application code (not importable by others)
-│   ├── api/              # API handlers (e.g., Gin, Echo)
-│   │   ├── handlers/     # Request handler implementations (Consider splitting further if complex)
-│   │   │   │── document_handler.go
-│   │   │   │── search_handler.go
-│   │   │   └── ...
-│   │   ├── middleware/          # API middleware (logging, auth, CORS, etc.)
-│   │   ├── internal_router.go   # Defines all internal API routes
-│   │   ├── gateway_router/
-│   │   │   ├── router.go  # Initializes all versions
-│   │   │   ├── v1.go
-│   │   │   ├── v2.go
-│   │   │   └── ...
-│   │   └── constants/      # API related constants
-│   │       └── version.go  # Defines API version constants (e.g., APIVersionV2)
-│   ├── config/           # Configuration loading (env vars, files)
-│   │   └── config.go
-│   ├── core/             # Core business logic & domain types
-│   │   ├── models/       # Domain models (document, chunk, summary, space, etc.)
-│   │   │   └── document.go
-│   │   │   └── ...
-│   │   ├── service/      # Business logic services (orchestration)
-│   │   │   └── processing_service.go # Orchestrates embedding, ML calls, storage
-│   │   │   └── search_service.go    # Handles search logic
-│   │   │   └── ...
-│   │   └── ports/        # Interfaces defining contracts for external systems
-│   │       ├── ml_service.go      # Interface for ML service client
-│   │       ├── storage_service.go # Interface for vector storage
-│   │       └── llm_service.go     # Interface for Gemini/LLM client
-│   ├── adapters/         # Implementations for external services (fits Dependency Inversion)
-│   │   ├── geminiclient/ # Gemini API client implementation
-│   │   │   └── client.go
-│   │   ├── mlclient/     # Client for communicating with Python ML Service
-│   │   │   └── client.go
-│   │   ├── qdrant/       # Client logic for interacting with Qdrant
-│   │   │   └── client.go
-│   │   └── ...
-│   └── utils/            # General utility functions specific to backend
-│       └── utils.go
-├── gateway/              # Configuration for the API Gateway by Kong
-│   ├── v1/               # Version 1 specific gateway configuration
-│   │   └── gateway-config.yaml
-│   ├── v2/               # Version 2 specific gateway configuration
-│   │   └── gateway-config.yaml
-│   └── ...
-├── data/                 # Persistent storage mount point (e.g., for uploaded files) - Managed by Docker Volume
-├── scripts/              # Helper scripts (build, run, etc.)
-├── go.mod                # Go module definition
-├── go.sum                # Go module checksums
-└── Dockerfile            # Dockerfile for building the Go backend image
+/go-service/  
+├── api/proto/v1/        # Protocol buffer definitions  
+├── cmd/server/          # Application entry point  
+├── ent/                 # Ent ORM schema and generated code  
+├── internal/  
+│   ├── config/          # Configuration management  
+│   ├── domain/          # Business entities and interfaces  
+│   ├── repository/      # Data access layer (Ent-based)  
+│   ├── service/         # Business logic layer  
+│   ├── server/          # gRPC and WebSocket server handlers  
+│   └── middleware/      # Common middleware (e.g., auth)  
+├── pkg/                 # Public libraries  
+├── deployments/         # Docker, K8s configs  
+└── go.mod
 ```
 
-### 3.3 ML Service (Python - gRPC or Flask/FastAPI)
-```
-// if gRPC
-backend-py/
-├── app/ # Main application source code
-│ ├── services/ # gRPC service implementations
-│ │ ├── reduction_service.py # Dimensionality reduction (UMAP)
-│ │ └── clustering_service.py # Clustering (GMM or HDBSCAN)
-│ ├── generated/ # Generated Python code from .proto files
-│ ├── utils/ # Utility functions
-│ └── server.py # gRPC server initialization and entry point
-├── proto/ # Protocol Buffer definitions (.proto files)
-├── data/ # Potential location for downloaded models (or use cache dir)
-├── requirements.txt # Python dependencies (including grpcio, grpcio-tools)
-└── Dockerfile # Dockerfile for building the Python ML service image
-```
+### 3.3 ML Service (Python)
 
-```
-// if Flask/FastAPI
-backend-py/
-├── app/                  # Main application source code
-│   ├── api/              # API endpoint definitions
-│   │   └── routes.py
-│   ├── services/         # Core ML service logic
-│   │   ├── reduction_service.py   # Dimensionality reduction (UMAP with n_neighbors=15)
-│   │   └── clustering_service.py  # Clustering (GMM or HDBSCAN)
-│   ├── utils/            # Utility functions
-│   └── main.py           # FastAPI/Flask app initialization and entry point
-├── data/                 # Potential location for downloaded models (or use cache dir)
-├── requirements.txt      # Python dependencies
-└── Dockerfile            # Dockerfile for building the Python ML service image
+```text
+/python-service/  
+├── api/proto/v1/        # Protocol buffer definitions  
+├── app/  
+│   ├── main.py          # Application entry point  
+│   ├── config/          # Configuration management  
+│   ├── domain/          # Business entities and interfaces  
+│   ├── repository/      # Data access layer (SQLAlchemy/DynamoDB)  
+│   ├── service/         # Business logic layer  
+│   ├── server/          # gRPC and WebSocket server handlers  
+│   └── middleware/      # Common middleware (e.g., auth)  
+├── tests/               # Test files  
+└── requirements.txt
 ```
 
 ## 4. Inter-service Communication
 
-*   **Frontend -> Go Backend:** REST API (HTTP requests). The frontend sends requests for data, initiates processing, and performs searches.
-*   **Go Backend -> Python ML Service:** REST API (HTTP requests) for dimensionality reduction and clustering operations only.
-*   **Go Backend -> Gemini API:** Direct API calls for embedding generation and document summarization.
-*   **Go Backend -> Qdrant:** Direct interaction using Qdrant's Go client for vector storage and search.
+*   **Frontend -> Backend (Hybrid Model):**
+    *   **Request-Response (Default):** Next.js Server Actions are the primary method. These server-side actions use a gRPC client to securely call backend services for most data operations (CRUD, initial loads).
+    *   **Real-time Streaming (Client-side):**
+        *   **gRPC-Web:** Used for efficient, one-way data streams from the server to the client (e.g., read-only visualization updates), and requires a proxy like Envoy.
+        *   **WebSockets:** Used for low-latency, bi-directional communication for features like collaborative editing and chat.
+*   **Go Backend -> Python ML Service:** gRPC is used for internal requests, such as invoking dimensionality reduction or clustering operations.
+*   **Go Backend -> Gemini API:** Direct API calls are made for external services like embedding generation and document summarization.
+*   **Go Backend -> Qdrant:** The backend interacts with the Qdrant vector database using its native Go client.
 
 ## 5. Containerization
 
