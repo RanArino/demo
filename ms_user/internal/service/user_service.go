@@ -153,3 +153,43 @@ func (s *UserService) UpdateUserPreferences(ctx context.Context, theme, language
 
 	return s.repo.UpdatePreferences(ctx, user.ID, prefs)
 }
+
+// CheckUserStatus checks if a user exists and if profile completion is needed
+func (s *UserService) CheckUserStatus(ctx context.Context) (*domain.UserStatus, error) {
+	clerkUserID, ok := ctx.Value("user_id").(string)
+	if !ok {
+		return nil, fmt.Errorf("user_id not found in context")
+	}
+
+	user, err := s.repo.GetByClerkID(ctx, clerkUserID)
+	if err != nil {
+		// User doesn't exist in our database but has a valid Clerk token
+		return &domain.UserStatus{
+			ProfileCompleted: false,
+			NeedsRedirect:    true,
+			RedirectURL:      "/profile-completion",
+			User:             nil,
+		}, nil
+	}
+
+	// Check if user profile is complete
+	profileCompleted := s.isProfileComplete(user)
+
+	status := &domain.UserStatus{
+		ProfileCompleted: profileCompleted,
+		NeedsRedirect:    !profileCompleted,
+		RedirectURL:      "",
+		User:             user,
+	}
+
+	if !profileCompleted {
+		status.RedirectURL = "/profile-completion"
+	}
+
+	return status, nil
+}
+
+// isProfileComplete checks if the user profile has all required fields
+func (s *UserService) isProfileComplete(user *domain.User) bool {
+	return user.FullName != "" && user.Username != "" && user.Email != ""
+}
