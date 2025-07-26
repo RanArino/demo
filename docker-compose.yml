@@ -1,85 +1,19 @@
-version: '3.8'
-
 services:
-  # Go-based microservices
-  ms_canvas:
-    build:
-      context: ./ms_canvas
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8080"
-    environment:
-      - SERVER_PORT=8080
-    restart: unless-stopped
-
-  ms_knowledge:
-    build:
-      context: ./ms_knowledge
-      dockerfile: Dockerfile
-    ports:
-      - "8002:8080"
-    environment:
-      - SERVER_PORT=8080
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-
-  ms_vector:
-    build:
-      context: ./ms_vector
-      dockerfile: Dockerfile
-    ports:
-      - "8003:8080"
-    environment:
-      - SERVER_PORT=8080
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-    depends_on:
-      - qdrant
-    restart: unless-stopped
-
   ms_user:
     build:
       context: ./ms_user
       dockerfile: Dockerfile
     ports:
-      - "8004:8080"
+      - "50051:50051"  # gRPC server
     environment:
-      - SERVER_PORT=8080
+      - GRPC_PORT=50051
+      - DATABASE_URL=${DATABASE_URL}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
     restart: unless-stopped
+    networks:
+      - app-network
 
-  # Python-based microservices
-  ms_chat:
-    build:
-      context: ./ms_chat
-      dockerfile: Dockerfile
-    ports:
-      - "8005:8000"
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    restart: unless-stopped
-
-  ms_ml:
-    build:
-      context: ./ms_ml
-      dockerfile: Dockerfile
-    ports:
-      - "8006:8000"
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-
-  # Infrastructure services
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
-    restart: unless-stopped
-
-  # Frontend
   frontend:
     build:
       context: ./frontend
@@ -87,21 +21,51 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
-      - NEXT_PUBLIC_MS_CANVAS_URL=http://localhost:8001
-      - NEXT_PUBLIC_MS_KNOWLEDGE_URL=http://localhost:8002
-      - NEXT_PUBLIC_MS_VECTOR_URL=http://localhost:8003
-      - NEXT_PUBLIC_MS_USER_URL=http://localhost:8004
-      - NEXT_PUBLIC_MS_CHAT_URL=http://localhost:8005
-      - NEXT_PUBLIC_MS_ML_URL=http://localhost:8006
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
+      - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
     depends_on:
-      - ms_canvas
-      - ms_knowledge
-      - ms_vector
       - ms_user
-      - ms_chat
-      - ms_ml
     restart: unless-stopped
+    networks:
+      - app-network
+
+  # envoy:
+  #   image: envoyproxy/envoy:v1.28-latest
+  #   ports:
+  #     - "8080:8080"  # gRPC-Web proxy port
+  #     - "9901:9901"  # Envoy admin interface
+  #   volumes:
+  #     - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+  #   environment:
+  #     - MS_USER_ADDRESS=ms_user
+  #     - MS_USER_PORT=50051
+  #   depends_on:
+  #     - ms_user
+  #   restart: unless-stopped
+  #   networks:
+  #     - app-network
+
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   ports:
+  #     - "6333:6333"
+  #     - "6334:6334"
+  #   volumes:
+  #     - qdrant_data:/qdrant/storage
+  #   restart: unless-stopped
+  #   networks:
+  #     - app-network
 
 volumes:
-  qdrant_data: 
+  qdrant_data:
+
+networks:
+  app-network:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+        - subnet: 2001:db8:1::/64
