@@ -3,7 +3,7 @@ package qdrant
 import (
 	"fmt"
 
-	"github.com/ran/demo/backend-go/internal/core/models"
+	"github.com/ran/demo/backend-go/internal/domain/models"
 )
 
 // Point represents a Qdrant point payload in our domain

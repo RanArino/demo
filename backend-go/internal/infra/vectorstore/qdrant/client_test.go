@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/qdrant/go-client/qdrant"
 	"github.com/ran/demo/backend-go/internal/config"
+	"github.com/ran/demo/backend-go/internal/domain/models"
 )
 
 // getQdrantEnv loads QDRANT_HOST and QDRANT_API_KEY

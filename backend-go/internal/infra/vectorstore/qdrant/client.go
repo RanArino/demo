@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	sdk "github.com/qdrant/go-client/qdrant"
+	"github.com/ran/demo/backend-go/internal/domain/models"
 )
 
 // QdrantClient wraps the Qdrant SDK GrpcClient for our specific needs
