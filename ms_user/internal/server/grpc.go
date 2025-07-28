@@ -90,6 +90,21 @@ func (s *grpcServer) UpdateUserPreferences(ctx context.Context, req *userv1.Upda
 	return &userv1.UpdateUserPreferencesResponse{Preferences: toUserPreferencesPb(prefs)}, nil
 }
 
+// CheckUserStatus handles the gRPC request to check user status and profile completion.
+func (s *grpcServer) CheckUserStatus(ctx context.Context, req *userv1.CheckUserStatusRequest) (*userv1.CheckUserStatusResponse, error) {
+	status, err := s.userService.CheckUserStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userv1.CheckUserStatusResponse{
+		ProfileCompleted: status.ProfileCompleted,
+		NeedsRedirect:    status.NeedsRedirect,
+		RedirectUrl:      status.RedirectURL,
+		User:             toUserPb(status.User),
+	}, nil
+}
+
 // --- Conversion Helpers ---
 
 func toUserPb(user *domain.User) *userv1.User {
