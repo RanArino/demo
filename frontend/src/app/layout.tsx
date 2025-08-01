@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import Header from "@/components/header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,13 +24,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // TODO: set the signInForceRedirectUrl="/dashboard" or "/spaces" for redirecting after sign in
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signUpForceRedirectUrl="/profile/setup"
+      signInForceRedirectUrl="/spaces"
+      afterSignOutUrl="/"
+    >
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <Header />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
