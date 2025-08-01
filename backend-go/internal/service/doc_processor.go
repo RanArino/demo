@@ -1,9 +1,9 @@
-package services
+package service
 
 import (
 	"fmt"
 
-	"github.com/ran/demo/backend-go/internal/core/models"
+	"github.com/ran/demo/backend-go/internal/domain/models"
 )
 
 // BuildChunks wraps each text into a Chunk, assigning IDs, token counts, and keywords.
