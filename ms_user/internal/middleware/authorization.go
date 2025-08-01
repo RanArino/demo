@@ -51,8 +51,12 @@ var MethodPermissions = map[string]Permission{
 }
 
 // ExemptMethods lists methods that bypass role validation but still require authentication.
+// Each entry must include a detailed justification for the exemption.
 var ExemptMethods = map[string]bool{
-	"/user.v1.UserService/CreateUser": true, // Users need to create profile before getting roles.
+	// This method is exempt because it's part of the initial user profile creation process.
+	// At this stage, the user does not yet have a role assigned in the system.
+	// Authentication is still enforced by the AuthInterceptor, which ensures a valid Clerk JWT is present.
+	"/user.v1.UserService/CreateUser": true,
 }
 
 // AuthorizationInterceptor provides RBAC (Role-Based Access Control) checks.
