@@ -12,8 +12,15 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// PublicMetadata holds public information from the Clerk JWT.
+type PublicMetadata struct {
+	Role string `json:"role,omitempty"`
+}
+
+// AuthInterceptor handles JWT validation and extracts user information.
 type AuthInterceptor struct {
 	clerkClient *client.Client
+	jwksClient  *jwks.Client
 }
 
 func NewAuthInterceptor(clerkClient *client.Client) *AuthInterceptor {
@@ -48,4 +55,39 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		return handler(ctx, req)
 	}
+}
+
+// injectRoleFromCustomClaims parses custom claims and injects the user role into the context.
+// It is designed to fail silently to avoid blocking authentication if metadata is malformed.
+func (i *AuthInterceptor) injectRoleFromCustomClaims(ctx context.Context, customClaims interface{}) context.Context {
+	customBytes, err := json.Marshal(customClaims)
+	if err != nil {
+		return ctx // Cannot process, return original context.
+	}
+
+	var claimsMap map[string]interface{}
+	if err := json.Unmarshal(customBytes, &claimsMap); err != nil {
+		return ctx
+	}
+
+	metadataData, ok := claimsMap["metadata"]
+	if !ok {
+		return ctx
+	}
+
+	metadataBytes, err := json.Marshal(metadataData)
+	if err != nil {
+		return ctx
+	}
+
+	var publicMetadata PublicMetadata
+	if err := json.Unmarshal(metadataBytes, &publicMetadata); err != nil {
+		return ctx
+	}
+
+	if publicMetadata.Role != "" {
+		ctx = context.WithValue(ctx, UserRoleKey, publicMetadata.Role)
+	}
+
+	return ctx
 }
