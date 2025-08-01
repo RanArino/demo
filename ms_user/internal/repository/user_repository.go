@@ -39,7 +39,9 @@ func (r *entUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	entUser, err := r.client.User.
 		Query().
 		Where(user.ID(id)).
-		WithPreferences().
+		WithPreferences(func(q *ent.UserPreferencesQuery) {
+			q.WithUser()
+		}).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -51,7 +53,9 @@ func (r *entUserRepository) GetByClerkID(ctx context.Context, clerkID string) (*
 	entUser, err := r.client.User.
 		Query().
 		Where(user.ClerkUserID(clerkID)).
-		WithPreferences().
+		WithPreferences(func(q *ent.UserPreferencesQuery) {
+			q.WithUser()
+		}).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -172,16 +176,22 @@ func toDomainUserPreferences(entPrefs *ent.UserPreferences) *domain.UserPreferen
 	if entPrefs == nil {
 		return nil
 	}
+
+	var userID uuid.UUID
+	if entPrefs.Edges.User != nil {
+		userID = entPrefs.Edges.User.ID
+	}
+
 	return &domain.UserPreferences{
-		ID:                   entPrefs.ID,
-		UserID:               entPrefs.Edges.User.ID,
-		Theme:                entPrefs.Theme,
-		Language:             entPrefs.Language,
-		Timezone:             entPrefs.Timezone,
-		CanvasSettings:       entPrefs.CanvasSettings,
-		NotificationSettings: entPrefs.NotificationSettings,
+		ID:                    entPrefs.ID,
+		UserID:                userID,
+		Theme:                 entPrefs.Theme,
+		Language:              entPrefs.Language,
+		Timezone:              entPrefs.Timezone,
+		CanvasSettings:        entPrefs.CanvasSettings,
+		NotificationSettings:  entPrefs.NotificationSettings,
 		AccessibilitySettings: entPrefs.AccessibilitySettings,
-		CreatedAt:            entPrefs.CreatedAt,
-		UpdatedAt:            entPrefs.UpdatedAt,
+		CreatedAt:             entPrefs.CreatedAt,
+		UpdatedAt:             entPrefs.UpdatedAt,
 	}
 }
