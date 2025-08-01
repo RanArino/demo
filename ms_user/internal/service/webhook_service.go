@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -195,8 +196,8 @@ func (s *WebhookService) validateUserCreatedEvent(event struct {
 		return fmt.Errorf("invalid clerk user ID format")
 	}
 
-	// Validate email format (basic check)
-	if event.Email == "" || !strings.Contains(event.Email, "@") {
+	// Validate email format (RFC 5322)
+	if _, err := mail.ParseAddress(event.Email); err != nil {
 		return fmt.Errorf("invalid email format")
 	}
 
