@@ -12,12 +12,11 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/client"
-	"google.golang.org/grpc"
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -26,6 +25,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
+
+	// Initialize Clerk backend globally for the SDK
+	clerk.SetBackend(clerk.NewBackend(&clerk.BackendConfig{
+		HTTPClient: nil,
+		Key:        &cfg.ClerkSecretKey,
+	}))
 
 	// Initialize Clerk client
 	clerkClient := client.NewClient(&clerk.ClientConfig{
@@ -48,34 +53,24 @@ func main() {
 
 	// Initialize layers
 	userRepo := repository.NewEntUserRepository(entClient)
-	userService := service.NewUserService(userRepo)
-	webhookService, err := service.NewWebhookService(userRepo, cfg.ClerkWebhookSecret)
-	if err != nil {
-		log.Fatalf("failed to create webhook service: %v", err)
-	}
-	authInterceptor := middleware.NewAuthInterceptor(clerkClient)
+	userService := service.NewUserService(userRepo, clerkClient)
+	authInterceptor := middleware.NewAuthInterceptor(clerkClient, cfg.ClerkSecretKey)
 	grpcServer := server.NewGRPCServer(userService)
 
+	// Start HTTP server for webhooks in a separate goroutine
+	go server.StartHTTPServer(cfg.WebhookServerPort, userService, cfg.ClerkWebhookSecret)
+
 	// Start gRPC server
-	go func() {
-		lis, err := net.Listen("tcp", ":"+cfg.GRPCServerPort)
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
+	lis, err := net.Listen("tcp", ":"+cfg.GRPCServerPort)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
 
-		s := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor.Unary()))
-		userv1.RegisterUserServiceServer(s, grpcServer)
+	s := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor.Unary()))
+	userv1.RegisterUserServiceServer(s, grpcServer)
 
-		fmt.Printf("gRPC server listening on port %s\n", cfg.GRPCServerPort)
-		if err := s.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-	}()
-
-	// Start webhook server
-	http.HandleFunc("/api/webhooks/clerk", webhookService.HandleWebhook)
-	fmt.Printf("Webhook server listening on port %s\n", cfg.WebhookServerPort)
-	if err := http.ListenAndServe(":"+cfg.WebhookServerPort, nil); err != nil {
-		log.Fatalf("failed to serve webhook server: %v", err)
+	fmt.Printf("gRPC server listening on port %s\n", cfg.GRPCServerPort)
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
 	}
 }
