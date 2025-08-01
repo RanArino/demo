@@ -50,7 +50,7 @@ func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("webhook: failed to read request body")
+		log.Printf("webhook: failed to read request body: %v", err)
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
 		return
 	}
@@ -63,7 +63,7 @@ func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.wh.Verify(body, r.Header); err != nil {
-		log.Printf("webhook: verification failed")
+		log.Printf("webhook: verification failed: %v", err)
 		http.Error(w, "Webhook verification failed", http.StatusUnauthorized)
 		return
 	}
@@ -110,7 +110,7 @@ func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 		createdUser, err := s.userRepo.Create(ctx, user)
 		if err != nil {
-			log.Printf("webhook: failed to create user")
+			log.Printf("webhook: failed to create user: %v", err)
 			http.Error(w, "Failed to create user", http.StatusInternalServerError)
 			return
 		}
