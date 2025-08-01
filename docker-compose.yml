@@ -5,14 +5,17 @@ services:
       dockerfile: Dockerfile
     ports:
       - "50051:50051"  # gRPC server
+      - "8081:8081"    # HTTP webhook server
     environment:
       - GRPC_PORT=50051
+      - WEBHOOK_PORT=8081
       - DATABASE_URL=${DATABASE_URL}
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
       - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
     restart: unless-stopped
     networks:
       - app-network
+
 
   frontend:
     build:
@@ -30,6 +33,23 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command:
+      - "http"
+      - "ms_user:8081"
+      - "--log=stdout"
+      - "--log-level=info"
+      - "--domain=${NGROK_STATIC_DOMAIN}"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - ms_user
+    networks:
+      - app-network
+
 
   # envoy:
   #   image: envoyproxy/envoy:v1.28-latest
@@ -58,8 +78,8 @@ services:
   #   networks:
   #     - app-network
 
-volumes:
-  qdrant_data:
+# volumes:
+#   qdrant_data:
 
 networks:
   app-network:
@@ -67,5 +87,5 @@ networks:
     enable_ipv6: true
     ipam:
       config:
-        - subnet: 172.20.0.0/16
-        - subnet: 2001:db8:1::/64
+        - subnet: 172.25.0.0/16
+        - subnet: 2001:db8:2::/64
