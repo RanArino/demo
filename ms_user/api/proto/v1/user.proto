@@ -9,7 +9,7 @@ option go_package = "demo/ms_user/api/proto/v1";
 
 // UserService manages user accounts and preferences.
 service UserService {
-  // Creates a new user.
+  // Creates a new user with pending status (called by webhook).
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   // Retrieves a user's profile.
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
@@ -19,7 +19,9 @@ service UserService {
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
   // Updates a user's preferences.
   rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UpdateUserPreferencesResponse);
-  // Checks if user needs profile completion.
+  // Activates a user profile after initial setup (sets status to active).
+  rpc ActivateUser(ActivateUserRequest) returns (ActivateUserResponse);
+  // Checks user status and profile completion.
   rpc CheckUserStatus(CheckUserStatusRequest) returns (CheckUserStatusResponse);
 }
 
@@ -52,17 +54,25 @@ message UserPreferences {
   google.protobuf.Timestamp updated_at = 9;
 }
 
-// Request to create a new user.
+// Request to create a new user (called by webhook)
 message CreateUserRequest {
   string clerk_user_id = 1;
   string email = 2;
-  string full_name = 3;
-  string username = 4;
-  string role = 5;
 }
 
-// Response after creating a user.
+// Response after creating a user
 message CreateUserResponse {
+  User user = 1;
+}
+
+// Request to activate a user profile after initial setup
+message ActivateUserRequest {
+  string full_name = 1;
+  string username = 2;
+}
+
+// Response for activating a user profile
+message ActivateUserResponse {
   User user = 1;
 }
 
@@ -115,10 +125,11 @@ message UpdateUserPreferencesResponse {
   UserPreferences preferences = 1;
 }
 
-// Request to check user status.
-message CheckUserStatusRequest {}
+// Request to check user status
+message CheckUserStatusRequest {
+}
 
-// User status information.
+// Response for checking user status
 message CheckUserStatusResponse {
   bool profile_completed = 1;
   bool needs_redirect = 2;
