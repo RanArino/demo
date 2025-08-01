@@ -10,11 +10,11 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	ClerkSecretKey     string
+	ClerkSecretKey    string
 	ClerkWebhookSecret string
-	DSN                string
-	GRPCServerPort     string
-	WebhookServerPort  string
+	DSN               string
+	GRPCServerPort    string
+	WebhookServerPort string
 }
 
 // SecretKeys defines the keys needed from the secret manager
@@ -55,7 +55,7 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	}
 
 	// Validate required secrets
-	for _, key := range SecretKeys[:2] { // Only CLERK keys are required
+	for _, key := range SecretKeys[:1] { // Only CLERK_SECRET_KEY is required
 		if secretValues[key] == "" {
 			return nil, fmt.Errorf("required secret %s is empty", key)
 		}
@@ -64,7 +64,7 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	config := &Config{
 		ClerkSecretKey:     secretValues["CLERK_SECRET_KEY"],
 		ClerkWebhookSecret: secretValues["CLERK_WEBHOOK_SECRET"],
-		DSN:                getValueOrDefault(secretValues["DATABASE_URL"], getDefaultDSN()),
+		DSN:                secretValues["DATABASE_URL"],
 		GRPCServerPort:     getEnvOrDefault("GRPC_PORT", "50051"),
 		WebhookServerPort:  getEnvOrDefault("WEBHOOK_PORT", "8081"),
 	}
@@ -84,12 +84,17 @@ func loadFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("CLERK_WEBHOOK_SECRET not set")
 	}
 
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		return nil, fmt.Errorf("DATABASE_URL environment variable is required")
+	}
+
 	return &Config{
-		ClerkSecretKey:     secretKey,
+		ClerkSecretKey:    secretKey,
 		ClerkWebhookSecret: webhookSecret,
-		DSN:                getEnvOrDefault("DATABASE_URL", getDefaultDSN()),
-		GRPCServerPort:     getEnvOrDefault("GRPC_PORT", "50051"),
-		WebhookServerPort:  getEnvOrDefault("WEBHOOK_PORT", "8081"),
+		DSN:               dsn,
+		GRPCServerPort:    getEnvOrDefault("GRPC_PORT", "50051"),
+		WebhookServerPort: getEnvOrDefault("WEBHOOK_PORT", "8081"),
 	}, nil
 }
 
@@ -150,7 +155,7 @@ func loadEnvFile(filename string) error {
 
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
-		
+
 		// Remove quotes if present
 		if (strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) ||
 			(strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`)) {
@@ -164,20 +169,10 @@ func loadEnvFile(filename string) error {
 }
 
 // Helper functions
-func getValueOrDefault(value, defaultValue string) string {
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
 
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
 	return defaultValue
-}
-
-func getDefaultDSN() string {
-	return "host=localhost user=user password=password dbname=user_db port=5432 sslmode=disable"
 }
