@@ -71,39 +71,40 @@ func (a *AuthorizationInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		// Get user ID from context (set by authentication middleware)
-		userID, ok := ctx.Value("user_id").(string)
-		if !ok || userID == "" {
-			return nil, status.Errorf(codes.Unauthenticated, "user ID not found in context")
-		}
-
-		// Get required permission for this method
-		requiredPermission, exists := MethodPermissions[info.FullMethod]
-		if !exists {
-			// If no permission is required, allow the request
+		// Check if method is exempt from role validation
+		if ExemptMethods[info.FullMethod] {
+			// Still require authentication (user ID must be present)
+			if _, ok := ctx.Value(UserIDKey).(string); !ok {
+				return nil, status.Errorf(codes.Unauthenticated, "user ID not found in context")
+			}
 			return handler(ctx, req)
 		}
 
-		// Get user from repository to check role
-		user, err := a.userRepo.GetByClerkID(ctx, userID)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to get user: %v", err)
+		requiredPermission, requiresAuth := MethodPermissions[info.FullMethod]
+		if !requiresAuth {
+			return handler(ctx, req)
 		}
 
-		// Check if user has required permission
-		if !a.hasPermission(Role(user.Role), requiredPermission) {
+		// User ID must be present for any authenticated endpoint.
+		if _, ok := ctx.Value(UserIDKey).(string); !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user ID not found in context")
+		}
+
+		// The user role must be present in the JWT claims.
+		userRole, ok := ctx.Value(UserRoleKey).(string)
+		if !ok || userRole == "" {
+			return nil, status.Errorf(codes.PermissionDenied, "user role not found in JWT claims")
+		}
+
+		if !a.hasPermission(Role(userRole), requiredPermission) {
 			return nil, status.Errorf(codes.PermissionDenied, "insufficient permissions for %s", info.FullMethod)
 		}
-
-		// Add user role to context for further use
-		ctx = context.WithValue(ctx, "user_role", user.Role)
-		ctx = context.WithValue(ctx, "user", user)
 
 		return handler(ctx, req)
 	}
 }
 
-// hasPermission checks if a role has a specific permission
+// hasPermission checks if a role has a specific permission.
 func (a *AuthorizationInterceptor) hasPermission(role Role, permission Permission) bool {
 	permissions, exists := RolePermissions[role]
 	if !exists {
