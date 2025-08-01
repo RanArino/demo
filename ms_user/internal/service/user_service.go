@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"demo/ms_user/internal/domain"
+	"demo/ms_user/internal/middleware"
 	"fmt"
 	"log"
 	"time"
@@ -70,7 +71,7 @@ func (s *UserService) ActivateUser(ctx context.Context, clerkID, fullName, usern
 
 // GetUser retrieves a user by their Clerk ID from the context.
 func (s *UserService) GetUser(ctx context.Context) (*domain.User, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -79,7 +80,7 @@ func (s *UserService) GetUser(ctx context.Context) (*domain.User, error) {
 
 // UpdateUser updates a user's profile information.
 func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username *string) (*domain.User, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -122,7 +123,7 @@ func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username 
 
 // DeleteUser soft deletes a user.
 func (s *UserService) DeleteUser(ctx context.Context) error {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return fmt.Errorf("user_id not found in context")
 	}
@@ -137,7 +138,7 @@ func (s *UserService) DeleteUser(ctx context.Context) error {
 
 // UpdateUserPreferences updates a user's preferences.
 func (s *UserService) UpdateUserPreferences(ctx context.Context, theme, language, timezone *string, canvasSettings, notificationSettings, accessibilitySettings map[string]interface{}) (*domain.UserPreferences, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -175,7 +176,7 @@ func (s *UserService) UpdateUserPreferences(ctx context.Context, theme, language
 
 // CheckUserStatus checks if a user exists and if profile completion is needed
 func (s *UserService) CheckUserStatus(ctx context.Context) (*domain.UserStatus, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
