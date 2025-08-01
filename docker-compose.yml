@@ -6,6 +6,8 @@ services:
     ports:
       - "50051:50051"  # gRPC server
       - "8081:8081"    # HTTP webhook server
+    env_file:
+      - ./ms_user/.env.local
     environment:
       - GRPC_PORT=50051
       - WEBHOOK_PORT=8081
@@ -43,6 +45,8 @@ services:
       - "--log=stdout"
       - "--log-level=info"
       - "--domain=${NGROK_STATIC_DOMAIN}"
+    env_file:
+      - ./.env.local
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     depends_on:
