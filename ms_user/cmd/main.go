@@ -53,7 +53,7 @@ func main() {
 
 	// Initialize layers
 	userRepo := repository.NewEntUserRepository(entClient)
-	userService := service.NewUserService(userRepo, clerkClient)
+	userService := service.NewUserService(userRepo, clerkClient, cfg.DefaultStorageQuotaGB)
 	authInterceptor := middleware.NewAuthInterceptor(clerkClient, cfg.ClerkSecretKey)
 	grpcServer := server.NewGRPCServer(userService)
 

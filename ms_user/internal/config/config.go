@@ -11,12 +11,13 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	ClerkSecretKey     string
-	ClerkWebhookSecret string
-	DSN                string
-	GRPCServerPort     string
-	WebhookServerPort  string
-	WebhookMaxBodySize int64
+	ClerkSecretKey        string
+	ClerkWebhookSecret    string
+	DSN                   string
+	GRPCServerPort        string
+	WebhookServerPort     string
+	WebhookMaxBodySize    int64
+	DefaultStorageQuotaGB int64
 }
 
 // SecretKeys defines the keys needed from the secret manager
@@ -64,12 +65,13 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	}
 
 	config := &Config{
-		ClerkSecretKey:     secretValues["CLERK_SECRET_KEY"],
-		ClerkWebhookSecret: secretValues["CLERK_WEBHOOK_SECRET"],
-		DSN:                secretValues["DATABASE_URL"],
-		GRPCServerPort:     getEnvOrDefault("GRPC_PORT", "50051"),
-		WebhookServerPort:  getEnvOrDefault("WEBHOOK_PORT", "8081"),
-		WebhookMaxBodySize: getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
+		ClerkSecretKey:        secretValues["CLERK_SECRET_KEY"],
+		ClerkWebhookSecret:    secretValues["CLERK_WEBHOOK_SECRET"],
+		DSN:                   secretValues["DATABASE_URL"],
+		GRPCServerPort:        getEnvOrDefault("GRPC_PORT", "50051"),
+		WebhookServerPort:     getEnvOrDefault("WEBHOOK_PORT", "8081"),
+		WebhookMaxBodySize:    getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
+		DefaultStorageQuotaGB: getEnvOrDefaultInt64("DEFAULT_STORAGE_QUOTA_GB", 5),
 	}
 
 	return config, nil
@@ -93,14 +95,14 @@ func loadFromEnv() (*Config, error) {
 	}
 
 	return &Config{
-		ClerkSecretKey:     secretKey,
-		ClerkWebhookSecret: webhookSecret,
-		DSN:                dsn,
-		GRPCServerPort:     getEnvOrDefault("GRPC_PORT", "50051"),
-		WebhookServerPort:  getEnvOrDefault("WEBHOOK_PORT", "8081"),
-		WebhookMaxBodySize: getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
-	},
-	nil
+		ClerkSecretKey:        secretKey,
+		ClerkWebhookSecret:    webhookSecret,
+		DSN:                   dsn,
+		GRPCServerPort:        getEnvOrDefault("GRPC_PORT", "50051"),
+		WebhookServerPort:     getEnvOrDefault("WEBHOOK_PORT", "8081"),
+		WebhookMaxBodySize:    getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
+		DefaultStorageQuotaGB: getEnvOrDefaultInt64("DEFAULT_STORAGE_QUOTA_GB", 5),
+	}, nil
 }
 
 // LoadFromFile loads configuration from a .env file (for development)

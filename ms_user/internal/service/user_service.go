@@ -16,13 +16,18 @@ import (
 
 // UserService provides user-related business logic.
 type UserService struct {
-	repo        domain.UserRepository
-	clerkClient *client.Client
+	repo                   domain.UserRepository
+	clerkClient            *client.Client
+	defaultStorageQuotaBytes int64
 }
 
 // NewUserService creates a new UserService.
-func NewUserService(repo domain.UserRepository, clerkClient *client.Client) *UserService {
-	return &UserService{repo: repo, clerkClient: clerkClient}
+func NewUserService(repo domain.UserRepository, clerkClient *client.Client, defaultStorageQuotaGB int64) *UserService {
+	return &UserService{
+		repo:                   repo,
+		clerkClient:            clerkClient,
+		defaultStorageQuotaBytes: defaultStorageQuotaGB * 1024 * 1024 * 1024,
+	}
 }
 
 // CreateUser handles the 'user.created' webhook from Clerk.
@@ -35,7 +40,7 @@ func (s *UserService) CreateUser(ctx context.Context, clerkID, email string) (*d
 		Email:             email,
 		Status:            "pending",              // Initial status
 		Role:              "user",                 // Default role
-		StorageQuotaBytes: 5 * 1024 * 1024 * 1024, // 5GB default quota
+		StorageQuotaBytes: s.defaultStorageQuotaBytes, // 5GB default quota
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
