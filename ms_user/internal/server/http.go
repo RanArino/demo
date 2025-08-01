@@ -27,7 +27,7 @@ func NewWebhookHandler(userService *service.UserService, webhookSecret string) *
 // ServeHTTP is the entry point for the webhook handler.
 func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("INFO: Webhook request received - Method: %s, URL: %s, Remote: %s", r.Method, r.URL.String(), r.RemoteAddr)
-	log.Printf("INFO: Webhook headers: %v", r.Header)
+	
 	
 	if r.Method != http.MethodPost {
 		log.Printf("ERROR: Invalid method %s, expected POST", r.Method)
@@ -43,10 +43,10 @@ func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	log.Printf("INFO: Webhook body received - Length: %d bytes", len(body))
-	log.Printf("DEBUG: Webhook body content: %s", string(body))
+	
 
 	// Verify the webhook signature
-	log.Printf("INFO: Creating webhook verifier with secret (first 10 chars): %s...", h.webhookSecret[:10])
+	log.Printf("INFO: Creating webhook verifier with a configured secret...")
 	wh, err := svix.NewWebhook(h.webhookSecret)
 	if err != nil {
 		log.Printf("ERROR: Failed to create webhook verifier: %v", err)
@@ -57,7 +57,7 @@ func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("INFO: Verifying webhook signature...")
 	if err := wh.Verify(body, r.Header); err != nil {
 		log.Printf("ERROR: Failed to verify webhook signature: %v", err)
-		log.Printf("DEBUG: Available headers for verification: %v", r.Header)
+		
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -108,7 +108,7 @@ func (h *WebhookHandler) handleUserCreated(w http.ResponseWriter, r *http.Reques
 	log.Printf("INFO: Parsing user.created data...")
 	if err := json.Unmarshal(data, &clerkUser); err != nil {
 		log.Printf("ERROR: Failed to unmarshal user.created data: %v", err)
-		log.Printf("DEBUG: Raw data was: %s", string(data))
+		
 		http.Error(w, "Invalid user data", http.StatusBadRequest)
 		return
 	}
@@ -145,7 +145,6 @@ func (h *WebhookHandler) handleUserCreated(w http.ResponseWriter, r *http.Reques
 // StartHTTPServer starts the HTTP server for webhooks.
 func StartHTTPServer(port string, userService *service.UserService, webhookSecret string) {
 	log.Printf("INFO: Initializing webhook server...")
-	log.Printf("INFO: Webhook secret configured: %s... (length: %d)", webhookSecret[:10], len(webhookSecret))
 	
 	handler := NewWebhookHandler(userService, webhookSecret)
 	mux := http.NewServeMux()
