@@ -1,0 +1,3 @@
+version: v1
+directories:
+  - ../ms_user/api/proto
