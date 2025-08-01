@@ -44,6 +44,28 @@ func (s *UserService) CreateUser(ctx context.Context, clerkID, email string) (*d
 		clerkID, email, username, createdUser.ID.String(), time.Now().UTC().Format(time.RFC3339))
 
 	return createdUser, nil
+// ActivateUser activates a user's profile by updating their status and profile information.
+// This is called via gRPC when the user submits their profile setup form.
+func (s *UserService) ActivateUser(ctx context.Context, clerkID, fullName, username string) (*domain.User, error) {
+	// 1. Get the user from the database.
+	user, err := s.repo.GetByClerkID(ctx, clerkID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by clerk id: %w", err)
+	}
+
+	// 2. Update the user's profile in the database.
+	updates := map[string]interface{}{
+		"full_name": fullName,
+		"username":  username,
+		"status":    "active",
+	}
+	updatedUser, err := s.repo.Update(ctx, user.ID, updates)
+	if err != nil {
+		return nil, fmt.Errorf("failed to activate user profile: %w", err)
+	}
+}
+
+	return updatedUser, nil
 }
 
 // GetUser retrieves a user by their Clerk ID from the context.
