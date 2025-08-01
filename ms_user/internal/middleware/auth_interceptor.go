@@ -2,9 +2,12 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/client"
+	"github.com/clerk/clerk-sdk-go/v2/jwks"
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -23,10 +26,21 @@ type AuthInterceptor struct {
 	jwksClient  *jwks.Client
 }
 
-func NewAuthInterceptor(clerkClient *client.Client) *AuthInterceptor {
-	return &AuthInterceptor{clerkClient: clerkClient}
+// NewAuthInterceptor creates a new AuthInterceptor.
+func NewAuthInterceptor(clerkClient *client.Client, clerkSecretKey string) *AuthInterceptor {
+	jwksClient := jwks.NewClient(&clerk.ClientConfig{
+		BackendConfig: clerk.BackendConfig{
+			Key: &clerkSecretKey,
+		},
+	})
+
+	return &AuthInterceptor{
+		clerkClient: clerkClient,
+		jwksClient:  jwksClient,
+	}
 }
 
+// Unary returns a gRPC unary server interceptor for authentication.
 func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -45,13 +59,21 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		}
 
 		token := strings.TrimPrefix(authHeader[0], "Bearer ")
-		claims, err := jwt.Verify(ctx, &jwt.VerifyParams{Token: token})
+		claims, err := jwt.Verify(ctx, &jwt.VerifyParams{
+			Token:      token,
+			JWKSClient: i.jwksClient,
+		})
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "token verification failed: %v", err)
 		}
 
-		// Inject user ID into context
-		ctx = context.WithValue(ctx, "user_id", claims.Subject)
+		// Inject user ID into context.
+		ctx = context.WithValue(ctx, UserIDKey, claims.Subject)
+
+		// Extract and inject role from custom claims if available.
+		if claims.Custom != nil {
+			ctx = i.injectRoleFromCustomClaims(ctx, claims.Custom)
+		}
 
 		return handler(ctx, req)
 	}
