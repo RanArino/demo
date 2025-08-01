@@ -141,6 +141,17 @@ func (r *entUserRepository) UpdatePreferences(ctx context.Context, userID uuid.U
 		return nil, err
 	}
 
+	// Reload the entity to ensure all edges are loaded, especially the User edge.
+	entPrefs, err = r.client.UserPreferences.
+		Query().
+		Where(userpreferences.ID(entPrefs.ID)).
+		WithUser().
+		Only(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return toDomainUserPreferences(entPrefs), nil
 }
 
