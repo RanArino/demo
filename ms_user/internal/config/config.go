@@ -5,16 +5,18 @@ import (
 	"demo/ms_user/internal/secrets"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
 // Config holds the application configuration.
 type Config struct {
-	ClerkSecretKey    string
+	ClerkSecretKey     string
 	ClerkWebhookSecret string
-	DSN               string
-	GRPCServerPort    string
-	WebhookServerPort string
+	DSN                string
+	GRPCServerPort     string
+	WebhookServerPort  string
+	WebhookMaxBodySize int64
 }
 
 // SecretKeys defines the keys needed from the secret manager
@@ -67,6 +69,7 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 		DSN:                secretValues["DATABASE_URL"],
 		GRPCServerPort:     getEnvOrDefault("GRPC_PORT", "50051"),
 		WebhookServerPort:  getEnvOrDefault("WEBHOOK_PORT", "8081"),
+		WebhookMaxBodySize: getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
 	}
 
 	return config, nil
@@ -90,12 +93,14 @@ func loadFromEnv() (*Config, error) {
 	}
 
 	return &Config{
-		ClerkSecretKey:    secretKey,
+		ClerkSecretKey:     secretKey,
 		ClerkWebhookSecret: webhookSecret,
-		DSN:               dsn,
-		GRPCServerPort:    getEnvOrDefault("GRPC_PORT", "50051"),
-		WebhookServerPort: getEnvOrDefault("WEBHOOK_PORT", "8081"),
-	}, nil
+		DSN:                dsn,
+		GRPCServerPort:     getEnvOrDefault("GRPC_PORT", "50051"),
+		WebhookServerPort:  getEnvOrDefault("WEBHOOK_PORT", "8081"),
+		WebhookMaxBodySize: getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
+	},
+	nil
 }
 
 // LoadFromFile loads configuration from a .env file (for development)
@@ -173,6 +178,15 @@ func loadEnvFile(filename string) error {
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getEnvOrDefaultInt64(key string, defaultValue int64) int64 {
+	if valueStr := os.Getenv(key); valueStr != "" {
+		if value, err := strconv.ParseInt(valueStr, 10, 64); err == nil {
+			return value
+		}
 	}
 	return defaultValue
 }
