@@ -21,25 +21,22 @@ func NewUserService(repo domain.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-// CreateUser creates a user during profile completion flow.
-func (s *UserService) CreateUser(ctx context.Context, clerkID, email, fullName, username string) (*domain.User, error) {
+// CreateUser creates a new user with a "pending" status and sets initial Clerk metadata.
+func (s *UserService) CreateUser(ctx context.Context, clerkID, email string) (*domain.User, error) {
 	user := &domain.User{
 		ID:                uuid.New(),
 		ClerkUserID:       clerkID,
 		Email:             email,
-		FullName:          fullName,
-		Username:          username,
-		StorageUsedBytes:  0,
+		Status:            "pending",              // Initial status
+		Role:              "user",                 // Default role
 		StorageQuotaBytes: 5 * 1024 * 1024 * 1024, // 5GB default quota
-		Status:            "active",
-		Role:              "user", // Default role for new users
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
 
 	createdUser, err := s.repo.Create(ctx, user)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create pending user: %w", err)
 	}
 
 	// Audit log: User creation via gRPC
