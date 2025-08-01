@@ -188,14 +188,9 @@ func toDomainUserPreferences(entPrefs *ent.UserPreferences) *domain.UserPreferen
 		return nil
 	}
 
-	var userID uuid.UUID
-	if entPrefs.Edges.User != nil {
-		userID = entPrefs.Edges.User.ID
-	}
-
 	return &domain.UserPreferences{
 		ID:                    entPrefs.ID,
-		UserID:                userID,
+		UserID:                entPrefs.Edges.User.ID,
 		Theme:                 entPrefs.Theme,
 		Language:              entPrefs.Language,
 		Timezone:              entPrefs.Timezone,
