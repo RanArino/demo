@@ -90,7 +90,7 @@ func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username 
 
 		if _, err := user.Update(ctx, clerkUserID, params); err != nil {
 			// Log the error but don't block the local update
-			log.Printf("failed to update user on clerk")
+			log.Printf("failed to update user on clerk: %v", err)
 		}
 	}
 
