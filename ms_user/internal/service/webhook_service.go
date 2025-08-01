@@ -184,6 +184,13 @@ func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+const (
+	MaxClerkIDLength  = 100
+	MaxEmailLength    = 255
+	MaxFullNameLength = 255
+	MaxUsernameLength = 100
+)
+
 // validateUserCreatedEvent validates the user.created event data
 func (s *WebhookService) validateUserCreatedEvent(event struct {
 	ID       string `json:"id"`
@@ -202,8 +209,8 @@ func (s *WebhookService) validateUserCreatedEvent(event struct {
 	}
 
 	// Validate field lengths to prevent database overflow
-	if len(event.ID) > 100 || len(event.Email) > 255 ||
-		len(event.FullName) > 255 || len(event.Username) > 100 {
+	if len(event.ID) > MaxClerkIDLength || len(event.Email) > MaxEmailLength ||
+		len(event.FullName) > MaxFullNameLength || len(event.Username) > MaxUsernameLength {
 		return fmt.Errorf("field length exceeds maximum allowed")
 	}
 
