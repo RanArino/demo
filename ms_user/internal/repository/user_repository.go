@@ -28,6 +28,8 @@ func (r *entUserRepository) Create(ctx context.Context, user *domain.User) (*dom
 		SetFullName(user.FullName).
 		SetUsername(user.Username).
 		SetRole(user.Role).
+		SetStatus(user.Status).
+		SetStorageQuotaBytes(user.StorageQuotaBytes).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -73,6 +75,9 @@ func (r *entUserRepository) Update(ctx context.Context, id uuid.UUID, updates ma
 	}
 	if val, ok := updates["role"]; ok {
 		updater.SetRole(val.(string))
+	}
+	if val, ok := updates["status"]; ok {
+		updater.SetStatus(val.(string))
 	}
 
 	_, err := updater.Save(ctx)
