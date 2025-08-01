@@ -2,15 +2,13 @@ package middleware
 
 import (
 	"context"
-	"demo/ms_user/internal/domain"
-	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// Permission represents a required permission
+// Permission represents a required permission for an action.
 type Permission string
 
 const (
@@ -48,21 +46,24 @@ var MethodPermissions = map[string]Permission{
 	"/user.v1.UserService/UpdateUser":            PermissionWriteUser,
 	"/user.v1.UserService/UpdateUserPreferences": PermissionWriteUser,
 	"/user.v1.UserService/DeleteUser":            PermissionDeleteUser,
-	"/user.v1.UserService/CreateUser":            PermissionWriteUser, // Allow authenticated users to create their own profile
 	"/user.v1.UserService/CheckUserStatus":       PermissionReadUser,
+	"/user.v1.UserService/ActivateUser":          PermissionWriteUser,
 }
 
-// AuthorizationInterceptor provides authorization checks
-type AuthorizationInterceptor struct {
-	userRepo domain.UserRepository
+// ExemptMethods lists methods that bypass role validation but still require authentication.
+var ExemptMethods = map[string]bool{
+	"/user.v1.UserService/CreateUser": true, // Users need to create profile before getting roles.
 }
 
-// NewAuthorizationInterceptor creates a new authorization interceptor
-func NewAuthorizationInterceptor(userRepo domain.UserRepository) *AuthorizationInterceptor {
-	return &AuthorizationInterceptor{userRepo: userRepo}
+// AuthorizationInterceptor provides RBAC (Role-Based Access Control) checks.
+type AuthorizationInterceptor struct{}
+
+// NewAuthorizationInterceptor creates a new AuthorizationInterceptor.
+func NewAuthorizationInterceptor() *AuthorizationInterceptor {
+	return &AuthorizationInterceptor{}
 }
 
-// Unary returns a gRPC unary server interceptor for authorization
+// Unary returns a gRPC unary server interceptor for authorization.
 func (a *AuthorizationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -115,16 +116,4 @@ func (a *AuthorizationInterceptor) hasPermission(role Role, permission Permissio
 		}
 	}
 	return false
-}
-
-// IsAdmin checks if the current user is an admin
-func IsAdmin(ctx context.Context) bool {
-	role, ok := ctx.Value("user_role").(string)
-	return ok && strings.ToLower(role) == "admin"
-}
-
-// GetCurrentUser retrieves the current user from context
-func GetCurrentUser(ctx context.Context) (*domain.User, bool) {
-	user, ok := ctx.Value("user").(*domain.User)
-	return user, ok
 }
