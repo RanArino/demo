@@ -92,15 +92,8 @@ func (s *grpcServer) UpdateUserPreferences(ctx context.Context, req *userv1.Upda
 	return &userv1.UpdateUserPreferencesResponse{Preferences: toUserPreferencesPb(prefs)}, nil
 }
 
-// ActivateUser handles the gRPC request to activate a user profile.
 func (s *grpcServer) ActivateUser(ctx context.Context, req *userv1.ActivateUserRequest) (*userv1.ActivateUserResponse, error) {
-	// Extract clerk user ID from context (set by auth interceptor)
-	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("user_id not found in context")
-	}
-	
-	user, err := s.userService.ActivateUser(ctx, clerkUserID, req.FullName, req.Username)
+	user, err := s.userService.ActivateUser(ctx, req.FullName, req.Username)
 	if err != nil {
 		return nil, err
 	}
