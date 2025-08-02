@@ -1,0 +1,11 @@
+version: v1
+plugins:
+  - plugin: buf.build/protocolbuffers/js:v3.21.2
+    out: src/api/generated
+    opt:
+      - import_style=commonjs
+      - binary
+  - plugin: buf.build/grpc/node:v1.13.0
+    out: src/api/generated
+    opt:
+      - grpc_js
