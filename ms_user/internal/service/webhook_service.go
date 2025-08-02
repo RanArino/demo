@@ -16,16 +16,17 @@ import (
 )
 
 type WebhookService struct {
-	userRepo domain.UserRepository
-	wh       *svix.Webhook
+	userRepo    domain.UserRepository
+	wh          *svix.Webhook
+	maxBodySize int64
 }
 
-func NewWebhookService(userRepo domain.UserRepository, secret string) (*WebhookService, error) {
+func NewWebhookService(userRepo domain.UserRepository, secret string, maxBodySize int64) (*WebhookService, error) {
 	wh, err := svix.NewWebhook(secret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create webhook: %w", err)
 	}
-	return &WebhookService{userRepo: userRepo, wh: wh}, nil
+	return &WebhookService{userRepo: userRepo, wh: wh, maxBodySize: maxBodySize}, nil
 }
 
 func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
@@ -44,9 +45,8 @@ func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Enhanced security: Limit request body size (1MB max)
-	const maxBodySize = 1 << 20 // 1MB
-	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+	// Enhanced security: Limit request body size
+	r.Body = http.MaxBytesReader(w, r.Body, s.maxBodySize)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -184,6 +184,13 @@ func (s *WebhookService) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+const (
+	MaxClerkIDLength  = 100
+	MaxEmailLength    = 255
+	MaxFullNameLength = 255
+	MaxUsernameLength = 100
+)
+
 // validateUserCreatedEvent validates the user.created event data
 func (s *WebhookService) validateUserCreatedEvent(event struct {
 	ID       string `json:"id"`
@@ -202,8 +209,8 @@ func (s *WebhookService) validateUserCreatedEvent(event struct {
 	}
 
 	// Validate field lengths to prevent database overflow
-	if len(event.ID) > 100 || len(event.Email) > 255 ||
-		len(event.FullName) > 255 || len(event.Username) > 100 {
+	if len(event.ID) > MaxClerkIDLength || len(event.Email) > MaxEmailLength ||
+		len(event.FullName) > MaxFullNameLength || len(event.Username) > MaxUsernameLength {
 		return fmt.Errorf("field length exceeds maximum allowed")
 	}
 

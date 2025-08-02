@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"fmt"
 	userv1 "demo/ms_user/api/proto/v1"
 	"demo/ms_user/internal/domain"
+	"demo/ms_user/internal/middleware"
 	"demo/ms_user/internal/service"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -23,7 +25,7 @@ func NewGRPCServer(userService *service.UserService) userv1.UserServiceServer {
 
 // CreateUser handles the gRPC request to create a user.
 func (s *grpcServer) CreateUser(ctx context.Context, req *userv1.CreateUserRequest) (*userv1.CreateUserResponse, error) {
-	user, err := s.userService.CreateUser(ctx, req.ClerkUserId, req.Email, req.FullName, req.Username)
+	user, err := s.userService.CreateUser(ctx, req.ClerkUserId, req.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +90,14 @@ func (s *grpcServer) UpdateUserPreferences(ctx context.Context, req *userv1.Upda
 		return nil, err
 	}
 	return &userv1.UpdateUserPreferencesResponse{Preferences: toUserPreferencesPb(prefs)}, nil
+}
+
+func (s *grpcServer) ActivateUser(ctx context.Context, req *userv1.ActivateUserRequest) (*userv1.ActivateUserResponse, error) {
+	user, err := s.userService.ActivateUser(ctx, req.FullName, req.Username)
+	if err != nil {
+		return nil, err
+	}
+	return &userv1.ActivateUserResponse{User: toUserPb(user)}, nil
 }
 
 // CheckUserStatus handles the gRPC request to check user status and profile completion.
