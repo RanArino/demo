@@ -66,14 +66,20 @@ func (s *UserService) CreateUser(ctx context.Context, clerkID, email string) (*d
 
 // ActivateUser activates a user's profile by updating their status and profile information.
 // This is called via gRPC when the user submits their profile setup form.
-func (s *UserService) ActivateUser(ctx context.Context, clerkID, fullName, username string) (*domain.User, error) {
-	// 1. Get the user from the database.
-	user, err := s.repo.GetByClerkID(ctx, clerkID)
+func (s *UserService) ActivateUser(ctx context.Context, fullName, username string) (*domain.User, error) {
+	// 1. Get the user's Clerk ID from the context.
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("user_id not found in context")
+	}
+
+	// 2. Get the user from the database.
+	user, err := s.repo.GetByClerkID(ctx, clerkUserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by clerk id: %w", err)
 	}
 
-	// 2. Update the user's profile in the database.
+	// 3. Update the user's profile in the database.
 	updates := map[string]interface{}{
 		"full_name": fullName,
 		"username":  username,
@@ -84,14 +90,14 @@ func (s *UserService) ActivateUser(ctx context.Context, clerkID, fullName, usern
 		return nil, fmt.Errorf("failed to activate user profile: %w", err)
 	}
 
-	// 3. Update Clerk public metadata with the "active" status.
+	// 4. Update Clerk public metadata with the "active" status.
 	metadata := map[string]interface{}{
 		"status": "active",
 		"role":   user.Role, // Preserve the existing role
 	}
-	if err := s.updateClerkPublicMetadata(ctx, clerkID, metadata); err != nil {
+	if err := s.updateClerkPublicMetadata(ctx, clerkUserID, metadata); err != nil {
 		// Log the error but don't fail the whole operation.
-		log.Printf("ERROR: failed to update metadata for activated user %s: %v", clerkID, err)
+		log.Printf("ERROR: failed to update metadata for activated user %s: %v", clerkUserID, err)
 	}
 
 	return updatedUser, nil
