@@ -248,10 +248,9 @@ This service is responsible for managing the core entities of the platform: know
 ---
 
 ### Neo4j Graph Database Model
-
 This database is dedicated to storing the relationships between content nodes, enabling efficient graph queries such as backlinks, references, and rich linking features.
 
-### Nodes
+#### Nodes
 
 **Label:** `Content`
 
@@ -261,7 +260,7 @@ This database is dedicated to storing the relationships between content nodes, e
 
 - Each node in the graph represents a single content source (e.g., a document, note, or file) as defined in the `CONTENT_SOURCES` table.
 
-### Relationships (Edges)
+#### Relationships (Edges)
 
 **Type:** `:LINKS_TO`
 
