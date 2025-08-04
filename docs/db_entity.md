@@ -227,36 +227,68 @@ This service is responsible for managing the core entities of the platform: know
 
 ### `CONTENT_SOURCES`: Source Content Entity
 
-| Field Name            | Data Type      | Description                                                               |
-|-----------------------|----------------|---------------------------------------------------------------------------|
-| `id`                  | UUID            | Unique identifier for the content source.                                |
-| `owner_id`            | UUID            | User ID of the person who uploaded/added the content.                    |
-| `title`               | String          | The primary name of the content.                                         |
-| `media_type`          | String          | Type of media content (document, audio, video, web, text). |
-| `source`              | String          | The source type (upload, gdrive, onedrive, notion, web, paste).          |
-| `original_blob_hash`  | CHAR(64)        | FK to `KNOWLEDGE_CONTENT_BLOBS.blob_hash`. The hash of the original uploaded file. |
-| `processed_blob_hash` | CHAR(64)        | FK to `KNOWLEDGE_CONTENT_BLOBS.blob_hash`. The hash of the processed markdown content. |
-| `content_summary`          | Text            | AI-generated summary of the content.                                      |
-| `keywords`            | Array of Strings| Tags/keywords for the content.                                            |
-| `status`              | String          | Current processing state (processing, processed, failed).               |
-| `num_chunks`          | Integer         | Number of text chunks generated from this content source.                |
-| `total_size_bytes`    | BigInt          | Original file size in bytes. Derived from the blob for convenience.      |
-| `created_at`          | Timestamp       | Timestamp of when the content was created.                               |
-| `updated_at`          | Timestamp       | Timestamp of the last modification to the content metadata.              |
-| `deleted_at`          | Timestamp       | Soft delete timestamp (NULL if not deleted).                              |
+| Field Name               | Data Type        | Description                                                                                  |
+|--------------------------|------------------|----------------------------------------------------------------------------------------------|
+| `id`                     | UUID             | Primary Key. Unique identifier for the content source.                                       |
+| `space_id`               | UUID             | Foreign Key to `SPACES.id`. The space this content belongs to.                               |
+| `owner_id`               | UUID             | Indexed. User ID of the uploader.                                                            |
+| `title`                  | String           | The primary name of the content.                                                             |
+| `media_type`             | String           | Essential Field. e.g., 'document', 'audio', 'video'.                                         |
+| `source`                 | String           | Essential Field. e.g., 'upload', 'gdrive', 'paste'.                                          |
+| `status`                 | String           | UPLOADING, PROCESSING, PROCESSED, FAILED.                                                    |
+| `original_blob_hash`      | CHAR(64)         | Foreign Key to `KNOWLEDGE_CONTENT_BLOBS.blob_hash`. SHA-256 hash of the original file.      |
+| `processed_blob_hash`     | CHAR(64)         | Foreign Key to `KNOWLEDGE_CONTENT_BLOBS.blob_hash`. Can be NULL. SHA-256 hash of the processed file. |
+| `content_summary`        | Text             | AI-generated summary (Future Scope).                                                         |
+| `keywords`               | Array of Strings | Essential Field. Tags/keywords for the content.                                              |
+| `created_at`             | Timestamp        | Timestamp of when the content was created.                                                   |
+| `updated_at`             | Timestamp        | Timestamp of the last modification.                                                          |
+| `deleted_at`             | Timestamp        | Soft delete timestamp.                                                                       |
+
+
+---
+
+### Neo4j Graph Database Model
+
+This database is dedicated to storing the relationships between content nodes, enabling efficient graph queries such as backlinks, references, and rich linking features.
+
+### Nodes
+
+**Label:** `Content`
+
+| Property Name   | Data Type | Description                                                      |
+|-----------------|-----------|------------------------------------------------------------------|
+| `contentId`     | UUID      | Primary Key. Directly references `CONTENT_SOURCES.id` in Postgres.|
+
+- Each node in the graph represents a single content source (e.g., a document, note, or file) as defined in the `CONTENT_SOURCES` table.
+
+### Relationships (Edges)
+
+**Type:** `:LINKS_TO`
+
+- **Direction:** Directed  
+  `(:Content) -[:LINKS_TO]-> (:Content)`
+
+- **Description:**  
+  Represents an explicit link or reference from one content node to another (e.g., a Markdown link, mention, or reference within a document).
+
+- **Properties:**  
+  (Optional, for future extension: e.g., `created_at`, `link_type`, `context`)
+
+#### Example
+
+If Document A contains a link to Document B, the following relationship is created:
+
 
 ### `KNOWLEDGE_CONTENT_BLOBS`: Content Source Blob Registry
-Acts as a content-addressable storage registry for all large file objects related to knwoledge content sources. This table is owned and managed exclusively by the Knowledge Service.
+Acts as a content-addressable storage registry for all large file objects related to knowledge content sources. This table is owned and managed exclusively by the Knowledge Service.
 
 | Field Name | Data Type | Description |
 | :--- | :--- | :--- |
-| `blob_hash` | CHAR(64) | **Primary Key**. The SHA-256 hash of the S3 object content. |
-| `s3_bucket` | VARCHAR(255) | The name of the S3 bucket where the content is stored. |
-| `s3_key` | VARCHAR(1024) | The path/key of the object within the S3 bucket. |
-| `size_bytes` | BIGINT | The size of the content file in bytes. Useful for analytics. |
-| `created_at` | Timestamp | When this content was first ingested and stored. |
-
----
+| `blob_hash`        | CHAR(64)        | Primary Key. The SHA-256 hash of the object content.                |
+| `storage_bucket`   | VARCHAR(255)    | The name of the R2/S3 bucket where the content is stored.           |
+| `storage_key`      | VARCHAR(1024)   | The path/key of the object within the bucket.                       |
+| `size_bytes`       | BIGINT          | The size of the content file in bytes.                              |
+| `created_at`       | Timestamp       | When this content was first ingested and stored.                    |
 
 ## Canvas Service
 
