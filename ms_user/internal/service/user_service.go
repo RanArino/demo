@@ -3,55 +3,109 @@ package service
 import (
 	"context"
 	"demo/ms_user/internal/domain"
+	"demo/ms_user/internal/middleware"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/clerk/clerk-sdk-go/v2/client"
 	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/google/uuid"
 )
 
 // UserService provides user-related business logic.
 type UserService struct {
-	repo domain.UserRepository
+	repo                   domain.UserRepository
+	clerkClient            *client.Client
+	defaultStorageQuotaBytes int64
 }
 
 // NewUserService creates a new UserService.
-func NewUserService(repo domain.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo domain.UserRepository, clerkClient *client.Client, defaultStorageQuotaGB int64) *UserService {
+	return &UserService{
+		repo:                   repo,
+		clerkClient:            clerkClient,
+		defaultStorageQuotaBytes: defaultStorageQuotaGB * 1024 * 1024 * 1024,
+	}
 }
 
-// CreateUser creates a user during profile completion flow.
-func (s *UserService) CreateUser(ctx context.Context, clerkID, email, fullName, username string) (*domain.User, error) {
+// CreateUser handles the 'user.created' webhook from Clerk.
+// It creates a new user with a "pending" status and sets initial Clerk metadata.
+func (s *UserService) CreateUser(ctx context.Context, clerkID, email string) (*domain.User, error) {
+	// 1. Create a new user in the local database with "pending" status.
 	user := &domain.User{
 		ID:                uuid.New(),
 		ClerkUserID:       clerkID,
 		Email:             email,
-		FullName:          fullName,
-		Username:          username,
-		StorageUsedBytes:  0,
-		StorageQuotaBytes: 5 * 1024 * 1024 * 1024, // 5GB default quota
-		Status:            "active",
-		Role:              "user", // Default role for new users
+		Status:            "pending",              // Initial status
+		Role:              "user",                 // Default role
+		StorageQuotaBytes: s.defaultStorageQuotaBytes, // 5GB default quota
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
 
 	createdUser, err := s.repo.Create(ctx, user)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create pending user: %w", err)
 	}
 
-	// Audit log: User creation via gRPC
-	log.Printf("AUDIT: user created via gRPC - clerk_id=%s, email=%s, username=%s, id=%s, timestamp=%s",
-		clerkID, email, username, createdUser.ID.String(), time.Now().UTC().Format(time.RFC3339))
+	// 2. Update Clerk public metadata with the "pending" status and default role.
+	metadata := map[string]interface{}{
+		"status": "pending",
+		"role":   "user",
+	}
+	if err := s.updateClerkPublicMetadata(ctx, clerkID, metadata); err != nil {
+		// Log the error but don't fail the whole operation.
+		// A retry mechanism or manual intervention might be needed here.
+		log.Printf("ERROR: failed to set initial metadata for user %s: %v", clerkID, err)
+	}
 
 	return createdUser, nil
 }
 
+// ActivateUser activates a user's profile by updating their status and profile information.
+// This is called via gRPC when the user submits their profile setup form.
+func (s *UserService) ActivateUser(ctx context.Context, fullName, username string) (*domain.User, error) {
+	// 1. Get the user's Clerk ID from the context.
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("user_id not found in context")
+	}
+
+	// 2. Get the user from the database.
+	user, err := s.repo.GetByClerkID(ctx, clerkUserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by clerk id: %w", err)
+	}
+
+	// 3. Update the user's profile in the database.
+	updates := map[string]interface{}{
+		"full_name": fullName,
+		"username":  username,
+		"status":    "active",
+	}
+	updatedUser, err := s.repo.Update(ctx, user.ID, updates)
+	if err != nil {
+		return nil, fmt.Errorf("failed to activate user profile: %w", err)
+	}
+
+	// 4. Update Clerk public metadata with the "active" status.
+	metadata := map[string]interface{}{
+		"status": "active",
+		"role":   user.Role, // Preserve the existing role
+	}
+	if err := s.updateClerkPublicMetadata(ctx, clerkUserID, metadata); err != nil {
+		// Log the error but don't fail the whole operation.
+		log.Printf("ERROR: failed to update metadata for activated user %s: %v", clerkUserID, err)
+	}
+
+	return updatedUser, nil
+}
+
 // GetUser retrieves a user by their Clerk ID from the context.
 func (s *UserService) GetUser(ctx context.Context) (*domain.User, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -60,7 +114,7 @@ func (s *UserService) GetUser(ctx context.Context) (*domain.User, error) {
 
 // UpdateUser updates a user's profile information.
 func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username *string) (*domain.User, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -103,7 +157,7 @@ func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username 
 
 // DeleteUser soft deletes a user.
 func (s *UserService) DeleteUser(ctx context.Context) error {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return fmt.Errorf("user_id not found in context")
 	}
@@ -118,7 +172,7 @@ func (s *UserService) DeleteUser(ctx context.Context) error {
 
 // UpdateUserPreferences updates a user's preferences.
 func (s *UserService) UpdateUserPreferences(ctx context.Context, theme, language, timezone *string, canvasSettings, notificationSettings, accessibilitySettings map[string]interface{}) (*domain.UserPreferences, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -156,7 +210,7 @@ func (s *UserService) UpdateUserPreferences(ctx context.Context, theme, language
 
 // CheckUserStatus checks if a user exists and if profile completion is needed
 func (s *UserService) CheckUserStatus(ctx context.Context) (*domain.UserStatus, error) {
-	clerkUserID, ok := ctx.Value("user_id").(string)
+	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user_id not found in context")
 	}
@@ -192,4 +246,30 @@ func (s *UserService) CheckUserStatus(ctx context.Context) (*domain.UserStatus, 
 // isProfileComplete checks if the user profile has all required fields
 func (s *UserService) isProfileComplete(user *domain.User) bool {
 	return user.FullName != "" && user.Username != "" && user.Email != ""
+}
+
+// updateClerkPublicMetadata updates the user's public metadata in Clerk.
+func (s *UserService) updateClerkPublicMetadata(ctx context.Context, clerkUserID string, metadata map[string]interface{}) error {
+	if s.clerkClient == nil {
+		return fmt.Errorf("clerk client not available")
+	}
+
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %w", err)
+	}
+
+	rawMessage := json.RawMessage(metadataJSON)
+	params := &user.UpdateParams{
+		PublicMetadata: &rawMessage,
+	}
+
+	// Use the user package directly with the context
+	_, err = user.Update(ctx, clerkUserID, params)
+	if err != nil {
+		return fmt.Errorf("failed to update user metadata in Clerk: %w", err)
+	}
+
+	log.Printf("Successfully updated public metadata for user %s in Clerk", clerkUserID)
+	return nil
 }

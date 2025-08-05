@@ -2,15 +2,13 @@ package middleware
 
 import (
 	"context"
-	"demo/ms_user/internal/domain"
-	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// Permission represents a required permission
+// Permission represents a required permission for an action.
 type Permission string
 
 const (
@@ -48,21 +46,28 @@ var MethodPermissions = map[string]Permission{
 	"/user.v1.UserService/UpdateUser":            PermissionWriteUser,
 	"/user.v1.UserService/UpdateUserPreferences": PermissionWriteUser,
 	"/user.v1.UserService/DeleteUser":            PermissionDeleteUser,
-	"/user.v1.UserService/CreateUser":            PermissionWriteUser, // Allow authenticated users to create their own profile
 	"/user.v1.UserService/CheckUserStatus":       PermissionReadUser,
+	"/user.v1.UserService/ActivateUser":          PermissionWriteUser,
 }
 
-// AuthorizationInterceptor provides authorization checks
-type AuthorizationInterceptor struct {
-	userRepo domain.UserRepository
+// ExemptMethods lists methods that bypass role validation but still require authentication.
+// Each entry must include a detailed justification for the exemption.
+var ExemptMethods = map[string]bool{
+	// This method is exempt because it's part of the initial user profile creation process.
+	// At this stage, the user does not yet have a role assigned in the system.
+	// Authentication is still enforced by the AuthInterceptor, which ensures a valid Clerk JWT is present.
+	"/user.v1.UserService/CreateUser": true,
 }
 
-// NewAuthorizationInterceptor creates a new authorization interceptor
-func NewAuthorizationInterceptor(userRepo domain.UserRepository) *AuthorizationInterceptor {
-	return &AuthorizationInterceptor{userRepo: userRepo}
+// AuthorizationInterceptor provides RBAC (Role-Based Access Control) checks.
+type AuthorizationInterceptor struct{}
+
+// NewAuthorizationInterceptor creates a new AuthorizationInterceptor.
+func NewAuthorizationInterceptor() *AuthorizationInterceptor {
+	return &AuthorizationInterceptor{}
 }
 
-// Unary returns a gRPC unary server interceptor for authorization
+// Unary returns a gRPC unary server interceptor for authorization.
 func (a *AuthorizationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -70,39 +75,40 @@ func (a *AuthorizationInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		// Get user ID from context (set by authentication middleware)
-		userID, ok := ctx.Value("user_id").(string)
-		if !ok || userID == "" {
-			return nil, status.Errorf(codes.Unauthenticated, "user ID not found in context")
-		}
-
-		// Get required permission for this method
-		requiredPermission, exists := MethodPermissions[info.FullMethod]
-		if !exists {
-			// If no permission is required, allow the request
+		// Check if method is exempt from role validation
+		if ExemptMethods[info.FullMethod] {
+			// Still require authentication (user ID must be present)
+			if _, ok := ctx.Value(UserIDKey).(string); !ok {
+				return nil, status.Errorf(codes.Unauthenticated, "user ID not found in context")
+			}
 			return handler(ctx, req)
 		}
 
-		// Get user from repository to check role
-		user, err := a.userRepo.GetByClerkID(ctx, userID)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to get user: %v", err)
+		requiredPermission, requiresAuth := MethodPermissions[info.FullMethod]
+		if !requiresAuth {
+			return handler(ctx, req)
 		}
 
-		// Check if user has required permission
-		if !a.hasPermission(Role(user.Role), requiredPermission) {
+		// User ID must be present for any authenticated endpoint.
+		if _, ok := ctx.Value(UserIDKey).(string); !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user ID not found in context")
+		}
+
+		// The user role must be present in the JWT claims.
+		userRole, ok := ctx.Value(UserRoleKey).(string)
+		if !ok || userRole == "" {
+			return nil, status.Errorf(codes.PermissionDenied, "user role not found in JWT claims")
+		}
+
+		if !a.hasPermission(Role(userRole), requiredPermission) {
 			return nil, status.Errorf(codes.PermissionDenied, "insufficient permissions for %s", info.FullMethod)
 		}
-
-		// Add user role to context for further use
-		ctx = context.WithValue(ctx, "user_role", user.Role)
-		ctx = context.WithValue(ctx, "user", user)
 
 		return handler(ctx, req)
 	}
 }
 
-// hasPermission checks if a role has a specific permission
+// hasPermission checks if a role has a specific permission.
 func (a *AuthorizationInterceptor) hasPermission(role Role, permission Permission) bool {
 	permissions, exists := RolePermissions[role]
 	if !exists {
@@ -115,16 +121,4 @@ func (a *AuthorizationInterceptor) hasPermission(role Role, permission Permissio
 		}
 	}
 	return false
-}
-
-// IsAdmin checks if the current user is an admin
-func IsAdmin(ctx context.Context) bool {
-	role, ok := ctx.Value("user_role").(string)
-	return ok && strings.ToLower(role) == "admin"
-}
-
-// GetCurrentUser retrieves the current user from context
-func GetCurrentUser(ctx context.Context) (*domain.User, bool) {
-	user, ok := ctx.Value("user").(*domain.User)
-	return user, ok
 }
