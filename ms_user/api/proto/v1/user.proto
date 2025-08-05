@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "demo/ms_user/api/proto/v1";
+
+// UserService manages user accounts and preferences.
+service UserService {
+  // Creates a new user.
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // Retrieves a user's profile.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Updates a user's profile information.
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  // Deletes a user (soft delete).
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  // Updates a user's preferences.
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UpdateUserPreferencesResponse);
+  // Checks if user needs profile completion.
+  rpc CheckUserStatus(CheckUserStatusRequest) returns (CheckUserStatusResponse);
+}
+
+// User represents a user account in the system.
+message User {
+  string id = 1;
+  string clerk_user_id = 2;
+  string email = 3;
+  string full_name = 4;
+  string username = 5;
+  string role = 6;
+  int64 storage_used_bytes = 7;
+  int64 storage_quota_bytes = 8;
+  string status = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp deleted_at = 12;
+}
+
+// UserPreferences holds settings for a user.
+message UserPreferences {
+  string user_id = 1;
+  string theme = 2;
+  string language = 3;
+  string timezone = 4;
+  google.protobuf.Struct canvas_settings = 5;
+  google.protobuf.Struct notification_settings = 6;
+  google.protobuf.Struct accessibility_settings = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// Request to create a new user.
+message CreateUserRequest {
+  string clerk_user_id = 1;
+  string email = 2;
+  string full_name = 3;
+  string username = 4;
+  string role = 5;
+}
+
+// Response after creating a user.
+message CreateUserResponse {
+  User user = 1;
+}
+
+// Request to get a user's details.
+message GetUserRequest {
+  string user_id = 1;
+}
+
+// Response with a user's details.
+message GetUserResponse {
+  User user = 1;
+}
+
+// Request to update a user's profile information.
+message UpdateUserRequest {
+  // The unique ID of the user to update.
+  string user_id = 1;
+  optional string email = 2;
+  optional string full_name = 3;
+  optional string username = 4;
+  optional string role = 5;
+}
+
+// Response after updating a user.
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// Request to delete a user.
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+// Response after deleting a user.
+message DeleteUserResponse {}
+
+// Request to update user preferences.
+message UpdateUserPreferencesRequest {
+  string user_id = 1;
+  optional string theme = 2;
+  optional string language = 3;
+  optional string timezone = 4;
+  optional google.protobuf.Struct canvas_settings = 5;
+  optional google.protobuf.Struct notification_settings = 6;
+  optional google.protobuf.Struct accessibility_settings = 7;
+}
+
+// Response after updating user preferences.
+message UpdateUserPreferencesResponse {
+  UserPreferences preferences = 1;
+}
+
+// Request to check user status.
+message CheckUserStatusRequest {}
+
+// User status information.
+message CheckUserStatusResponse {
+  bool profile_completed = 1;
+  bool needs_redirect = 2;
+  string redirect_url = 3;
+  User user = 4;
+}
