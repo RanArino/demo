@@ -1,13 +1,15 @@
-# Builder stage
+# Build stage
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
-COPY go.mod ./
-COPY . .
+COPY go.mod go.sum ./
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o /main ./cmd
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/main.go
+
 # Final stage
 FROM alpine:latest
-WORKDIR /
-COPY --from=builder /main /main
+WORKDIR /app
+COPY --from=builder /app/server .
+COPY .env.local .
 EXPOSE 8080
-ENTRYPOINT ["/main"]
+CMD ["./server"]
