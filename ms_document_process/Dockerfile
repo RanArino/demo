@@ -7,11 +7,9 @@ WORKDIR /app
 
 RUN pip install poetry
 
-COPY pyproject.toml poetry.lock* ./
-
-RUN poetry config virtualenvs.create false && poetry install --no-dev
-
 COPY . .
+
+RUN poetry config virtualenvs.create false && poetry install --only main
 
 EXPOSE 50051
 
