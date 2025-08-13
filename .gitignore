@@ -2,9 +2,13 @@
 test-files/
 .env
 .env.local
-.cursor/
 notes/
 Todo
+.serena/
+
+# IDE
+.cursor/
+.vscode/
 
 # Node / Next.js
 node_modules/
