@@ -61,9 +61,11 @@ type GraphRepository interface {
 	GetBacklinks(ctx context.Context, contentID uuid.UUID) ([]uuid.UUID, error)
 
 	// Content Node Lifecycle (called automatically by ContentRepository)
-	EnsureContentNode(ctx context.Context, contentID uuid.UUID) error
-	CleanupContentNode(ctx context.Context, contentID uuid.UUID) error
+	// Note: Links are space-scoped, so nodes must carry spaceId
+	CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error
+	DeleteContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error
 
 	// Statistics
 	CountLinksByContent(ctx context.Context, contentID uuid.UUID) (int64, error)
+	CountLinksBySpace(ctx context.Context, spaceID uuid.UUID) (int64, error)
 }
