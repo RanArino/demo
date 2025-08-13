@@ -4,58 +4,74 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
+
+	"demo/ms_knowledge/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	"demo/ms_knowledge/internal/domain"
 )
-
-type Neo4jRepository struct {
-	driver neo4j.DriverWithContext
-}
-
-func (r *Neo4jRepository) CreateLinkWithType(ctx context.Context, fromContentID uuid.UUID, toContentID uuid.UUID, relationshipType string) error {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(ctx)
-
-	valid, rel := normalizeAndValidateRelationship(relationshipType)
-	if !valid {
-		return fmt.Errorf("invalid relationship type: %s", relationshipType)
-	}
-
-	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		query := fmt.Sprintf("MATCH (a:Content {contentId: $from}), (b:Content {contentId: $to}) MERGE (a)-[:%s]->(b)", rel)
-		_, runErr := tx.Run(ctx, query, map[string]any{"from": fromContentID.String(), "to": toContentID.String()})
-		return nil, runErr
-	})
-	return err
-}
 
 func normalizeAndValidateRelationship(in string) (bool, string) {
 	s := strings.TrimSpace(strings.ToUpper(in))
 	switch s {
-	case "LINKS_TO":
-		return true, "LINKS_TO"
-	case "RELATED_TO":
-		return true, "RELATED_TO"
+	case "REFERENCES":
+		return true, "REFERENCES"
+	case "CONTAINS":
+		return true, "CONTAINS"
+	case "RELATED":
+		return true, "RELATED"
+	case "FOLLOWS":
+		return true, "FOLLOWS"
 	default:
 		return false, ""
 	}
 }
 
-func NewNeo4jRepository(driver neo4j.DriverWithContext) *Neo4jRepository {
+type Neo4jRepository struct {
+	driver neo4j.DriverWithContext
+}
+
+func NewNeo4jRepository(driver neo4j.DriverWithContext) domain.GraphRepository {
 	return &Neo4jRepository{driver: driver}
 }
 
 var _ domain.GraphRepository = (*Neo4jRepository)(nil)
 
-func (r *Neo4jRepository) CreateContentNode(ctx context.Context, contentID uuid.UUID) error {
+// Content Node Operations
+func (r *Neo4jRepository) CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error {
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(ctx)
+
 	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		_, runErr := tx.Run(ctx,
-			"MERGE (c:Content {contentId: $id})",
-			map[string]any{"id": contentID.String()},
+			"MERGE (c:Content {contentId: $contentId}) SET c.spaceId = $spaceId",
+			map[string]any{
+				"contentId": contentID.String(),
+				"spaceId":   spaceID.String(),
+			},
+		)
+		return nil, runErr
+	})
+	return err
+}
+
+func (r *Neo4jRepository) DeleteContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(ctx)
+
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		// Delete relationships, then node scoped by spaceId
+		_, runErr := tx.Run(ctx,
+			"MATCH (c:Content {contentId: $id, spaceId: $spaceId})-[r]-() DELETE r",
+			map[string]any{"id": contentID.String(), "spaceId": spaceID.String()},
+		)
+		if runErr != nil {
+			return nil, runErr
+		}
+		_, runErr = tx.Run(ctx,
+			"MATCH (c:Content {contentId: $id, spaceId: $spaceId}) DELETE c",
+			map[string]any{"id": contentID.String(), "spaceId": spaceID.String()},
 		)
 		return nil, runErr
 	})
