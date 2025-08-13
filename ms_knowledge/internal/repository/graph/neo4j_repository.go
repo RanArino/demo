@@ -78,43 +78,377 @@ func (r *Neo4jRepository) DeleteContentNode(ctx context.Context, contentID uuid.
 	return err
 }
 
-func (r *Neo4jRepository) CreateLink(ctx context.Context, fromContentID uuid.UUID, toContentID uuid.UUID) error {
+// Knowledge Link Operations (CRUD)
+func (r *Neo4jRepository) CreateKnowledgeLink(ctx context.Context, link *domain.KnowledgeLink) error {
+	if link.FromContentID == link.ToContentID {
+		return fmt.Errorf("cannot create self-link")
+	}
+
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(ctx)
+
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		// Use the relation type as the actual Neo4j relationship label (validated & normalized)
+		valid, relType := normalizeAndValidateRelationship(string(link.RelationType))
+		if !valid {
+			return nil, fmt.Errorf("invalid relationship type: %s", link.RelationType)
+		}
+
+		query := fmt.Sprintf(`
+		    MATCH (a:Content {contentId: $from}), (b:Content {contentId: $to})
+		    WHERE a.spaceId = b.spaceId
+		    MERGE (a)-[r:%s {
+		        linkId: $linkId,
+		        weight: $weight,
+		        createdAt: $createdAt,
+		        updatedAt: $updatedAt
+		    }]->(b)
+		    RETURN r.linkId as linkId
+		`, relType)
+
+		var weight float64
+		if link.Weight != nil {
+			weight = *link.Weight
+		} else {
+			weight = 1.0
+		}
+
+		result, runErr := tx.Run(ctx, query, map[string]any{
+			"from":      link.FromContentID.String(),
+			"to":        link.ToContentID.String(),
+			"linkId":    link.ID.String(),
+			"weight":    weight,
+			"createdAt": link.CreatedAt.Unix(),
+			"updatedAt": link.UpdatedAt.Unix(),
+		})
+
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		if result.Next(ctx) {
+			return result.Record().Values[0], nil
+		}
+		return nil, fmt.Errorf("failed to create link")
+	})
+	return err
+}
+
+func (r *Neo4jRepository) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.KnowledgeLink, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		query := `
+			MATCH (a:Content)-[r {linkId: $linkId}]->(b:Content)
+			RETURN a.contentId as fromId, b.contentId as toId, type(r) as relationType, 
+				   r.weight as weight, r.createdAt as createdAt, r.updatedAt as updatedAt
+		`
+
+		records, runErr := tx.Run(ctx, query, map[string]any{"linkId": id.String()})
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		if records.Next(ctx) {
+			record := records.Record()
+			fromID, _ := uuid.Parse(record.Values[0].(string))
+			toID, _ := uuid.Parse(record.Values[1].(string))
+			relationType := domain.RelationType(record.Values[2].(string))
+			weight := record.Values[3].(float64)
+			createdAt := time.Unix(record.Values[4].(int64), 0)
+			updatedAt := time.Unix(record.Values[5].(int64), 0)
+
+			return &domain.KnowledgeLink{
+				ID:            id,
+				FromContentID: fromID,
+				ToContentID:   toID,
+				RelationType:  relationType,
+				Weight:        &weight,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			}, nil
+		}
+		return nil, fmt.Errorf("link not found")
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result.(*domain.KnowledgeLink), nil
+}
+
+func (r *Neo4jRepository) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.KnowledgeLink, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		var query string
+		var params map[string]any
+
+		switch filter.Direction {
+		case domain.LinkDirectionInbound:
+			query = `
+				MATCH (a:Content)-[r]->(b:Content {contentId: $contentId})
+				RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
+					   type(r) as relationType, r.weight as weight, 
+					   r.createdAt as createdAt, r.updatedAt as updatedAt
+			`
+		case domain.LinkDirectionOutbound:
+			query = `
+				MATCH (a:Content {contentId: $contentId})-[r]->(b:Content)
+				RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
+					   type(r) as relationType, r.weight as weight, 
+					   r.createdAt as createdAt, r.updatedAt as updatedAt
+			`
+		case domain.LinkDirectionBoth:
+			query = `
+				MATCH (a:Content)-[r]-(b:Content)
+				WHERE a.contentId = $contentId OR b.contentId = $contentId
+				RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
+					   type(r) as relationType, r.weight as weight, 
+					   r.createdAt as createdAt, r.updatedAt as updatedAt
+			`
+		default:
+			return nil, fmt.Errorf("invalid direction")
+		}
+
+		if filter.RelationType != "" {
+			// Append relation type filter appropriately depending on existing WHERE clause
+			if strings.Contains(query, "WHERE") {
+				query += " AND type(r) = $relationType"
+			} else {
+				query += " WHERE type(r) = $relationType"
+			}
+		}
+
+		query += " ORDER BY r.createdAt DESC"
+
+		if filter.Limit > 0 {
+			query += " LIMIT $limit"
+		}
+
+		if filter.Offset > 0 {
+			query += " SKIP $offset"
+		}
+
+		params = map[string]any{
+			"contentId": filter.ContentID.String(),
+			"limit":     filter.Limit,
+			"offset":    filter.Offset,
+		}
+
+		if filter.RelationType != "" {
+			params["relationType"] = string(filter.RelationType)
+		}
+
+		records, runErr := tx.Run(ctx, query, params)
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		var links []*domain.KnowledgeLink
+		for records.Next(ctx) {
+			record := records.Record()
+			fromID, _ := uuid.Parse(record.Values[0].(string))
+			toID, _ := uuid.Parse(record.Values[1].(string))
+			linkID, _ := uuid.Parse(record.Values[2].(string))
+			relationType := domain.RelationType(record.Values[3].(string))
+			weight := record.Values[4].(float64)
+			createdAt := time.Unix(record.Values[5].(int64), 0)
+			updatedAt := time.Unix(record.Values[6].(int64), 0)
+
+			links = append(links, &domain.KnowledgeLink{
+				ID:            linkID,
+				FromContentID: fromID,
+				ToContentID:   toID,
+				RelationType:  relationType,
+				Weight:        &weight,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			})
+		}
+
+		return links, records.Err()
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result.([]*domain.KnowledgeLink), nil
+}
+
+func (r *Neo4jRepository) UpdateKnowledgeLink(ctx context.Context, link *domain.KnowledgeLink) error {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(ctx)
+
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		// Change relationship type by recreating the relationship with the new label
+		valid, relType := normalizeAndValidateRelationship(string(link.RelationType))
+		if !valid {
+			return nil, fmt.Errorf("invalid relationship type: %s", link.RelationType)
+		}
+
+		query := fmt.Sprintf(`
+			MATCH (a:Content)-[r {linkId: $linkId}]->(b:Content)
+			WITH a, b, r, r.createdAt AS createdAt
+			DELETE r
+			CREATE (a)-[newRel:%s {
+				linkId: $linkId,
+				weight: $weight,
+				createdAt: createdAt,
+				updatedAt: $updatedAt
+			}]->(b)
+			RETURN newRel.linkId as linkId
+		`, relType)
+
+		var weight float64
+		if link.Weight != nil {
+			weight = *link.Weight
+		} else {
+			weight = 1.0
+		}
+
+		result, runErr := tx.Run(ctx, query, map[string]any{
+			"linkId":    link.ID.String(),
+			"weight":    weight,
+			"updatedAt": time.Now().Unix(),
+		})
+
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		if result.Next(ctx) {
+			return result.Record().Values[0], nil
+		}
+		return nil, fmt.Errorf("link not found")
+	})
+	return err
+}
+
+func (r *Neo4jRepository) DeleteKnowledgeLink(ctx context.Context, id uuid.UUID) error {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(ctx)
+
 	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		_, runErr := tx.Run(ctx,
-			"MATCH (a:Content {contentId: $from}), (b:Content {contentId: $to}) MERGE (a)-[:LINKS_TO]->(b)",
-			map[string]any{"from": fromContentID.String(), "to": toContentID.String()},
+			"MATCH ()-[r {linkId: $linkId}]->() DELETE r",
+			map[string]any{"linkId": id.String()},
 		)
 		return nil, runErr
 	})
 	return err
 }
 
+// Convenience Methods
+func (r *Neo4jRepository) CreateLink(ctx context.Context, fromContentID uuid.UUID, toContentID uuid.UUID) error {
+	weight := 1.0
+	link := &domain.KnowledgeLink{
+		ID:            uuid.New(),
+		FromContentID: fromContentID,
+		ToContentID:   toContentID,
+		RelationType:  domain.RelationTypeReferences,
+		Weight:        &weight,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+	return r.CreateKnowledgeLink(ctx, link)
+}
+
+func (r *Neo4jRepository) CreateLinkWithType(ctx context.Context, fromContentID uuid.UUID, toContentID uuid.UUID, relationshipType string) error {
+	valid, rel := normalizeAndValidateRelationship(relationshipType)
+	if !valid {
+		return fmt.Errorf("invalid relationship type: %s", relationshipType)
+	}
+
+	weight := 1.0
+	link := &domain.KnowledgeLink{
+		ID:            uuid.New(),
+		FromContentID: fromContentID,
+		ToContentID:   toContentID,
+		RelationType:  domain.RelationType(rel),
+		Weight:        &weight,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+	return r.CreateKnowledgeLink(ctx, link)
+}
+
 func (r *Neo4jRepository) GetBacklinks(ctx context.Context, contentID uuid.UUID) ([]uuid.UUID, error) {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(ctx)
-	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		records, runErr := tx.Run(ctx,
-			"MATCH (a:Content)-[:LINKS_TO]->(b:Content {contentId: $id}) RETURN a.contentId AS id",
-			map[string]any{"id": contentID.String()},
-		)
-		if runErr != nil {
-			return nil, runErr
-		}
-		var ids []uuid.UUID
-		for records.Next(ctx) {
-			val, _ := records.Record().Get("id")
-			if s, ok := val.(string); ok {
-				if u, parseErr := uuid.Parse(s); parseErr == nil {
-					ids = append(ids, u)
-				}
-			}
-		}
-		return ids, records.Err()
-	})
+	filter := domain.LinkFilter{
+		ContentID: contentID,
+		Direction: domain.LinkDirectionInbound,
+		Limit:     100, // Reasonable limit for backlinks
+	}
+
+	links, err := r.ListKnowledgeLinks(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	return result.([]uuid.UUID), nil
+
+	var backlinkIDs []uuid.UUID
+	for _, link := range links {
+		backlinkIDs = append(backlinkIDs, link.FromContentID)
+	}
+
+	return backlinkIDs, nil
+}
+
+// Statistics
+func (r *Neo4jRepository) CountLinksByContent(ctx context.Context, contentID uuid.UUID) (int64, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		query := `
+			MATCH (a:Content)-[r]-(b:Content)
+			WHERE a.contentId = $contentId OR b.contentId = $contentId
+			RETURN count(r) as count
+		`
+
+		records, runErr := tx.Run(ctx, query, map[string]any{"contentId": contentID.String()})
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		if records.Next(ctx) {
+			return records.Record().Values[0].(int64), nil
+		}
+		return int64(0), nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+	return result.(int64), nil
+}
+
+func (r *Neo4jRepository) CountLinksBySpace(ctx context.Context, spaceID uuid.UUID) (int64, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		// Count links between content nodes that belong to the same space
+		query := `
+			MATCH (a:Content)-[r]->(b:Content)
+			WHERE a.spaceId = $spaceId AND b.spaceId = $spaceId
+			RETURN count(r) as count
+		`
+
+		records, runErr := tx.Run(ctx, query, map[string]any{"spaceId": spaceID.String()})
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		if records.Next(ctx) {
+			return records.Record().Values[0].(int64), nil
+		}
+		return int64(0), nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+	return result.(int64), nil
 }
