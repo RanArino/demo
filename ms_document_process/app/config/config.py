@@ -9,7 +9,9 @@ class Settings(BaseSettings):
     r2_access_key_id: str
     r2_secret_access_key: str
     r2_account_id: str
-    r2_bucket_name: str
+    # Two buckets: one for original files, one for processed markdown
+    r2_bucket_source_name: str
+    r2_bucket_processed_name: str
     ms_knowledge_grpc_url: str = "localhost:50052"
 
     class Config:
