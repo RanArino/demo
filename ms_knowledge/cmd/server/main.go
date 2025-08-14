@@ -12,6 +12,8 @@ import (
 	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 	"demo/ms_knowledge/ent"
 	"demo/ms_knowledge/internal/config"
+	"demo/ms_knowledge/internal/domain"
+	"demo/ms_knowledge/internal/events"
 	"demo/ms_knowledge/internal/repository"
 	"demo/ms_knowledge/internal/repository/graph"
 	"demo/ms_knowledge/internal/server"
@@ -76,6 +78,14 @@ func main() {
 	// Enable reflection for development
 	reflection.Register(srv)
 
+	// Start document.processed consumer in background
+	consumer, err := events.NewConsumer(cfg, "ms_knowledge-processed-group", &processedHandler{svc: contentService})
+	if err != nil {
+		log.Fatalf("Failed to create Kafka consumer: %v", err)
+	}
+	defer consumer.Close()
+	go consumer.Run(context.Background())
+
 	// Start gRPC server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.Port))
 	if err != nil {
@@ -97,4 +107,19 @@ func main() {
 	log.Println("Shutting down server...")
 	srv.GracefulStop()
 	log.Println("Server stopped")
+}
+
+// processedHandler adapts the consumer callback to the service method.
+type processedHandler struct {
+	svc *service.ContentService
+}
+
+func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event events.DocumentProcessedEvent) error {
+	status := domain.ContentStatus(event.Status)
+	processedHash := ""
+	if event.ProcessedBlobHash != nil {
+		processedHash = *event.ProcessedBlobHash
+	}
+	_, err := h.svc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage)
+	return err
 }
