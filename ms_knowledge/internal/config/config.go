@@ -24,7 +24,10 @@ type Config struct {
 		Password string
 	}
 	Kafka struct {
-		Brokers string
+		Brokers          string
+		SaslUsername     string
+		SaslPassword     string
+		SecurityProtocol string
 	}
 	R2 struct {
 		AccessKeyID     string
@@ -41,6 +44,9 @@ var SecretKeys = []string{
 	"NEO4J_USER",
 	"NEO4J_PASSWORD",
 	"KAFKA_BROKERS",
+	"KAFKA_SASL_USERNAME",
+	"KAFKA_SASL_PASSWORD",
+	"KAFKA_SECURITY_PROTOCOL",
 	"R2_ACCESS_KEY_ID",
 	"R2_SECRET_ACCESS_KEY",
 	"R2_ACCOUNT_ID",
@@ -65,6 +71,9 @@ func Load() (*Config, error) {
 
 	// Kafka configuration
 	cfg.Kafka.Brokers = getEnvOrDefault("KAFKA_BROKERS", "localhost:9092")
+	cfg.Kafka.SaslUsername = getEnvOrDefault("KAFKA_SASL_USERNAME", "")
+	cfg.Kafka.SaslPassword = getEnvOrDefault("KAFKA_SASL_PASSWORD", "")
+	cfg.Kafka.SecurityProtocol = getEnvOrDefault("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 
 	// R2 configuration
 	cfg.R2.AccessKeyID = getEnvOrDefault("R2_ACCESS_KEY_ID", "")
@@ -116,6 +125,9 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 
 	// Kafka configuration
 	config.Kafka.Brokers = secretValues["KAFKA_BROKERS"]
+	config.Kafka.SaslUsername = secretValues["KAFKA_SASL_USERNAME"]
+	config.Kafka.SaslPassword = secretValues["KAFKA_SASL_PASSWORD"]
+	config.Kafka.SecurityProtocol = secretValues["KAFKA_SECURITY_PROTOCOL"]
 
 	// R2 configuration
 	config.R2.AccessKeyID = secretValues["R2_ACCESS_KEY_ID"]
@@ -144,6 +156,9 @@ func loadFromEnv() (*Config, error) {
 
 	// Kafka configuration
 	config.Kafka.Brokers = os.Getenv("KAFKA_BROKERS")
+	config.Kafka.SaslUsername = os.Getenv("KAFKA_SASL_USERNAME")
+	config.Kafka.SaslPassword = os.Getenv("KAFKA_SASL_PASSWORD")
+	config.Kafka.SecurityProtocol = os.Getenv("KAFKA_SECURITY_PROTOCOL")
 
 	// R2 configuration
 	config.R2.AccessKeyID = os.Getenv("R2_ACCESS_KEY_ID")
