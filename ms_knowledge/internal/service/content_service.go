@@ -26,12 +26,15 @@ type StorageService interface {
 	CalculateSHA256(data []byte) string
 }
 
-func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService) *ContentService {
+// NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
+func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer *events.Producer, sourceBucket string) *ContentService {
 	return &ContentService{
-		contentRepo: contentRepo,
-		spaceRepo:   spaceRepo,
-		graphRepo:   graphRepo,
-		storage:     storage,
+		contentRepo:  contentRepo,
+		spaceRepo:    spaceRepo,
+		graphRepo:    graphRepo,
+		storage:      storage,
+		producer:     producer,
+		sourceBucket: sourceBucket,
 	}
 }
 
@@ -74,7 +77,11 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 	}
 
 	// Generate pre-signed URL
-	uploadURL, err := s.storage.GeneratePresignedUploadURL("knowledge-content", objectKey, 1*time.Hour)
+	bucket := s.sourceBucket
+	if bucket == "" {
+		bucket = "knowledge-content"
+	}
+	uploadURL, err := s.storage.GeneratePresignedUploadURL(bucket, objectKey, 1*time.Hour)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate upload URL: %w", err)
 	}
@@ -98,8 +105,15 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 		return nil, fmt.Errorf("failed to update content source: %w", err)
 	}
 
-	// TODO: Emit document.uploaded event to Kafka
-	// This will be implemented when Kafka integration is added
+	// Emit document.uploaded event
+	if s.producer != nil {
+		evt := events.DocumentUploadedEvent{
+			ContentSourceID:  content.ID,
+			OriginalBlobHash: originalBlobHash,
+			SpaceID:          content.SpaceID,
+		}
+		_ = s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt)
+	}
 
 	return content, nil
 }
