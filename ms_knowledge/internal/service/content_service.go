@@ -7,15 +7,18 @@ import (
 	"time"
 
 	"demo/ms_knowledge/internal/domain"
+	"demo/ms_knowledge/internal/events"
 
 	"github.com/google/uuid"
 )
 
 type ContentService struct {
-	contentRepo domain.ContentRepository
-	spaceRepo   domain.SpaceRepository
-	graphRepo   domain.GraphRepository
-	storage     StorageService
+	contentRepo  domain.ContentRepository
+	spaceRepo    domain.SpaceRepository
+	graphRepo    domain.GraphRepository
+	storage      StorageService
+	producer     *events.Producer
+	sourceBucket string
 }
 
 type StorageService interface {
