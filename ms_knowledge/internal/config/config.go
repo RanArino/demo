@@ -30,10 +30,13 @@ type Config struct {
 		SecurityProtocol string
 	}
 	R2 struct {
-		AccessKeyID     string
-		SecretAccessKey string
-		AccountID       string
-		BucketName      string
+		AccessKeyID         string
+		SecretAccessKey     string
+		AccountID           string
+		Endpoint            string
+		Region              string
+		BucketSourceName    string
+		BucketProcessedName string
 	}
 }
 
@@ -50,7 +53,10 @@ var SecretKeys = []string{
 	"R2_ACCESS_KEY_ID",
 	"R2_SECRET_ACCESS_KEY",
 	"R2_ACCOUNT_ID",
-	"R2_BUCKET_NAME",
+	"R2_ENDPOINT",
+	"R2_REGION",
+	"R2_BUCKET_SOURCE_NAME",
+	"R2_BUCKET_PROCESSED_NAME",
 }
 
 // Load loads the configuration from the secret manager with fallback to environment variables.
@@ -79,7 +85,10 @@ func Load() (*Config, error) {
 	cfg.R2.AccessKeyID = getEnvOrDefault("R2_ACCESS_KEY_ID", "")
 	cfg.R2.SecretAccessKey = getEnvOrDefault("R2_SECRET_ACCESS_KEY", "")
 	cfg.R2.AccountID = getEnvOrDefault("R2_ACCOUNT_ID", "")
-	cfg.R2.BucketName = getEnvOrDefault("R2_BUCKET_NAME", "knowledge-content")
+	cfg.R2.Endpoint = getEnvOrDefault("R2_ENDPOINT", "")
+	cfg.R2.Region = getEnvOrDefault("R2_REGION", "auto")
+	cfg.R2.BucketSourceName = getEnvOrDefault("R2_BUCKET_SOURCE_NAME", "knowledge-source")
+	cfg.R2.BucketProcessedName = getEnvOrDefault("R2_BUCKET_PROCESSED_NAME", "knowledge-processed")
 
 	return cfg, nil
 }
@@ -133,7 +142,10 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	config.R2.AccessKeyID = secretValues["R2_ACCESS_KEY_ID"]
 	config.R2.SecretAccessKey = secretValues["R2_SECRET_ACCESS_KEY"]
 	config.R2.AccountID = secretValues["R2_ACCOUNT_ID"]
-	config.R2.BucketName = secretValues["R2_BUCKET_NAME"]
+	config.R2.Endpoint = secretValues["R2_ENDPOINT"]
+	config.R2.Region = secretValues["R2_REGION"]
+	config.R2.BucketSourceName = secretValues["R2_BUCKET_SOURCE_NAME"]
+	config.R2.BucketProcessedName = secretValues["R2_BUCKET_PROCESSED_NAME"]
 
 	return config, nil
 }
@@ -164,7 +176,10 @@ func loadFromEnv() (*Config, error) {
 	config.R2.AccessKeyID = os.Getenv("R2_ACCESS_KEY_ID")
 	config.R2.SecretAccessKey = os.Getenv("R2_SECRET_ACCESS_KEY")
 	config.R2.AccountID = os.Getenv("R2_ACCOUNT_ID")
-	config.R2.BucketName = os.Getenv("R2_BUCKET_NAME")
+	config.R2.Endpoint = os.Getenv("R2_ENDPOINT")
+	config.R2.Region = os.Getenv("R2_REGION")
+	config.R2.BucketSourceName = os.Getenv("R2_BUCKET_SOURCE_NAME")
+	config.R2.BucketProcessedName = os.Getenv("R2_BUCKET_PROCESSED_NAME")
 
 	return config, nil
 }
