@@ -110,6 +110,22 @@ func (c *Client) GeneratePresignedUploadURL(ctx context.Context, bucket, key str
 	return req.URL, nil
 }
 
+// GeneratePresignedDownloadURL creates a pre-signed GET URL for direct download.
+func (c *Client) GeneratePresignedDownloadURL(ctx context.Context, bucket, key string, expires time.Duration) (string, error) {
+	if expires <= 0 {
+		expires = 15 * time.Minute
+	}
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+	req, err := c.presigner.PresignGetObject(ctx, input, s3.WithPresignExpires(expires))
+	if err != nil {
+		return "", err
+	}
+	return req.URL, nil
+}
+
 // CalculateSHA256 returns the hex-encoded sha256 of data.
 func CalculateSHA256(data []byte) string {
 	sum := sha256.Sum256(data)
