@@ -23,6 +23,7 @@ func NewProducer(cfg *config.Config) (*Producer, error) {
 		"sasl.mechanisms":   "PLAIN",
 		"sasl.username":     cfg.Kafka.SaslUsername,
 		"sasl.password":     cfg.Kafka.SaslPassword,
+		"acks":              "all",
 	}
 
 	client, err := kafka.NewProducer(&conf)
