@@ -69,10 +69,11 @@ func (c *Client) Upload(ctx context.Context, bucket, key string, data []byte, co
 		contentType = "application/octet-stream"
 	}
 	_, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String(bucket),
-		Key:         aws.String(key),
-		Body:        io.NopCloser(bytes.NewReader(data)),
-		ContentType: aws.String(contentType),
+		Bucket:        aws.String(bucket),
+		Key:           aws.String(key),
+		Body:          io.NopCloser(bytes.NewReader(data)),
+		ContentType:   aws.String(contentType),
+		ContentLength: aws.Int64(int64(len(data))),
 	})
 	return err
 }
