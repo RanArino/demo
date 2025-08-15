@@ -5,6 +5,7 @@ import (
 	"demo/ms_knowledge/internal/secrets"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -222,12 +223,32 @@ func IsDevelopment() bool {
 
 // loadEnvFile loads environment variables from a file
 func loadEnvFile(filename string) error {
-	file, err := os.ReadFile(filename)
+	// Resolve filename by searching upwards from CWD so tests in subdirs can find project-root .env files
+	resolved := filename
+	if _, err := os.Stat(resolved); os.IsNotExist(err) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		for dir := cwd; ; dir = filepath.Dir(dir) {
+			candidate := filepath.Join(dir, filename)
+			if _, statErr := os.Stat(candidate); statErr == nil {
+				resolved = candidate
+				break
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir { // reached root
+				break
+			}
+		}
+	}
+
+	data, err := os.ReadFile(resolved)
 	if err != nil {
 		return err
 	}
 
-	lines := strings.Split(string(file), "\n")
+	lines := strings.Split(string(data), "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
