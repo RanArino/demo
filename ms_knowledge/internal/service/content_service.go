@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ type ContentService struct {
 	storage      StorageService
 	producer     *events.Producer
 	sourceBucket string
+	logger       *log.Logger
 }
 
 type StorageService interface {
@@ -27,7 +29,7 @@ type StorageService interface {
 }
 
 // NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
-func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer *events.Producer, sourceBucket string) *ContentService {
+func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer *events.Producer, sourceBucket string, logger *log.Logger) *ContentService {
 	return &ContentService{
 		contentRepo:  contentRepo,
 		spaceRepo:    spaceRepo,
@@ -35,6 +37,7 @@ func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.Sp
 		storage:      storage,
 		producer:     producer,
 		sourceBucket: sourceBucket,
+		logger:       logger,
 	}
 }
 
@@ -112,7 +115,12 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 			OriginalBlobHash: originalBlobHash,
 			SpaceID:          content.SpaceID,
 		}
-		_ = s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt)
+		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
+			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id %s: %v", content.ID, err)
+			// Note: We don't return an error to the client here. The upload was confirmed
+			// and the status is updated. The event failure should be handled by a
+			// separate monitoring or reconciliation process.
+		}
 	}
 
 	return content, nil

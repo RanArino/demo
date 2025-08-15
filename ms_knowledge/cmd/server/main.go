@@ -65,6 +65,7 @@ func main() {
 	contentRepo := repository.NewContentRepository(client, graphRepo)
 
 	// Initialize services
+	logger := log.New(os.Stdout, "", log.LstdFlags)
 	spaceService := service.NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	// Initialize R2 storage client
@@ -87,7 +88,7 @@ func main() {
 	defer producer.Close()
 
 	r2Storage := storager2.NewAdapter(r2Client)
-	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg.R2.BucketSourceName)
+	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg.R2.BucketSourceName, logger)
 	knowledgeLinkService := service.NewKnowledgeLinkService(graphRepo, contentRepo)
 
 	// Initialize gRPC server
