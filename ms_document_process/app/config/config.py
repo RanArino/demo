@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     kafka_sasl_username: str = ""
     kafka_sasl_password: str = ""
     kafka_security_protocol: str = "PLAINTEXT"
+    r2_endpoint: str = ""
     r2_access_key_id: str = ""
     r2_secret_access_key: str = ""
     r2_account_id: str = ""
