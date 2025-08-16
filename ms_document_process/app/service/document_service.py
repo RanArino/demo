@@ -1,4 +1,5 @@
 import logging
+import time
 from uuid import UUID
 import hashlib
 
@@ -13,22 +14,57 @@ class DocumentProcessService:
     def __init__(self, document_repository: DocumentRepository, kafka_producer: KafkaProducer):
         self.document_repository = document_repository
         self.kafka_producer = kafka_producer
+        self.max_retries = 3
+        self.initial_backoff_seconds = 0.5
+
+    def _retry_with_backoff(self, operation_name: str, operation):
+        attempt = 0
+        backoff = self.initial_backoff_seconds
+        last_exception = None
+        while attempt < self.max_retries:
+            try:
+                return operation()
+            except Exception as exc:
+                last_exception = exc
+                attempt += 1
+                if attempt >= self.max_retries:
+                    break
+                logger.warning(
+                    f"{operation_name} failed (attempt {attempt}/{self.max_retries}). Retrying in {backoff:.2f}s...",
+                    exc_info=True,
+                )
+                time.sleep(backoff)
+                backoff *= 2
+        raise last_exception
 
     def process_document(self, event: DocumentUploadedEvent):
         logger.info(f"Processing document for content_source_id: {event.content_source_id}")
         try:
-            # Download the document from R2
-            document_content = self.document_repository.download_source_document(event.original_blob_hash)
+            # Download the document from R2 (with retries)
+            document_content = self._retry_with_backoff(
+                "download_source_document",
+                lambda: self.document_repository.download_source_document(event.original_blob_hash),
+            )
 
             # Convert the document to Markdown
             # Assuming the source format is pdf for now. This might need to be more flexible.
-            markdown_content = convert_document_to_markdown(document_content, "pdf")
+            # Convert document (with retries to tolerate transient converter issues)
+            markdown_content = self._retry_with_backoff(
+                "convert_document_to_markdown",
+                lambda: convert_document_to_markdown(document_content, "pdf"),
+            )
 
             # Calculate the hash of the processed content
             processed_blob_hash = hashlib.sha256(markdown_content.encode('utf-8')).hexdigest()
 
             # Upload the processed document to R2
-            self.document_repository.upload_processed_document(processed_blob_hash, markdown_content.encode('utf-8'))
+            # Upload the processed document (with retries)
+            self._retry_with_backoff(
+                "upload_processed_document",
+                lambda: self.document_repository.upload_processed_document(
+                    processed_blob_hash, markdown_content.encode('utf-8')
+                ),
+            )
 
             # Produce a success event
             processed_event = DocumentProcessedEvent(
