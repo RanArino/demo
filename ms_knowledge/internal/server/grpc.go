@@ -174,7 +174,7 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 
 	return &knowledgev1.CreateUploadURLResponse{
 		UploadUrl:     uploadURL,
-		ObjectKey:     "", // TODO: Generate object key based on content ID and filename
+		ObjectKey:     content.ID.String() + "/" + req.Filename,
 		ExpiresAt:     timestamppb.New(time.Now().Add(1 * time.Hour)),
 		ContentSource: s.domainContentSourceToProto(content),
 	}, nil
