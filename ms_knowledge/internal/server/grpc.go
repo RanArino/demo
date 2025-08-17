@@ -383,15 +383,66 @@ func (s *GRPCServer) GetBacklinks(ctx context.Context, req *knowledgev1.GetBackl
 
 // Utilities
 func (s *GRPCServer) Healthz(ctx context.Context, req *emptypb.Empty) (*knowledgev1.HealthStatus, error) {
-	// TODO: Implement health checks for all dependencies
+	components := make(map[string]string)
+	overallStatus := "OK"
+	// Check database health
+	if err := s.checkDatabase(ctx); err != nil {
+		components["database"] = "FAIL: " + err.Error()
+		overallStatus = "FAIL"
+	} else {
+		components["database"] = "OK"
+	}
+	// Check Neo4j health
+	if err := s.checkNeo4j(ctx); err != nil {
+		components["neo4j"] = "FAIL: " + err.Error()
+		overallStatus = "FAIL"
+	} else {
+		components["neo4j"] = "OK"
+	}
+	// Check storage health
+	if err := s.checkStorage(ctx); err != nil {
+		components["storage"] = "FAIL: " + err.Error()
+		overallStatus = "FAIL"
+	} else {
+		components["storage"] = "OK"
+	}
 	return &knowledgev1.HealthStatus{
-		Status: "OK",
-		Components: map[string]string{
-			"database": "OK",
-			"neo4j":    "OK",
-			"storage":  "OK",
-		},
+		Status:     overallStatus,
+		Components: components,
 	}, nil
+}
+
+// checkDatabase performs a simple health check for the database.
+func (s *GRPCServer) checkDatabase(ctx context.Context) error {
+	// Try a simple operation, e.g., list spaces with a limit of 1
+	filter := domain.SpaceFilter{
+		Limit: 1,
+	}
+	_, err := s.spaceService.ListSpaces(ctx, filter)
+	return err
+}
+
+// checkNeo4j performs a simple health check for Neo4j.
+func (s *GRPCServer) checkNeo4j(ctx context.Context) error {
+	// Try a simple operation, e.g., get backlinks for a random UUID
+	// This is a dummy check; in production, use a proper ping or status API
+	dummyID := uuid.New()
+	_, err := s.knowledgeLinkService.GetBacklinks(ctx, dummyID)
+	// If the error is not a connection error, ignore "not found" errors
+	if err != nil && err.Error() != "not found" {
+		return err
+	}
+	return nil
+}
+
+// checkStorage performs a simple health check for the storage service.
+func (s *GRPCServer) checkStorage(ctx context.Context) error {
+	// Try a simple operation, e.g., list contents with a limit of 1
+	filter := domain.ContentSourceFilter{
+		Limit: 1,
+	}
+	_, err := s.contentService.ListContentSources(ctx, filter)
+	return err
 }
 
 // Helper methods for converting between domain and proto types
