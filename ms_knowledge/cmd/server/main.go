@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
@@ -26,19 +26,22 @@ func main() {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		slog.Error("Failed to load config", "error", err)
+		os.Exit(1)
 	}
 
 	// Initialize database connection
 	client, err := ent.Open(cfg.Database.Driver, cfg.Database.DSN)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		slog.Error("Failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 	defer client.Close()
 
 	// Run database migrations
 	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("Failed to run database migrations: %v", err)
+		slog.Error("Failed to run database migrations", "error", err)
+		os.Exit(1)
 	}
 
 	// Initialize Neo4j connection
@@ -47,13 +50,15 @@ func main() {
 		neo4j.BasicAuth(cfg.Neo4j.Username, cfg.Neo4j.Password, ""),
 	)
 	if err != nil {
-		log.Fatalf("Failed to connect to Neo4j: %v", err)
+		slog.Error("Failed to connect to Neo4j", "error", err)
+		os.Exit(1)
 	}
 	defer neo4jDriver.Close(context.Background())
 
 	// Verify Neo4j connection
 	if err := neo4jDriver.VerifyConnectivity(context.Background()); err != nil {
-		log.Fatalf("Failed to verify Neo4j connectivity: %v", err)
+		slog.Error("Failed to verify Neo4j connectivity", "error", err)
+		os.Exit(1)
 	}
 
 	// Initialize repositories
@@ -79,13 +84,15 @@ func main() {
 	// Start gRPC server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.Port))
 	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
+		slog.Error("Failed to listen", "error", err)
+		os.Exit(1)
 	}
 
-	log.Printf("Starting gRPC server on port %d", cfg.Server.Port)
+	slog.Info("Starting gRPC server", "port", cfg.Server.Port)
 	go func() {
 		if err := srv.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
+			slog.Error("Failed to serve", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -94,7 +101,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	slog.Info("Shutting down server...")
 	srv.GracefulStop()
-	log.Println("Server stopped")
+	slog.Info("Server stopped")
 }

@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"demo/ms_knowledge/ent"
@@ -65,8 +65,7 @@ func (r *contentRepository) Create(ctx context.Context, content *domain.ContentS
 		err = r.graphRepo.CreateContentNode(ctx, content.ID, content.SpaceID)
 		if err != nil {
 			// Log error but don't fail the operation
-			log.Printf("ERROR: Failed to create content node in Neo4j - ContentID: %s, SpaceID: %s, Error: %v",
-				content.ID, content.SpaceID, err)
+			slog.Error("Failed to create content node in Neo4j", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
 		}
 	}
 
@@ -267,8 +266,7 @@ func (r *contentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		err = r.graphRepo.DeleteContentNode(ctx, content.ID, content.SpaceID)
 		if err != nil {
 			// Log error but don't fail the operation
-			log.Printf("ERROR: Failed to delete content node in Neo4j - ContentID: %s, SpaceID: %s, Error: %v",
-				content.ID, content.SpaceID, err)
+			slog.Error("Failed to delete content node in Neo4j", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
 		}
 	}
 
