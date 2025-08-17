@@ -312,7 +312,7 @@ func (r *Neo4jRepository) UpdateKnowledgeLink(ctx context.Context, link *domain.
 		result, runErr := tx.Run(ctx, query, map[string]any{
 			"linkId":    link.ID.String(),
 			"weight":    weight,
-			"updatedAt": time.Now().Unix(),
+			"updatedAt": link.UpdatedAt.Unix(),
 		})
 
 		if runErr != nil {
