@@ -71,7 +71,7 @@ func (c *Client) Upload(ctx context.Context, bucket, key string, data []byte, co
 	_, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucket),
 		Key:         aws.String(key),
-		Body:        io.NopCloser(bytes.NewReader(data)),
+		Body:        bytes.NewReader(data),
 		ContentType: aws.String(contentType),
 	})
 	return err
