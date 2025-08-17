@@ -41,7 +41,7 @@ func (s *KnowledgeLinkService) CreateKnowledgeLink(ctx context.Context, fromCont
 
 	// Validate weight
 	if weight < 0 || weight > 1 {
-		weight = 1.0 // Default weight
+		return nil, fmt.Errorf("weight must be between 0 and 1, got %v", weight)
 	}
 
 	// Load content sources and enforce same-space constraint
