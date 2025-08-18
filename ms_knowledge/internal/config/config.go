@@ -11,16 +11,27 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	DatabaseURL       string
-	GRPCPort          string
-	Neo4jURI          string
-	Neo4jUser         string
-	Neo4jPassword     string
-	KafkaBrokers      string
-	R2AccessKeyID     string
-	R2SecretAccessKey string
-	R2AccountID       string
-	R2BucketName      string
+	Database struct {
+		Driver string
+		DSN    string
+	}
+	Server struct {
+		Port int
+	}
+	Neo4j struct {
+		URI      string
+		Username string
+		Password string
+	}
+	Kafka struct {
+		Brokers string
+	}
+	R2 struct {
+		AccessKeyID     string
+		SecretAccessKey string
+		AccountID       string
+		BucketName      string
+	}
 }
 
 // SecretKeys defines the keys needed from the secret manager
@@ -38,7 +49,30 @@ var SecretKeys = []string{
 
 // Load loads the configuration from the secret manager with fallback to environment variables.
 func Load() (*Config, error) {
-	return LoadWithContext(context.Background())
+	cfg := &Config{}
+
+	// Database configuration
+	cfg.Database.Driver = "postgres"
+	cfg.Database.DSN = getEnvOrDefault("DATABASE_URL", "postgres://user:password@localhost:5432/knowledge?sslmode=disable")
+
+	// Server configuration
+	cfg.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
+
+	// Neo4j configuration
+	cfg.Neo4j.URI = getEnvOrDefault("NEO4J_URI", "neo4j://localhost:7687")
+	cfg.Neo4j.Username = getEnvOrDefault("NEO4J_USER", "neo4j")
+	cfg.Neo4j.Password = getEnvOrDefault("NEO4J_PASSWORD", "password")
+
+	// Kafka configuration
+	cfg.Kafka.Brokers = getEnvOrDefault("KAFKA_BROKERS", "localhost:9092")
+
+	// R2 configuration
+	cfg.R2.AccessKeyID = getEnvOrDefault("R2_ACCESS_KEY_ID", "")
+	cfg.R2.SecretAccessKey = getEnvOrDefault("R2_SECRET_ACCESS_KEY", "")
+	cfg.R2.AccountID = getEnvOrDefault("R2_ACCOUNT_ID", "")
+	cfg.R2.BucketName = getEnvOrDefault("R2_BUCKET_NAME", "knowledge-content")
+
+	return cfg, nil
 }
 
 // LoadWithContext loads the configuration with a specific context
@@ -66,36 +100,58 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 		return nil, fmt.Errorf("failed to get secrets: %w", err)
 	}
 
-	config := &Config{
-		DatabaseURL:       secretValues["DATABASE_URL"],
-		Neo4jURI:          secretValues["NEO4J_URI"],
-		Neo4jUser:         secretValues["NEO4J_USER"],
-		Neo4jPassword:     secretValues["NEO4J_PASSWORD"],
-		KafkaBrokers:      secretValues["KAFKA_BROKERS"],
-		R2AccessKeyID:     secretValues["R2_ACCESS_KEY_ID"],
-		R2SecretAccessKey: secretValues["R2_SECRET_ACCESS_KEY"],
-		R2AccountID:       secretValues["R2_ACCOUNT_ID"],
-		R2BucketName:      secretValues["R2_BUCKET_NAME"],
-		GRPCPort:          getEnvOrDefault("GRPC_PORT", "50052"),
-	}
+	config := &Config{}
+
+	// Database configuration
+	config.Database.Driver = "postgres"
+	config.Database.DSN = secretValues["DATABASE_URL"]
+
+	// Server configuration
+	config.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
+
+	// Neo4j configuration
+	config.Neo4j.URI = secretValues["NEO4J_URI"]
+	config.Neo4j.Username = secretValues["NEO4J_USER"]
+	config.Neo4j.Password = secretValues["NEO4J_PASSWORD"]
+
+	// Kafka configuration
+	config.Kafka.Brokers = secretValues["KAFKA_BROKERS"]
+
+	// R2 configuration
+	config.R2.AccessKeyID = secretValues["R2_ACCESS_KEY_ID"]
+	config.R2.SecretAccessKey = secretValues["R2_SECRET_ACCESS_KEY"]
+	config.R2.AccountID = secretValues["R2_ACCOUNT_ID"]
+	config.R2.BucketName = secretValues["R2_BUCKET_NAME"]
 
 	return config, nil
 }
 
 // loadFromEnv loads configuration from environment variables (fallback)
 func loadFromEnv() (*Config, error) {
-	return &Config{
-		DatabaseURL:       os.Getenv("DATABASE_URL"),
-		Neo4jURI:          os.Getenv("NEO4J_URI"),
-		Neo4jUser:         os.Getenv("NEO4J_USER"),
-		Neo4jPassword:     os.Getenv("NEO4J_PASSWORD"),
-		KafkaBrokers:      os.Getenv("KAFKA_BROKERS"),
-		R2AccessKeyID:     os.Getenv("R2_ACCESS_KEY_ID"),
-		R2SecretAccessKey: os.Getenv("R2_SECRET_ACCESS_KEY"),
-		R2AccountID:       os.Getenv("R2_ACCOUNT_ID"),
-		R2BucketName:      os.Getenv("R2_BUCKET_NAME"),
-		GRPCPort:          getEnvOrDefault("GRPC_PORT", "50052"),
-	}, nil
+	config := &Config{}
+
+	// Database configuration
+	config.Database.Driver = "postgres"
+	config.Database.DSN = os.Getenv("DATABASE_URL")
+
+	// Server configuration
+	config.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
+
+	// Neo4j configuration
+	config.Neo4j.URI = os.Getenv("NEO4J_URI")
+	config.Neo4j.Username = os.Getenv("NEO4J_USER")
+	config.Neo4j.Password = os.Getenv("NEO4J_PASSWORD")
+
+	// Kafka configuration
+	config.Kafka.Brokers = os.Getenv("KAFKA_BROKERS")
+
+	// R2 configuration
+	config.R2.AccessKeyID = os.Getenv("R2_ACCESS_KEY_ID")
+	config.R2.SecretAccessKey = os.Getenv("R2_SECRET_ACCESS_KEY")
+	config.R2.AccountID = os.Getenv("R2_ACCOUNT_ID")
+	config.R2.BucketName = os.Getenv("R2_BUCKET_NAME")
+
+	return config, nil
 }
 
 // LoadFromFile loads configuration from a .env file (for development)
