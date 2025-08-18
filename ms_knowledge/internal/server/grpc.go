@@ -144,7 +144,7 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 
 	return &knowledgev1.CreateUploadURLResponse{
 		UploadUrl:     uploadURL,
-		ObjectKey:     content.ID.String() + "/" + req.Filename,
+		ObjectKey:     "spaces/" + spaceID.String() + "/content/" + content.ID.String() + "/" + req.Filename,
 		ExpiresAt:     timestamppb.New(time.Now().Add(1 * time.Hour)),
 		ContentSource: s.domainContentSourceToProto(content),
 	}, nil
@@ -184,10 +184,15 @@ func (s *GRPCServer) ListContentSources(ctx context.Context, req *knowledgev1.Li
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
 	}
 
+	pageSize := 0
+	if req.Page != nil && req.Page.PageSize > 0 {
+		pageSize = int(req.Page.PageSize)
+	}
+
 	filter := domain.ContentSourceFilter{
 		SpaceID: spaceID,
 		Status:  domain.ContentStatus(req.Status.String()),
-		Limit:   int(req.Page.PageSize),
+		Limit:   pageSize,
 		Offset:  0, // TODO: Implement pagination with page token
 	}
 
