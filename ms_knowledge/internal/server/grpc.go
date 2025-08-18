@@ -99,18 +99,14 @@ func (s *GRPCServer) UpdateSpace(ctx context.Context, req *knowledgev1.UpdateSpa
 	}
 
 	updates := make(map[string]interface{})
-	if req.Space.Name != "" {
-		updates["name"] = req.Space.Name
+	if req.Space.GetTitle() != "" {
+		updates["title"] = req.Space.GetTitle()
 	}
-	if req.Space.Description != "" {
-		updates["description"] = req.Space.Description
+	if req.Space.GetDescription() != "" {
+		updates["description"] = req.Space.GetDescription()
 	}
-	if req.Space.OwnerId != "" {
-		updates["owner_id"] = req.Space.OwnerId
-	}
-	if req.Space.OrgId != "" {
-		updates["org_id"] = req.Space.OrgId
-	}
+	// SECURITY: Do not allow changing owner_id via this endpoint to prevent privilege escalation.
+	// If ownership transfer is needed, implement a dedicated admin-authorized flow.
 
 	space, err := s.spaceService.UpdateSpace(ctx, id, updates)
 	if err != nil {
