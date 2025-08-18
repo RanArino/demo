@@ -26,6 +26,7 @@ type ContentSource struct {
 	Title             string        `json:"title"`
 	MediaType         string        `json:"media_type"`
 	Source            string        `json:"source"`
+	SizeBytes         int64         `json:"size_bytes"`
 	Status            ContentStatus `json:"status"`
 	OriginalBlobHash  string        `json:"original_blob_hash"`
 	ProcessedBlobHash *string       `json:"processed_blob_hash"`

@@ -225,31 +225,51 @@ func (m *mockGraphRepo) CreateKnowledgeLink(ctx context.Context, link *domain.Kn
 	return nil
 }
 
-func (m *mockGraphRepo) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.KnowledgeLink, error) {
+func (m *mockGraphRepo) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.EnrichedKnowledgeLink, error) {
 	l, ok := m.links[id]
 	if !ok {
 		return nil, fmt.Errorf("link not found")
 	}
-	return l, nil
+	return &domain.EnrichedKnowledgeLink{
+		ID:           l.ID,
+		From:         domain.ContentPreview{ID: l.FromContentID, Title: "", ContentSummary: nil},
+		To:           domain.ContentPreview{ID: l.ToContentID, Title: "", ContentSummary: nil},
+		RelationType: l.RelationType,
+		Weight:       l.Weight,
+		CreatedAt:    l.CreatedAt,
+		UpdatedAt:    l.UpdatedAt,
+	}, nil
 }
 
-func (m *mockGraphRepo) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.KnowledgeLink, error) {
-	var res []*domain.KnowledgeLink
+func (m *mockGraphRepo) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.EnrichedKnowledgeLink, error) {
+	var res []*domain.EnrichedKnowledgeLink
 	for _, l := range m.links {
 		switch filter.Direction {
 		case domain.LinkDirectionInbound:
-			if l.ToContentID == filter.ContentID {
-				res = append(res, l)
+			if l.ToContentID != filter.ContentID {
+				continue
 			}
 		case domain.LinkDirectionOutbound:
-			if l.FromContentID == filter.ContentID {
-				res = append(res, l)
+			if l.FromContentID != filter.ContentID {
+				continue
 			}
 		case domain.LinkDirectionBoth:
-			if l.FromContentID == filter.ContentID || l.ToContentID == filter.ContentID {
-				res = append(res, l)
+			if l.FromContentID != filter.ContentID && l.ToContentID != filter.ContentID {
+				continue
 			}
 		}
+		if filter.RelationType != "" && l.RelationType != filter.RelationType {
+			continue
+		}
+		res = append(res, &domain.EnrichedKnowledgeLink{
+			ID:           l.ID,
+			From:         domain.ContentPreview{ID: l.FromContentID},
+			To:           domain.ContentPreview{ID: l.ToContentID},
+			RelationType: l.RelationType,
+			Weight:       l.Weight,
+			CreatedAt:    l.CreatedAt,
+			UpdatedAt:    l.UpdatedAt,
+		})
 	}
 	return res, nil
 }
@@ -289,7 +309,7 @@ func (m *mockGraphRepo) GetBacklinks(ctx context.Context, contentID uuid.UUID) (
 	return ids, nil
 }
 
-func (m *mockGraphRepo) CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error {
+func (m *mockGraphRepo) CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID, title string, contentSummary *string) error {
 	return nil
 }
 func (m *mockGraphRepo) DeleteContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error {
@@ -308,6 +328,17 @@ func (m *mockGraphRepo) CountLinksByContent(ctx context.Context, contentID uuid.
 
 func (m *mockGraphRepo) CountLinksBySpace(ctx context.Context, spaceID uuid.UUID) (int64, error) {
 	return 0, nil
+}
+
+func (m *mockGraphRepo) ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType domain.RelationType, limit, offset int) ([]*domain.KnowledgeLink, error) {
+	var res []*domain.KnowledgeLink
+	for _, l := range m.links {
+		if relationType != "" && l.RelationType != relationType {
+			continue
+		}
+		res = append(res, l)
+	}
+	return res, nil
 }
 
 // mockStorage implements StorageService for tests

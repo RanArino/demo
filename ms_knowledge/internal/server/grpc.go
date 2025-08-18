@@ -33,7 +33,7 @@ func NewGRPCServer(spaceService *service.SpaceService, contentService *service.C
 
 // Space Management
 func (s *GRPCServer) CreateSpace(ctx context.Context, req *knowledgev1.CreateSpaceRequest) (*knowledgev1.Space, error) {
-	space, err := s.spaceService.CreateSpace(ctx, req.Name, req.Description, req.OwnerId)
+	space, err := s.spaceService.CreateSpace(ctx, req.Title, req.Description, "")
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create space: %v", err)
 	}
@@ -65,10 +65,15 @@ func (s *GRPCServer) ListSpaces(ctx context.Context, req *knowledgev1.ListSpaces
 		}
 	}
 
+	pageSize := 0
+	if req.Page != nil && req.Page.PageSize > 0 {
+		pageSize = int(req.Page.PageSize)
+	}
+
 	filter := domain.SpaceFilter{
 		OwnerID: ownerID,
 		Query:   req.Q,
-		Limit:   int(req.Page.PageSize),
+		Limit:   pageSize,
 		Offset:  0, // TODO: Implement pagination with page token
 	}
 
@@ -94,18 +99,14 @@ func (s *GRPCServer) UpdateSpace(ctx context.Context, req *knowledgev1.UpdateSpa
 	}
 
 	updates := make(map[string]interface{})
-	if req.Space.Name != "" {
-		updates["name"] = req.Space.Name
+	if req.Space.GetTitle() != "" {
+		updates["title"] = req.Space.GetTitle()
 	}
-	if req.Space.Description != "" {
-		updates["description"] = req.Space.Description
+	if req.Space.GetDescription() != "" {
+		updates["description"] = req.Space.GetDescription()
 	}
-	if req.Space.OwnerId != "" {
-		updates["owner_id"] = req.Space.OwnerId
-	}
-	if req.Space.OrgId != "" {
-		updates["org_id"] = req.Space.OrgId
-	}
+	// SECURITY: Do not allow changing owner_id via this endpoint to prevent privilege escalation.
+	// If ownership transfer is needed, implement a dedicated admin-authorized flow.
 
 	space, err := s.spaceService.UpdateSpace(ctx, id, updates)
 	if err != nil {
@@ -129,37 +130,6 @@ func (s *GRPCServer) DeleteSpace(ctx context.Context, req *knowledgev1.DeleteSpa
 	return &emptypb.Empty{}, nil
 }
 
-func (s *GRPCServer) SearchSpaces(ctx context.Context, req *knowledgev1.SearchSpacesRequest) (*knowledgev1.ListSpacesResponse, error) {
-	var ownerID uuid.UUID
-	if req.OwnerId != "" {
-		var err error
-		ownerID, err = uuid.Parse(req.OwnerId)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid owner id: %v", err)
-		}
-	}
-
-	filter := domain.SpaceFilter{
-		OwnerID: ownerID,
-		Limit:   int(req.Page.PageSize),
-		Offset:  0, // TODO: Implement pagination with page token
-	}
-
-	spaces, err := s.spaceService.SearchSpaces(ctx, req.Q, filter)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to search spaces: %v", err)
-	}
-
-	protoSpaces := make([]*knowledgev1.Space, len(spaces))
-	for i, space := range spaces {
-		protoSpaces[i] = s.domainSpaceWithStatsToProto(space)
-	}
-
-	return &knowledgev1.ListSpacesResponse{
-		Items: protoSpaces,
-	}, nil
-}
-
 // Content Source Management
 func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.CreateUploadURLRequest) (*knowledgev1.CreateUploadURLResponse, error) {
 	spaceID, err := uuid.Parse(req.SpaceId)
@@ -174,7 +144,7 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 
 	return &knowledgev1.CreateUploadURLResponse{
 		UploadUrl:     uploadURL,
-		ObjectKey:     "", // TODO: Generate object key based on content ID and filename
+		ObjectKey:     "spaces/" + spaceID.String() + "/content/" + content.ID.String() + "/" + req.Filename,
 		ExpiresAt:     timestamppb.New(time.Now().Add(1 * time.Hour)),
 		ContentSource: s.domainContentSourceToProto(content),
 	}, nil
@@ -214,10 +184,15 @@ func (s *GRPCServer) ListContentSources(ctx context.Context, req *knowledgev1.Li
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
 	}
 
+	pageSize := 0
+	if req.Page != nil && req.Page.PageSize > 0 {
+		pageSize = int(req.Page.PageSize)
+	}
+
 	filter := domain.ContentSourceFilter{
 		SpaceID: spaceID,
 		Status:  domain.ContentStatus(req.Status.String()),
-		Limit:   int(req.Page.PageSize),
+		Limit:   pageSize,
 		Offset:  0, // TODO: Implement pagination with page token
 	}
 
@@ -270,18 +245,27 @@ func (s *GRPCServer) CreateKnowledgeLink(ctx context.Context, req *knowledgev1.C
 	return s.domainKnowledgeLinkToProto(link), nil
 }
 
-func (s *GRPCServer) GetKnowledgeLink(ctx context.Context, req *knowledgev1.GetKnowledgeLinkRequest) (*knowledgev1.KnowledgeLink, error) {
+// Get a single enriched link (includes previews)
+func (s *GRPCServer) GetKnowledgeLink(ctx context.Context, req *knowledgev1.GetKnowledgeLinkRequest) (*knowledgev1.EnrichedKnowledgeLink, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid link id: %v", err)
 	}
 
-	link, err := s.knowledgeLinkService.GetKnowledgeLink(ctx, id)
+	el, err := s.knowledgeLinkService.GetKnowledgeLink(ctx, id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get knowledge link: %v", err)
 	}
 
-	return s.domainKnowledgeLinkToProto(link), nil
+	return &knowledgev1.EnrichedKnowledgeLink{
+		Id:           el.ID.String(),
+		From:         &knowledgev1.ContentPreview{Id: el.From.ID.String(), Title: el.From.Title, ContentSummary: stringOrEmpty(el.From.ContentSummary)},
+		To:           &knowledgev1.ContentPreview{Id: el.To.ID.String(), Title: el.To.Title, ContentSummary: stringOrEmpty(el.To.ContentSummary)},
+		RelationType: knowledgev1.RelationType(knowledgev1.RelationType_value[string(el.RelationType)]),
+		Weight:       derefOrZero(el.Weight),
+		CreatedAt:    timestamppb.New(el.CreatedAt),
+		UpdatedAt:    timestamppb.New(el.UpdatedAt),
+	}, nil
 }
 
 func (s *GRPCServer) ListKnowledgeLinks(ctx context.Context, req *knowledgev1.ListKnowledgeLinksRequest) (*knowledgev1.ListKnowledgeLinksResponse, error) {
@@ -290,17 +274,54 @@ func (s *GRPCServer) ListKnowledgeLinks(ctx context.Context, req *knowledgev1.Li
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content id: %v", err)
 	}
 
+	pageSize := 0
+	if req.Page != nil && req.Page.PageSize > 0 {
+		pageSize = int(req.Page.PageSize)
+	}
+
 	filter := domain.LinkFilter{
 		ContentID:    contentID,
 		Direction:    domain.LinkDirection(req.Direction.String()),
 		RelationType: domain.RelationType(req.RelationType.String()),
-		Limit:        int(req.Page.PageSize),
+		Limit:        pageSize,
 		Offset:       0, // TODO: Implement pagination with page token
 	}
 
-	links, err := s.knowledgeLinkService.ListKnowledgeLinks(ctx, filter)
+	els, err := s.knowledgeLinkService.ListKnowledgeLinks(ctx, filter)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list knowledge links: %v", err)
+	}
+
+	out := make([]*knowledgev1.EnrichedKnowledgeLink, len(els))
+	for i, el := range els {
+		out[i] = &knowledgev1.EnrichedKnowledgeLink{
+			Id:           el.ID.String(),
+			From:         &knowledgev1.ContentPreview{Id: el.From.ID.String(), Title: el.From.Title, ContentSummary: stringOrEmpty(el.From.ContentSummary)},
+			To:           &knowledgev1.ContentPreview{Id: el.To.ID.String(), Title: el.To.Title, ContentSummary: stringOrEmpty(el.To.ContentSummary)},
+			RelationType: knowledgev1.RelationType(knowledgev1.RelationType_value[string(el.RelationType)]),
+			Weight:       derefOrZero(el.Weight),
+			CreatedAt:    timestamppb.New(el.CreatedAt),
+			UpdatedAt:    timestamppb.New(el.UpdatedAt),
+		}
+	}
+
+	return &knowledgev1.ListKnowledgeLinksResponse{Items: out}, nil
+}
+
+func (s *GRPCServer) ListAllSpaceLinks(ctx context.Context, req *knowledgev1.ListAllSpaceLinksRequest) (*knowledgev1.ListAllSpaceLinksResponse, error) {
+	spaceID, err := uuid.Parse(req.SpaceId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
+	}
+
+	pageSize := 0
+	if req.Page != nil && req.Page.PageSize > 0 {
+		pageSize = int(req.Page.PageSize)
+	}
+
+	links, err := s.knowledgeLinkService.ListKnowledgeLinksBySpace(ctx, spaceID, domain.RelationType(req.RelationType.String()), pageSize, 0)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list space links: %v", err)
 	}
 
 	protoLinks := make([]*knowledgev1.KnowledgeLink, len(links))
@@ -308,9 +329,7 @@ func (s *GRPCServer) ListKnowledgeLinks(ctx context.Context, req *knowledgev1.Li
 		protoLinks[i] = s.domainKnowledgeLinkToProto(link)
 	}
 
-	return &knowledgev1.ListKnowledgeLinksResponse{
-		Items: protoLinks,
-	}, nil
+	return &knowledgev1.ListAllSpaceLinksResponse{Items: protoLinks}, nil
 }
 
 func (s *GRPCServer) UpdateKnowledgeLink(ctx context.Context, req *knowledgev1.UpdateKnowledgeLinkRequest) (*knowledgev1.KnowledgeLink, error) {
@@ -383,22 +402,73 @@ func (s *GRPCServer) GetBacklinks(ctx context.Context, req *knowledgev1.GetBackl
 
 // Utilities
 func (s *GRPCServer) Healthz(ctx context.Context, req *emptypb.Empty) (*knowledgev1.HealthStatus, error) {
-	// TODO: Implement health checks for all dependencies
+	components := make(map[string]string)
+	overallStatus := "OK"
+	// Check database health
+	if err := s.checkDatabase(ctx); err != nil {
+		components["database"] = "FAIL: " + err.Error()
+		overallStatus = "FAIL"
+	} else {
+		components["database"] = "OK"
+	}
+	// Check Neo4j health
+	if err := s.checkNeo4j(ctx); err != nil {
+		components["neo4j"] = "FAIL: " + err.Error()
+		overallStatus = "FAIL"
+	} else {
+		components["neo4j"] = "OK"
+	}
+	// Check storage health
+	if err := s.checkStorage(ctx); err != nil {
+		components["storage"] = "FAIL: " + err.Error()
+		overallStatus = "FAIL"
+	} else {
+		components["storage"] = "OK"
+	}
 	return &knowledgev1.HealthStatus{
-		Status: "OK",
-		Components: map[string]string{
-			"database": "OK",
-			"neo4j":    "OK",
-			"storage":  "OK",
-		},
+		Status:     overallStatus,
+		Components: components,
 	}, nil
+}
+
+// checkDatabase performs a simple health check for the database.
+func (s *GRPCServer) checkDatabase(ctx context.Context) error {
+	// Try a simple operation, e.g., list spaces with a limit of 1
+	filter := domain.SpaceFilter{
+		Limit: 1,
+	}
+	_, err := s.spaceService.ListSpaces(ctx, filter)
+	return err
+}
+
+// checkNeo4j performs a simple health check for Neo4j.
+func (s *GRPCServer) checkNeo4j(ctx context.Context) error {
+	// Try a simple operation, e.g., get backlinks for a random UUID
+	// This is a dummy check; in production, use a proper ping or status API
+	dummyID := uuid.New()
+	_, err := s.knowledgeLinkService.GetBacklinks(ctx, dummyID)
+	// If the error is not a connection error, ignore "not found" errors
+	if err != nil && err.Error() != "not found" {
+		return err
+	}
+	return nil
+}
+
+// checkStorage performs a simple health check for the storage service.
+func (s *GRPCServer) checkStorage(ctx context.Context) error {
+	// Try a simple operation, e.g., list contents with a limit of 1
+	filter := domain.ContentSourceFilter{
+		Limit: 1,
+	}
+	_, err := s.contentService.ListContentSources(ctx, filter)
+	return err
 }
 
 // Helper methods for converting between domain and proto types
 func (s *GRPCServer) domainSpaceToProto(space *domain.Space) *knowledgev1.Space {
 	return &knowledgev1.Space{
 		Id:          space.ID.String(),
-		Name:        space.Title,
+		Title:       space.Title,
 		Description: space.Description,
 		OwnerId:     space.OwnerID.String(),
 		CreatedAt:   timestamppb.New(space.CreatedAt),
@@ -426,28 +496,40 @@ func (s *GRPCServer) domainContentSourceToProto(content *domain.ContentSource) *
 		Id:                content.ID.String(),
 		SpaceId:           content.SpaceID.String(),
 		Status:            knowledgev1.ContentStatus(knowledgev1.ContentStatus_value[string(content.Status)]),
+		OwnerId:           content.OwnerID.String(),
+		Source:            content.Source,
+		MimeType:          content.MediaType,
+		SizeBytes:         content.SizeBytes,
+		Title:             content.Title,
 		OriginalBlobHash:  content.OriginalBlobHash,
 		ProcessedBlobHash: processedBlobHash,
-		MimeType:          content.MediaType,
-		Title:             content.Title,
 		CreatedAt:         timestamppb.New(content.CreatedAt),
 		UpdatedAt:         timestamppb.New(content.UpdatedAt),
 	}
 }
 
 func (s *GRPCServer) domainKnowledgeLinkToProto(link *domain.KnowledgeLink) *knowledgev1.KnowledgeLink {
-	var weight float64
-	if link.Weight != nil {
-		weight = *link.Weight
-	}
-
 	return &knowledgev1.KnowledgeLink{
 		Id:            link.ID.String(),
 		FromContentId: link.FromContentID.String(),
 		ToContentId:   link.ToContentID.String(),
 		RelationType:  knowledgev1.RelationType(knowledgev1.RelationType_value[string(link.RelationType)]),
-		Weight:        weight,
+		Weight:        derefOrZero(link.Weight),
 		CreatedAt:     timestamppb.New(link.CreatedAt),
 		UpdatedAt:     timestamppb.New(link.UpdatedAt),
 	}
+}
+
+func stringOrEmpty(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+func derefOrZero(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
 }

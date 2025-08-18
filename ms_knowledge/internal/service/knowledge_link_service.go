@@ -39,9 +39,12 @@ func (s *KnowledgeLinkService) CreateKnowledgeLink(ctx context.Context, fromCont
 		relationType = domain.RelationTypeReferences
 	}
 
-	// Validate weight
-	if weight < 0 || weight > 1 {
-		weight = 1.0 // Default weight
+	// Clamp weight to [0,1]
+	if weight < 0 {
+		weight = 0
+	}
+	if weight > 1 {
+		weight = 1
 	}
 
 	// Load content sources and enforce same-space constraint
@@ -76,46 +79,41 @@ func (s *KnowledgeLinkService) CreateKnowledgeLink(ctx context.Context, fromCont
 	return link, nil
 }
 
-func (s *KnowledgeLinkService) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.KnowledgeLink, error) {
+func (s *KnowledgeLinkService) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.EnrichedKnowledgeLink, error) {
 	link, err := s.graphRepo.GetKnowledgeLink(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get knowledge link: %w", err)
 	}
-
 	return link, nil
 }
 
-func (s *KnowledgeLinkService) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.KnowledgeLink, error) {
+func (s *KnowledgeLinkService) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.EnrichedKnowledgeLink, error) {
 	links, err := s.graphRepo.ListKnowledgeLinks(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list knowledge links: %w", err)
 	}
-
 	return links, nil
 }
 
 func (s *KnowledgeLinkService) UpdateKnowledgeLink(ctx context.Context, id uuid.UUID, relationType domain.RelationType, weight float64) (*domain.KnowledgeLink, error) {
-	// Get existing link
-	link, err := s.graphRepo.GetKnowledgeLink(ctx, id)
+	// Get existing link (only for updating metadata stored on relationship)
+	basic, err := s.graphRepo.GetKnowledgeLink(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get knowledge link: %w", err)
 	}
-
-	// Update fields
-	if relationType != "" {
-		link.RelationType = relationType
+	// We need a basic struct to pass to repo update; reconstruct minimal
+	link := &domain.KnowledgeLink{ID: id, RelationType: relationType, Weight: &weight, CreatedAt: basic.CreatedAt, UpdatedAt: time.Now()}
+	if relationType == "" {
+		link.RelationType = basic.RelationType
 	}
-	if weight >= 0 && weight <= 1 {
-		link.Weight = &weight
+	if weight < 0 || weight > 1 {
+		link.Weight = basic.Weight
 	}
-	link.UpdatedAt = time.Now()
 
-	// Update in database
 	err = s.graphRepo.UpdateKnowledgeLink(ctx, link)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update knowledge link: %w", err)
 	}
-
 	return link, nil
 }
 
@@ -124,23 +122,19 @@ func (s *KnowledgeLinkService) DeleteKnowledgeLink(ctx context.Context, id uuid.
 	if err != nil {
 		return fmt.Errorf("failed to delete knowledge link: %w", err)
 	}
-
 	return nil
 }
 
 func (s *KnowledgeLinkService) GetBacklinks(ctx context.Context, contentID uuid.UUID) ([]*domain.KnowledgeLink, error) {
-	filter := domain.LinkFilter{
-		ContentID: contentID,
-		Direction: domain.LinkDirectionInbound,
-		Limit:     100, // Reasonable limit for backlinks
-	}
-
-	links, err := s.graphRepo.ListKnowledgeLinks(ctx, filter)
+	ids, err := s.graphRepo.GetBacklinks(ctx, contentID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get backlinks: %w", err)
+		return nil, fmt.Errorf("failed to get backlinks ids: %w", err)
 	}
-
-	return links, nil
+	var res []*domain.KnowledgeLink
+	for _, id := range ids {
+		res = append(res, &domain.KnowledgeLink{FromContentID: id, ToContentID: contentID})
+	}
+	return res, nil
 }
 
 func (s *KnowledgeLinkService) CountLinksByContent(ctx context.Context, contentID uuid.UUID) (int64, error) {
@@ -148,6 +142,14 @@ func (s *KnowledgeLinkService) CountLinksByContent(ctx context.Context, contentI
 	if err != nil {
 		return 0, fmt.Errorf("failed to count links: %w", err)
 	}
-
 	return count, nil
+}
+
+// Bulk list by space (simple)
+func (s *KnowledgeLinkService) ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType domain.RelationType, limit, offset int) ([]*domain.KnowledgeLink, error) {
+	links, err := s.graphRepo.ListKnowledgeLinksBySpace(ctx, spaceID, relationType, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list links by space: %w", err)
+	}
+	return links, nil
 }
