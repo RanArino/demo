@@ -52,6 +52,7 @@ type GraphRepository interface {
 	CreateKnowledgeLink(ctx context.Context, link *KnowledgeLink) error
 	GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*KnowledgeLink, error)
 	ListKnowledgeLinks(ctx context.Context, filter LinkFilter) ([]*KnowledgeLink, error)
+	ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType RelationType, limit, offset int) ([]*KnowledgeLink, error)
 	UpdateKnowledgeLink(ctx context.Context, link *KnowledgeLink) error
 	DeleteKnowledgeLink(ctx context.Context, id uuid.UUID) error
 
