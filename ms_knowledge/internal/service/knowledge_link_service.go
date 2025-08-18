@@ -39,9 +39,12 @@ func (s *KnowledgeLinkService) CreateKnowledgeLink(ctx context.Context, fromCont
 		relationType = domain.RelationTypeReferences
 	}
 
-	// Validate weight
-	if weight < 0 || weight > 1 {
-		return nil, fmt.Errorf("weight must be between 0 and 1, got %v", weight)
+	// Clamp weight to [0,1]
+	if weight < 0 {
+		weight = 0
+	}
+	if weight > 1 {
+		weight = 1
 	}
 
 	// Load content sources and enforce same-space constraint
