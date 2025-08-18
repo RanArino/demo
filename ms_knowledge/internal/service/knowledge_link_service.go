@@ -154,3 +154,12 @@ func (s *KnowledgeLinkService) CountLinksByContent(ctx context.Context, contentI
 
 	return count, nil
 }
+
+// Bulk list by space (simple)
+func (s *KnowledgeLinkService) ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType domain.RelationType, limit, offset int) ([]*domain.KnowledgeLink, error) {
+	links, err := s.graphRepo.ListKnowledgeLinksBySpace(ctx, spaceID, relationType, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list links by space: %w", err)
+	}
+	return links, nil
+}
