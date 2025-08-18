@@ -53,9 +53,6 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 		return nil, "", fmt.Errorf("space not found")
 	}
 
-	// Generate object key
-	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", spaceID.String(), uuid.New().String(), filename)
-
 	// Create content source record
 	content := &domain.ContentSource{
 		SpaceID:   spaceID,
@@ -69,6 +66,9 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create content source: %w", err)
 	}
+
+	// Generate object key based on persisted content ID
+	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", spaceID.String(), content.ID.String(), filename)
 
 	// Generate pre-signed URL
 	uploadURL, err := s.storage.GeneratePresignedUploadURL("knowledge-content", objectKey, 1*time.Hour)
