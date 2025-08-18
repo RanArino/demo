@@ -407,7 +407,7 @@ func (r *Neo4jRepository) GetBacklinks(ctx context.Context, contentID uuid.UUID)
 
 	var backlinkIDs []uuid.UUID
 	for _, link := range links {
-		backlinkIDs = append(backlinkIDs, link.FromContentID)
+		backlinkIDs = append(backlinkIDs, link.From.ID)
 	}
 
 	return backlinkIDs, nil
