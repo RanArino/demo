@@ -130,37 +130,6 @@ func (s *GRPCServer) DeleteSpace(ctx context.Context, req *knowledgev1.DeleteSpa
 	return &emptypb.Empty{}, nil
 }
 
-func (s *GRPCServer) SearchSpaces(ctx context.Context, req *knowledgev1.SearchSpacesRequest) (*knowledgev1.ListSpacesResponse, error) {
-	var ownerID uuid.UUID
-	if req.OwnerId != "" {
-		var err error
-		ownerID, err = uuid.Parse(req.OwnerId)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid owner id: %v", err)
-		}
-	}
-
-	filter := domain.SpaceFilter{
-		OwnerID: ownerID,
-		Limit:   int(req.Page.PageSize),
-		Offset:  0, // TODO: Implement pagination with page token
-	}
-
-	spaces, err := s.spaceService.SearchSpaces(ctx, req.Q, filter)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to search spaces: %v", err)
-	}
-
-	protoSpaces := make([]*knowledgev1.Space, len(spaces))
-	for i, space := range spaces {
-		protoSpaces[i] = s.domainSpaceWithStatsToProto(space)
-	}
-
-	return &knowledgev1.ListSpacesResponse{
-		Items: protoSpaces,
-	}, nil
-}
-
 // Content Source Management
 func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.CreateUploadURLRequest) (*knowledgev1.CreateUploadURLResponse, error) {
 	spaceID, err := uuid.Parse(req.SpaceId)
