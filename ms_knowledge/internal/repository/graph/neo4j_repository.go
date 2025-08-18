@@ -452,3 +452,67 @@ func (r *Neo4jRepository) CountLinksBySpace(ctx context.Context, spaceID uuid.UU
 	}
 	return result.(int64), nil
 }
+
+func (r *Neo4jRepository) ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType domain.RelationType, limit, offset int) ([]*domain.KnowledgeLink, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		query := `
+			MATCH (a:Content)-[r]->(b:Content)
+			WHERE a.spaceId = $spaceId AND b.spaceId = $spaceId
+			RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
+			       type(r) as relationType, r.weight as weight,
+			       r.createdAt as createdAt, r.updatedAt as updatedAt
+			ORDER BY r.createdAt DESC
+		`
+		params := map[string]any{
+			"spaceId": spaceID.String(),
+		}
+		if relationType != "" {
+			query = strings.Replace(query, "RETURN", "AND type(r) = $relationType RETURN", 1)
+			params["relationType"] = string(relationType)
+		}
+		if limit > 0 {
+			query += " LIMIT $limit"
+			params["limit"] = limit
+		}
+		if offset > 0 {
+			query += " SKIP $offset"
+			params["offset"] = offset
+		}
+
+		records, runErr := tx.Run(ctx, query, params)
+		if runErr != nil {
+			return nil, runErr
+		}
+
+		var links []*domain.KnowledgeLink
+		for records.Next(ctx) {
+			record := records.Record()
+			fromID, _ := uuid.Parse(record.Values[0].(string))
+			toID, _ := uuid.Parse(record.Values[1].(string))
+			linkID, _ := uuid.Parse(record.Values[2].(string))
+			rel := domain.RelationType(record.Values[3].(string))
+			weight := record.Values[4].(float64)
+			createdAt := time.Unix(record.Values[5].(int64), 0)
+			updatedAt := time.Unix(record.Values[6].(int64), 0)
+
+			links = append(links, &domain.KnowledgeLink{
+				ID:            linkID,
+				FromContentID: fromID,
+				ToContentID:   toID,
+				RelationType:  rel,
+				Weight:        &weight,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			})
+		}
+		return links, records.Err()
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result.([]*domain.KnowledgeLink), nil
+}
