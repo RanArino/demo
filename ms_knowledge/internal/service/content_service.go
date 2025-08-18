@@ -60,6 +60,7 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 		MediaType: mimeType,
 		Title:     strings.TrimSpace(title),
 		Source:    filename,
+		SizeBytes: sizeBytes,
 	}
 
 	err = s.contentRepo.Create(ctx, content)
