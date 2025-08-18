@@ -310,6 +310,18 @@ func (m *mockGraphRepo) CountLinksBySpace(ctx context.Context, spaceID uuid.UUID
 	return 0, nil
 }
 
+func (m *mockGraphRepo) ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType domain.RelationType, limit, offset int) ([]*domain.KnowledgeLink, error) {
+	var res []*domain.KnowledgeLink
+	for _, l := range m.links {
+		// In this mock, we don't store spaceID on link; assume all match
+		if relationType != "" && l.RelationType != relationType {
+			continue
+		}
+		res = append(res, l)
+	}
+	return res, nil
+}
+
 // mockStorage implements StorageService for tests
 type mockStorage struct{}
 
