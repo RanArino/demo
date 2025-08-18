@@ -33,7 +33,7 @@ func NewGRPCServer(spaceService *service.SpaceService, contentService *service.C
 
 // Space Management
 func (s *GRPCServer) CreateSpace(ctx context.Context, req *knowledgev1.CreateSpaceRequest) (*knowledgev1.Space, error) {
-	space, err := s.spaceService.CreateSpace(ctx, req.Name, req.Description, req.OwnerId)
+	space, err := s.spaceService.CreateSpace(ctx, req.Title, req.Description, "")
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create space: %v", err)
 	}
