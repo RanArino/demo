@@ -65,10 +65,15 @@ func (s *GRPCServer) ListSpaces(ctx context.Context, req *knowledgev1.ListSpaces
 		}
 	}
 
+	pageSize := 0
+	if req.Page != nil && req.Page.PageSize > 0 {
+		pageSize = int(req.Page.PageSize)
+	}
+
 	filter := domain.SpaceFilter{
 		OwnerID: ownerID,
 		Query:   req.Q,
-		Limit:   int(req.Page.PageSize),
+		Limit:   pageSize,
 		Offset:  0, // TODO: Implement pagination with page token
 	}
 
