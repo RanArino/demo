@@ -468,7 +468,7 @@ func (s *GRPCServer) checkStorage(ctx context.Context) error {
 func (s *GRPCServer) domainSpaceToProto(space *domain.Space) *knowledgev1.Space {
 	return &knowledgev1.Space{
 		Id:          space.ID.String(),
-		Name:        space.Title,
+		Title:       space.Title,
 		Description: space.Description,
 		OwnerId:     space.OwnerID.String(),
 		CreatedAt:   timestamppb.New(space.CreatedAt),
@@ -496,28 +496,40 @@ func (s *GRPCServer) domainContentSourceToProto(content *domain.ContentSource) *
 		Id:                content.ID.String(),
 		SpaceId:           content.SpaceID.String(),
 		Status:            knowledgev1.ContentStatus(knowledgev1.ContentStatus_value[string(content.Status)]),
+		OwnerId:           content.OwnerID.String(),
+		Source:            content.Source,
+		MimeType:          content.MediaType,
+		SizeBytes:         content.SizeBytes,
+		Title:             content.Title,
 		OriginalBlobHash:  content.OriginalBlobHash,
 		ProcessedBlobHash: processedBlobHash,
-		MimeType:          content.MediaType,
-		Title:             content.Title,
 		CreatedAt:         timestamppb.New(content.CreatedAt),
 		UpdatedAt:         timestamppb.New(content.UpdatedAt),
 	}
 }
 
 func (s *GRPCServer) domainKnowledgeLinkToProto(link *domain.KnowledgeLink) *knowledgev1.KnowledgeLink {
-	var weight float64
-	if link.Weight != nil {
-		weight = *link.Weight
-	}
-
 	return &knowledgev1.KnowledgeLink{
 		Id:            link.ID.String(),
 		FromContentId: link.FromContentID.String(),
 		ToContentId:   link.ToContentID.String(),
 		RelationType:  knowledgev1.RelationType(knowledgev1.RelationType_value[string(link.RelationType)]),
-		Weight:        weight,
+		Weight:        derefOrZero(link.Weight),
 		CreatedAt:     timestamppb.New(link.CreatedAt),
 		UpdatedAt:     timestamppb.New(link.UpdatedAt),
 	}
+}
+
+func stringOrEmpty(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+func derefOrZero(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
 }
