@@ -39,18 +39,23 @@ func NewNeo4jRepository(driver neo4j.DriverWithContext) domain.GraphRepository {
 var _ domain.GraphRepository = (*Neo4jRepository)(nil)
 
 // Content Node Operations
-func (r *Neo4jRepository) CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error {
+func (r *Neo4jRepository) CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID, title string, contentSummary *string) error {
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(ctx)
 
 	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		_, runErr := tx.Run(ctx,
-			"MERGE (c:Content {contentId: $contentId}) SET c.spaceId = $spaceId",
-			map[string]any{
-				"contentId": contentID.String(),
-				"spaceId":   spaceID.String(),
-			},
-		)
+		params := map[string]any{
+			"contentId": contentID.String(),
+			"spaceId":   spaceID.String(),
+			"title":     title,
+		}
+		setSummary := ""
+		if contentSummary != nil {
+			params["summary"] = *contentSummary
+			setSummary = ", c.contentSummary = $summary"
+		}
+		query := "MERGE (c:Content {contentId: $contentId}) SET c.spaceId = $spaceId, c.title = $title" + setSummary
+		_, runErr := tx.Run(ctx, query, params)
 		return nil, runErr
 	})
 	return err
