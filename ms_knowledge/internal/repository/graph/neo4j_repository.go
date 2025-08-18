@@ -139,15 +139,16 @@ func (r *Neo4jRepository) CreateKnowledgeLink(ctx context.Context, link *domain.
 	return err
 }
 
-func (r *Neo4jRepository) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.KnowledgeLink, error) {
+func (r *Neo4jRepository) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*domain.EnrichedKnowledgeLink, error) {
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(ctx)
 
 	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		query := `
 			MATCH (a:Content)-[r {linkId: $linkId}]->(b:Content)
-			RETURN a.contentId as fromId, b.contentId as toId, type(r) as relationType, 
-				   r.weight as weight, r.createdAt as createdAt, r.updatedAt as updatedAt
+			RETURN a.contentId as fromId, a.title as fromTitle, a.contentSummary as fromSummary,
+			       b.contentId as toId,   b.title as toTitle,   b.contentSummary as toSummary,
+			       type(r) as relationType, r.weight as weight, r.createdAt as createdAt, r.updatedAt as updatedAt
 		`
 
 		records, runErr := tx.Run(ctx, query, map[string]any{"linkId": id.String()})
@@ -158,20 +159,34 @@ func (r *Neo4jRepository) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*
 		if records.Next(ctx) {
 			record := records.Record()
 			fromID, _ := uuid.Parse(record.Values[0].(string))
-			toID, _ := uuid.Parse(record.Values[1].(string))
-			relationType := domain.RelationType(record.Values[2].(string))
-			weight := record.Values[3].(float64)
-			createdAt := time.Unix(record.Values[4].(int64), 0)
-			updatedAt := time.Unix(record.Values[5].(int64), 0)
+			fromTitle, _ := record.Values[1].(string)
+			var fromSummary *string
+			if v := record.Values[2]; v != nil {
+				if s, ok := v.(string); ok {
+					fromSummary = &s
+				}
+			}
+			toID, _ := uuid.Parse(record.Values[3].(string))
+			toTitle, _ := record.Values[4].(string)
+			var toSummary *string
+			if v := record.Values[5]; v != nil {
+				if s, ok := v.(string); ok {
+					toSummary = &s
+				}
+			}
+			relationType := domain.RelationType(record.Values[6].(string))
+			weight := record.Values[7].(float64)
+			createdAt := time.Unix(record.Values[8].(int64), 0)
+			updatedAt := time.Unix(record.Values[9].(int64), 0)
 
-			return &domain.KnowledgeLink{
-				ID:            id,
-				FromContentID: fromID,
-				ToContentID:   toID,
-				RelationType:  relationType,
-				Weight:        &weight,
-				CreatedAt:     createdAt,
-				UpdatedAt:     updatedAt,
+			return &domain.EnrichedKnowledgeLink{
+				ID:           id,
+				From:         domain.ContentPreview{ID: fromID, Title: fromTitle, ContentSummary: fromSummary},
+				To:           domain.ContentPreview{ID: toID, Title: toTitle, ContentSummary: toSummary},
+				RelationType: relationType,
+				Weight:       &weight,
+				CreatedAt:    createdAt,
+				UpdatedAt:    updatedAt,
 			}, nil
 		}
 		return nil, fmt.Errorf("link not found")
@@ -180,107 +195,105 @@ func (r *Neo4jRepository) GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*
 	if err != nil {
 		return nil, err
 	}
-	return result.(*domain.KnowledgeLink), nil
+	return result.(*domain.EnrichedKnowledgeLink), nil
 }
 
-func (r *Neo4jRepository) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.KnowledgeLink, error) {
+func (r *Neo4jRepository) ListKnowledgeLinks(ctx context.Context, filter domain.LinkFilter) ([]*domain.EnrichedKnowledgeLink, error) {
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(ctx)
 
 	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		var query string
-		var params map[string]any
+		params := map[string]any{"contentId": filter.ContentID.String()}
 
 		switch filter.Direction {
 		case domain.LinkDirectionInbound:
 			query = `
 				MATCH (a:Content)-[r]->(b:Content {contentId: $contentId})
-				RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
-					   type(r) as relationType, r.weight as weight, 
-					   r.createdAt as createdAt, r.updatedAt as updatedAt
+				RETURN a.contentId as fromId, a.title as fromTitle, a.contentSummary as fromSummary,
+				       b.contentId as toId,   b.title as toTitle,   b.contentSummary as toSummary,
+				       r.linkId as linkId, type(r) as relationType, r.weight as weight,
+				       r.createdAt as createdAt, r.updatedAt as updatedAt
+				ORDER BY r.createdAt DESC
 			`
 		case domain.LinkDirectionOutbound:
 			query = `
 				MATCH (a:Content {contentId: $contentId})-[r]->(b:Content)
-				RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
-					   type(r) as relationType, r.weight as weight, 
-					   r.createdAt as createdAt, r.updatedAt as updatedAt
+				RETURN a.contentId as fromId, a.title as fromTitle, a.contentSummary as fromSummary,
+				       b.contentId as toId,   b.title as toTitle,   b.contentSummary as toSummary,
+				       r.linkId as linkId, type(r) as relationType, r.weight as weight,
+				       r.createdAt as createdAt, r.updatedAt as updatedAt
+				ORDER BY r.createdAt DESC
 			`
 		case domain.LinkDirectionBoth:
 			query = `
 				MATCH (a:Content)-[r]-(b:Content)
 				WHERE a.contentId = $contentId OR b.contentId = $contentId
-				RETURN a.contentId as fromId, b.contentId as toId, r.linkId as linkId,
-					   type(r) as relationType, r.weight as weight, 
-					   r.createdAt as createdAt, r.updatedAt as updatedAt
+				RETURN a.contentId as fromId, a.title as fromTitle, a.contentSummary as fromSummary,
+				       b.contentId as toId,   b.title as toTitle,   b.contentSummary as toSummary,
+				       r.linkId as linkId, type(r) as relationType, r.weight as weight,
+				       r.createdAt as createdAt, r.updatedAt as updatedAt
+				ORDER BY r.createdAt DESC
 			`
 		default:
 			return nil, fmt.Errorf("invalid direction")
 		}
-
 		if filter.RelationType != "" {
-			// Append relation type filter appropriately depending on existing WHERE clause
-			if strings.Contains(query, "WHERE") {
-				query += " AND type(r) = $relationType"
-			} else {
-				query += " WHERE type(r) = $relationType"
-			}
-		}
-
-		query += " ORDER BY r.createdAt DESC"
-
-		if filter.Limit > 0 {
-			query += " LIMIT $limit"
-		}
-
-		if filter.Offset > 0 {
-			query += " SKIP $offset"
-		}
-
-		params = map[string]any{
-			"contentId": filter.ContentID.String(),
-			"limit":     filter.Limit,
-			"offset":    filter.Offset,
-		}
-
-		if filter.RelationType != "" {
+			query += " AND type(r) = $relationType"
 			params["relationType"] = string(filter.RelationType)
 		}
-
+		if filter.Limit > 0 {
+			query += " LIMIT $limit"
+			params["limit"] = filter.Limit
+		}
+		if filter.Offset > 0 {
+			query += " SKIP $offset"
+			params["offset"] = filter.Offset
+		}
 		records, runErr := tx.Run(ctx, query, params)
 		if runErr != nil {
 			return nil, runErr
 		}
-
-		var links []*domain.KnowledgeLink
+		var out []*domain.EnrichedKnowledgeLink
 		for records.Next(ctx) {
-			record := records.Record()
-			fromID, _ := uuid.Parse(record.Values[0].(string))
-			toID, _ := uuid.Parse(record.Values[1].(string))
-			linkID, _ := uuid.Parse(record.Values[2].(string))
-			relationType := domain.RelationType(record.Values[3].(string))
-			weight := record.Values[4].(float64)
-			createdAt := time.Unix(record.Values[5].(int64), 0)
-			updatedAt := time.Unix(record.Values[6].(int64), 0)
-
-			links = append(links, &domain.KnowledgeLink{
-				ID:            linkID,
-				FromContentID: fromID,
-				ToContentID:   toID,
-				RelationType:  relationType,
-				Weight:        &weight,
-				CreatedAt:     createdAt,
-				UpdatedAt:     updatedAt,
+			rec := records.Record()
+			fromID, _ := uuid.Parse(rec.Values[0].(string))
+			fromTitle, _ := rec.Values[1].(string)
+			var fromSummary *string
+			if v := rec.Values[2]; v != nil {
+				if s, ok := v.(string); ok {
+					fromSummary = &s
+				}
+			}
+			toID, _ := uuid.Parse(rec.Values[3].(string))
+			toTitle, _ := rec.Values[4].(string)
+			var toSummary *string
+			if v := rec.Values[5]; v != nil {
+				if s, ok := v.(string); ok {
+					toSummary = &s
+				}
+			}
+			linkID, _ := uuid.Parse(rec.Values[6].(string))
+			rel := domain.RelationType(rec.Values[7].(string))
+			weight := rec.Values[8].(float64)
+			createdAt := time.Unix(rec.Values[9].(int64), 0)
+			updatedAt := time.Unix(rec.Values[10].(int64), 0)
+			out = append(out, &domain.EnrichedKnowledgeLink{
+				ID:           linkID,
+				From:         domain.ContentPreview{ID: fromID, Title: fromTitle, ContentSummary: fromSummary},
+				To:           domain.ContentPreview{ID: toID, Title: toTitle, ContentSummary: toSummary},
+				RelationType: rel,
+				Weight:       &weight,
+				CreatedAt:    createdAt,
+				UpdatedAt:    updatedAt,
 			})
 		}
-
-		return links, records.Err()
+		return out, records.Err()
 	})
-
 	if err != nil {
 		return nil, err
 	}
-	return result.([]*domain.KnowledgeLink), nil
+	return result.([]*domain.EnrichedKnowledgeLink), nil
 }
 
 func (r *Neo4jRepository) UpdateKnowledgeLink(ctx context.Context, link *domain.KnowledgeLink) error {
