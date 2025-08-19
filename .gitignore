@@ -5,6 +5,7 @@ test-files/
 notes/
 Todo
 
+.vscode/
 .cursor/
 .gemini/
 .claude/
