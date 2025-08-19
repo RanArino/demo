@@ -26,12 +26,21 @@ import (
 )
 
 func main() {
+	// Initialize structured logger
+	handler := slog.NewTextHandler(os.Stdout, nil)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
+
+	// Create a context that can be cancelled.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Initialize database connection
 	client, err := ent.Open(cfg.Database.Driver, cfg.Database.DSN)
@@ -42,7 +51,7 @@ func main() {
 	defer client.Close()
 
 	// Run database migrations
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(ctx); err != nil {
 		slog.Error("Failed to run database migrations", "error", err)
 		os.Exit(1)
 	}
@@ -56,10 +65,10 @@ func main() {
 		slog.Error("Failed to connect to Neo4j", "error", err)
 		os.Exit(1)
 	}
-	defer neo4jDriver.Close(context.Background())
+	defer neo4jDriver.Close(ctx)
 
 	// Verify Neo4j connection
-	if err := neo4jDriver.VerifyConnectivity(context.Background()); err != nil {
+	if err := neo4jDriver.VerifyConnectivity(ctx); err != nil {
 		slog.Error("Failed to verify Neo4j connectivity", "error", err)
 		os.Exit(1)
 	}
@@ -70,11 +79,11 @@ func main() {
 	contentRepo := repository.NewContentRepository(client, graphRepo)
 
 	// Initialize services
-	logger := log.New(os.Stdout, "", log.LstdFlags)
+	contentLogger := slog.NewLogLogger(handler, slog.LevelInfo)
 	spaceService := service.NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	// Initialize R2 storage client
-	r2Client, err := storager2.NewClient(context.Background(), storager2.Config{
+	r2Client, err := storager2.NewClient(ctx, storager2.Config{
 		Endpoint:        cfg.R2.Endpoint,
 		Region:          cfg.R2.Region,
 		AccessKeyID:     cfg.R2.AccessKeyID,
@@ -82,18 +91,20 @@ func main() {
 		UsePathStyle:    true,
 	})
 	if err != nil {
-		log.Fatalf("Failed to create R2 client: %v", err)
+		slog.Error("Failed to create R2 client", "error", err)
+		os.Exit(1)
 	}
 
 	// Initialize Kafka producer and consumer for events
 	producer, err := events.NewProducer(cfg)
 	if err != nil {
-		log.Fatalf("Failed to create Kafka producer: %v", err)
+		slog.Error("Failed to create Kafka producer", "error", err)
+		os.Exit(1)
 	}
 	defer producer.Close()
 
 	r2Storage := storager2.NewAdapter(r2Client)
-	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg.R2.BucketSourceName, logger)
+	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg.R2.BucketSourceName, contentLogger)
 	knowledgeLinkService := service.NewKnowledgeLinkService(graphRepo, contentRepo)
 
 	// Initialize gRPC server
@@ -109,10 +120,11 @@ func main() {
 	// Start document.processed consumer in background
 	consumer, err := events.NewConsumer(cfg, "ms_knowledge-processed-group", &processedHandler{svc: contentService})
 	if err != nil {
-		log.Fatalf("Failed to create Kafka consumer: %v", err)
+		slog.Error("Failed to create Kafka consumer", "error", err)
+		os.Exit(1)
 	}
 	defer consumer.Close()
-	go consumer.Run(context.Background())
+	go consumer.Run(ctx)
 
 	// Start gRPC server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.Port))
@@ -134,7 +146,9 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
+	// Shutdown
 	slog.Info("Shutting down server...")
+	cancel() // Cancel context for consumer
 	srv.GracefulStop()
 	slog.Info("Server stopped")
 }
