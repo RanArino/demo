@@ -116,7 +116,7 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 			SpaceID:          content.SpaceID,
 		}
 		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
-			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id %s: %v", content.ID, err)
+			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id (content.ID=%s): %v", content.ID, err)
 			// Note: We don't return an error to the client here. The upload was confirmed
 			// and the status is updated. The event failure should be handled by a
 			// separate monitoring or reconciliation process.
