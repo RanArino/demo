@@ -22,6 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.20 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.18 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
+	github.com/confluentinc/confluent-kafka-go/v2 v2.11.0 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect

@@ -5,6 +5,7 @@ import (
 	"demo/ms_knowledge/internal/secrets"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -24,13 +25,19 @@ type Config struct {
 		Password string
 	}
 	Kafka struct {
-		Brokers string
+		Brokers          string
+		SaslUsername     string
+		SaslPassword     string
+		SecurityProtocol string
 	}
 	R2 struct {
-		AccessKeyID     string
-		SecretAccessKey string
-		AccountID       string
-		BucketName      string
+		AccessKeyID         string
+		SecretAccessKey     string
+		AccountID           string
+		Endpoint            string
+		Region              string
+		BucketSourceName    string
+		BucketProcessedName string
 	}
 }
 
@@ -41,10 +48,16 @@ var SecretKeys = []string{
 	"NEO4J_USER",
 	"NEO4J_PASSWORD",
 	"KAFKA_BROKERS",
+	"KAFKA_SASL_USERNAME",
+	"KAFKA_SASL_PASSWORD",
+	"KAFKA_SECURITY_PROTOCOL",
 	"R2_ACCESS_KEY_ID",
 	"R2_SECRET_ACCESS_KEY",
 	"R2_ACCOUNT_ID",
-	"R2_BUCKET_NAME",
+	"R2_ENDPOINT",
+	"R2_REGION",
+	"R2_BUCKET_SOURCE_NAME",
+	"R2_BUCKET_PROCESSED_NAME",
 }
 
 // Load loads the configuration from the secret manager with fallback to environment variables.
@@ -65,12 +78,18 @@ func Load() (*Config, error) {
 
 	// Kafka configuration
 	cfg.Kafka.Brokers = getEnvOrDefault("KAFKA_BROKERS", "localhost:9092")
+	cfg.Kafka.SaslUsername = getEnvOrDefault("KAFKA_SASL_USERNAME", "")
+	cfg.Kafka.SaslPassword = getEnvOrDefault("KAFKA_SASL_PASSWORD", "")
+	cfg.Kafka.SecurityProtocol = getEnvOrDefault("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 
 	// R2 configuration
 	cfg.R2.AccessKeyID = getEnvOrDefault("R2_ACCESS_KEY_ID", "")
 	cfg.R2.SecretAccessKey = getEnvOrDefault("R2_SECRET_ACCESS_KEY", "")
 	cfg.R2.AccountID = getEnvOrDefault("R2_ACCOUNT_ID", "")
-	cfg.R2.BucketName = getEnvOrDefault("R2_BUCKET_NAME", "knowledge-content")
+	cfg.R2.Endpoint = getEnvOrDefault("R2_ENDPOINT", "")
+	cfg.R2.Region = getEnvOrDefault("R2_REGION", "auto")
+	cfg.R2.BucketSourceName = getEnvOrDefault("R2_BUCKET_SOURCE_NAME", "knowledge-source")
+	cfg.R2.BucketProcessedName = getEnvOrDefault("R2_BUCKET_PROCESSED_NAME", "knowledge-processed")
 
 	return cfg, nil
 }
@@ -116,12 +135,18 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 
 	// Kafka configuration
 	config.Kafka.Brokers = secretValues["KAFKA_BROKERS"]
+	config.Kafka.SaslUsername = secretValues["KAFKA_SASL_USERNAME"]
+	config.Kafka.SaslPassword = secretValues["KAFKA_SASL_PASSWORD"]
+	config.Kafka.SecurityProtocol = secretValues["KAFKA_SECURITY_PROTOCOL"]
 
 	// R2 configuration
 	config.R2.AccessKeyID = secretValues["R2_ACCESS_KEY_ID"]
 	config.R2.SecretAccessKey = secretValues["R2_SECRET_ACCESS_KEY"]
 	config.R2.AccountID = secretValues["R2_ACCOUNT_ID"]
-	config.R2.BucketName = secretValues["R2_BUCKET_NAME"]
+	config.R2.Endpoint = secretValues["R2_ENDPOINT"]
+	config.R2.Region = secretValues["R2_REGION"]
+	config.R2.BucketSourceName = secretValues["R2_BUCKET_SOURCE_NAME"]
+	config.R2.BucketProcessedName = secretValues["R2_BUCKET_PROCESSED_NAME"]
 
 	return config, nil
 }
@@ -144,12 +169,18 @@ func loadFromEnv() (*Config, error) {
 
 	// Kafka configuration
 	config.Kafka.Brokers = os.Getenv("KAFKA_BROKERS")
+	config.Kafka.SaslUsername = os.Getenv("KAFKA_SASL_USERNAME")
+	config.Kafka.SaslPassword = os.Getenv("KAFKA_SASL_PASSWORD")
+	config.Kafka.SecurityProtocol = os.Getenv("KAFKA_SECURITY_PROTOCOL")
 
 	// R2 configuration
 	config.R2.AccessKeyID = os.Getenv("R2_ACCESS_KEY_ID")
 	config.R2.SecretAccessKey = os.Getenv("R2_SECRET_ACCESS_KEY")
 	config.R2.AccountID = os.Getenv("R2_ACCOUNT_ID")
-	config.R2.BucketName = os.Getenv("R2_BUCKET_NAME")
+	config.R2.Endpoint = os.Getenv("R2_ENDPOINT")
+	config.R2.Region = os.Getenv("R2_REGION")
+	config.R2.BucketSourceName = os.Getenv("R2_BUCKET_SOURCE_NAME")
+	config.R2.BucketProcessedName = os.Getenv("R2_BUCKET_PROCESSED_NAME")
 
 	return config, nil
 }
@@ -192,12 +223,32 @@ func IsDevelopment() bool {
 
 // loadEnvFile loads environment variables from a file
 func loadEnvFile(filename string) error {
-	file, err := os.ReadFile(filename)
+	// Resolve filename by searching upwards from CWD so tests in subdirs can find project-root .env files
+	resolved := filename
+	if _, err := os.Stat(resolved); os.IsNotExist(err) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		for dir := cwd; ; dir = filepath.Dir(dir) {
+			candidate := filepath.Join(dir, filename)
+			if _, statErr := os.Stat(candidate); statErr == nil {
+				resolved = candidate
+				break
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir { // reached root
+				break
+			}
+		}
+	}
+
+	data, err := os.ReadFile(resolved)
 	if err != nil {
 		return err
 	}
 
-	lines := strings.Split(string(file), "\n")
+	lines := strings.Split(string(data), "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {

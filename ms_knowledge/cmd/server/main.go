@@ -12,10 +12,13 @@ import (
 	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 	"demo/ms_knowledge/ent"
 	"demo/ms_knowledge/internal/config"
+	"demo/ms_knowledge/internal/domain"
+	"demo/ms_knowledge/internal/events"
 	"demo/ms_knowledge/internal/repository"
 	"demo/ms_knowledge/internal/repository/graph"
 	"demo/ms_knowledge/internal/server"
 	"demo/ms_knowledge/internal/service"
+	storager2 "demo/ms_knowledge/internal/storage/r2"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/grpc"
@@ -67,8 +70,30 @@ func main() {
 	contentRepo := repository.NewContentRepository(client, graphRepo)
 
 	// Initialize services
+	logger := log.New(os.Stdout, "", log.LstdFlags)
 	spaceService := service.NewSpaceService(spaceRepo, contentRepo, graphRepo)
-	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, nil) // TODO: Add storage service
+
+	// Initialize R2 storage client
+	r2Client, err := storager2.NewClient(context.Background(), storager2.Config{
+		Endpoint:        cfg.R2.Endpoint,
+		Region:          cfg.R2.Region,
+		AccessKeyID:     cfg.R2.AccessKeyID,
+		SecretAccessKey: cfg.R2.SecretAccessKey,
+		UsePathStyle:    true,
+	})
+	if err != nil {
+		log.Fatalf("Failed to create R2 client: %v", err)
+	}
+
+	// Initialize Kafka producer and consumer for events
+	producer, err := events.NewProducer(cfg)
+	if err != nil {
+		log.Fatalf("Failed to create Kafka producer: %v", err)
+	}
+	defer producer.Close()
+
+	r2Storage := storager2.NewAdapter(r2Client)
+	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg.R2.BucketSourceName, logger)
 	knowledgeLinkService := service.NewKnowledgeLinkService(graphRepo, contentRepo)
 
 	// Initialize gRPC server
@@ -80,6 +105,14 @@ func main() {
 
 	// Enable reflection for development
 	reflection.Register(srv)
+
+	// Start document.processed consumer in background
+	consumer, err := events.NewConsumer(cfg, "ms_knowledge-processed-group", &processedHandler{svc: contentService})
+	if err != nil {
+		log.Fatalf("Failed to create Kafka consumer: %v", err)
+	}
+	defer consumer.Close()
+	go consumer.Run(context.Background())
 
 	// Start gRPC server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.Port))
@@ -104,4 +137,19 @@ func main() {
 	slog.Info("Shutting down server...")
 	srv.GracefulStop()
 	slog.Info("Server stopped")
+}
+
+// processedHandler adapts the consumer callback to the service method.
+type processedHandler struct {
+	svc *service.ContentService
+}
+
+func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event events.DocumentProcessedEvent) error {
+	status := domain.ContentStatus(event.Status)
+	processedHash := ""
+	if event.ProcessedBlobHash != nil {
+		processedHash = *event.ProcessedBlobHash
+	}
+	_, err := h.svc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage)
+	return err
 }

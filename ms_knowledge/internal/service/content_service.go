@@ -3,19 +3,24 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"demo/ms_knowledge/internal/domain"
+	"demo/ms_knowledge/internal/events"
 
 	"github.com/google/uuid"
 )
 
 type ContentService struct {
-	contentRepo domain.ContentRepository
-	spaceRepo   domain.SpaceRepository
-	graphRepo   domain.GraphRepository
-	storage     StorageService
+	contentRepo  domain.ContentRepository
+	spaceRepo    domain.SpaceRepository
+	graphRepo    domain.GraphRepository
+	storage      StorageService
+	producer     *events.Producer
+	sourceBucket string
+	logger       *log.Logger
 }
 
 type StorageService interface {
@@ -23,12 +28,16 @@ type StorageService interface {
 	CalculateSHA256(data []byte) string
 }
 
-func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService) *ContentService {
+// NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
+func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer *events.Producer, sourceBucket string, logger *log.Logger) *ContentService {
 	return &ContentService{
-		contentRepo: contentRepo,
-		spaceRepo:   spaceRepo,
-		graphRepo:   graphRepo,
-		storage:     storage,
+		contentRepo:  contentRepo,
+		spaceRepo:    spaceRepo,
+		graphRepo:    graphRepo,
+		storage:      storage,
+		producer:     producer,
+		sourceBucket: sourceBucket,
+		logger:       logger,
 	}
 }
 
@@ -72,7 +81,11 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", spaceID.String(), content.ID.String(), filename)
 
 	// Generate pre-signed URL
-	uploadURL, err := s.storage.GeneratePresignedUploadURL("knowledge-content", objectKey, 1*time.Hour)
+	bucket := s.sourceBucket
+	if bucket == "" {
+		bucket = "knowledge-content"
+	}
+	uploadURL, err := s.storage.GeneratePresignedUploadURL(bucket, objectKey, 1*time.Hour)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate upload URL: %w", err)
 	}
@@ -96,8 +109,20 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 		return nil, fmt.Errorf("failed to update content source: %w", err)
 	}
 
-	// TODO: Emit document.uploaded event to Kafka
-	// This will be implemented when Kafka integration is added
+	// Emit document.uploaded event
+	if s.producer != nil {
+		evt := events.DocumentUploadedEvent{
+			ContentSourceID:  content.ID,
+			OriginalBlobHash: originalBlobHash,
+			SpaceID:          content.SpaceID,
+		}
+		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
+			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id %s: %v", content.ID, err)
+			// Note: We don't return an error to the client here. The upload was confirmed
+			// and the status is updated. The event failure should be handled by a
+			// separate monitoring or reconciliation process.
+		}
+	}
 
 	return content, nil
 }
