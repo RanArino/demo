@@ -132,17 +132,37 @@ func main() {
 	log.Println("Server stopped")
 }
 
+// mapProcessStatusToContentStatus safely maps events.ProcessStatus to domain.ContentStatus.
+func mapProcessStatusToContentStatus(status events.ProcessStatus) (domain.ContentStatus, error) {
+	switch status {
+	case events.ProcessStatusPending:
+		return domain.ContentStatusPending, nil
+	case events.ProcessStatusProcessing:
+		return domain.ContentStatusProcessing, nil
+	case events.ProcessStatusProcessed:
+		return domain.ContentStatusProcessed, nil
+	case events.ProcessStatusFailed:
+		return domain.ContentStatusFailed, nil
+	default:
+		return "", fmt.Errorf("unknown ProcessStatus: %v", status)
+	}
+}
+
 // processedHandler adapts the consumer callback to the service method.
 type processedHandler struct {
 	svc *service.ContentService
 }
 
 func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event events.DocumentProcessedEvent) error {
-	status := domain.ContentStatus(event.Status)
+	status, err := mapProcessStatusToContentStatus(event.Status)
+	if err != nil {
+		log.Printf("Invalid ProcessStatus in event, status %v, error %v", event.Status, err)
+		return err
+	}
 	processedHash := ""
 	if event.ProcessedBlobHash != nil {
 		processedHash = *event.ProcessedBlobHash
 	}
-	_, err := h.svc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage)
+	_, err = h.svc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage)
 	return err
 }
