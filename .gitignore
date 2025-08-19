@@ -2,9 +2,12 @@
 test-files/
 .env
 .env.local
-.cursor/
 notes/
 Todo
+
+.cursor/
+.gemini/
+.claude/
 
 # Node / Next.js
 node_modules/
