@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"demo/ms_knowledge/ent"
@@ -60,15 +59,15 @@ func (r *contentRepository) Create(ctx context.Context, content *domain.ContentS
 		return err
 	}
 
-	// Create corresponding Neo4j node right after content source is created
-	if r.graphRepo != nil {
-		err = r.graphRepo.CreateContentNode(ctx, content.ID, content.SpaceID)
-		if err != nil {
-			// Log error but don't fail the operation
-			log.Printf("ERROR: Failed to create content node in Neo4j - ContentID: %s, SpaceID: %s, Error: %v",
-				content.ID, content.SpaceID, err)
-		}
-	}
+	// NOTE: Graph repo is temporarily disabled
+	// // Create corresponding Neo4j node right after content source is created
+	// if r.graphRepo != nil {
+	// 	err = r.graphRepo.CreateContentNode(ctx, content.ID, content.SpaceID, content.Title, content.ContentSummary)
+	// 	if err != nil {
+	// 		// Log error but don't fail the operation
+	// 		slog.Error("Failed to create content node in Neo4j", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
+	// 	}
+	// }
 
 	return nil
 }
@@ -251,7 +250,8 @@ func (r *contentRepository) UpdateStatus(ctx context.Context, id uuid.UUID, stat
 
 func (r *contentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	// First get the content to retrieve SpaceID for graph cleanup
-	content, err := r.GetByID(ctx, id)
+	// content, err := r.GetByID(ctx, id) // NOTE: replace with this when graph repo is enabled
+	_, err := r.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -262,15 +262,15 @@ func (r *contentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	// Clean up the corresponding Neo4j node
-	if r.graphRepo != nil {
-		err = r.graphRepo.DeleteContentNode(ctx, content.ID, content.SpaceID)
-		if err != nil {
-			// Log error but don't fail the operation
-			log.Printf("ERROR: Failed to delete content node in Neo4j - ContentID: %s, SpaceID: %s, Error: %v",
-				content.ID, content.SpaceID, err)
-		}
-	}
+	// NOTE: Graph repo is temporarily disabled
+	// // Clean up the corresponding Neo4j node
+	// if r.graphRepo != nil {
+	// 	err = r.graphRepo.DeleteContentNode(ctx, content.ID, content.SpaceID)
+	// 	if err != nil {
+	// 		// Log error but don't fail the operation
+	// 		slog.Error("Failed to delete content node in Neo4j", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
+	// 	}
+	// }
 
 	return nil
 }

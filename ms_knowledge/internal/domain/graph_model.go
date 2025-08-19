@@ -29,6 +29,23 @@ type KnowledgeLink struct {
 	UpdatedAt     time.Time    `json:"updated_at"`
 }
 
+// Enriched link domain view
+type ContentPreview struct {
+	ID             uuid.UUID `json:"id"`
+	Title          string    `json:"title"`
+	ContentSummary *string   `json:"content_summary"`
+}
+
+type EnrichedKnowledgeLink struct {
+	ID           uuid.UUID      `json:"id"`
+	From         ContentPreview `json:"from"`
+	To           ContentPreview `json:"to"`
+	RelationType RelationType   `json:"relation_type"`
+	Weight       *float64       `json:"weight,omitempty"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+}
+
 // LinkDirection represents the direction of links to retrieve
 type LinkDirection string
 
@@ -50,8 +67,9 @@ type LinkFilter struct {
 type GraphRepository interface {
 	// Knowledge Link Operations (CRUD)
 	CreateKnowledgeLink(ctx context.Context, link *KnowledgeLink) error
-	GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*KnowledgeLink, error)
-	ListKnowledgeLinks(ctx context.Context, filter LinkFilter) ([]*KnowledgeLink, error)
+	GetKnowledgeLink(ctx context.Context, id uuid.UUID) (*EnrichedKnowledgeLink, error)
+	ListKnowledgeLinks(ctx context.Context, filter LinkFilter) ([]*EnrichedKnowledgeLink, error)
+	ListKnowledgeLinksBySpace(ctx context.Context, spaceID uuid.UUID, relationType RelationType, limit, offset int) ([]*KnowledgeLink, error)
 	UpdateKnowledgeLink(ctx context.Context, link *KnowledgeLink) error
 	DeleteKnowledgeLink(ctx context.Context, id uuid.UUID) error
 
@@ -62,7 +80,7 @@ type GraphRepository interface {
 
 	// Content Node Lifecycle (called automatically by ContentRepository)
 	// Note: Links are space-scoped, so nodes must carry spaceId
-	CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error
+	CreateContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID, title string, contentSummary *string) error
 	DeleteContentNode(ctx context.Context, contentID uuid.UUID, spaceID uuid.UUID) error
 
 	// Statistics

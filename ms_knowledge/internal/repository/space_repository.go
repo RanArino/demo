@@ -106,18 +106,19 @@ func (r *spaceRepository) GetWithStats(ctx context.Context, id uuid.UUID) (*doma
 		return nil, err
 	}
 
-	// Get link count from Neo4j using the graph repository
+	// NOTE: Graph repo is temporarily disabled
+	// // Get link count from Neo4j using the graph repository
 	var linkCount int64
-	if r.graphRepo != nil {
-		linkCount, err = r.graphRepo.CountLinksBySpace(ctx, id)
-		if err != nil {
-			// Log the error but don't fail the entire operation
-			// This allows the space to be retrieved even if graph operations fail
-			linkCount = 0
-		}
-	} else {
-		linkCount = 0
-	}
+	// if r.graphRepo != nil {
+	// 	linkCount, err = r.graphRepo.CountLinksBySpace(ctx, id)
+	// 	if err != nil {
+	// 		// Log the error but don't fail the entire operation
+	// 		// This allows the space to be retrieved even if graph operations fail
+	// 		linkCount = 0
+	// 	}
+	// } else {
+	// 	linkCount = 0
+	// }
 
 	// Get last activity (most recent content source update)
 	lastContent, err := r.client.ContentSource.Query().
@@ -357,17 +358,18 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 		lastActivityAt = space.CreatedAt
 	}
 
-	// Get link count from Neo4j using the graph repository
+	// NOTE: Graph repo is temporarily disabled
+	// // Get link count from Neo4j using the graph repository
 	var linkCount int64
-	if r.graphRepo != nil {
-		linkCount, err = r.graphRepo.CountLinksBySpace(ctx, spaceID)
-		if err != nil {
-			// Log the error but don't fail the entire operation
-			linkCount = 0
-		}
-	} else {
-		linkCount = 0
-	}
+	// if r.graphRepo != nil {
+	// 	linkCount, err = r.graphRepo.CountLinksBySpace(ctx, spaceID)
+	// 	if err != nil {
+	// 		// Log the error but don't fail the entire operation
+	// 		linkCount = 0
+	// 	}
+	// } else {
+	// 	linkCount = 0
+	// }
 
 	return &domain.SpaceStats{
 		ContentCount:   int64(contentCount),
