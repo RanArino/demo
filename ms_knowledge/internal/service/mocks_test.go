@@ -63,7 +63,10 @@ func (m *mockSpaceRepo) GetWithStats(ctx context.Context, id uuid.UUID) (*domain
 	if err != nil {
 		return nil, err
 	}
-	return &domain.SpaceWithStats{Space: *sp, Stats: domain.SpaceStats{}}, nil
+	
+	return &domain.SpaceWithStats{Space: *sp, Stats: domain.SpaceStats{
+		ContentCount: 1, // For testing - assume 1 content per space
+	}}, nil
 }
 
 func (m *mockSpaceRepo) List(ctx context.Context, filter domain.SpaceFilter) ([]*domain.Space, error) {
