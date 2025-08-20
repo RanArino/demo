@@ -25,14 +25,18 @@ type Consumer struct {
 // NewConsumer creates a consumer configured for Confluent Cloud and subscribed to the processed topic.
 func NewConsumer(cfg *config.Config, groupID string, handler ProcessedHandler) (*Consumer, error) {
 	conf := kafka.ConfigMap{
-		"bootstrap.servers":  cfg.Kafka.Brokers,
-		"security.protocol":  cfg.Kafka.SecurityProtocol,
-		"sasl.mechanisms":    "PLAIN",
-		"sasl.username":      cfg.Kafka.SaslUsername,
-		"sasl.password":      cfg.Kafka.SaslPassword,
-		"group.id":           groupID,
-		"auto.offset.reset":  "earliest",
-		"enable.auto.commit": true,
+		"bootstrap.servers":        cfg.Kafka.Brokers,
+		"security.protocol":        cfg.Kafka.SecurityProtocol,
+		"sasl.mechanisms":          "PLAIN",
+		"sasl.username":            cfg.Kafka.SaslUsername,
+		"sasl.password":            cfg.Kafka.SaslPassword,
+		"group.id":                 groupID,
+		"auto.offset.reset":        "earliest",
+		"enable.auto.commit":       false, // Manual commit for at-least-once delivery
+		"session.timeout.ms":       45000,
+		"heartbeat.interval.ms":    3000,
+		"max.poll.interval.ms":     600000, // 10 minutes
+		"isolation.level":          "read_committed",
 	}
 	client, err := kafka.NewConsumer(&conf)
 	if err != nil {
