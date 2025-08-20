@@ -32,6 +32,8 @@ type ContentSource struct {
 	Source string `json:"source,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
+	// SizeBytes holds the value of the "size_bytes" field.
+	SizeBytes int64 `json:"size_bytes,omitempty"`
 	// OriginalBlobHash holds the value of the "original_blob_hash" field.
 	OriginalBlobHash string `json:"original_blob_hash,omitempty"`
 	// ProcessedBlobHash holds the value of the "processed_blob_hash" field.
@@ -79,6 +81,8 @@ func (*ContentSource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case contentsource.FieldKeywords:
 			values[i] = new([]byte)
+		case contentsource.FieldSizeBytes:
+			values[i] = new(sql.NullInt64)
 		case contentsource.FieldTitle, contentsource.FieldMediaType, contentsource.FieldSource, contentsource.FieldStatus, contentsource.FieldOriginalBlobHash, contentsource.FieldProcessedBlobHash, contentsource.FieldContentSummary:
 			values[i] = new(sql.NullString)
 		case contentsource.FieldCreatedAt, contentsource.FieldUpdatedAt, contentsource.FieldDeletedAt:
@@ -141,6 +145,12 @@ func (cs *ContentSource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				cs.Status = value.String
+			}
+		case contentsource.FieldSizeBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field size_bytes", values[i])
+			} else if value.Valid {
+				cs.SizeBytes = value.Int64
 			}
 		case contentsource.FieldOriginalBlobHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -247,6 +257,9 @@ func (cs *ContentSource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(cs.Status)
+	builder.WriteString(", ")
+	builder.WriteString("size_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", cs.SizeBytes))
 	builder.WriteString(", ")
 	builder.WriteString("original_blob_hash=")
 	builder.WriteString(cs.OriginalBlobHash)

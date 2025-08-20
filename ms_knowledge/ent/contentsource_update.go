@@ -115,6 +115,27 @@ func (csu *ContentSourceUpdate) SetNillableStatus(s *string) *ContentSourceUpdat
 	return csu
 }
 
+// SetSizeBytes sets the "size_bytes" field.
+func (csu *ContentSourceUpdate) SetSizeBytes(i int64) *ContentSourceUpdate {
+	csu.mutation.ResetSizeBytes()
+	csu.mutation.SetSizeBytes(i)
+	return csu
+}
+
+// SetNillableSizeBytes sets the "size_bytes" field if the given value is not nil.
+func (csu *ContentSourceUpdate) SetNillableSizeBytes(i *int64) *ContentSourceUpdate {
+	if i != nil {
+		csu.SetSizeBytes(*i)
+	}
+	return csu
+}
+
+// AddSizeBytes adds i to the "size_bytes" field.
+func (csu *ContentSourceUpdate) AddSizeBytes(i int64) *ContentSourceUpdate {
+	csu.mutation.AddSizeBytes(i)
+	return csu
+}
+
 // SetOriginalBlobHash sets the "original_blob_hash" field.
 func (csu *ContentSourceUpdate) SetOriginalBlobHash(s string) *ContentSourceUpdate {
 	csu.mutation.SetOriginalBlobHash(s)
@@ -310,6 +331,12 @@ func (csu *ContentSourceUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := csu.mutation.Status(); ok {
 		_spec.SetField(contentsource.FieldStatus, field.TypeString, value)
 	}
+	if value, ok := csu.mutation.SizeBytes(); ok {
+		_spec.SetField(contentsource.FieldSizeBytes, field.TypeInt64, value)
+	}
+	if value, ok := csu.mutation.AddedSizeBytes(); ok {
+		_spec.AddField(contentsource.FieldSizeBytes, field.TypeInt64, value)
+	}
 	if value, ok := csu.mutation.OriginalBlobHash(); ok {
 		_spec.SetField(contentsource.FieldOriginalBlobHash, field.TypeString, value)
 	}
@@ -475,6 +502,27 @@ func (csuo *ContentSourceUpdateOne) SetNillableStatus(s *string) *ContentSourceU
 	if s != nil {
 		csuo.SetStatus(*s)
 	}
+	return csuo
+}
+
+// SetSizeBytes sets the "size_bytes" field.
+func (csuo *ContentSourceUpdateOne) SetSizeBytes(i int64) *ContentSourceUpdateOne {
+	csuo.mutation.ResetSizeBytes()
+	csuo.mutation.SetSizeBytes(i)
+	return csuo
+}
+
+// SetNillableSizeBytes sets the "size_bytes" field if the given value is not nil.
+func (csuo *ContentSourceUpdateOne) SetNillableSizeBytes(i *int64) *ContentSourceUpdateOne {
+	if i != nil {
+		csuo.SetSizeBytes(*i)
+	}
+	return csuo
+}
+
+// AddSizeBytes adds i to the "size_bytes" field.
+func (csuo *ContentSourceUpdateOne) AddSizeBytes(i int64) *ContentSourceUpdateOne {
+	csuo.mutation.AddSizeBytes(i)
 	return csuo
 }
 
@@ -702,6 +750,12 @@ func (csuo *ContentSourceUpdateOne) sqlSave(ctx context.Context) (_node *Content
 	}
 	if value, ok := csuo.mutation.Status(); ok {
 		_spec.SetField(contentsource.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := csuo.mutation.SizeBytes(); ok {
+		_spec.SetField(contentsource.FieldSizeBytes, field.TypeInt64, value)
+	}
+	if value, ok := csuo.mutation.AddedSizeBytes(); ok {
+		_spec.AddField(contentsource.FieldSizeBytes, field.TypeInt64, value)
 	}
 	if value, ok := csuo.mutation.OriginalBlobHash(); ok {
 		_spec.SetField(contentsource.FieldOriginalBlobHash, field.TypeString, value)

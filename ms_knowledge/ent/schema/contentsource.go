@@ -27,6 +27,8 @@ func (ContentSource) Fields() []ent.Field {
 		field.String("source"),     // e.g., upload, gdrive, paste
 		field.String("status").
 			Default("UPLOADING"),
+		field.Int64("size_bytes").
+			Default(0),
 		field.String("original_blob_hash").
 			MaxLen(64),
 		field.String("processed_blob_hash").

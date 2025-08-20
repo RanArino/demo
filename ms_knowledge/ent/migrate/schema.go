@@ -16,6 +16,7 @@ var (
 		{Name: "media_type", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "UPLOADING"},
+		{Name: "size_bytes", Type: field.TypeInt64, Default: 0},
 		{Name: "original_blob_hash", Type: field.TypeString, Size: 64},
 		{Name: "processed_blob_hash", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "content_summary", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -33,7 +34,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "content_sources_spaces_content_sources",
-				Columns:    []*schema.Column{ContentSourcesColumns[13]},
+				Columns:    []*schema.Column{ContentSourcesColumns[14]},
 				RefColumns: []*schema.Column{SpacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

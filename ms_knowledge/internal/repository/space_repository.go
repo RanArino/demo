@@ -98,12 +98,45 @@ func (r *spaceRepository) GetWithStats(ctx context.Context, id uuid.UUID) (*doma
 		return nil, err
 	}
 
-	// Get content count
+	// Get content count and size statistics
 	contentCount, err := r.client.ContentSource.Query().
 		Where(contentsource.SpaceID(id)).
 		Count(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Get total size of all content in this space
+	contentSources, err := r.client.ContentSource.Query().
+		Where(contentsource.SpaceID(id)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var totalSizeBytes int64
+	contentByStatus := make(map[string]int64)
+	processingStats := domain.ContentProcessingStats{}
+
+	for _, source := range contentSources {
+		totalSizeBytes += source.SizeBytes
+		contentByStatus[source.Status]++
+		
+		// Update processing stats
+		switch source.Status {
+		case string(domain.ContentStatusUploading):
+			processingStats.UploadingCount++
+		case string(domain.ContentStatusUploaded):
+			processingStats.UploadedCount++
+		case string(domain.ContentStatusProcessing):
+			processingStats.ProcessingCount++
+		case string(domain.ContentStatusProcessed):
+			processingStats.ProcessedCount++
+		case string(domain.ContentStatusFailed):
+			processingStats.FailedCount++
+		case string(domain.ContentStatusPending):
+			processingStats.PendingCount++
+		}
 	}
 
 	// NOTE: Graph repo is temporarily disabled
@@ -134,9 +167,12 @@ func (r *spaceRepository) GetWithStats(ctx context.Context, id uuid.UUID) (*doma
 	}
 
 	stats := domain.SpaceStats{
-		ContentCount:   int64(contentCount),
-		LinkCount:      linkCount,
-		LastActivityAt: lastActivityAt,
+		ContentCount:      int64(contentCount),
+		LinkCount:         linkCount,
+		TotalSizeBytes:    totalSizeBytes,
+		LastActivityAt:    lastActivityAt,
+		ContentByStatus:   contentByStatus,
+		ProcessingStats:   processingStats,
 	}
 
 	return &domain.SpaceWithStats{
@@ -328,7 +364,7 @@ func (r *spaceRepository) Exists(ctx context.Context, id uuid.UUID) (bool, error
 }
 
 func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) (*domain.SpaceStats, error) {
-	// Get content count and total size
+	// Get content count and size statistics
 	contentCount, err := r.client.ContentSource.Query().
 		Where(contentsource.SpaceID(spaceID)).
 		Count(ctx)
@@ -336,11 +372,40 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 		return nil, err
 	}
 
-	// Calculate total size bytes (this would need to be implemented with blob registry)
-	// For now, we'll set it to 0 and it should be calculated from KNOWLEDGE_CONTENT_BLOBS
-	totalSizeBytes := int64(0)
+	// Get all content sources to calculate size and status statistics
+	contentSources, err := r.client.ContentSource.Query().
+		Where(contentsource.SpaceID(spaceID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	// Get last activity
+	var totalSizeBytes int64
+	contentByStatus := make(map[string]int64)
+	processingStats := domain.ContentProcessingStats{}
+
+	for _, source := range contentSources {
+		totalSizeBytes += source.SizeBytes
+		contentByStatus[source.Status]++
+		
+		// Update processing stats
+		switch source.Status {
+		case string(domain.ContentStatusUploading):
+			processingStats.UploadingCount++
+		case string(domain.ContentStatusUploaded):
+			processingStats.UploadedCount++
+		case string(domain.ContentStatusProcessing):
+			processingStats.ProcessingCount++
+		case string(domain.ContentStatusProcessed):
+			processingStats.ProcessedCount++
+		case string(domain.ContentStatusFailed):
+			processingStats.FailedCount++
+		case string(domain.ContentStatusPending):
+			processingStats.PendingCount++
+		}
+	}
+
+	// Get last activity (most recent content source update)
 	lastContent, err := r.client.ContentSource.Query().
 		Where(contentsource.SpaceID(spaceID)).
 		Order(ent.Desc(contentsource.FieldUpdatedAt)).
@@ -372,9 +437,11 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 	// }
 
 	return &domain.SpaceStats{
-		ContentCount:   int64(contentCount),
-		LinkCount:      linkCount,
-		TotalSizeBytes: totalSizeBytes,
-		LastActivityAt: lastActivityAt,
+		ContentCount:      int64(contentCount),
+		LinkCount:         linkCount,
+		TotalSizeBytes:    totalSizeBytes,
+		LastActivityAt:    lastActivityAt,
+		ContentByStatus:   contentByStatus,
+		ProcessingStats:   processingStats,
 	}, nil
 }

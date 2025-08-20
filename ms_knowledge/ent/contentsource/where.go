@@ -86,6 +86,11 @@ func Status(v string) predicate.ContentSource {
 	return predicate.ContentSource(sql.FieldEQ(FieldStatus, v))
 }
 
+// SizeBytes applies equality check predicate on the "size_bytes" field. It's identical to SizeBytesEQ.
+func SizeBytes(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldEQ(FieldSizeBytes, v))
+}
+
 // OriginalBlobHash applies equality check predicate on the "original_blob_hash" field. It's identical to OriginalBlobHashEQ.
 func OriginalBlobHash(v string) predicate.ContentSource {
 	return predicate.ContentSource(sql.FieldEQ(FieldOriginalBlobHash, v))
@@ -434,6 +439,46 @@ func StatusEqualFold(v string) predicate.ContentSource {
 // StatusContainsFold applies the ContainsFold predicate on the "status" field.
 func StatusContainsFold(v string) predicate.ContentSource {
 	return predicate.ContentSource(sql.FieldContainsFold(FieldStatus, v))
+}
+
+// SizeBytesEQ applies the EQ predicate on the "size_bytes" field.
+func SizeBytesEQ(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldEQ(FieldSizeBytes, v))
+}
+
+// SizeBytesNEQ applies the NEQ predicate on the "size_bytes" field.
+func SizeBytesNEQ(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldNEQ(FieldSizeBytes, v))
+}
+
+// SizeBytesIn applies the In predicate on the "size_bytes" field.
+func SizeBytesIn(vs ...int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldIn(FieldSizeBytes, vs...))
+}
+
+// SizeBytesNotIn applies the NotIn predicate on the "size_bytes" field.
+func SizeBytesNotIn(vs ...int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldNotIn(FieldSizeBytes, vs...))
+}
+
+// SizeBytesGT applies the GT predicate on the "size_bytes" field.
+func SizeBytesGT(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldGT(FieldSizeBytes, v))
+}
+
+// SizeBytesGTE applies the GTE predicate on the "size_bytes" field.
+func SizeBytesGTE(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldGTE(FieldSizeBytes, v))
+}
+
+// SizeBytesLT applies the LT predicate on the "size_bytes" field.
+func SizeBytesLT(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldLT(FieldSizeBytes, v))
+}
+
+// SizeBytesLTE applies the LTE predicate on the "size_bytes" field.
+func SizeBytesLTE(v int64) predicate.ContentSource {
+	return predicate.ContentSource(sql.FieldLTE(FieldSizeBytes, v))
 }
 
 // OriginalBlobHashEQ applies the EQ predicate on the "original_blob_hash" field.

@@ -2,6 +2,8 @@ package domain
 
 import (
 	"context"
+	"fmt"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,6 +20,29 @@ const (
 	ContentStatusFailed     ContentStatus = "FAILED"
 	ContentStatusPending    ContentStatus = "PENDING"
 )
+
+// ValidateStatusTransition checks if a status transition is valid
+func (current ContentStatus) ValidateTransition(next ContentStatus) error {
+	validTransitions := map[ContentStatus][]ContentStatus{
+		ContentStatusUploading: {ContentStatusUploaded, ContentStatusFailed},
+		ContentStatusUploaded:  {ContentStatusProcessing, ContentStatusFailed},
+		ContentStatusPending:   {ContentStatusProcessing, ContentStatusFailed},
+		ContentStatusProcessing: {ContentStatusProcessed, ContentStatusFailed},
+		ContentStatusProcessed:  {}, // Terminal state - no transitions allowed
+		ContentStatusFailed:     {ContentStatusProcessing}, // Allow retry
+	}
+
+	allowedTransitions, exists := validTransitions[current]
+	if !exists {
+		return fmt.Errorf("unknown status: %s", current)
+	}
+
+	if slices.Contains(allowedTransitions, next) {
+		return nil
+	}
+
+	return fmt.Errorf("invalid status transition from %s to %s", current, next)
+}
 
 // ContentSource represents a content source in the system
 type ContentSource struct {

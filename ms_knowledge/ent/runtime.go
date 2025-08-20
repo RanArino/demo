@@ -21,20 +21,24 @@ func init() {
 	contentsourceDescStatus := contentsourceFields[6].Descriptor()
 	// contentsource.DefaultStatus holds the default value on creation for the status field.
 	contentsource.DefaultStatus = contentsourceDescStatus.Default.(string)
+	// contentsourceDescSizeBytes is the schema descriptor for size_bytes field.
+	contentsourceDescSizeBytes := contentsourceFields[7].Descriptor()
+	// contentsource.DefaultSizeBytes holds the default value on creation for the size_bytes field.
+	contentsource.DefaultSizeBytes = contentsourceDescSizeBytes.Default.(int64)
 	// contentsourceDescOriginalBlobHash is the schema descriptor for original_blob_hash field.
-	contentsourceDescOriginalBlobHash := contentsourceFields[7].Descriptor()
+	contentsourceDescOriginalBlobHash := contentsourceFields[8].Descriptor()
 	// contentsource.OriginalBlobHashValidator is a validator for the "original_blob_hash" field. It is called by the builders before save.
 	contentsource.OriginalBlobHashValidator = contentsourceDescOriginalBlobHash.Validators[0].(func(string) error)
 	// contentsourceDescProcessedBlobHash is the schema descriptor for processed_blob_hash field.
-	contentsourceDescProcessedBlobHash := contentsourceFields[8].Descriptor()
+	contentsourceDescProcessedBlobHash := contentsourceFields[9].Descriptor()
 	// contentsource.ProcessedBlobHashValidator is a validator for the "processed_blob_hash" field. It is called by the builders before save.
 	contentsource.ProcessedBlobHashValidator = contentsourceDescProcessedBlobHash.Validators[0].(func(string) error)
 	// contentsourceDescCreatedAt is the schema descriptor for created_at field.
-	contentsourceDescCreatedAt := contentsourceFields[11].Descriptor()
+	contentsourceDescCreatedAt := contentsourceFields[12].Descriptor()
 	// contentsource.DefaultCreatedAt holds the default value on creation for the created_at field.
 	contentsource.DefaultCreatedAt = contentsourceDescCreatedAt.Default.(func() time.Time)
 	// contentsourceDescUpdatedAt is the schema descriptor for updated_at field.
-	contentsourceDescUpdatedAt := contentsourceFields[12].Descriptor()
+	contentsourceDescUpdatedAt := contentsourceFields[13].Descriptor()
 	// contentsource.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	contentsource.DefaultUpdatedAt = contentsourceDescUpdatedAt.Default.(func() time.Time)
 	// contentsource.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
