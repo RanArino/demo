@@ -13,12 +13,17 @@ import (
 	"github.com/google/uuid"
 )
 
+type EventProducer interface {
+	ProduceJSON(ctx context.Context, topic string, key string, v any) error
+	Close()
+}
+
 type ContentService struct {
 	contentRepo  domain.ContentRepository
 	spaceRepo    domain.SpaceRepository
 	graphRepo    domain.GraphRepository
 	storage      StorageService
-	producer     *events.Producer
+	producer     EventProducer
 	sourceBucket string
 	logger       *log.Logger
 }
@@ -29,7 +34,7 @@ type StorageService interface {
 }
 
 // NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
-func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer *events.Producer, sourceBucket string, logger *log.Logger) *ContentService {
+func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer EventProducer, sourceBucket string, logger *log.Logger) *ContentService {
 	return &ContentService{
 		contentRepo:  contentRepo,
 		spaceRepo:    spaceRepo,
