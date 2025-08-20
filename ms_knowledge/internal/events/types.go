@@ -21,8 +21,10 @@ type DocumentUploadedEvent struct {
 type ProcessStatus string
 
 const (
-	ProcessStatusProcessed ProcessStatus = "PROCESSED"
-	ProcessStatusFailed    ProcessStatus = "FAILED"
+	ProcessStatusProcessed  ProcessStatus = "PROCESSED"
+	ProcessStatusFailed     ProcessStatus = "FAILED"
+	ProcessStatusPending    ProcessStatus = "PENDING"
+	ProcessStatusProcessing ProcessStatus = "PROCESSING"
 )
 
 // DocumentProcessedEvent is produced by ms_document_process after processing.

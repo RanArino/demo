@@ -16,6 +16,7 @@ const (
 	ContentStatusProcessing ContentStatus = "PROCESSING"
 	ContentStatusProcessed  ContentStatus = "PROCESSED"
 	ContentStatusFailed     ContentStatus = "FAILED"
+	ContentStatusPending    ContentStatus = "PENDING"
 )
 
 // ContentSource represents a content source in the system

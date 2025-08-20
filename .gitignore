@@ -1,14 +1,22 @@
-# Existing
+# Personal
 test-files/
-.env
-.env.local
 notes/
 Todo
+PR*.md
 
+# Env
+.env
+.env.local
+
+# IDEs
 .vscode/
 .cursor/
+
+# AI and others
 .gemini/
 .claude/
+.openai/
+.serena/
 
 # Node / Next.js
 node_modules/

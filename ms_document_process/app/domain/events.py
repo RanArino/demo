@@ -1,0 +1,14 @@
+from pydantic import BaseModel
+from uuid import UUID
+from typing import Optional
+
+class DocumentUploadedEvent(BaseModel):
+    content_source_id: UUID
+    original_blob_hash: str
+    space_id: UUID
+
+class DocumentProcessedEvent(BaseModel):
+    content_source_id: UUID
+    processed_blob_hash: Optional[str]
+    status: str  # e.g., "PROCESSED", "FAILED"
+    error_message: Optional[str]
