@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: api/proto/v1/knowledge.proto
+// source: ms_knowledge/api/proto/v1/knowledge.proto
 
 package knowledgev1
 
@@ -25,7 +25,6 @@ const (
 	KnowledgeService_ListSpaces_FullMethodName                = "/knowledge.v1.KnowledgeService/ListSpaces"
 	KnowledgeService_UpdateSpace_FullMethodName               = "/knowledge.v1.KnowledgeService/UpdateSpace"
 	KnowledgeService_DeleteSpace_FullMethodName               = "/knowledge.v1.KnowledgeService/DeleteSpace"
-	KnowledgeService_SearchSpaces_FullMethodName              = "/knowledge.v1.KnowledgeService/SearchSpaces"
 	KnowledgeService_CreateUploadURL_FullMethodName           = "/knowledge.v1.KnowledgeService/CreateUploadURL"
 	KnowledgeService_ConfirmUpload_FullMethodName             = "/knowledge.v1.KnowledgeService/ConfirmUpload"
 	KnowledgeService_GetContentSource_FullMethodName          = "/knowledge.v1.KnowledgeService/GetContentSource"
@@ -34,6 +33,7 @@ const (
 	KnowledgeService_CreateKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/CreateKnowledgeLink"
 	KnowledgeService_GetKnowledgeLink_FullMethodName          = "/knowledge.v1.KnowledgeService/GetKnowledgeLink"
 	KnowledgeService_ListKnowledgeLinks_FullMethodName        = "/knowledge.v1.KnowledgeService/ListKnowledgeLinks"
+	KnowledgeService_ListAllSpaceLinks_FullMethodName         = "/knowledge.v1.KnowledgeService/ListAllSpaceLinks"
 	KnowledgeService_UpdateKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/UpdateKnowledgeLink"
 	KnowledgeService_DeleteKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/DeleteKnowledgeLink"
 	KnowledgeService_GetBacklinks_FullMethodName              = "/knowledge.v1.KnowledgeService/GetBacklinks"
@@ -52,7 +52,6 @@ type KnowledgeServiceClient interface {
 	ListSpaces(ctx context.Context, in *ListSpacesRequest, opts ...grpc.CallOption) (*ListSpacesResponse, error)
 	UpdateSpace(ctx context.Context, in *UpdateSpaceRequest, opts ...grpc.CallOption) (*Space, error)
 	DeleteSpace(ctx context.Context, in *DeleteSpaceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	SearchSpaces(ctx context.Context, in *SearchSpacesRequest, opts ...grpc.CallOption) (*ListSpacesResponse, error)
 	// Content Source Management
 	CreateUploadURL(ctx context.Context, in *CreateUploadURLRequest, opts ...grpc.CallOption) (*CreateUploadURLResponse, error)
 	ConfirmUpload(ctx context.Context, in *ConfirmUploadRequest, opts ...grpc.CallOption) (*ContentSource, error)
@@ -61,8 +60,12 @@ type KnowledgeServiceClient interface {
 	UpdateContentSourceStatus(ctx context.Context, in *UpdateContentSourceStatusRequest, opts ...grpc.CallOption) (*ContentSource, error)
 	// Knowledge Graph Management
 	CreateKnowledgeLink(ctx context.Context, in *CreateKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error)
-	GetKnowledgeLink(ctx context.Context, in *GetKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error)
+	// Single enriched link by id
+	GetKnowledgeLink(ctx context.Context, in *GetKnowledgeLinkRequest, opts ...grpc.CallOption) (*EnrichedKnowledgeLink, error)
+	// Focused enriched list by content
 	ListKnowledgeLinks(ctx context.Context, in *ListKnowledgeLinksRequest, opts ...grpc.CallOption) (*ListKnowledgeLinksResponse, error)
+	// Bulk simple list by space
+	ListAllSpaceLinks(ctx context.Context, in *ListAllSpaceLinksRequest, opts ...grpc.CallOption) (*ListAllSpaceLinksResponse, error)
 	UpdateKnowledgeLink(ctx context.Context, in *UpdateKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error)
 	DeleteKnowledgeLink(ctx context.Context, in *DeleteKnowledgeLinkRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetBacklinks(ctx context.Context, in *GetBacklinksRequest, opts ...grpc.CallOption) (*GetBacklinksResponse, error)
@@ -122,16 +125,6 @@ func (c *knowledgeServiceClient) DeleteSpace(ctx context.Context, in *DeleteSpac
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, KnowledgeService_DeleteSpace_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) SearchSpaces(ctx context.Context, in *SearchSpacesRequest, opts ...grpc.CallOption) (*ListSpacesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListSpacesResponse)
-	err := c.cc.Invoke(ctx, KnowledgeService_SearchSpaces_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -198,9 +191,9 @@ func (c *knowledgeServiceClient) CreateKnowledgeLink(ctx context.Context, in *Cr
 	return out, nil
 }
 
-func (c *knowledgeServiceClient) GetKnowledgeLink(ctx context.Context, in *GetKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error) {
+func (c *knowledgeServiceClient) GetKnowledgeLink(ctx context.Context, in *GetKnowledgeLinkRequest, opts ...grpc.CallOption) (*EnrichedKnowledgeLink, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(KnowledgeLink)
+	out := new(EnrichedKnowledgeLink)
 	err := c.cc.Invoke(ctx, KnowledgeService_GetKnowledgeLink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -212,6 +205,16 @@ func (c *knowledgeServiceClient) ListKnowledgeLinks(ctx context.Context, in *Lis
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListKnowledgeLinksResponse)
 	err := c.cc.Invoke(ctx, KnowledgeService_ListKnowledgeLinks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *knowledgeServiceClient) ListAllSpaceLinks(ctx context.Context, in *ListAllSpaceLinksRequest, opts ...grpc.CallOption) (*ListAllSpaceLinksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAllSpaceLinksResponse)
+	err := c.cc.Invoke(ctx, KnowledgeService_ListAllSpaceLinks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +273,6 @@ type KnowledgeServiceServer interface {
 	ListSpaces(context.Context, *ListSpacesRequest) (*ListSpacesResponse, error)
 	UpdateSpace(context.Context, *UpdateSpaceRequest) (*Space, error)
 	DeleteSpace(context.Context, *DeleteSpaceRequest) (*emptypb.Empty, error)
-	SearchSpaces(context.Context, *SearchSpacesRequest) (*ListSpacesResponse, error)
 	// Content Source Management
 	CreateUploadURL(context.Context, *CreateUploadURLRequest) (*CreateUploadURLResponse, error)
 	ConfirmUpload(context.Context, *ConfirmUploadRequest) (*ContentSource, error)
@@ -279,8 +281,12 @@ type KnowledgeServiceServer interface {
 	UpdateContentSourceStatus(context.Context, *UpdateContentSourceStatusRequest) (*ContentSource, error)
 	// Knowledge Graph Management
 	CreateKnowledgeLink(context.Context, *CreateKnowledgeLinkRequest) (*KnowledgeLink, error)
-	GetKnowledgeLink(context.Context, *GetKnowledgeLinkRequest) (*KnowledgeLink, error)
+	// Single enriched link by id
+	GetKnowledgeLink(context.Context, *GetKnowledgeLinkRequest) (*EnrichedKnowledgeLink, error)
+	// Focused enriched list by content
 	ListKnowledgeLinks(context.Context, *ListKnowledgeLinksRequest) (*ListKnowledgeLinksResponse, error)
+	// Bulk simple list by space
+	ListAllSpaceLinks(context.Context, *ListAllSpaceLinksRequest) (*ListAllSpaceLinksResponse, error)
 	UpdateKnowledgeLink(context.Context, *UpdateKnowledgeLinkRequest) (*KnowledgeLink, error)
 	DeleteKnowledgeLink(context.Context, *DeleteKnowledgeLinkRequest) (*emptypb.Empty, error)
 	GetBacklinks(context.Context, *GetBacklinksRequest) (*GetBacklinksResponse, error)
@@ -311,9 +317,6 @@ func (UnimplementedKnowledgeServiceServer) UpdateSpace(context.Context, *UpdateS
 func (UnimplementedKnowledgeServiceServer) DeleteSpace(context.Context, *DeleteSpaceRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSpace not implemented")
 }
-func (UnimplementedKnowledgeServiceServer) SearchSpaces(context.Context, *SearchSpacesRequest) (*ListSpacesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchSpaces not implemented")
-}
 func (UnimplementedKnowledgeServiceServer) CreateUploadURL(context.Context, *CreateUploadURLRequest) (*CreateUploadURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUploadURL not implemented")
 }
@@ -332,11 +335,14 @@ func (UnimplementedKnowledgeServiceServer) UpdateContentSourceStatus(context.Con
 func (UnimplementedKnowledgeServiceServer) CreateKnowledgeLink(context.Context, *CreateKnowledgeLinkRequest) (*KnowledgeLink, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateKnowledgeLink not implemented")
 }
-func (UnimplementedKnowledgeServiceServer) GetKnowledgeLink(context.Context, *GetKnowledgeLinkRequest) (*KnowledgeLink, error) {
+func (UnimplementedKnowledgeServiceServer) GetKnowledgeLink(context.Context, *GetKnowledgeLinkRequest) (*EnrichedKnowledgeLink, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKnowledgeLink not implemented")
 }
 func (UnimplementedKnowledgeServiceServer) ListKnowledgeLinks(context.Context, *ListKnowledgeLinksRequest) (*ListKnowledgeLinksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListKnowledgeLinks not implemented")
+}
+func (UnimplementedKnowledgeServiceServer) ListAllSpaceLinks(context.Context, *ListAllSpaceLinksRequest) (*ListAllSpaceLinksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllSpaceLinks not implemented")
 }
 func (UnimplementedKnowledgeServiceServer) UpdateKnowledgeLink(context.Context, *UpdateKnowledgeLinkRequest) (*KnowledgeLink, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateKnowledgeLink not implemented")
@@ -457,24 +463,6 @@ func _KnowledgeService_DeleteSpace_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KnowledgeServiceServer).DeleteSpace(ctx, req.(*DeleteSpaceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_SearchSpaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchSpacesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).SearchSpaces(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_SearchSpaces_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).SearchSpaces(ctx, req.(*SearchSpacesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -623,6 +611,24 @@ func _KnowledgeService_ListKnowledgeLinks_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KnowledgeService_ListAllSpaceLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllSpaceLinksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KnowledgeServiceServer).ListAllSpaceLinks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KnowledgeService_ListAllSpaceLinks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KnowledgeServiceServer).ListAllSpaceLinks(ctx, req.(*ListAllSpaceLinksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _KnowledgeService_UpdateKnowledgeLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateKnowledgeLinkRequest)
 	if err := dec(in); err != nil {
@@ -723,10 +729,6 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KnowledgeService_DeleteSpace_Handler,
 		},
 		{
-			MethodName: "SearchSpaces",
-			Handler:    _KnowledgeService_SearchSpaces_Handler,
-		},
-		{
 			MethodName: "CreateUploadURL",
 			Handler:    _KnowledgeService_CreateUploadURL_Handler,
 		},
@@ -759,6 +761,10 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KnowledgeService_ListKnowledgeLinks_Handler,
 		},
 		{
+			MethodName: "ListAllSpaceLinks",
+			Handler:    _KnowledgeService_ListAllSpaceLinks_Handler,
+		},
+		{
 			MethodName: "UpdateKnowledgeLink",
 			Handler:    _KnowledgeService_UpdateKnowledgeLink_Handler,
 		},
@@ -776,5 +782,5 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/proto/v1/knowledge.proto",
+	Metadata: "ms_knowledge/api/proto/v1/knowledge.proto",
 }

@@ -18,6 +18,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env.local"
         env_file_encoding = "utf-8"
-        extra = "ignore"
+        extra = "forbid"
 
 settings = Settings()

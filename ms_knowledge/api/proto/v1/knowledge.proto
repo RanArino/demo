@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/your-org/ms_knowledge/api/proto/v1;knowledgev1";
+option go_package = "demo/ms_knowledge/api/proto/v1;knowledgev1";
 
 // Knowledge Service provides APIs for managing knowledge spaces, content sources, and knowledge graph links
 service KnowledgeService {
@@ -16,7 +16,6 @@ service KnowledgeService {
   rpc ListSpaces(ListSpacesRequest) returns (ListSpacesResponse);
   rpc UpdateSpace(UpdateSpaceRequest) returns (Space);
   rpc DeleteSpace(DeleteSpaceRequest) returns (google.protobuf.Empty);
-  rpc SearchSpaces(SearchSpacesRequest) returns (ListSpacesResponse);
 
   // Content Source Management
   rpc CreateUploadURL(CreateUploadURLRequest) returns (CreateUploadURLResponse);
@@ -27,8 +26,12 @@ service KnowledgeService {
 
   // Knowledge Graph Management
   rpc CreateKnowledgeLink(CreateKnowledgeLinkRequest) returns (KnowledgeLink);
-  rpc GetKnowledgeLink(GetKnowledgeLinkRequest) returns (KnowledgeLink);
+  // Single enriched link by id
+  rpc GetKnowledgeLink(GetKnowledgeLinkRequest) returns (EnrichedKnowledgeLink);
+  // Focused enriched list by content
   rpc ListKnowledgeLinks(ListKnowledgeLinksRequest) returns (ListKnowledgeLinksResponse);
+  // Bulk simple list by space
+  rpc ListAllSpaceLinks(ListAllSpaceLinksRequest) returns (ListAllSpaceLinksResponse);
   rpc UpdateKnowledgeLink(UpdateKnowledgeLinkRequest) returns (KnowledgeLink);
   rpc DeleteKnowledgeLink(DeleteKnowledgeLinkRequest) returns (google.protobuf.Empty);
   rpc GetBacklinks(GetBacklinksRequest) returns (GetBacklinksResponse);
@@ -68,28 +71,20 @@ message Pagination {
   string page_token = 2;
 }
 
+
+// Core Entities
 message SpaceStats {
   int64 content_count = 1;
   int64 link_count = 2;
   google.protobuf.Timestamp last_activity_at = 3;
 }
 
-message ContentSummaryItem {
-  string id = 1;
-  string title = 2;
-  ContentStatus status = 3;
-  google.protobuf.Timestamp created_at = 4;
-}
-
-// Core Entities
 message Space {
   string id = 1;
-  string name = 2;
+  string title = 2;
   string description = 3;
   string owner_id = 4;
-  string org_id = 5;
   SpaceStats stats = 10;
-  repeated ContentSummaryItem content_summary = 11;
   google.protobuf.Timestamp created_at = 98;
   google.protobuf.Timestamp updated_at = 99;
 }
@@ -98,17 +93,20 @@ message ContentSource {
   string id = 1;
   string space_id = 2;
   ContentStatus status = 3;
-  string original_blob_hash = 4;
-  string processed_blob_hash = 5;
+  string owner_id = 4;
+  string source = 5;
   string mime_type = 6;
   int64 size_bytes = 7;
   string title = 8;
-  string filename = 9;
-  string object_key = 10;
+  string original_blob_hash = 9;
+  string processed_blob_hash = 10;
+  string content_summary = 11;
+  repeated string keywords = 12;
   google.protobuf.Timestamp created_at = 98;
   google.protobuf.Timestamp updated_at = 99;
 }
 
+// Simple link (used for bulk list)
 message KnowledgeLink {
   string id = 1;
   string from_content_id = 2;
@@ -119,12 +117,27 @@ message KnowledgeLink {
   google.protobuf.Timestamp updated_at = 99;
 }
 
+// Enriched link view (used for focused list and single get)
+message ContentPreview {
+  string id = 1;
+  string title = 2;
+  string content_summary = 3;
+}
+
+message EnrichedKnowledgeLink {
+  string id = 1;
+  ContentPreview from = 2;
+  ContentPreview to = 3;
+  RelationType relation_type = 4;
+  double weight = 5;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
 // Space Request/Response Messages
 message CreateSpaceRequest {
-  string name = 1;
+  string title = 1;
   string description = 2;
-  string owner_id = 3;
-  string org_id = 4;
 }
 
 message GetSpaceRequest {
@@ -132,9 +145,15 @@ message GetSpaceRequest {
 }
 
 message ListSpacesRequest {
-  string owner_id = 1;
-  string org_id = 2;
-  string q = 3;
+  string q = 1;
+  string owner_id = 2;
+  repeated string keywords = 3;
+  string access_level = 4;
+  string status = 5;
+  google.protobuf.Timestamp created_after = 6;
+  google.protobuf.Timestamp created_before = 7;
+  google.protobuf.Timestamp updated_after = 8;
+  google.protobuf.Timestamp updated_before = 9;
   Pagination page = 10;
 }
 
@@ -155,12 +174,7 @@ message DeleteSpaceRequest {
   bool force = 3;
 }
 
-message SearchSpacesRequest {
-  string q = 1;
-  string owner_id = 2;
-  string org_id = 3;
-  Pagination page = 10;
-}
+// SearchSpacesRequest removed; use ListSpacesRequest.q instead
 
 // Content Source Request/Response Messages
 message CreateUploadURLRequest {
@@ -217,6 +231,7 @@ message GetKnowledgeLinkRequest {
   string id = 1;
 }
 
+// Focused, enriched list by content
 message ListKnowledgeLinksRequest {
   string content_id = 1;
   LinkDirection direction = 2;
@@ -225,6 +240,18 @@ message ListKnowledgeLinksRequest {
 }
 
 message ListKnowledgeLinksResponse {
+  repeated EnrichedKnowledgeLink items = 1;
+  string next_page_token = 2;
+}
+
+// Bulk, simple list by space
+message ListAllSpaceLinksRequest {
+  string space_id = 1;
+  RelationType relation_type = 2;
+  Pagination page = 10;
+}
+
+message ListAllSpaceLinksResponse {
   repeated KnowledgeLink items = 1;
   string next_page_token = 2;
 }

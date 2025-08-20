@@ -40,10 +40,10 @@ def main():
                 logging.error("gRPC server process has unexpectedly died. Terminating consumer.")
                 consumer_process.terminate()
                 break
-            if not consumer_process.is_alive():
-                logging.error("Kafka consumer process has unexpectedly died. Terminating server.")
-                grpc_process.terminate()
-                break
+            # if not consumer_process.is_alive():
+            #     logging.error("Kafka consumer process has unexpectedly died. Terminating server.")
+            #     grpc_process.terminate()
+            #     break
             time.sleep(1)
 
     except KeyboardInterrupt:
