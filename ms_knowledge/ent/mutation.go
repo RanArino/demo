@@ -41,6 +41,8 @@ type ContentSourceMutation struct {
 	media_type          *string
 	source              *string
 	status              *string
+	size_bytes          *int64
+	addsize_bytes       *int64
 	original_blob_hash  *string
 	processed_blob_hash *string
 	content_summary     *string
@@ -375,6 +377,62 @@ func (m *ContentSourceMutation) OldStatus(ctx context.Context) (v string, err er
 // ResetStatus resets all changes to the "status" field.
 func (m *ContentSourceMutation) ResetStatus() {
 	m.status = nil
+}
+
+// SetSizeBytes sets the "size_bytes" field.
+func (m *ContentSourceMutation) SetSizeBytes(i int64) {
+	m.size_bytes = &i
+	m.addsize_bytes = nil
+}
+
+// SizeBytes returns the value of the "size_bytes" field in the mutation.
+func (m *ContentSourceMutation) SizeBytes() (r int64, exists bool) {
+	v := m.size_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSizeBytes returns the old "size_bytes" field's value of the ContentSource entity.
+// If the ContentSource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ContentSourceMutation) OldSizeBytes(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSizeBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSizeBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSizeBytes: %w", err)
+	}
+	return oldValue.SizeBytes, nil
+}
+
+// AddSizeBytes adds i to the "size_bytes" field.
+func (m *ContentSourceMutation) AddSizeBytes(i int64) {
+	if m.addsize_bytes != nil {
+		*m.addsize_bytes += i
+	} else {
+		m.addsize_bytes = &i
+	}
+}
+
+// AddedSizeBytes returns the value that was added to the "size_bytes" field in this mutation.
+func (m *ContentSourceMutation) AddedSizeBytes() (r int64, exists bool) {
+	v := m.addsize_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSizeBytes resets all changes to the "size_bytes" field.
+func (m *ContentSourceMutation) ResetSizeBytes() {
+	m.size_bytes = nil
+	m.addsize_bytes = nil
 }
 
 // SetOriginalBlobHash sets the "original_blob_hash" field.
@@ -758,7 +816,7 @@ func (m *ContentSourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ContentSourceMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.space != nil {
 		fields = append(fields, contentsource.FieldSpaceID)
 	}
@@ -776,6 +834,9 @@ func (m *ContentSourceMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, contentsource.FieldStatus)
+	}
+	if m.size_bytes != nil {
+		fields = append(fields, contentsource.FieldSizeBytes)
 	}
 	if m.original_blob_hash != nil {
 		fields = append(fields, contentsource.FieldOriginalBlobHash)
@@ -818,6 +879,8 @@ func (m *ContentSourceMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case contentsource.FieldStatus:
 		return m.Status()
+	case contentsource.FieldSizeBytes:
+		return m.SizeBytes()
 	case contentsource.FieldOriginalBlobHash:
 		return m.OriginalBlobHash()
 	case contentsource.FieldProcessedBlobHash:
@@ -853,6 +916,8 @@ func (m *ContentSourceMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldSource(ctx)
 	case contentsource.FieldStatus:
 		return m.OldStatus(ctx)
+	case contentsource.FieldSizeBytes:
+		return m.OldSizeBytes(ctx)
 	case contentsource.FieldOriginalBlobHash:
 		return m.OldOriginalBlobHash(ctx)
 	case contentsource.FieldProcessedBlobHash:
@@ -918,6 +983,13 @@ func (m *ContentSourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case contentsource.FieldSizeBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSizeBytes(v)
+		return nil
 	case contentsource.FieldOriginalBlobHash:
 		v, ok := value.(string)
 		if !ok {
@@ -974,13 +1046,21 @@ func (m *ContentSourceMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ContentSourceMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addsize_bytes != nil {
+		fields = append(fields, contentsource.FieldSizeBytes)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ContentSourceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case contentsource.FieldSizeBytes:
+		return m.AddedSizeBytes()
+	}
 	return nil, false
 }
 
@@ -989,6 +1069,13 @@ func (m *ContentSourceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ContentSourceMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case contentsource.FieldSizeBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSizeBytes(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ContentSource numeric field %s", name)
 }
@@ -1060,6 +1147,9 @@ func (m *ContentSourceMutation) ResetField(name string) error {
 		return nil
 	case contentsource.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case contentsource.FieldSizeBytes:
+		m.ResetSizeBytes()
 		return nil
 	case contentsource.FieldOriginalBlobHash:
 		m.ResetOriginalBlobHash()

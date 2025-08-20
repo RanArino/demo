@@ -27,6 +27,8 @@ const (
 	FieldSource = "source"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldSizeBytes holds the string denoting the size_bytes field in the database.
+	FieldSizeBytes = "size_bytes"
 	// FieldOriginalBlobHash holds the string denoting the original_blob_hash field in the database.
 	FieldOriginalBlobHash = "original_blob_hash"
 	// FieldProcessedBlobHash holds the string denoting the processed_blob_hash field in the database.
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldMediaType,
 	FieldSource,
 	FieldStatus,
+	FieldSizeBytes,
 	FieldOriginalBlobHash,
 	FieldProcessedBlobHash,
 	FieldContentSummary,
@@ -85,6 +88,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus string
+	// DefaultSizeBytes holds the default value on creation for the "size_bytes" field.
+	DefaultSizeBytes int64
 	// OriginalBlobHashValidator is a validator for the "original_blob_hash" field. It is called by the builders before save.
 	OriginalBlobHashValidator func(string) error
 	// ProcessedBlobHashValidator is a validator for the "processed_blob_hash" field. It is called by the builders before save.
@@ -135,6 +140,11 @@ func BySource(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// BySizeBytes orders the results by the size_bytes field.
+func BySizeBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSizeBytes, opts...).ToFunc()
 }
 
 // ByOriginalBlobHash orders the results by the original_blob_hash field.

@@ -66,6 +66,20 @@ func (csc *ContentSourceCreate) SetNillableStatus(s *string) *ContentSourceCreat
 	return csc
 }
 
+// SetSizeBytes sets the "size_bytes" field.
+func (csc *ContentSourceCreate) SetSizeBytes(i int64) *ContentSourceCreate {
+	csc.mutation.SetSizeBytes(i)
+	return csc
+}
+
+// SetNillableSizeBytes sets the "size_bytes" field if the given value is not nil.
+func (csc *ContentSourceCreate) SetNillableSizeBytes(i *int64) *ContentSourceCreate {
+	if i != nil {
+		csc.SetSizeBytes(*i)
+	}
+	return csc
+}
+
 // SetOriginalBlobHash sets the "original_blob_hash" field.
 func (csc *ContentSourceCreate) SetOriginalBlobHash(s string) *ContentSourceCreate {
 	csc.mutation.SetOriginalBlobHash(s)
@@ -206,6 +220,10 @@ func (csc *ContentSourceCreate) defaults() {
 		v := contentsource.DefaultStatus
 		csc.mutation.SetStatus(v)
 	}
+	if _, ok := csc.mutation.SizeBytes(); !ok {
+		v := contentsource.DefaultSizeBytes
+		csc.mutation.SetSizeBytes(v)
+	}
 	if _, ok := csc.mutation.CreatedAt(); !ok {
 		v := contentsource.DefaultCreatedAt()
 		csc.mutation.SetCreatedAt(v)
@@ -239,6 +257,9 @@ func (csc *ContentSourceCreate) check() error {
 	}
 	if _, ok := csc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "ContentSource.status"`)}
+	}
+	if _, ok := csc.mutation.SizeBytes(); !ok {
+		return &ValidationError{Name: "size_bytes", err: errors.New(`ent: missing required field "ContentSource.size_bytes"`)}
 	}
 	if _, ok := csc.mutation.OriginalBlobHash(); !ok {
 		return &ValidationError{Name: "original_blob_hash", err: errors.New(`ent: missing required field "ContentSource.original_blob_hash"`)}
@@ -316,6 +337,10 @@ func (csc *ContentSourceCreate) createSpec() (*ContentSource, *sqlgraph.CreateSp
 	if value, ok := csc.mutation.Status(); ok {
 		_spec.SetField(contentsource.FieldStatus, field.TypeString, value)
 		_node.Status = value
+	}
+	if value, ok := csc.mutation.SizeBytes(); ok {
+		_spec.SetField(contentsource.FieldSizeBytes, field.TypeInt64, value)
+		_node.SizeBytes = value
 	}
 	if value, ok := csc.mutation.OriginalBlobHash(); ok {
 		_spec.SetField(contentsource.FieldOriginalBlobHash, field.TypeString, value)
