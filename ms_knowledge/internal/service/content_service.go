@@ -152,6 +152,12 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
+	// Idempotency check: if already in the target status, return early
+	if content.Status == status {
+		s.logger.Printf("Content source %s already in status %s, skipping update", id, status)
+		return content, nil
+	}
+
 	// Validate status transition
 	if err := content.Status.ValidateTransition(status); err != nil {
 		s.logger.Printf("Invalid status transition for content source %s: %v", id, err)
