@@ -137,6 +137,17 @@ func (s *ContentService) GetContentSource(ctx context.Context, id uuid.UUID) (*d
 }
 
 func (s *ContentService) ListContentSources(ctx context.Context, filter domain.ContentSourceFilter) ([]*domain.ContentSource, error) {
+	// If filtering by specific space, validate it exists
+	if filter.SpaceID != uuid.Nil {
+		exists, err := s.spaceRepo.Exists(ctx, filter.SpaceID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check space existence: %w", err)
+		}
+		if !exists {
+			return nil, fmt.Errorf("space not found: %s", filter.SpaceID)
+		}
+	}
+
 	contents, err := s.contentRepo.List(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list content sources: %w", err)
