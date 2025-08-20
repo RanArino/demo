@@ -193,3 +193,44 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 
 	return content, nil
 }
+
+// ValidateSpaceContentIntegrity checks for orphaned content sources and returns validation results
+func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*SpaceContentIntegrityReport, error) {
+	// Get all content sources
+	allContent, err := s.contentRepo.List(ctx, domain.ContentSourceFilter{Limit: 10000}) // Large limit for validation
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all content: %w", err)
+	}
+
+	report := &SpaceContentIntegrityReport{
+		TotalContentSources: len(allContent),
+		OrphanedContent:     []uuid.UUID{},
+		ValidatedSpaces:     make(map[uuid.UUID]int),
+	}
+
+	// Check each content source's space
+	for _, content := range allContent {
+		exists, err := s.spaceRepo.Exists(ctx, content.SpaceID)
+		if err != nil {
+			s.logger.Printf("Error checking space %s for content %s: %v", content.SpaceID, content.ID, err)
+			continue
+		}
+		
+		if !exists {
+			report.OrphanedContent = append(report.OrphanedContent, content.ID)
+		} else {
+			report.ValidatedSpaces[content.SpaceID]++
+		}
+	}
+
+	report.OrphanedCount = len(report.OrphanedContent)
+	return report, nil
+}
+
+// SpaceContentIntegrityReport represents the results of space-content validation
+type SpaceContentIntegrityReport struct {
+	TotalContentSources int                `json:"total_content_sources"`
+	OrphanedCount       int                `json:"orphaned_count"`
+	OrphanedContent     []uuid.UUID        `json:"orphaned_content_ids"`
+	ValidatedSpaces     map[uuid.UUID]int  `json:"validated_spaces"` // spaceID -> content count
+}
