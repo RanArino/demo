@@ -167,9 +167,12 @@ func (r *spaceRepository) GetWithStats(ctx context.Context, id uuid.UUID) (*doma
 	}
 
 	stats := domain.SpaceStats{
-		ContentCount:   int64(contentCount),
-		LinkCount:      linkCount,
-		LastActivityAt: lastActivityAt,
+		ContentCount:      int64(contentCount),
+		LinkCount:         linkCount,
+		TotalSizeBytes:    totalSizeBytes,
+		LastActivityAt:    lastActivityAt,
+		ContentByStatus:   contentByStatus,
+		ProcessingStats:   processingStats,
 	}
 
 	return &domain.SpaceWithStats{
