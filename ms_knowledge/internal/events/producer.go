@@ -48,19 +48,45 @@ func (p *Producer) Close() {
 	p.client.Close()
 }
 
-// ProduceJSON marshals v as JSON and produces it to topic.
+// ProduceJSON marshals v as JSON and produces it to topic with delivery confirmation.
 func (p *Producer) ProduceJSON(ctx context.Context, topic string, key string, v any) error {
 	if p == nil || p.client == nil {
 		return fmt.Errorf("producer not initialized")
 	}
+	
 	bytes, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Errorf("marshal event: %w", err)
 	}
+	
 	msg := &kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Key:            []byte(key),
 		Value:          bytes,
 	}
-	return p.client.Produce(msg, nil)
+
+	// Create a channel to receive delivery report
+	deliveryChan := make(chan kafka.Event, 1)
+	
+	// Produce message with delivery channel
+	err = p.client.Produce(msg, deliveryChan)
+	if err != nil {
+		close(deliveryChan)
+		return fmt.Errorf("failed to produce message: %w", err)
+	}
+
+	// Wait for delivery confirmation or context timeout
+	select {
+	case <-ctx.Done():
+		close(deliveryChan)
+		return ctx.Err()
+	case e := <-deliveryChan:
+		close(deliveryChan)
+		m := e.(*kafka.Message)
+		if m.TopicPartition.Error != nil {
+			return fmt.Errorf("delivery failed: %w", m.TopicPartition.Error)
+		}
+		// Successfully delivered
+		return nil
+	}
 }
