@@ -18,12 +18,18 @@ type Producer struct {
 // NewProducer builds a new Kafka producer using Confluent Cloud SASL/SSL configuration
 func NewProducer(cfg *config.Config) (*Producer, error) {
 	conf := kafka.ConfigMap{
-		"bootstrap.servers": cfg.Kafka.Brokers,
-		"security.protocol": cfg.Kafka.SecurityProtocol, // SASL_SSL
-		"sasl.mechanisms":   "PLAIN",
-		"sasl.username":     cfg.Kafka.SaslUsername,
-		"sasl.password":     cfg.Kafka.SaslPassword,
-		"acks":              "all",
+		"bootstrap.servers":        cfg.Kafka.Brokers,
+		"security.protocol":        cfg.Kafka.SecurityProtocol, // SASL_SSL
+		"sasl.mechanisms":          "PLAIN",
+		"sasl.username":            cfg.Kafka.SaslUsername,
+		"sasl.password":            cfg.Kafka.SaslPassword,
+		"acks":                     "all",      // Wait for all in-sync replicas
+		"retries":                  "10",       // Retry failed sends
+		"retry.backoff.ms":         "100",      // Backoff between retries
+		"request.timeout.ms":       "30000",    // 30 second timeout
+		"delivery.timeout.ms":      "300000",   // 5 minute total delivery timeout
+		"max.in.flight.requests.per.connection": "5", // Pipeline for performance
+		"enable.idempotence":       "true",     // Exactly-once semantics
 	}
 
 	client, err := kafka.NewProducer(&conf)
