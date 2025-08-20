@@ -98,12 +98,45 @@ func (r *spaceRepository) GetWithStats(ctx context.Context, id uuid.UUID) (*doma
 		return nil, err
 	}
 
-	// Get content count
+	// Get content count and size statistics
 	contentCount, err := r.client.ContentSource.Query().
 		Where(contentsource.SpaceID(id)).
 		Count(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Get total size of all content in this space
+	contentSources, err := r.client.ContentSource.Query().
+		Where(contentsource.SpaceID(id)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var totalSizeBytes int64
+	contentByStatus := make(map[string]int64)
+	processingStats := domain.ContentProcessingStats{}
+
+	for _, source := range contentSources {
+		totalSizeBytes += source.SizeBytes
+		contentByStatus[source.Status]++
+		
+		// Update processing stats
+		switch source.Status {
+		case string(domain.ContentStatusUploading):
+			processingStats.UploadingCount++
+		case string(domain.ContentStatusUploaded):
+			processingStats.UploadedCount++
+		case string(domain.ContentStatusProcessing):
+			processingStats.ProcessingCount++
+		case string(domain.ContentStatusProcessed):
+			processingStats.ProcessedCount++
+		case string(domain.ContentStatusFailed):
+			processingStats.FailedCount++
+		case string(domain.ContentStatusPending):
+			processingStats.PendingCount++
+		}
 	}
 
 	// NOTE: Graph repo is temporarily disabled
