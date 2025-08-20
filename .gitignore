@@ -4,11 +4,11 @@ test-files/
 .env.local
 notes/
 Todo
-.serena/
 
-# IDE
-.cursor/
 .vscode/
+.cursor/
+.gemini/
+.claude/
 
 # Node / Next.js
 node_modules/

@@ -61,7 +61,8 @@ Our architecture is built on a hybrid communication model:
 │   ├── server/          \# gRPC and WebSocket server handlers  
 │   └── middleware/      \# Common middleware (e.g., auth)  
 ├── tests/               \# Test files  
-└── requirements.txt
+├── pyproject.toml       # Project dependencies
+└── ...
 
 ## **Layer Responsibilities**
 
