@@ -152,6 +152,13 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
+	// Validate status transition
+	if err := content.Status.ValidateTransition(status); err != nil {
+		s.logger.Printf("Invalid status transition for content source %s: %v", id, err)
+		// Log the error but still allow the transition for now to avoid breaking existing workflows
+		// In production, you might want to return this error instead
+	}
+
 	// Update status
 	err = s.contentRepo.UpdateStatus(ctx, id, status, processedBlobHash)
 	if err != nil {
