@@ -1,11 +1,22 @@
 import json
 import logging
+import time
+from uuid import UUID
+from datetime import datetime
 from confluent_kafka import Producer
 from app.config.config import settings
 from app.config.topics import get_document_processed_topic
 from app.domain.events import DocumentProcessedEvent
 
 logger = logging.getLogger(__name__)
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            return str(obj)
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 class KafkaProducer:
     def __init__(self):
@@ -23,7 +34,10 @@ class KafkaProducer:
         self.topic = get_document_processed_topic()
 
     def produce_document_processed_event(self, event: DocumentProcessedEvent):
-        message = json.dumps(event.model_dump(), default=str).encode('utf-8')
+        message = json.dumps(
+            event.model_dump(),
+            cls=CustomJSONEncoder
+        ).encode('utf-8')
 
         delivery_error = None
 
@@ -35,6 +49,7 @@ class KafkaProducer:
         max_retries = 3
         backoff = 0.5
         for attempt in range(1, max_retries + 1):
+            delivery_error = None  # Reset error state before each attempt
             try:
                 self.producer.produce(self.topic, value=message, on_delivery=delivery_report)
                 self.producer.poll(0)
