@@ -30,10 +30,22 @@ type Space struct {
 
 // SpaceStats represents aggregated statistics for a space
 type SpaceStats struct {
-	ContentCount   int64     `json:"content_count"`
-	LinkCount      int64     `json:"link_count"`
-	TotalSizeBytes int64     `json:"total_size_bytes"`
-	LastActivityAt time.Time `json:"last_activity_at"`
+	ContentCount      int64                    `json:"content_count"`
+	LinkCount         int64                    `json:"link_count"`
+	TotalSizeBytes    int64                    `json:"total_size_bytes"`
+	LastActivityAt    time.Time                `json:"last_activity_at"`
+	ContentByStatus   map[string]int64         `json:"content_by_status"`
+	ProcessingStats   ContentProcessingStats   `json:"processing_stats"`
+}
+
+// ContentProcessingStats represents processing-related statistics
+type ContentProcessingStats struct {
+	UploadingCount  int64 `json:"uploading_count"`
+	UploadedCount   int64 `json:"uploaded_count"`
+	ProcessingCount int64 `json:"processing_count"`
+	ProcessedCount  int64 `json:"processed_count"`
+	FailedCount     int64 `json:"failed_count"`
+	PendingCount    int64 `json:"pending_count"`
 }
 
 // SpaceWithStats represents a space with its statistics
