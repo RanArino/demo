@@ -52,13 +52,23 @@ export default function ListView({
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
 
+        if (sortConfig.key === 'created_at' || sortConfig.key === 'last_updated_at') {
+          // Ensure values are parsed as dates for correct comparison
+          const aDate = new Date(aValue as string | Date);
+          const bDate = new Date(bValue as string | Date);
+          return sortConfig.direction === 'ascending'
+            ? aDate.getTime() - bDate.getTime()
+            : bDate.getTime() - aDate.getTime();
+        }
+
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
-        } else if (aValue instanceof Date && bValue instanceof Date) {
-          return sortConfig.direction === 'ascending' ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime();
         }
+        
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+        }
+
         return 0;
       });
     }
