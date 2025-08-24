@@ -1,26 +1,64 @@
-export default function SpacesPage() {
-  const spaces = [
-    { id: 1, name: 'Knowledge Base', description: 'A space for all your documents and notes.' },
-    { id: 2, name: 'Project Alpha', description: 'Collaboration space for Project Alpha.' },
-    { id: 3, name: 'Personal Journal', description: 'Your private space for thoughts and ideas.' },
-    { id: 4, name: 'Team Meetings', description: 'Archive of all team meeting recordings and notes.' },
-  ];
+import { Suspense } from 'react';
+import { searchSpaces } from '@/api/actions/spaceActions';
+import SpacesClientPage from './SpacesClientPage';
+import SpacesLoading from './loading';
 
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">
-          My Spaces
-        </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {spaces.map((space) => (
-            <div key={space.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">{space.name}</h2>
-              <p className="text-gray-600">{space.description}</p>
-            </div>
-          ))}
+interface SearchParams {
+  q?: string;
+  keywords?: string | string[];
+  page?: string;
+  pageSize?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+export default async function SpacesPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  // Parse search parameters
+  const filters = {
+    q: searchParams.q,
+    keywords: Array.isArray(searchParams.keywords) 
+      ? searchParams.keywords 
+      : searchParams.keywords?.split(',').filter(Boolean),
+    page: searchParams.page ? parseInt(searchParams.page) : 1,
+    pageSize: searchParams.pageSize ? parseInt(searchParams.pageSize) : 20,
+    sortBy: searchParams.sortBy as any,
+    sortOrder: searchParams.sortOrder as any,
+  };
+
+  // Fetch initial spaces data
+  const result = await searchSpaces(filters);
+  
+  // Handle error state
+  if (!result.ok) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-destructive mb-2">
+            Failed to load spaces
+          </h2>
+          <p className="text-muted-foreground">
+            {result.error?.message || 'An unexpected error occurred'}
+          </p>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  const { spaces = [], totalCount = 0, page = 1, pageSize = 20 } = result.data || {};
+
+  return (
+    <Suspense fallback={<SpacesLoading />}>
+      <SpacesClientPage
+        initialSpaces={spaces}
+        initialFilters={filters}
+        totalCount={totalCount}
+        currentPage={page}
+        pageSize={pageSize}
+      />
+    </Suspense>
   );
 }
