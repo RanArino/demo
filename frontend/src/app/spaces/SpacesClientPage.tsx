@@ -21,9 +21,29 @@ export default function SpacesClientPage({ initialSpaces }: SpacesClientPageProp
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 
+  const updateURLParams = (term: string, keywords: string[]) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (term && term.trim().length > 0) {
+      url.searchParams.set('q', term.trim());
+    } else {
+      url.searchParams.delete('q');
+    }
+    if (keywords.length > 0) {
+      url.searchParams.set('k', keywords.join(','));
+    } else {
+      url.searchParams.delete('k');
+    }
+    window.history.replaceState(null, '', url.toString());
+  };
+
   useEffect(() => {
     setSpaces(initialSpaces);
   }, [initialSpaces]);
+
+  useEffect(() => {
+    updateURLParams(searchTerm, selectedKeywords);
+  }, [searchTerm, selectedKeywords]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);

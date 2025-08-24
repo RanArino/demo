@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -6,14 +8,14 @@ export default function Home() {
           Knowledge Exploration Platform
         </h1>
         <p className="text-gray-600 mb-8">
-          Navigate to <a href="/spaces" className="text-blue-600 hover:underline">/spaces</a> to view the spaces page
+          Navigate to <Link href="/spaces" className="text-blue-600 hover:underline">/spaces</Link> to view the spaces page
         </p>
-        <a 
+        <Link 
           href="/spaces" 
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
         >
           Go to Spaces
-        </a>
+        </Link>
       </div>
     </div>
   );
