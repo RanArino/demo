@@ -67,9 +67,18 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 		return nil, "", fmt.Errorf("space not found")
 	}
 
+	// Derive owner for the content from context
+	var ownerUUID uuid.UUID
+	if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
+		if v, err := uuid.Parse(ownerIDStr); err == nil {
+			ownerUUID = v
+		}
+	}
+
 	// Create content source record
 	content := &domain.ContentSource{
 		SpaceID:   spaceID,
+		OwnerID:   ownerUUID,
 		Status:    domain.ContentStatusUploading,
 		MediaType: mimeType,
 		Title:     strings.TrimSpace(title),
@@ -142,6 +151,17 @@ func (s *ContentService) GetContentSource(ctx context.Context, id uuid.UUID) (*d
 }
 
 func (s *ContentService) ListContentSources(ctx context.Context, filter domain.ContentSourceFilter) ([]*domain.ContentSource, error) {
+	// Scope to caller when not admin and no explicit owner set
+	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
+		if filter.OwnerID == uuid.Nil {
+			if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
+				if ownerUUID, err := uuid.Parse(ownerIDStr); err == nil {
+					filter.OwnerID = ownerUUID
+				}
+			}
+		}
+	}
+
 	// If filtering by specific space, validate it exists
 	if filter.SpaceID != uuid.Nil {
 		exists, err := s.spaceRepo.Exists(ctx, filter.SpaceID)
@@ -220,7 +240,7 @@ func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*Sp
 			s.logger.Printf("Error checking space %s for content %s: %v", content.SpaceID, content.ID, err)
 			continue
 		}
-		
+
 		if !exists {
 			report.OrphanedContent = append(report.OrphanedContent, content.ID)
 		} else {
@@ -234,8 +254,8 @@ func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*Sp
 
 // SpaceContentIntegrityReport represents the results of space-content validation
 type SpaceContentIntegrityReport struct {
-	TotalContentSources int                `json:"total_content_sources"`
-	OrphanedCount       int                `json:"orphaned_count"`
-	OrphanedContent     []uuid.UUID        `json:"orphaned_content_ids"`
-	ValidatedSpaces     map[uuid.UUID]int  `json:"validated_spaces"` // spaceID -> content count
+	TotalContentSources int               `json:"total_content_sources"`
+	OrphanedCount       int               `json:"orphaned_count"`
+	OrphanedContent     []uuid.UUID       `json:"orphaned_content_ids"`
+	ValidatedSpaces     map[uuid.UUID]int `json:"validated_spaces"` // spaceID -> content count
 }

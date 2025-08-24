@@ -20,14 +20,16 @@ services:
 
   ms_knowledge:
     build:
-      context: ./ms_knowledge
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms_knowledge/Dockerfile
     ports:
       - "50052:50052"
     env_file:
       - ./ms_knowledge/.env.local
     environment:
       - GRPC_PORT=50052
+      - DISABLE_NEO4J=1
+      - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
       - DATABASE_URL=${DATABASE_URL}
       - NEO4J_URI=${NEO4J_URI}
       - NEO4J_USER=${NEO4J_USER}
@@ -91,6 +93,7 @@ services:
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/profile/setup
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/profile/setup
       - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
+      - MS_KNOWLEDGE_GRPC_URL_INTERNAL=ms_knowledge:50052
     depends_on:
       - ms_user
     restart: unless-stopped

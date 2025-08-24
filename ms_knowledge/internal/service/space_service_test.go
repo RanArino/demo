@@ -18,13 +18,14 @@ func TestCreateSpace_ValidationErrors(t *testing.T) {
 
 	ctx := context.Background()
 
-	if _, err := svc.CreateSpace(ctx, "", "desc", uuid.New().String()); err == nil {
+	if _, err := svc.CreateSpace(ctx, "", "desc"); err == nil {
 		t.Fatalf("expected error for empty title")
 	}
-	if _, err := svc.CreateSpace(ctx, "title", "desc", ""); err == nil {
+	if _, err := svc.CreateSpace(ctx, "title", "desc"); err == nil {
 		t.Fatalf("expected error for empty owner id")
 	}
-	if _, err := svc.CreateSpace(ctx, "title", "desc", "not-a-uuid"); err == nil {
+	ctxBad := context.WithValue(ctx, domain.OwnerIDKey, "not-a-uuid")
+	if _, err := svc.CreateSpace(ctxBad, "title", "desc"); err == nil {
 		t.Fatalf("expected error for invalid owner id format")
 	}
 }
@@ -37,8 +38,9 @@ func TestCreateSpace_Success(t *testing.T) {
 
 	ctx := context.Background()
 	owner := uuid.New().String()
+	ctxWith := context.WithValue(ctx, domain.OwnerIDKey, owner)
 
-	sp, err := svc.CreateSpace(ctx, "  My Space  ", "  Desc  ", owner)
+	sp, err := svc.CreateSpace(ctxWith, "  My Space  ", "  Desc  ")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

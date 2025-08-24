@@ -103,6 +103,10 @@ func (r *contentRepository) List(ctx context.Context, filter domain.ContentSourc
 		query = query.Where(contentsource.SpaceID(filter.SpaceID))
 	}
 
+	if filter.OwnerID != uuid.Nil {
+		query = query.Where(contentsource.OwnerID(filter.OwnerID))
+	}
+
 	// Handle title filter
 	if filter.Title != "" {
 		query = query.Where(contentsource.TitleContains(filter.Title))

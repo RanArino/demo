@@ -2,10 +2,8 @@ package server
 
 import (
 	"context"
-	"fmt"
 	userv1 "demo/ms_user/api/proto/v1"
 	"demo/ms_user/internal/domain"
-	"demo/ms_user/internal/middleware"
 	"demo/ms_user/internal/service"
 
 	"google.golang.org/protobuf/types/known/structpb"
