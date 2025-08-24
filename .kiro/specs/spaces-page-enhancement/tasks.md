@@ -17,8 +17,6 @@
     - Remove tooltip for GalleryView (frontend/src/components/ui/tooltip.tsx)
     - Change import path of toaster (frontend/src/app/layout.tsx)
 
------
-
 - [ ] 2. Implement enhanced type definitions and data models
   - Create enhanced Space interface with new fields for canvas data and collaboration settings
   - Implement ContentSource interface for document management
