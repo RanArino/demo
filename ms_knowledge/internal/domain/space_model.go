@@ -30,12 +30,12 @@ type Space struct {
 
 // SpaceStats represents aggregated statistics for a space
 type SpaceStats struct {
-	ContentCount      int64                    `json:"content_count"`
-	LinkCount         int64                    `json:"link_count"`
-	TotalSizeBytes    int64                    `json:"total_size_bytes"`
-	LastActivityAt    time.Time                `json:"last_activity_at"`
-	ContentByStatus   map[string]int64         `json:"content_by_status"`
-	ProcessingStats   ContentProcessingStats   `json:"processing_stats"`
+	ContentCount    int64                  `json:"content_count"`
+	LinkCount       int64                  `json:"link_count"`
+	TotalSizeBytes  int64                  `json:"total_size_bytes"`
+	LastActivityAt  time.Time              `json:"last_activity_at"`
+	ContentByStatus map[string]int64       `json:"content_by_status"`
+	ProcessingStats ContentProcessingStats `json:"processing_stats"`
 }
 
 // ContentProcessingStats represents processing-related statistics
@@ -81,3 +81,13 @@ type SpaceRepository interface {
 	Search(ctx context.Context, query string, filter SpaceFilter) ([]*Space, error)
 	Exists(ctx context.Context, id uuid.UUID) (bool, error)
 }
+
+// Context keys used across services
+type ContextKey string
+
+const (
+	// OwnerIDKey carries the resolved internal user UUID as string in context
+	OwnerIDKey ContextKey = "owner_id"
+	// RoleKey carries the caller's role (e.g., admin, user) from JWT
+	RoleKey ContextKey = "role"
+)

@@ -24,11 +24,11 @@ const (
 // ValidateStatusTransition checks if a status transition is valid
 func (current ContentStatus) ValidateTransition(next ContentStatus) error {
 	validTransitions := map[ContentStatus][]ContentStatus{
-		ContentStatusUploading: {ContentStatusUploaded, ContentStatusFailed},
-		ContentStatusUploaded:  {ContentStatusProcessing, ContentStatusFailed},
-		ContentStatusPending:   {ContentStatusProcessing, ContentStatusFailed},
+		ContentStatusUploading:  {ContentStatusUploaded, ContentStatusFailed},
+		ContentStatusUploaded:   {ContentStatusProcessing, ContentStatusFailed},
+		ContentStatusPending:    {ContentStatusProcessing, ContentStatusFailed},
 		ContentStatusProcessing: {ContentStatusProcessed, ContentStatusFailed},
-		ContentStatusProcessed:  {}, // Terminal state - no transitions allowed
+		ContentStatusProcessed:  {},                        // Terminal state - no transitions allowed
 		ContentStatusFailed:     {ContentStatusProcessing}, // Allow retry
 	}
 
@@ -66,6 +66,7 @@ type ContentSource struct {
 // ContentSourceFilter represents filters for listing content sources
 type ContentSourceFilter struct {
 	SpaceID       uuid.UUID
+	OwnerID       uuid.UUID
 	Title         string
 	Query         string // Searches title and content_summary
 	MediaType     string
