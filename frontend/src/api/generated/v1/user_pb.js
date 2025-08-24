@@ -2310,11 +2310,10 @@ proto.user.v1.UpdateUserRequest.prototype.toObject = function(opt_includeInstanc
  */
 proto.user.v1.UpdateUserRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    userId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    email: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    fullName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    username: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    role: jspb.Message.getFieldWithDefault(msg, 5, "")
+    email: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    fullName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    username: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    role: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -2353,21 +2352,17 @@ proto.user.v1.UpdateUserRequest.deserializeBinaryFromReader = function(msg, read
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setUserId(value);
+      msg.setEmail(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setEmail(value);
+      msg.setFullName(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setFullName(value);
-      break;
-    case 4:
-      var value = /** @type {string} */ (reader.readString());
       msg.setUsername(value);
       break;
-    case 5:
+    case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setRole(value);
       break;
@@ -2400,8 +2395,8 @@ proto.user.v1.UpdateUserRequest.prototype.serializeBinary = function() {
  */
 proto.user.v1.UpdateUserRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getUserId();
-  if (f.length > 0) {
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
     writer.writeString(
       1,
       f
@@ -2428,21 +2423,14 @@ proto.user.v1.UpdateUserRequest.serializeBinaryToWriter = function(message, writ
       f
     );
   }
-  f = /** @type {string} */ (jspb.Message.getField(message, 5));
-  if (f != null) {
-    writer.writeString(
-      5,
-      f
-    );
-  }
 };
 
 
 /**
- * optional string user_id = 1;
+ * optional string email = 1;
  * @return {string}
  */
-proto.user.v1.UpdateUserRequest.prototype.getUserId = function() {
+proto.user.v1.UpdateUserRequest.prototype.getEmail = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2451,26 +2439,8 @@ proto.user.v1.UpdateUserRequest.prototype.getUserId = function() {
  * @param {string} value
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
-proto.user.v1.UpdateUserRequest.prototype.setUserId = function(value) {
-  return jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional string email = 2;
- * @return {string}
- */
-proto.user.v1.UpdateUserRequest.prototype.getEmail = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.user.v1.UpdateUserRequest} returns this
- */
 proto.user.v1.UpdateUserRequest.prototype.setEmail = function(value) {
-  return jspb.Message.setField(this, 2, value);
+  return jspb.Message.setField(this, 1, value);
 };
 
 
@@ -2479,7 +2449,7 @@ proto.user.v1.UpdateUserRequest.prototype.setEmail = function(value) {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.clearEmail = function() {
-  return jspb.Message.setField(this, 2, undefined);
+  return jspb.Message.setField(this, 1, undefined);
 };
 
 
@@ -2488,16 +2458,16 @@ proto.user.v1.UpdateUserRequest.prototype.clearEmail = function() {
  * @return {boolean}
  */
 proto.user.v1.UpdateUserRequest.prototype.hasEmail = function() {
-  return jspb.Message.getField(this, 2) != null;
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional string full_name = 3;
+ * optional string full_name = 2;
  * @return {string}
  */
 proto.user.v1.UpdateUserRequest.prototype.getFullName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
@@ -2506,7 +2476,7 @@ proto.user.v1.UpdateUserRequest.prototype.getFullName = function() {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.setFullName = function(value) {
-  return jspb.Message.setField(this, 3, value);
+  return jspb.Message.setField(this, 2, value);
 };
 
 
@@ -2515,7 +2485,7 @@ proto.user.v1.UpdateUserRequest.prototype.setFullName = function(value) {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.clearFullName = function() {
-  return jspb.Message.setField(this, 3, undefined);
+  return jspb.Message.setField(this, 2, undefined);
 };
 
 
@@ -2524,16 +2494,16 @@ proto.user.v1.UpdateUserRequest.prototype.clearFullName = function() {
  * @return {boolean}
  */
 proto.user.v1.UpdateUserRequest.prototype.hasFullName = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional string username = 4;
+ * optional string username = 3;
  * @return {string}
  */
 proto.user.v1.UpdateUserRequest.prototype.getUsername = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
@@ -2542,7 +2512,7 @@ proto.user.v1.UpdateUserRequest.prototype.getUsername = function() {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.setUsername = function(value) {
-  return jspb.Message.setField(this, 4, value);
+  return jspb.Message.setField(this, 3, value);
 };
 
 
@@ -2551,7 +2521,7 @@ proto.user.v1.UpdateUserRequest.prototype.setUsername = function(value) {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.clearUsername = function() {
-  return jspb.Message.setField(this, 4, undefined);
+  return jspb.Message.setField(this, 3, undefined);
 };
 
 
@@ -2560,16 +2530,16 @@ proto.user.v1.UpdateUserRequest.prototype.clearUsername = function() {
  * @return {boolean}
  */
 proto.user.v1.UpdateUserRequest.prototype.hasUsername = function() {
-  return jspb.Message.getField(this, 4) != null;
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * optional string role = 5;
+ * optional string role = 4;
  * @return {string}
  */
 proto.user.v1.UpdateUserRequest.prototype.getRole = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
 
@@ -2578,7 +2548,7 @@ proto.user.v1.UpdateUserRequest.prototype.getRole = function() {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.setRole = function(value) {
-  return jspb.Message.setField(this, 5, value);
+  return jspb.Message.setField(this, 4, value);
 };
 
 
@@ -2587,7 +2557,7 @@ proto.user.v1.UpdateUserRequest.prototype.setRole = function(value) {
  * @return {!proto.user.v1.UpdateUserRequest} returns this
  */
 proto.user.v1.UpdateUserRequest.prototype.clearRole = function() {
-  return jspb.Message.setField(this, 5, undefined);
+  return jspb.Message.setField(this, 4, undefined);
 };
 
 
@@ -2596,7 +2566,7 @@ proto.user.v1.UpdateUserRequest.prototype.clearRole = function() {
  * @return {boolean}
  */
 proto.user.v1.UpdateUserRequest.prototype.hasRole = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -2783,7 +2753,7 @@ proto.user.v1.DeleteUserRequest.prototype.toObject = function(opt_includeInstanc
  */
 proto.user.v1.DeleteUserRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    userId: jspb.Message.getFieldWithDefault(msg, 1, "")
+
   };
 
   if (includeInstance) {
@@ -2820,10 +2790,6 @@ proto.user.v1.DeleteUserRequest.deserializeBinaryFromReader = function(msg, read
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setUserId(value);
-      break;
     default:
       reader.skipField();
       break;
@@ -2853,31 +2819,6 @@ proto.user.v1.DeleteUserRequest.prototype.serializeBinary = function() {
  */
 proto.user.v1.DeleteUserRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getUserId();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * optional string user_id = 1;
- * @return {string}
- */
-proto.user.v1.DeleteUserRequest.prototype.getUserId = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.user.v1.DeleteUserRequest} returns this
- */
-proto.user.v1.DeleteUserRequest.prototype.setUserId = function(value) {
-  return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
@@ -3014,10 +2955,9 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.toObject = function(opt_inc
  */
 proto.user.v1.UpdateUserPreferencesRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    userId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    theme: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    language: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    timezone: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    theme: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    language: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    timezone: jspb.Message.getFieldWithDefault(msg, 3, ""),
     canvasSettings: (f = msg.getCanvasSettings()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
     notificationSettings: (f = msg.getNotificationSettings()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
     accessibilitySettings: (f = msg.getAccessibilitySettings()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
@@ -3059,31 +2999,27 @@ proto.user.v1.UpdateUserPreferencesRequest.deserializeBinaryFromReader = functio
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setUserId(value);
+      msg.setTheme(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setTheme(value);
+      msg.setLanguage(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setLanguage(value);
-      break;
-    case 4:
-      var value = /** @type {string} */ (reader.readString());
       msg.setTimezone(value);
       break;
-    case 5:
+    case 4:
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setCanvasSettings(value);
       break;
-    case 6:
+    case 5:
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setNotificationSettings(value);
       break;
-    case 7:
+    case 6:
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setAccessibilitySettings(value);
@@ -3117,8 +3053,8 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.serializeBinary = function(
  */
 proto.user.v1.UpdateUserPreferencesRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getUserId();
-  if (f.length > 0) {
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
     writer.writeString(
       1,
       f
@@ -3138,17 +3074,10 @@ proto.user.v1.UpdateUserPreferencesRequest.serializeBinaryToWriter = function(me
       f
     );
   }
-  f = /** @type {string} */ (jspb.Message.getField(message, 4));
-  if (f != null) {
-    writer.writeString(
-      4,
-      f
-    );
-  }
   f = message.getCanvasSettings();
   if (f != null) {
     writer.writeMessage(
-      5,
+      4,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
@@ -3156,7 +3085,7 @@ proto.user.v1.UpdateUserPreferencesRequest.serializeBinaryToWriter = function(me
   f = message.getNotificationSettings();
   if (f != null) {
     writer.writeMessage(
-      6,
+      5,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
@@ -3164,7 +3093,7 @@ proto.user.v1.UpdateUserPreferencesRequest.serializeBinaryToWriter = function(me
   f = message.getAccessibilitySettings();
   if (f != null) {
     writer.writeMessage(
-      7,
+      6,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
@@ -3173,10 +3102,10 @@ proto.user.v1.UpdateUserPreferencesRequest.serializeBinaryToWriter = function(me
 
 
 /**
- * optional string user_id = 1;
+ * optional string theme = 1;
  * @return {string}
  */
-proto.user.v1.UpdateUserPreferencesRequest.prototype.getUserId = function() {
+proto.user.v1.UpdateUserPreferencesRequest.prototype.getTheme = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -3185,26 +3114,8 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.getUserId = function() {
  * @param {string} value
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
  */
-proto.user.v1.UpdateUserPreferencesRequest.prototype.setUserId = function(value) {
-  return jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional string theme = 2;
- * @return {string}
- */
-proto.user.v1.UpdateUserPreferencesRequest.prototype.getTheme = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
- */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.setTheme = function(value) {
-  return jspb.Message.setField(this, 2, value);
+  return jspb.Message.setField(this, 1, value);
 };
 
 
@@ -3213,7 +3124,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.setTheme = function(value) 
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.clearTheme = function() {
-  return jspb.Message.setField(this, 2, undefined);
+  return jspb.Message.setField(this, 1, undefined);
 };
 
 
@@ -3222,16 +3133,16 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.clearTheme = function() {
  * @return {boolean}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.hasTheme = function() {
-  return jspb.Message.getField(this, 2) != null;
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional string language = 3;
+ * optional string language = 2;
  * @return {string}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.getLanguage = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
@@ -3240,7 +3151,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.getLanguage = function() {
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.setLanguage = function(value) {
-  return jspb.Message.setField(this, 3, value);
+  return jspb.Message.setField(this, 2, value);
 };
 
 
@@ -3249,7 +3160,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.setLanguage = function(valu
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.clearLanguage = function() {
-  return jspb.Message.setField(this, 3, undefined);
+  return jspb.Message.setField(this, 2, undefined);
 };
 
 
@@ -3258,16 +3169,16 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.clearLanguage = function() 
  * @return {boolean}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.hasLanguage = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional string timezone = 4;
+ * optional string timezone = 3;
  * @return {string}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.getTimezone = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
@@ -3276,7 +3187,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.getTimezone = function() {
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.setTimezone = function(value) {
-  return jspb.Message.setField(this, 4, value);
+  return jspb.Message.setField(this, 3, value);
 };
 
 
@@ -3285,7 +3196,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.setTimezone = function(valu
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.clearTimezone = function() {
-  return jspb.Message.setField(this, 4, undefined);
+  return jspb.Message.setField(this, 3, undefined);
 };
 
 
@@ -3294,17 +3205,17 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.clearTimezone = function() 
  * @return {boolean}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.hasTimezone = function() {
-  return jspb.Message.getField(this, 4) != null;
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * optional google.protobuf.Struct canvas_settings = 5;
+ * optional google.protobuf.Struct canvas_settings = 4;
  * @return {?proto.google.protobuf.Struct}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.getCanvasSettings = function() {
   return /** @type{?proto.google.protobuf.Struct} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 5));
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 4));
 };
 
 
@@ -3313,7 +3224,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.getCanvasSettings = functio
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
 */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.setCanvasSettings = function(value) {
-  return jspb.Message.setWrapperField(this, 5, value);
+  return jspb.Message.setWrapperField(this, 4, value);
 };
 
 
@@ -3331,17 +3242,17 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.clearCanvasSettings = funct
  * @return {boolean}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.hasCanvasSettings = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
 /**
- * optional google.protobuf.Struct notification_settings = 6;
+ * optional google.protobuf.Struct notification_settings = 5;
  * @return {?proto.google.protobuf.Struct}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.getNotificationSettings = function() {
   return /** @type{?proto.google.protobuf.Struct} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 6));
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 5));
 };
 
 
@@ -3350,7 +3261,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.getNotificationSettings = f
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
 */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.setNotificationSettings = function(value) {
-  return jspb.Message.setWrapperField(this, 6, value);
+  return jspb.Message.setWrapperField(this, 5, value);
 };
 
 
@@ -3368,17 +3279,17 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.clearNotificationSettings =
  * @return {boolean}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.hasNotificationSettings = function() {
-  return jspb.Message.getField(this, 6) != null;
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
 /**
- * optional google.protobuf.Struct accessibility_settings = 7;
+ * optional google.protobuf.Struct accessibility_settings = 6;
  * @return {?proto.google.protobuf.Struct}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.getAccessibilitySettings = function() {
   return /** @type{?proto.google.protobuf.Struct} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 7));
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 6));
 };
 
 
@@ -3387,7 +3298,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.getAccessibilitySettings = 
  * @return {!proto.user.v1.UpdateUserPreferencesRequest} returns this
 */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.setAccessibilitySettings = function(value) {
-  return jspb.Message.setWrapperField(this, 7, value);
+  return jspb.Message.setWrapperField(this, 6, value);
 };
 
 
@@ -3405,7 +3316,7 @@ proto.user.v1.UpdateUserPreferencesRequest.prototype.clearAccessibilitySettings 
  * @return {boolean}
  */
 proto.user.v1.UpdateUserPreferencesRequest.prototype.hasAccessibilitySettings = function() {
-  return jspb.Message.getField(this, 7) != null;
+  return jspb.Message.getField(this, 6) != null;
 };
 
 
