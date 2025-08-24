@@ -39,6 +39,12 @@ type Config struct {
 		BucketSourceName    string
 		BucketProcessedName string
 	}
+	Auth struct {
+		ClerkSecretKey string
+	}
+	Services struct {
+		UserGRPCAddr string
+	}
 }
 
 // SecretKeys defines the keys needed from the secret manager
@@ -58,6 +64,8 @@ var SecretKeys = []string{
 	"R2_REGION",
 	"R2_BUCKET_SOURCE_NAME",
 	"R2_BUCKET_PROCESSED_NAME",
+	"CLERK_SECRET_KEY",
+	"MS_USER_GRPC_URL_INTERNAL",
 }
 
 // Load loads the configuration from the secret manager with fallback to environment variables.
@@ -90,6 +98,12 @@ func Load() (*Config, error) {
 	cfg.R2.Region = getEnvOrDefault("R2_REGION", "auto")
 	cfg.R2.BucketSourceName = getEnvOrDefault("R2_BUCKET_SOURCE_NAME", "knowledge-source")
 	cfg.R2.BucketProcessedName = getEnvOrDefault("R2_BUCKET_PROCESSED_NAME", "knowledge-processed")
+
+	// Auth configuration
+	cfg.Auth.ClerkSecretKey = getEnvOrDefault("CLERK_SECRET_KEY", "")
+
+	// Services configuration
+	cfg.Services.UserGRPCAddr = getEnvOrDefault("MS_USER_GRPC_URL_INTERNAL", "localhost:50051")
 
 	return cfg, nil
 }
@@ -148,6 +162,12 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	config.R2.BucketSourceName = secretValues["R2_BUCKET_SOURCE_NAME"]
 	config.R2.BucketProcessedName = secretValues["R2_BUCKET_PROCESSED_NAME"]
 
+	// Auth configuration
+	config.Auth.ClerkSecretKey = secretValues["CLERK_SECRET_KEY"]
+
+	// Services configuration
+	config.Services.UserGRPCAddr = secretValues["MS_USER_GRPC_URL_INTERNAL"]
+
 	return config, nil
 }
 
@@ -181,6 +201,12 @@ func loadFromEnv() (*Config, error) {
 	config.R2.Region = os.Getenv("R2_REGION")
 	config.R2.BucketSourceName = os.Getenv("R2_BUCKET_SOURCE_NAME")
 	config.R2.BucketProcessedName = os.Getenv("R2_BUCKET_PROCESSED_NAME")
+
+	// Auth configuration
+	config.Auth.ClerkSecretKey = os.Getenv("CLERK_SECRET_KEY")
+
+	// Services configuration
+	config.Services.UserGRPCAddr = getEnvOrDefault("MS_USER_GRPC_URL_INTERNAL", "localhost:50051")
 
 	return config, nil
 }
