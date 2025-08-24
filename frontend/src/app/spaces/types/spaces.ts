@@ -6,9 +6,13 @@ export interface Space {
   title: string
   description: string
   icon?: string
+  cover_image?: string
   keywords: string[]
-  createdAt: string
-  updatedAt: string
+  access_level: 'private' | 'shared' | 'public'
+  document_count: number
+  total_size_bytes: number
+  created_at: Date | string
+  last_updated_at: Date | string
   contentCount?: number
   userCount?: number
 }
