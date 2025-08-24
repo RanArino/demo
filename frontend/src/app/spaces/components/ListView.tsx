@@ -182,213 +182,205 @@ export default function ListView({
             </p>
           </div>
         ) : (
-          /* Table Container - Scrollable */
+          /* Single Table with Sticky Header - keeps columns perfectly aligned */
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col">
-            {/* Table Header - Fixed */}
-            <div className="flex-shrink-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-16">Icon</TableHead>
-                    <TableHead 
-                      onClick={() => requestSort('title')}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        Title
-                        {getSortIcon('title')}
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-gray-50">
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-16">Icon</TableHead>
+                  <TableHead
+                    onClick={() => requestSort('title')}
+                    className="cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Title
+                      {getSortIcon('title')}
+                    </div>
+                  </TableHead>
+                  <TableHead>Keywords</TableHead>
+                  <TableHead className="min-w-[200px]">Description</TableHead>
+                  <TableHead
+                    onClick={() => requestSort('document_count')}
+                    className="cursor-pointer hover:bg-gray-100 transition-colors text-center"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Documents
+                      {getSortIcon('document_count')}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    onClick={() => requestSort('created_at')}
+                    className="cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Created
+                      {getSortIcon('created_at')}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    onClick={() => requestSort('last_updated_at')}
+                    className="cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Updated
+                      {getSortIcon('last_updated_at')}
+                    </div>
+                  </TableHead>
+                  <TableHead>Access</TableHead>
+                  <TableHead className="w-20">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {sortedSpaces.map((space) => (
+                  <TableRow key={space.id} className="hover:bg-gray-50">
+                    <TableCell>
+                      <span className="text-2xl">{space.icon || '📚'}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <div
+                        onClick={() => handleEdit(space.id, 'title', space.title)}
+                        className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                      >
+                        {editingId === space.id && editedField === 'title' ? (
+                          <Input
+                            value={editedValue as string}
+                            onChange={handleChange}
+                            onBlur={() => handleSave(space.id)}
+                            className="h-8"
+                            autoFocus
+                          />
+                        ) : (
+                          <div>
+                            <button
+                              onClick={() => onSelect(space.id)}
+                              className="font-medium text-gray-900 hover:text-blue-600 text-left"
+                            >
+                              {space.title}
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </TableHead>
-                    <TableHead>Keywords</TableHead>
-                    <TableHead className="min-w-[200px]">Description</TableHead>
-                    <TableHead 
-                      onClick={() => requestSort('document_count')}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors text-center"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        Documents
-                        {getSortIcon('document_count')}
+                    </TableCell>
+
+                    <TableCell>
+                      <div
+                        onClick={() => handleEdit(space.id, 'keywords', space.keywords)}
+                        className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                      >
+                        {editingId === space.id && editedField === 'keywords' ? (
+                          <Input
+                            value={Array.isArray(editedValue) ? editedValue.join(', ') : ''}
+                            onChange={handleChange}
+                            onBlur={() => handleSave(space.id)}
+                            className="h-8"
+                            placeholder="Enter keywords, separated by commas"
+                            autoFocus
+                          />
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {space.keywords.slice(0, 3).map((keyword) => (
+                              <Badge key={keyword} variant="outline" className="text-xs">
+                                {keyword}
+                              </Badge>
+                            ))}
+                            {space.keywords.length > 3 && (
+                              <Badge variant="outline" className="text-xs text-gray-400">
+                                +{space.keywords.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </TableHead>
-                    <TableHead 
-                      onClick={() => requestSort('created_at')}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Created
-                        {getSortIcon('created_at')}
+                    </TableCell>
+
+                    <TableCell>
+                      <div
+                        onClick={() => handleEdit(space.id, 'description', space.description || '')}
+                        className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                      >
+                        {editingId === space.id && editedField === 'description' ? (
+                          <Input
+                            value={editedValue as string}
+                            onChange={handleChange}
+                            onBlur={() => handleSave(space.id)}
+                            className="h-8"
+                            placeholder="Enter description"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="text-sm text-gray-600 line-clamp-2">
+                            {space.description}
+                          </span>
+                        )}
                       </div>
-                    </TableHead>
-                    <TableHead 
-                      onClick={() => requestSort('last_updated_at')}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        Updated
-                        {getSortIcon('last_updated_at')}
-                      </div>
-                    </TableHead>
-                    <TableHead>Access</TableHead>
-                    <TableHead className="w-20">Actions</TableHead>
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+                            {space.document_count || 0}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Documents in {space.title}</DialogTitle>
+                          </DialogHeader>
+                          <div className="text-center py-8">
+                            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-500">
+                              Document list view will be implemented here
+                            </p>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+
+                    <TableCell>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(space.created_at)}
+                      </span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(space.last_updated_at)}
+                      </span>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs capitalize ${getAccessColor(space.access_level)} flex items-center gap-1 w-fit`}
+                      >
+                        {getAccessIcon(space.access_level)}
+                        {space.access_level}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Space</DialogTitle>
+                          </DialogHeader>
+                          <EditSpaceForm space={space} />
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-              </Table>
-            </div>
-            
-            {/* Table Body - Scrollable */}
-            <div className="flex-1 overflow-auto">
-              <Table>
-                <TableBody>
-                  {sortedSpaces.map((space) => (
-                    <TableRow key={space.id} className="hover:bg-gray-50">
-                      <TableCell>
-                        <span className="text-2xl">{space.icon || '📚'}</span>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div 
-                          onClick={() => handleEdit(space.id, 'title', space.title)}
-                          className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
-                        >
-                          {editingId === space.id && editedField === 'title' ? (
-                            <Input 
-                              value={editedValue as string} 
-                              onChange={handleChange} 
-                              onBlur={() => handleSave(space.id)}
-                              className="h-8"
-                              autoFocus
-                            />
-                          ) : (
-                            <div>
-                              <button 
-                                onClick={() => onSelect(space.id)}
-                                className="font-medium text-gray-900 hover:text-blue-600 text-left"
-                              >
-                                {space.title}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div 
-                          onClick={() => handleEdit(space.id, 'keywords', space.keywords)}
-                          className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
-                        >
-                          {editingId === space.id && editedField === 'keywords' ? (
-                            <Input 
-                              value={Array.isArray(editedValue) ? editedValue.join(', ') : ''} 
-                              onChange={handleChange} 
-                              onBlur={() => handleSave(space.id)}
-                              className="h-8"
-                              placeholder="Enter keywords, separated by commas"
-                              autoFocus
-                            />
-                          ) : (
-                            <div className="flex flex-wrap gap-1">
-                              {space.keywords.slice(0, 3).map((keyword) => (
-                                <Badge key={keyword} variant="outline" className="text-xs">
-                                  {keyword}
-                                </Badge>
-                              ))}
-                              {space.keywords.length > 3 && (
-                                <Badge variant="outline" className="text-xs text-gray-400">
-                                  +{space.keywords.length - 3}
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div 
-                          onClick={() => handleEdit(space.id, 'description', space.description || '')}
-                          className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
-                        >
-                          {editingId === space.id && editedField === 'description' ? (
-                            <Input 
-                              value={editedValue as string} 
-                              onChange={handleChange} 
-                              onBlur={() => handleSave(space.id)}
-                              className="h-8"
-                              placeholder="Enter description"
-                              autoFocus
-                            />
-                          ) : (
-                            <span className="text-sm text-gray-600 line-clamp-2">
-                              {space.description}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="text-center">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                              {space.document_count || 0}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Documents in {space.title}</DialogTitle>
-                            </DialogHeader>
-                            <div className="text-center py-8">
-                              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                              <p className="text-gray-500">
-                                Document list view will be implemented here
-                              </p>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-
-                      <TableCell>
-                        <span className="text-sm text-gray-500">
-                          {formatDate(space.created_at)}
-                        </span>
-                      </TableCell>
-
-                      <TableCell>
-                        <span className="text-sm text-gray-500">
-                          {formatDate(space.last_updated_at)}
-                        </span>
-                      </TableCell>
-
-                      <TableCell>
-                        <Badge 
-                          variant="secondary" 
-                          className={`text-xs capitalize ${getAccessColor(space.access_level)} flex items-center gap-1 w-fit`}
-                        >
-                          {getAccessIcon(space.access_level)}
-                          {space.access_level}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Edit Space</DialogTitle>
-                            </DialogHeader>
-                            <EditSpaceForm space={space} />
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
