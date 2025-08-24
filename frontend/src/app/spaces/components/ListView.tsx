@@ -168,6 +168,8 @@ export default function ListView({
     );
   }
 
+  const TABLE_HEADER_BG = 'bg-gray-50';
+
   return (
     <div className="h-full flex flex-col">
       {/* Header - Fixed */}
@@ -195,8 +197,8 @@ export default function ListView({
           /* Single Table with Sticky Header - keeps columns perfectly aligned */
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col">
             <Table>
-              <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                <TableRow className="bg-gray-50">
+              <TableHeader className={`sticky top-0 z-10 ${TABLE_HEADER_BG}`}>
+                <TableRow className={TABLE_HEADER_BG}>
                   <TableHead className="w-16">Icon</TableHead>
                   <TableHead
                     onClick={() => requestSort('title')}
