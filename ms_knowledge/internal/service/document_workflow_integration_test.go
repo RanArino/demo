@@ -31,15 +31,16 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, uuid.New().String())
 
 	// Step 1: Create a space
-	space, err := spaceSvc.CreateSpace(ctx, "Test Space", "Integration test space", uuid.New().String())
+	space, err := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Integration test space")
 	if err != nil {
 		t.Fatalf("Failed to create space: %v", err)
 	}
 
 	// Step 2: Create upload URL
-	content, uploadURL, err := contentSvc.CreateUploadURL(ctx, space.ID, "test-document.pdf", "application/pdf", 1024, "Test Document")
+	content, uploadURL, err := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-document.pdf", "application/pdf", 1024, "Test Document")
 	if err != nil {
 		t.Fatalf("Failed to create upload URL: %v", err)
 	}
@@ -54,7 +55,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 
 	// Step 3: Confirm upload (simulates client completing upload)
 	originalHash := "original-blob-hash-123"
-	confirmedContent, err := contentSvc.ConfirmUpload(ctx, content.ID, originalHash)
+	confirmedContent, err := contentSvc.ConfirmUpload(ctxOwner, content.ID, originalHash)
 	if err != nil {
 		t.Fatalf("Failed to confirm upload: %v", err)
 	}
@@ -78,7 +79,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 
 	// Step 4: Simulate document processing (ms_document_process would do this)
 	// First, transition to PROCESSING status
-	processingContent, err := contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusProcessing, "", "")
+	processingContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
 	if err != nil {
 		t.Fatalf("Failed to update to processing status: %v", err)
 	}
@@ -89,7 +90,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 
 	// Step 5: Complete processing with successful result
 	processedHash := "processed-blob-hash-456"
-	processedContent, err := contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusProcessed, processedHash, "")
+	processedContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessed, processedHash, "")
 	if err != nil {
 		t.Fatalf("Failed to update to processed status: %v", err)
 	}
@@ -103,7 +104,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 	}
 
 	// Step 6: Verify space statistics are updated
-	spaceWithStats, err := spaceSvc.GetSpace(ctx, space.ID)
+	spaceWithStats, err := spaceSvc.GetSpace(ctxOwner, space.ID)
 	if err != nil {
 		t.Fatalf("Failed to get space with stats: %v", err)
 	}
@@ -126,17 +127,18 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, uuid.New().String())
 
 	// Create space and content
-	space, _ := spaceSvc.CreateSpace(ctx, "Test Space", "Test space", uuid.New().String())
-	content, _, _ := contentSvc.CreateUploadURL(ctx, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
-	contentSvc.ConfirmUpload(ctx, content.ID, "original-hash")
+	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
+	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test 1: Processing failure
-	contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusProcessing, "", "")
+	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
 
 	// Simulate processing failure
-	failedContent, err := contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusFailed, "", "Processing failed due to invalid PDF format")
+	failedContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusFailed, "", "Processing failed due to invalid PDF format")
 	if err != nil {
 		t.Fatalf("Failed to update to failed status: %v", err)
 	}
@@ -147,7 +149,7 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 
 	// Test 2: Invalid status transitions (should be logged but allowed for now)
 	// Try to go from FAILED directly to PROCESSED (invalid transition)
-	_, err = contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusProcessed, "hash", "")
+	_, err = contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessed, "hash", "")
 	// This should succeed for now (as per implementation) but log a warning
 	if err != nil {
 		t.Fatalf("Status transition validation should allow invalid transitions for now: %v", err)
@@ -165,12 +167,13 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, uuid.New().String())
 
 	// Setup test data
-	space, _ := spaceSvc.CreateSpace(ctx, "Test Space", "Test space", uuid.New().String())
-	content, _, _ := contentSvc.CreateUploadURL(ctx, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
-	contentSvc.ConfirmUpload(ctx, content.ID, "original-hash")
-	contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusProcessing, "", "")
+	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
+	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
+	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
 
 	// Create event handler
 	handler := &DocumentProcessedHandler{
@@ -185,21 +188,21 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 		Status:            events.ProcessStatusProcessed,
 	}
 
-	err := handler.HandleDocumentProcessed(ctx, successEvent)
+	err := handler.HandleDocumentProcessed(ctxOwner, successEvent)
 	if err != nil {
 		t.Fatalf("Failed to handle successful processing event: %v", err)
 	}
 
 	// Verify content was updated
-	updatedContent, _ := contentSvc.GetContentSource(ctx, content.ID)
+	updatedContent, _ := contentSvc.GetContentSource(ctxOwner, content.ID)
 	if updatedContent.Status != domain.ContentStatusProcessed {
 		t.Errorf("Expected status PROCESSED, got %s", updatedContent.Status)
 	}
 
 	// Test failure event
-	content2, _, _ := contentSvc.CreateUploadURL(ctx, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2")
-	contentSvc.ConfirmUpload(ctx, content2.ID, "original-hash-2")
-	contentSvc.UpdateContentSourceStatus(ctx, content2.ID, domain.ContentStatusProcessing, "", "")
+	content2, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2")
+	contentSvc.ConfirmUpload(ctxOwner, content2.ID, "original-hash-2")
+	contentSvc.UpdateContentSourceStatus(ctxOwner, content2.ID, domain.ContentStatusProcessing, "", "")
 
 	failureEvent := events.DocumentProcessedEvent{
 		ContentSourceID: content2.ID,
@@ -207,13 +210,13 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 		ErrorMessage:    "Failed to process document",
 	}
 
-	err = handler.HandleDocumentProcessed(ctx, failureEvent)
+	err = handler.HandleDocumentProcessed(ctxOwner, failureEvent)
 	if err != nil {
 		t.Fatalf("Failed to handle failure processing event: %v", err)
 	}
 
 	// Verify content was updated to failed
-	updatedContent2, _ := contentSvc.GetContentSource(ctx, content2.ID)
+	updatedContent2, _ := contentSvc.GetContentSource(ctxOwner, content2.ID)
 	if updatedContent2.Status != domain.ContentStatusFailed {
 		t.Errorf("Expected status FAILED, got %s", updatedContent2.Status)
 	}
@@ -231,11 +234,12 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, uuid.New().String())
 
 	// Setup
-	space, _ := spaceSvc.CreateSpace(ctx, "Test Space", "Test space", uuid.New().String())
-	content, _, _ := contentSvc.CreateUploadURL(ctx, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
-	contentSvc.ConfirmUpload(ctx, content.ID, "original-hash")
+	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
+	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test concurrent status updates (simulates race conditions)
 	var wg sync.WaitGroup
@@ -246,7 +250,7 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			_, err := contentSvc.UpdateContentSourceStatus(ctx, content.ID, domain.ContentStatusProcessing, "", "")
+			_, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
 			results[index] = err
 		}(i)
 	}
@@ -261,7 +265,7 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 	}
 
 	// Final status should be PROCESSING
-	finalContent, _ := contentSvc.GetContentSource(ctx, content.ID)
+	finalContent, _ := contentSvc.GetContentSource(ctxOwner, content.ID)
 	if finalContent.Status != domain.ContentStatusProcessing {
 		t.Errorf("Expected final status PROCESSING, got %s", finalContent.Status)
 	}
@@ -278,14 +282,15 @@ func TestDocumentWorkflowIntegration_SpaceContentIntegrity(t *testing.T) {
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, uuid.New().String())
 
 	// Create spaces and content
-	space1, _ := spaceSvc.CreateSpace(ctx, "Space 1", "Space 1", uuid.New().String())
-	space2, _ := spaceSvc.CreateSpace(ctx, "Space 2", "Space 2", uuid.New().String())
+	space1, _ := spaceSvc.CreateSpace(ctxOwner, "Space 1", "Space 1")
+	space2, _ := spaceSvc.CreateSpace(ctxOwner, "Space 2", "Space 2")
 
 	// Add content to both spaces
-	_, _, _ = contentSvc.CreateUploadURL(ctx, space1.ID, "doc1.pdf", "application/pdf", 1024, "Doc 1")
-	_, _, _ = contentSvc.CreateUploadURL(ctx, space2.ID, "doc2.pdf", "application/pdf", 1024, "Doc 2")
+	_, _, _ = contentSvc.CreateUploadURL(ctxOwner, space1.ID, "doc1.pdf", "application/pdf", 1024, "Doc 1")
+	_, _, _ = contentSvc.CreateUploadURL(ctxOwner, space2.ID, "doc2.pdf", "application/pdf", 1024, "Doc 2")
 
 	// Create orphaned content (simulate space deletion)
 	orphanedSpaceID := uuid.New()
@@ -297,10 +302,10 @@ func TestDocumentWorkflowIntegration_SpaceContentIntegrity(t *testing.T) {
 		Source:    "orphaned.pdf",
 		Status:    domain.ContentStatusUploaded,
 	}
-	contentRepo.Create(ctx, orphanedContent)
+	contentRepo.Create(ctxOwner, orphanedContent)
 
 	// Run integrity check
-	report, err := contentSvc.ValidateSpaceContentIntegrity(ctx)
+	report, err := contentSvc.ValidateSpaceContentIntegrity(ctxOwner)
 	if err != nil {
 		t.Fatalf("Failed to validate integrity: %v", err)
 	}
@@ -397,6 +402,4 @@ func (h *DocumentProcessedHandler) HandleDocumentProcessed(ctx context.Context, 
 }
 
 // Helper function to create string pointer
-func stringPtr(s string) *string {
-	return &s
-}
+func stringPtr(s string) *string { return &s }
