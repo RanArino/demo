@@ -15,14 +15,19 @@ import (
 	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
 	"demo/ms_knowledge/internal/events"
+	kmw "demo/ms_knowledge/internal/middleware"
 	"demo/ms_knowledge/internal/repository"
 	"demo/ms_knowledge/internal/repository/graph"
 	"demo/ms_knowledge/internal/server"
 	"demo/ms_knowledge/internal/service"
 	storager2 "demo/ms_knowledge/internal/storage/r2"
 
+	userv1 "demo/ms_user/api/proto/v1"
+
+	_ "github.com/lib/pq"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -57,25 +62,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize Neo4j connection
-	neo4jDriver, err := neo4j.NewDriverWithContext(
-		cfg.Neo4j.URI,
-		neo4j.BasicAuth(cfg.Neo4j.Username, cfg.Neo4j.Password, ""),
-	)
-	if err != nil {
-		slog.Error("Failed to connect to Neo4j", "error", err)
-		os.Exit(1)
-	}
-	defer neo4jDriver.Close(ctx)
-
-	// Verify Neo4j connection
-	if err := neo4jDriver.VerifyConnectivity(ctx); err != nil {
-		slog.Error("Failed to verify Neo4j connectivity", "error", err)
-		os.Exit(1)
+	// Initialize Neo4j connection (skipped if DISABLE_NEO4J is set)
+	var neo4jDriver neo4j.DriverWithContext
+	neo4jDisabled := os.Getenv("DISABLE_NEO4J")
+	if neo4jDisabled == "1" || neo4jDisabled == "true" || neo4jDisabled == "TRUE" {
+		slog.Info("Neo4j disabled via DISABLE_NEO4J flag; graph features are no-op")
+	} else {
+		if drv, err := neo4j.NewDriverWithContext(
+			cfg.Neo4j.URI,
+			neo4j.BasicAuth(cfg.Neo4j.Username, cfg.Neo4j.Password, ""),
+		); err != nil {
+			slog.Warn("Neo4j unavailable; continuing without graph features", "error", err)
+		} else {
+			neo4jDriver = drv
+			if err := neo4jDriver.VerifyConnectivity(ctx); err != nil {
+				slog.Warn("Neo4j connectivity check failed; continuing without graph features", "error", err)
+			}
+			defer neo4jDriver.Close(ctx)
+		}
 	}
 
 	// Initialize repositories
-	graphRepo := graph.NewNeo4jRepository(neo4jDriver)
+	var graphRepo domain.GraphRepository
+	if neo4jDriver != nil {
+		graphRepo = graph.NewNeo4jRepository(neo4jDriver)
+	} else {
+		graphRepo = graph.NewNoopRepository()
+	}
 	spaceRepo := repository.NewSpaceRepository(client, graphRepo)
 	contentRepo := repository.NewContentRepository(client, graphRepo)
 
@@ -111,8 +124,24 @@ func main() {
 	// Initialize gRPC server
 	grpcServer := server.NewGRPCServer(spaceService, contentService, knowledgeLinkService)
 
+	// Wire user service client for server-side identity resolution
+	userSvcAddr := cfg.Services.UserGRPCAddr
+	conn, err := grpc.NewClient(userSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		slog.Warn("Failed to connect to ms_user; identity resolution disabled", "error", err)
+	} else {
+		grpcServer = grpcServer.WithUserClient(userv1.NewUserServiceClient(conn))
+	}
+
 	// Create gRPC server
-	srv := grpc.NewServer()
+	// Add Clerk auth interceptor (validate JWT on all RPCs)
+	clerkKey := cfg.Auth.ClerkSecretKey
+	var serverOpts []grpc.ServerOption
+	if clerkKey != "" {
+		authI := kmw.NewAuthInterceptor(clerkKey)
+		serverOpts = append(serverOpts, grpc.UnaryInterceptor(authI.Unary()))
+	}
+	srv := grpc.NewServer(serverOpts...)
 	knowledgev1.RegisterKnowledgeServiceServer(srv, grpcServer)
 
 	// Enable reflection for development
