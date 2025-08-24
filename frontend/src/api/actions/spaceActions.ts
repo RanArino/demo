@@ -48,6 +48,12 @@ function timestampToISOString(ts: any): string {
 }
 
 function protoSpaceToSpace(protoSpace: any): Space {
+  const createdAtIso = timestampToISOString(protoSpace.getCreatedAt?.());
+  const updatedAtIso = timestampToISOString(protoSpace.getUpdatedAt?.());
+
+  const stats = protoSpace.getStats?.();
+  const contentCount = stats?.getContentCount?.() || 0;
+
   return {
     id: protoSpace.getId(),
     userId: protoSpace.getOwnerId?.() || protoSpace.getUserId?.() || '',
@@ -55,10 +61,16 @@ function protoSpaceToSpace(protoSpace: any): Space {
     description: protoSpace.getDescription(),
     icon: protoSpace.getIcon?.() || undefined,
     keywords: protoSpace.getKeywordsList?.() || [],
-    createdAt: timestampToISOString(protoSpace.getCreatedAt?.()),
-    updatedAt: timestampToISOString(protoSpace.getUpdatedAt?.()),
-    contentCount: protoSpace.getStats?.()?.getContentCount?.() || 0,
-    userCount: protoSpace.getStats?.()?.getLinkCount?.() || 0,
+    // Snake_case fields used throughout the UI components
+    created_at: createdAtIso,
+    last_updated_at: updatedAtIso,
+    // Provide safe defaults for required fields used by UI
+    access_level: (protoSpace.getAccessLevel?.() || 'private') as Space['access_level'],
+    document_count: typeof contentCount === 'number' ? contentCount : 0,
+    total_size_bytes: protoSpace.getTotalSizeBytes?.() || 0,
+    // Optional stats mirrored for components that already read these
+    contentCount,
+    userCount: stats?.getLinkCount?.() || 0,
   };
 }
 
