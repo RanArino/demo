@@ -16,8 +16,9 @@ import {
   ActionResult,
   CreateUploadURLRequest,
   CreateUploadURLResponse,
-  ContentSource
 } from '@/app/spaces/types/spaces';
+import { ContentSource } from '@/app/spaces/types/content';
+
 
 // Create gRPC metadata with Clerk JWT
 async function createMetadataWithAuth(): Promise<grpc.Metadata> {
