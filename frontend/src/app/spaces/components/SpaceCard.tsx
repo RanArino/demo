@@ -46,8 +46,10 @@ export default function SpaceCard({
     }
   };
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date: Date | string | undefined | null) => {
+    if (!date) return '—';
     const d = typeof date === 'string' ? new Date(date) : date;
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '—';
     return d.toLocaleDateString();
   };
 
