@@ -17,7 +17,7 @@ import {
   CreateUploadURLRequest,
   CreateUploadURLResponse,
 } from '@/app/spaces/types/spaces';
-import { ContentSource } from '@/app/spaces/types/content';
+import { ContentSource, ContentSourceType, ContentSourceStatus } from '@/app/spaces/types/content';
 
 
 // Create gRPC metadata with Clerk JWT
@@ -64,6 +64,7 @@ function protoSpaceToSpace(protoSpace: any): Space {
     keywords: [],
     accessLevel: 'private' as Space['accessLevel'],
     createdAt: createdAtIso,
+    updatedAt: updatedAtIso,
     lastUpdatedAt: updatedAtIso,
     documentCount: typeof contentCount === 'number' ? contentCount : 0,
     totalSizeBytes: 0,
@@ -74,15 +75,15 @@ function protoSpaceToSpace(protoSpace: any): Space {
 
 // Helper function to convert proto ContentSource to our TypeScript ContentSource type
 function protoContentSourceToContentSource(protoSource: any): ContentSource {
-  const statusMap: Record<number, ContentSource['processingStatus']> = {
-    0: 'pending',
-    1: 'processing', 
-    2: 'completed',
-    3: 'failed'
+  const statusMap: Record<number, ContentSourceStatus> = {
+    0: ContentSourceStatus.PENDING,
+    1: ContentSourceStatus.PROCESSING, 
+    2: ContentSourceStatus.COMPLETED,
+    3: ContentSourceStatus.FAILED
   };
   
   const status = protoSource.getStatus();
-  const processingStatus = statusMap[status] || 'pending';
+  const processingStatus = statusMap[status] || ContentSourceStatus.PENDING;
   
   return {
     id: protoSource.getId(),
@@ -91,7 +92,7 @@ function protoContentSourceToContentSource(protoSource: any): ContentSource {
     mimeType: protoSource.getMimeType() || '',
     sizeBytes: protoSource.getSizeBytes() || 0,
     processingStatus,
-    sourceType: 'file',
+    sourceType: ContentSourceType.FILE,
     createdAt: timestampToISOString(protoSource.getCreatedAt?.()),
     updatedAt: timestampToISOString(protoSource.getUpdatedAt?.()),
     contentSummary: protoSource.getContentSummary() || undefined,
