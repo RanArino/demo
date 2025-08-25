@@ -19,8 +19,8 @@ export interface Space {
   userCount?: number
 
   // Enhanced fields for new functionality
-  collaboration_settings?: CollaborationSettings
-  processing_stats?: ProcessingStats
+  collaborationSettings?: CollaborationSettings
+  processingStats?: ProcessingStats
 }
 
 // Collaboration settings for spaces
