@@ -1,64 +1,42 @@
-// Content Sources types for the Knowledge Microservice (content_sources DB)
-// This handles all content upload, processing, and management functionality
-export interface ContentSource {
-  id: string
+import type { 
+  BaseEntity,
+  ContentSourceType,
+  ContentSourceStatus,
+  ErrorState,
+  ContentMetadata,
+  ProcessingMetadata
+} from './shared'
+
+// =========================================================================
+// CONTENT SOURCE INTERFACES
+// =========================================================================
+
+export interface ContentSource extends BaseEntity, ContentMetadata {
   spaceId: string
-  filename?: string
-  title?: string
-  mimeType: string
-  sizeBytes: number
-  uploadUrl?: string
-  processingStatus: 'pending' | 'processing' | 'completed' | 'failed'
-  createdAt: Date | string
-  updatedAt: Date | string
-  
-  // Content-specific fields
-  sourceType: 'file' | 'url' | 'text' | 'google_drive'
+  sourceType: ContentSourceType
+  processingStatus: ContentSourceStatus
   sourceMetadata?: Record<string, any>
-  extractedText?: string
-  thumbnailUrl?: string
-  
-  // Processing details
   processingError?: string
   processingStartedAt?: Date | string
   processingCompletedAt?: Date | string
-  
-  // Content analysis results
-  contentSummary?: string
-  detectedLanguage?: string
-  wordCount?: number
-  pageCount?: number
+  uploadUrl?: string
 }
 
-export enum ContentSourceType {
-  UNKNOWN = 'UNKNOWN',
-  URL = 'URL',
-  FILE = 'FILE',
-  TEXT = 'TEXT'
-}
+// =========================================================================
+// UPLOAD MANAGEMENT
+// =========================================================================
 
-export enum ContentSourceStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED'
-}
-
-// Upload management types (Knowledge microservice - content_sources DB)
-export interface UploadSession {
-  id: string
+export interface UploadSession extends BaseEntity {
   spaceId: string
   files: UploadFile[]
   status: 'active' | 'completed' | 'cancelled'
-  createdAt: Date | string
   completedAt?: Date | string
   totalFiles: number
   completedFiles: number
   failedFiles: number
 }
 
-export interface UploadFile {
-  id: string
+export interface UploadFile extends BaseEntity {
   sessionId: string
   filename: string
   sizeBytes: number
@@ -72,7 +50,6 @@ export interface UploadFile {
   completedAt?: Date | string
 }
 
-// Upload progress tracking
 export interface UploadProgress {
   fileId: string
   filename: string
@@ -84,19 +61,19 @@ export interface UploadProgress {
   estimatedTimeRemaining?: number
 }
 
-// Processing status for real-time updates
-export interface ProcessingStatus {
+export interface ProcessingStatus extends ProcessingMetadata {
   contentId: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  progress: number
-  stage: 'upload' | 'extraction' | 'analysis' | 'indexing' | 'complete'
+  status: ContentSourceStatus
   message?: string
   error?: string
   startedAt?: Date | string
   completedAt?: Date | string
 }
 
-// Upload-related server action types
+// =========================================================================
+// API REQUEST/RESPONSE TYPES
+// =========================================================================
+
 export interface CreateUploadSessionRequest {
   spaceId: string
   files: {
@@ -142,7 +119,21 @@ export interface DeleteContentSourceRequest {
   spaceId: string
 }
 
-// Google Drive integration types
+export interface CreateUploadURLRequest {
+  spaceId: string
+  filename: string
+  mimeType: string
+  sizeBytes: number
+}
+
+export interface CreateUploadURLResponse {
+  uploadUrl: string
+  contentSourceId: string
+  expiresAt: string
+}
+
+// =========================================================================\n// GOOGLE DRIVE INTEGRATION\n// =========================================================================
+
 export interface GoogleDriveFile {
   id: string
   name: string
@@ -171,7 +162,8 @@ export interface ImportGoogleDriveFileRequest {
   mimeType: string
 }
 
-// Content-related component prop types
+// =========================================================================\n// COMPONENT PROPS\n// =========================================================================
+
 export interface ContentSourceCardProps {
   contentSource: ContentSource
   onView: (contentSource: ContentSource) => void
@@ -196,9 +188,8 @@ export interface ProcessingStatusProps {
   onCancel?: () => void
 }
 
+// =========================================================================\n// UI STATE\n// =========================================================================
 
-
-// Upload modal UI state
 export interface UploadModalState {
   isOpen: boolean
   spaceId: string | null
@@ -210,27 +201,14 @@ export interface UploadModalState {
   isUploading: boolean
 }
 
-// Import error types from spaces.ts
-export interface UploadError {
-  type: 'validation' | 'network' | 'server' | 'processing' | 'authentication' | 'permission'
-  message: string
-  code: string
-  retryable: boolean
-  actions?: ErrorAction[]
-  details?: Record<string, any>
+export interface UploadError extends ErrorState {
   fileId?: string
   filename?: string
   uploadProgress?: number
 }
 
-export interface ErrorAction {
-  label: string
-  action: () => void | Promise<void>
-  variant: 'primary' | 'secondary' | 'destructive'
-  loading?: boolean
-}
+// =========================================================================\n// CONSTANTS\n// =========================================================================
 
-// File type validation constants
 export const SUPPORTED_FILE_TYPES = {
   'application/pdf': '.pdf',
   'text/plain': '.txt',
@@ -246,4 +224,8 @@ export type SupportedMimeType = keyof typeof SUPPORTED_FILE_TYPES
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 export const MAX_FILES_PER_UPLOAD = 10
-export const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks for large file uploads
+export const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks
+
+// =========================================================================\n// RE-EXPORT SHARED TYPES\n// =========================================================================
+
+export { ContentSourceType, ContentSourceStatus } from './shared'
