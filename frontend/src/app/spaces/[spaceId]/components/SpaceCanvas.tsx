@@ -34,6 +34,27 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
 
+  const renderDocumentProcessingStatus = (contentSources: ContentSource[], node: CanvasNode) => {
+    const source = contentSources.find(s => s.id === node.contentSourceId);
+    if (!source) return null;
+    
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      processing: 'bg-blue-100 text-blue-800',
+      completed: 'bg-green-100 text-green-800',
+      failed: 'bg-red-100 text-red-800',
+    };
+
+    return (
+      <Badge 
+        variant="outline" 
+        className={`text-xs ${statusColors[source.processingStatus]}`}
+      >
+        {source.processingStatus}
+      </Badge>
+    );
+  };
+
   // Initialize nodes from content sources
   useEffect(() => {
     const initialNodes: CanvasNode[] = contentSources.map((source, index) => ({
@@ -227,26 +248,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
                 {/* Processing Status for Documents */}
                 {node.type === 'document' && node.contentSourceId && (
                   <div className="mt-auto">
-                    {(() => {
-                      const source = contentSources.find(s => s.id === node.contentSourceId);
-                      if (!source) return null;
-                      
-                      const statusColors = {
-                        pending: 'bg-yellow-100 text-yellow-800',
-                        processing: 'bg-blue-100 text-blue-800',
-                        completed: 'bg-green-100 text-green-800',
-                        failed: 'bg-red-100 text-red-800',
-                      };
-
-                      return (
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${statusColors[source.processingStatus]}`}
-                        >
-                          {source.processingStatus}
-                        </Badge>
-                      );
-                    })()}
+                    {renderDocumentProcessingStatus(contentSources, node)}
                   </div>
                 )}
               </div>
