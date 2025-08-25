@@ -29,7 +29,7 @@ interface ListViewProps {
   loading?: boolean;
 }
 
-type SortKey = 'title' | 'document_count' | 'created_at' | 'last_updated_at';
+type SortKey = 'title' | 'documentCount' | 'createdAt' | 'lastUpdatedAt';
 
 export default function ListView({
   spaces: initialSpaces,
@@ -52,13 +52,23 @@ export default function ListView({
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
 
+        if (sortConfig.key === 'created_at' || sortConfig.key === 'last_updated_at') {
+          // Ensure values are parsed as dates for correct comparison
+          const aDate = new Date(aValue as string | Date);
+          const bDate = new Date(bValue as string | Date);
+          return sortConfig.direction === 'ascending'
+            ? aDate.getTime() - bDate.getTime()
+            : bDate.getTime() - aDate.getTime();
+        }
+
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
-        } else if (aValue instanceof Date && bValue instanceof Date) {
-          return sortConfig.direction === 'ascending' ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime();
         }
+        
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+        }
+
         return 0;
       });
     }
@@ -85,7 +95,7 @@ export default function ListView({
       setSpaces(prevSpaces =>
         prevSpaces.map(space =>
           space.id === spaceId
-            ? { ...space, [editedField]: editedValue, last_updated_at: new Date() }
+            ? { ...space, [editedField]: editedValue, lastUpdatedAt: new Date() }
             : space
         )
       );
@@ -158,6 +168,8 @@ export default function ListView({
     );
   }
 
+  const TABLE_HEADER_BG = 'bg-gray-50';
+
   return (
     <div className="h-full flex flex-col">
       {/* Header - Fixed */}
@@ -185,8 +197,8 @@ export default function ListView({
           /* Single Table with Sticky Header - keeps columns perfectly aligned */
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col">
             <Table>
-              <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                <TableRow className="bg-gray-50">
+              <TableHeader className={`sticky top-0 z-10 ${TABLE_HEADER_BG}`}>
+                <TableRow className={TABLE_HEADER_BG}>
                   <TableHead className="w-16">Icon</TableHead>
                   <TableHead
                     onClick={() => requestSort('title')}
@@ -200,32 +212,32 @@ export default function ListView({
                   <TableHead>Keywords</TableHead>
                   <TableHead className="min-w-[200px]">Description</TableHead>
                   <TableHead
-                    onClick={() => requestSort('document_count')}
+                    onClick={() => requestSort('documentCount')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors text-center"
                   >
                     <div className="flex items-center justify-center gap-2">
                       <FileText className="h-4 w-4" />
                       Documents
-                      {getSortIcon('document_count')}
+                      {getSortIcon('documentCount')}
                     </div>
                   </TableHead>
                   <TableHead
-                    onClick={() => requestSort('created_at')}
+                    onClick={() => requestSort('createdAt')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
                       Created
-                      {getSortIcon('created_at')}
+                      {getSortIcon('createdAt')}
                     </div>
                   </TableHead>
                   <TableHead
-                    onClick={() => requestSort('last_updated_at')}
+                    onClick={() => requestSort('lastUpdatedAt')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       Updated
-                      {getSortIcon('last_updated_at')}
+                      {getSortIcon('lastUpdatedAt')}
                     </div>
                   </TableHead>
                   <TableHead>Access</TableHead>
@@ -323,7 +335,7 @@ export default function ListView({
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                            {space.document_count || 0}
+                            {space.documentCount || 0}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
@@ -342,23 +354,23 @@ export default function ListView({
 
                     <TableCell>
                       <span className="text-sm text-gray-500">
-                        {formatDate(space.created_at)}
+                        {formatDate(space.createdAt)}
                       </span>
                     </TableCell>
 
                     <TableCell>
                       <span className="text-sm text-gray-500">
-                        {formatDate(space.last_updated_at)}
+                        {formatDate(space.lastUpdatedAt)}
                       </span>
                     </TableCell>
 
                     <TableCell>
                       <Badge
                         variant="secondary"
-                        className={`text-xs capitalize ${getAccessColor(space.access_level)} flex items-center gap-1 w-fit`}
+                        className={`text-xs capitalize ${getAccessColor(space.accessLevel)} flex items-center gap-1 w-fit`}
                       >
-                        {getAccessIcon(space.access_level)}
-                        {space.access_level}
+                        {getAccessIcon(space.accessLevel)}
+                        {space.accessLevel}
                       </Badge>
                     </TableCell>
 
