@@ -8,13 +8,13 @@ export interface Space {
   title: string
   description: string
   icon?: string
-  cover_image?: string
+  coverImage?: string
   keywords: string[]
-  access_level: 'private' | 'shared' | 'public'
-  document_count: number
-  total_size_bytes: number
-  created_at: Date | string
-  last_updated_at: Date | string
+  accessLevel: 'private' | 'shared' | 'public'
+  documentCount: number
+  totalSizeBytes: number
+  createdAt: Date | string
+  lastUpdatedAt: Date | string
   contentCount?: number
   userCount?: number
 

@@ -2,32 +2,32 @@
 // This handles all content upload, processing, and management functionality
 export interface ContentSource {
   id: string
-  space_id: string
+  spaceId: string
   filename?: string
   title?: string
-  mime_type: string
-  size_bytes: number
-  upload_url?: string
-  processing_status: 'pending' | 'processing' | 'completed' | 'failed'
-  created_at: Date | string
-  updated_at: Date | string
+  mimeType: string
+  sizeBytes: number
+  uploadUrl?: string
+  processingStatus: 'pending' | 'processing' | 'completed' | 'failed'
+  createdAt: Date | string
+  updatedAt: Date | string
   
   // Content-specific fields
-  source_type: 'file' | 'url' | 'text' | 'google_drive'
-  source_metadata?: Record<string, any>
-  extracted_text?: string
-  thumbnail_url?: string
+  sourceType: 'file' | 'url' | 'text' | 'google_drive'
+  sourceMetadata?: Record<string, any>
+  extractedText?: string
+  thumbnailUrl?: string
   
   // Processing details
-  processing_error?: string
-  processing_started_at?: Date | string
-  processing_completed_at?: Date | string
+  processingError?: string
+  processingStartedAt?: Date | string
+  processingCompletedAt?: Date | string
   
   // Content analysis results
-  content_summary?: string
-  detected_language?: string
-  word_count?: number
-  page_count?: number
+  contentSummary?: string
+  detectedLanguage?: string
+  wordCount?: number
+  pageCount?: number
 }
 
 export enum ContentSourceType {
@@ -47,29 +47,29 @@ export enum ContentSourceStatus {
 // Upload management types (Knowledge microservice - content_sources DB)
 export interface UploadSession {
   id: string
-  space_id: string
+  spaceId: string
   files: UploadFile[]
   status: 'active' | 'completed' | 'cancelled'
-  created_at: Date | string
-  completed_at?: Date | string
-  total_files: number
-  completed_files: number
-  failed_files: number
+  createdAt: Date | string
+  completedAt?: Date | string
+  totalFiles: number
+  completedFiles: number
+  failedFiles: number
 }
 
 export interface UploadFile {
   id: string
-  session_id: string
+  sessionId: string
   filename: string
-  size_bytes: number
-  mime_type: string
-  upload_url?: string
+  sizeBytes: number
+  mimeType: string
+  uploadUrl?: string
   progress: number
   status: 'pending' | 'uploading' | 'processing' | 'completed' | 'failed'
-  error_message?: string
-  content_source_id?: string
-  started_at?: Date | string
-  completed_at?: Date | string
+  errorMessage?: string
+  contentSourceId?: string
+  startedAt?: Date | string
+  completedAt?: Date | string
 }
 
 // Upload progress tracking
