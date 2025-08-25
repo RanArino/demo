@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label';
 
 interface EditSpaceFormProps {
   space: Space;
+  onSuccess?: () => void;
 }
 
-export function EditSpaceForm({ space }: EditSpaceFormProps) {
+export function EditSpaceForm({ space, onSuccess }: EditSpaceFormProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -24,7 +25,7 @@ export function EditSpaceForm({ space }: EditSpaceFormProps) {
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline">Cancel</Button>
-        <Button>Save Changes</Button>
+        <Button onClick={() => onSuccess?.()}>Save Changes</Button>
       </div>
     </div>
   );
