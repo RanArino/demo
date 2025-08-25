@@ -40,12 +40,42 @@ frontend/src/
 
 ### **1. Protocol Buffer Code Generation**
 
-Use protobuf-ts to generate universal TypeScript code. The output should be configured to go into src/api/generated/.
+Use Buf to generate code as configured in `buf.gen.yaml`. This repo currently generates JavaScript stubs (google-protobuf + grpc-js) into `src/api/generated`.
 
 # In your package.json scripts  
 "scripts": {  
-  "proto:gen": "npx @bufbuild/buf generate"  
+  "proto:gen": "npx buf generate"  
 }
+
+Current `buf.gen.yaml` (JS + Node gRPC stubs):
+
+```yaml
+version: v1
+plugins:
+  - plugin: buf.build/protocolbuffers/js:v3.21.2
+    out: src/api/generated
+    opt:
+      - import_style=commonjs
+      - binary
+  - plugin: buf.build/grpc/node:v1.13.0
+    out: src/api/generated
+    opt:
+      - grpc_js
+```
+
+Optional (TypeScript via ts-proto):
+
+```yaml
+version: v1
+plugins:
+  - plugin: buf.build/community/stephenh/ts-proto
+    out: src/api/generated
+    opt:
+      - outputServices=grpc-js
+      - env=node
+```
+
+If you choose ts-proto, update imports/usages accordingly; otherwise, the existing JS stubs work with `@grpc/grpc-js` as shown in `src/api/server-client.ts`.
 
 ### **2. Configure Server-Side gRPC Client**
 
@@ -186,66 +216,6 @@ Your frontend choices have direct implications for the backend.
 
 * **To support grpc-web:** You must configure a proxy (like **Envoy** or Nginx) or a server middleware to translate grpc-web requests into standard gRPC for your service. Your core service logic does not change.  
 * **To support WebSockets:** This requires a **new, dedicated service on your backend**. It must handle WebSocket protocol upgrades, manage connection state (e.g., rooms, users), and contain the logic to process and broadcast messages.
-
-## **Code Generation Strategy (Recommended)**
-
-Use `buf` with `protobuf-ts` for a single, universal TypeScript output that works both on the server (with `@protobuf-ts/grpc-transport`) and in the browser (with `@protobuf-ts/grpcweb-transport`). This keeps one toolchain and avoids confusion.
-
-In `frontend/package.json`:
-
-```json
-{
-  "scripts": {
-    "proto:gen": "npx @bufbuild/buf generate"
-  }
-}
-```
-
-Example `frontend/buf.gen.yaml`:
-
-```
-version: v1
-plugins:
-  - plugin: es
-    out: src/api/generated
-  - plugin: grpc-web
-    out: src/api/generated
-    opt:
-      - import_style=typescript
-```
-
-### Server-only gRPC (grpc-js) with proper TypeScript defs
-
-If you are using `@grpc/grpc-js` only on the server (e.g., in Server Actions) and want classic `grpc-tools` outputs with `.d.ts` files, generate with `protoc-gen-ts` (ts-protoc-gen) like this:
-
-```bash
-cd frontend
-npm i -D grpc-tools protoc-gen-ts @grpc/grpc-js google-protobuf
-
-PROTOC_GEN_TS_PATH=./node_modules/.bin/protoc-gen-ts
-OUT=./src/api/generated/v1
-PROTOS=../ms_user/api/proto/v1  # adjust if different
-
-grpc_tools_node_protoc \
-  --plugin="protoc-gen-ts=${PROTOC_GEN_TS_PATH}" \
-  --js_out=import_style=commonjs,binary:${OUT} \
-  --grpc_out=grpc_js:${OUT} \
-  --ts_out=service=grpc-node,mode=grpc-js:${OUT} \
-  --proto_path=${PROTOS} \
-  ${PROTOS}/user.proto
-```
-
-TypeScript import style (matches generated `.d.ts`):
-
-```ts
-// Messages (namespace export)
-import UserPb = require('@/api/generated/v1/user_pb');
-
-// Service client (named export)
-import { UserServiceClient } from '@/api/generated/v1/user_grpc_pb';
-
-const req = new UserPb.CreateUserRequest();
-```
 
 ## **Environment Variables**
 

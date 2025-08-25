@@ -79,22 +79,42 @@ npm run proto:gen       \# Generate gRPC/Protobuf code
 
 ### **Protocol Buffer Code Generation:**
 
-This command should be run from the frontend directory. It generates universal TypeScript code that can be used by both the server and client.
+Run from the `frontend` directory; it uses Buf and the checked-in `buf.gen.yaml`.
 
 \# In package.json  
 "scripts": {  
-  "proto:gen": "npx @bufbuild/buf generate"  
+  "proto:gen": "npx buf generate"  
 }
 
-\# Assumes a buf.gen.yaml file in the frontend root:  
-\# version: v1  
-\# plugins:  
-\#   \- plugin: es  
-\#     out: src/api/generated  
-\#   \- plugin: grpc-web  
-\#     out: src/api/generated  
-\#     opt:  
-\#       \- import\_style=typescript
+Current `buf.gen.yaml` (JS + Node gRPC stubs):
+
+```yaml
+version: v1
+plugins:
+  - plugin: buf.build/protocolbuffers/js:v3.21.2
+    out: src/api/generated
+    opt:
+      - import_style=commonjs
+      - binary
+  - plugin: buf.build/grpc/node:v1.13.0
+    out: src/api/generated
+    opt:
+      - grpc_js
+```
+
+Optional TypeScript generation (ts-proto):
+
+```yaml
+version: v1
+plugins:
+  - plugin: buf.build/community/stephenh/ts-proto
+    out: src/api/generated
+    opt:
+      - outputServices=grpc-js
+      - env=node
+```
+
+Choose one path per team preference; both integrate with our Server Actions.
 
 ## **Multi-Service Development**
 
