@@ -24,10 +24,11 @@ frontend/src/app/spaces/
 │   │   │   └── page.tsx            # Upload modal intercepted route
 │   │   └── default.tsx
 │   ├── components/
-│   │   ├── SpaceHeader.tsx         # Space title, description, metadata
-│   │   ├── SpaceCanvas.tsx         # Main canvas/mind map area
+│   │   ├── SpaceCanvas.tsx         # Main canvas area with integrated header functionality
 │   │   ├── DocumentsSection.tsx    # Documents management panel
 │   │   ├── ChatSection.tsx         # Chat interface panel
+│   │   ├── LeftSidebar.tsx         # Toggleable sidebar with space image, navigation, and chat history
+│   │   ├── ChatHistorySection.tsx  # Git tree-style chat history (within sidebar)
 │   │   ├── ContentSourceCard.tsx   # Individual document card
 │   │   └── UploadModal.tsx         # Upload modal component
 │   ├── layout.tsx                  # Space layout with upload modal slot
@@ -66,6 +67,10 @@ interface SpacesState {
   contentSources: Record<string, ContentSource[]>  // spaceId -> content sources
   uploadProgress: Record<string, UploadProgress>   // fileId -> progress
   processingStatus: Record<string, ProcessingStatus> // contentId -> status
+  
+  // Sidebar state
+  sidebarPinned: boolean  // Whether sidebar is permanently visible
+  sidebarVisible: boolean // Whether sidebar is currently visible (hover or pinned)
 }
 
 interface UploadProgress {
@@ -73,6 +78,12 @@ interface UploadProgress {
   filename: string
   progress: number
   status: 'uploading' | 'processing' | 'completed' | 'failed'
+}
+
+interface SidebarState {
+  isPinned: boolean
+  isVisible: boolean
+  showChatHistory: boolean
 }
 ```
 
@@ -142,15 +153,69 @@ graph TD
 
 ### Space Detail Page Layout
 
-**Three-Column Layout:**
-1. **Left Sidebar**: Navigation and space metadata
-2. **Main Canvas**: Interactive mind map and content visualization
-3. **Right Panel**: Documents list and chat interface
+**Single-Column Layout with Toggleable Sidebar:**
+1. **Toggleable Left Sidebar**: Hover-triggered with pin functionality, containing space image, navigation, chat history, and metadata
+2. **Main Canvas Area**: Full-width canvas visualization without separate header component
+3. **Right Panel**: Documents management and current chat interface
+
+**Enhanced Sidebar Design:**
+- **Sidebar Header**: Top bar with "back to spaces" button (left) and settings/share/pin buttons (right-aligned)
+- **Space Image Display**: Cover image prominently displayed in sidebar
+- **Chat History Integration**: Git tree-style conversation visualization within sidebar
+- **Light Background**: Proper contrast with light background, not dense black
+- **Pin Functionality**: Button to keep sidebar permanently visible
+
+**Modern UX Patterns:**
+- **Hover Activation**: Slides in from left edge on hover with smooth CSS transforms
+- **Pin Toggle**: Click pin button to make sidebar persistent until unpinned
+- **Integrated Canvas**: No separate header, all space controls integrated into canvas area
+- **Organized Sidebar**: Space image, navigation controls, chat history, and metadata in logical order
 
 **Responsive Behavior:**
-- Desktop: Three-column layout
-- Tablet: Collapsible sidebar, two-column main area
-- Mobile: Stacked layout with tab navigation
+- Desktop: Single-column with toggleable sidebar
+- Tablet: Collapsible sidebar with touch-friendly controls
+- Mobile: Overlay sidebar with swipe gestures
+
+### Enhanced Sidebar Component
+
+**Sidebar Structure:**
+- **Header Bar**: Navigation and control buttons
+  - Left: "Back to Spaces" button with arrow icon
+  - Right: Settings, Share, and Pin toggle buttons (right-aligned)
+- **Space Image**: Cover image display with proper aspect ratio
+- **Chat History**: Git tree-style conversation visualization
+- **Space Metadata**: Keywords, statistics, and other space information
+
+**Interaction Patterns:**
+- **Hover Trigger**: Slides in from left edge on mouse hover
+- **Pin Functionality**: Click pin button to keep sidebar permanently visible
+- **Light Theme**: Light background with proper contrast, avoiding dense black
+- **Smooth Animations**: CSS transforms for slide-in/out effects
+
+**Styling Approach:**
+```css
+.sidebar {
+  @apply bg-white border-r border-gray-200 shadow-lg;
+  @apply transform transition-transform duration-300 ease-in-out;
+  @apply w-80 h-full fixed left-0 top-0 z-40;
+}
+
+.sidebar.hidden {
+  @apply -translate-x-full;
+}
+
+.sidebar.pinned {
+  @apply translate-x-0;
+}
+
+.sidebar-header {
+  @apply flex justify-between items-center p-4 border-b border-gray-200;
+}
+
+.space-image {
+  @apply w-full h-48 object-cover rounded-lg mx-4 mt-4;
+}
+```
 
 ### Enhanced View Components
 
