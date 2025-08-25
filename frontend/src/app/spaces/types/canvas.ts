@@ -4,19 +4,19 @@
 // Core canvas data structure
 export interface CanvasData {
   id: string
-  space_id: string
+  spaceId: string
   nodes: CanvasNode[]
   connections: CanvasConnection[]
   layout: CanvasLayout
   metadata?: CanvasMetadata
-  created_at: Date | string
-  updated_at: Date | string
+  createdAt: Date | string
+  updatedAt: Date | string
 }
 
 // Canvas node representing content or concepts
 export interface CanvasNode {
   id: string
-  canvas_id: string
+  canvasId: string
   type: 'document' | 'concept' | 'note' | 'cluster'
   title: string
   content?: string
@@ -26,39 +26,39 @@ export interface CanvasNode {
   metadata?: Record<string, any>
   
   // Relationships to content sources (from Knowledge microservice)
-  content_source_id?: string
+  contentSourceId?: string
   
   // Node state
   locked?: boolean
   visible?: boolean
   selected?: boolean
   
-  created_at: Date | string
-  updated_at: Date | string
+  createdAt: Date | string
+  updatedAt: Date | string
 }
 
 // Canvas connection between nodes
 export interface CanvasConnection {
   id: string
-  canvas_id: string
-  source_node_id: string
-  target_node_id: string
+  canvasId: string
+  sourceNodeId: string
+  targetNodeId: string
   type: 'reference' | 'similarity' | 'custom' | 'hierarchy'
   strength: number
   label?: string
   style?: CanvasConnectionStyle
   metadata?: Record<string, any>
   
-  created_at: Date | string
-  updated_at: Date | string
+  createdAt: Date | string
+  updatedAt: Date | string
 }
 
 // Canvas layout configuration
 export interface CanvasLayout {
   type: 'force' | 'hierarchical' | 'circular' | 'custom' | 'manual'
-  algorithm_settings: Record<string, any>
+  algorithmSettings: Record<string, any>
   viewport: CanvasViewport
-  grid_settings?: CanvasGridSettings
+  gridSettings?: CanvasGridSettings
 }
 
 // Supporting types for canvas elements
@@ -103,7 +103,7 @@ export interface CanvasGridSettings {
   size: number
   color?: string
   opacity?: number
-  snap_to_grid?: boolean
+  snapToGrid?: boolean
 }
 
 export interface CanvasMetadata {
@@ -117,7 +117,7 @@ export interface CanvasMetadata {
 // Canvas operations and interactions
 export interface CanvasOperation {
   id: string
-  canvas_id: string
+  canvasId: string
   type: 'create_node' | 'update_node' | 'delete_node' | 'create_connection' | 'delete_connection' | 'layout_change'
   data: Record<string, any>
   user_id?: string
@@ -126,52 +126,52 @@ export interface CanvasOperation {
 
 // Canvas collaboration (for real-time editing)
 export interface CanvasCollaborator {
-  user_id: string
-  cursor_position?: CanvasPosition
-  selected_nodes?: string[]
+  userId: string
+  cursorPosition?: CanvasPosition
+  selectedNodes?: string[]
   active: boolean
-  last_seen: Date | string
+  lastSeen: Date | string
 }
 
 // Canvas API request/response types
 export interface CreateCanvasRequest {
-  space_id: string
-  layout_type?: CanvasLayout['type']
-  initial_nodes?: Omit<CanvasNode, 'id' | 'canvas_id' | 'created_at' | 'updated_at'>[]
+  spaceId: string
+  layoutType?: CanvasLayout['type']
+  initialNodes?: Omit<CanvasNode, 'id' | 'canvasId' | 'createdAt' | 'updatedAt'>[]
 }
 
 export interface UpdateCanvasLayoutRequest {
-  canvas_id: string
+  canvasId: string
   layout: CanvasLayout
 }
 
 export interface CreateNodeRequest {
-  canvas_id: string
-  node: Omit<CanvasNode, 'id' | 'canvas_id' | 'created_at' | 'updated_at'>
+  canvasId: string
+  node: Omit<CanvasNode, 'id' | 'canvasId' | 'createdAt' | 'updatedAt'>
 }
 
 export interface UpdateNodeRequest {
-  node_id: string
+  nodeId: string
   updates: Partial<Pick<CanvasNode, 'title' | 'content' | 'position' | 'size' | 'style' | 'metadata'>>
 }
 
 export interface CreateConnectionRequest {
-  canvas_id: string
-  connection: Omit<CanvasConnection, 'id' | 'canvas_id' | 'created_at' | 'updated_at'>
+  canvasId: string
+  connection: Omit<CanvasConnection, 'id' | 'canvasId' | 'createdAt' | 'updatedAt'>
 }
 
 // Canvas UI state (for frontend components)
 export interface CanvasUIState {
-  canvas_id: string | null
+  canvasId: string | null
   viewport: CanvasViewport
-  selected_nodes: string[]
-  selected_connections: string[]
-  tool_mode: 'select' | 'pan' | 'create_node' | 'create_connection'
-  is_loading: boolean
-  is_saving: boolean
-  show_grid: boolean
-  show_minimap: boolean
-  collaboration_active: boolean
+  selectedNodes: string[]
+  selectedConnections: string[]
+  toolMode: 'select' | 'pan' | 'create_node' | 'create_connection'
+  isLoading: boolean
+  isSaving: boolean
+  showGrid: boolean
+  showMinimap: boolean
+  collaborationActive: boolean
   collaborators: CanvasCollaborator[]
 }
 
@@ -182,13 +182,13 @@ export interface CanvasViewerProps {
   readonly?: boolean
   onNodeSelect?: (nodeIds: string[]) => void
   onNodeUpdate?: (nodeId: string, updates: Partial<CanvasNode>) => void
-  onConnectionCreate?: (connection: Omit<CanvasConnection, 'id' | 'canvas_id' | 'created_at' | 'updated_at'>) => void
+  onConnectionCreate?: (connection: Omit<CanvasConnection, 'id' | 'canvasId' | 'createdAt' | 'updatedAt'>) => void
   onLayoutChange?: (layout: CanvasLayout) => void
 }
 
 export interface CanvasToolbarProps {
   canvasState: CanvasUIState
-  onToolChange: (tool: CanvasUIState['tool_mode']) => void
+  onToolChange: (tool: CanvasUIState['toolMode']) => void
   onLayoutChange: (layoutType: CanvasLayout['type']) => void
   onZoomChange: (zoom: number) => void
   onToggleGrid: () => void
@@ -197,10 +197,10 @@ export interface CanvasToolbarProps {
 
 // Canvas integration with Knowledge microservice
 export interface CanvasContentSourceLink {
-  canvas_node_id: string
-  content_source_id: string
-  link_type: 'represents' | 'references' | 'derived_from'
-  created_at: Date | string
+  canvasNodeId: string
+  contentSourceId: string
+  linkType: 'represents' | 'references' | 'derived_from'
+  createdAt: Date | string
 }
 
 // Error types specific to Canvas operations
@@ -208,9 +208,9 @@ export interface CanvasError {
   type: 'canvas_not_found' | 'node_not_found' | 'connection_invalid' | 'layout_failed' | 'permission_denied'
   message: string
   code: string
-  canvas_id?: string
-  node_id?: string
-  connection_id?: string
+  canvasId?: string
+  nodeId?: string
+  connectionId?: string
 }
 
 // Constants for Canvas service
@@ -226,4 +226,4 @@ export const CANVAS_CONSTANTS = {
 export type CanvasNodeType = CanvasNode['type']
 export type CanvasConnectionType = CanvasConnection['type']
 export type CanvasLayoutType = CanvasLayout['type']
-export type CanvasToolMode = CanvasUIState['tool_mode']
+export type CanvasToolMode = CanvasUIState['toolMode']
