@@ -16,8 +16,9 @@ import {
   ActionResult,
   CreateUploadURLRequest,
   CreateUploadURLResponse,
-  ContentSource
 } from '@/app/spaces/types/spaces';
+import { ContentSource, ContentSourceType, ContentSourceStatus } from '@/app/spaces/types/content';
+
 
 // Create gRPC metadata with Clerk JWT
 async function createMetadataWithAuth(): Promise<grpc.Metadata> {
@@ -53,40 +54,48 @@ function protoSpaceToSpace(protoSpace: any): Space {
 
   const stats = protoSpace.getStats?.();
   const contentCount = stats?.getContentCount?.() || 0;
+  const linkCount = stats?.getLinkCount?.() || 0;
 
   return {
     id: protoSpace.getId(),
-    userId: protoSpace.getOwnerId?.() || protoSpace.getUserId?.() || '',
+    userId: protoSpace.getOwnerId() || '',
     title: protoSpace.getTitle(),
     description: protoSpace.getDescription(),
-    icon: protoSpace.getIcon?.() || undefined,
-    keywords: protoSpace.getKeywordsList?.() || [],
-    // Snake_case fields used throughout the UI components
-    created_at: createdAtIso,
-    last_updated_at: updatedAtIso,
-    // Provide safe defaults for required fields used by UI
-    access_level: (protoSpace.getAccessLevel?.() || 'private') as Space['access_level'],
-    document_count: typeof contentCount === 'number' ? contentCount : 0,
-    total_size_bytes: protoSpace.getTotalSizeBytes?.() || 0,
-    // Optional stats mirrored for components that already read these
+    keywords: [],
+    accessLevel: 'private' as Space['accessLevel'],
+    createdAt: createdAtIso,
+    updatedAt: updatedAtIso,
+    lastUpdatedAt: updatedAtIso,
+    documentCount: typeof contentCount === 'number' ? contentCount : 0,
+    totalSizeBytes: 0,
     contentCount,
-    userCount: stats?.getLinkCount?.() || 0,
+    userCount: linkCount,
   };
 }
 
 // Helper function to convert proto ContentSource to our TypeScript ContentSource type
 function protoContentSourceToContentSource(protoSource: any): ContentSource {
+  const statusMap: Record<number, ContentSourceStatus> = {
+    0: ContentSourceStatus.PENDING,
+    1: ContentSourceStatus.PROCESSING, 
+    2: ContentSourceStatus.COMPLETED,
+    3: ContentSourceStatus.FAILED
+  };
+  
+  const status = protoSource.getStatus();
+  const processingStatus = statusMap[status] || ContentSourceStatus.PENDING;
+  
   return {
     id: protoSource.getId(),
     spaceId: protoSource.getSpaceId(),
-    name: protoSource.getName(),
-    type: protoSource.getType(),
-    url: protoSource.getUrl() || undefined,
-    size: protoSource.getSize() || undefined,
-    mimeType: protoSource.getMimeType() || undefined,
-    status: protoSource.getStatus(),
+    title: protoSource.getTitle() || undefined,
+    mimeType: protoSource.getMimeType() || '',
+    sizeBytes: protoSource.getSizeBytes() || 0,
+    processingStatus,
+    sourceType: ContentSourceType.FILE,
     createdAt: timestampToISOString(protoSource.getCreatedAt?.()),
     updatedAt: timestampToISOString(protoSource.getUpdatedAt?.()),
+    contentSummary: protoSource.getContentSummary() || undefined,
   };
 }
 
@@ -141,7 +150,6 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
           });
         } else {
           const spaces = response.getItemsList().map(protoSpaceToSpace);
-          const nextToken = response.getNextPageToken?.() || '';
           resolve({
             ok: true,
             data: {
@@ -219,7 +227,7 @@ export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
  */
 export async function createSpace(input: CreateSpaceInput): Promise<ActionResult<Space>> {
   try {
-    const { userId, getToken } = await auth();
+    const { userId } = await auth();
     if (!userId) {
       return {
         ok: false,
@@ -288,18 +296,17 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceInput): Pro
     
     request.setId(spaceId);
     
+    // Create a Space object with the fields to update
+    const space = new knowledge.Space();
+    
     if (input.title !== undefined) {
-      request.setTitle(input.title);
+      space.setTitle(input.title);
     }
     if (input.description !== undefined) {
-      request.setDescription(input.description);
+      space.setDescription(input.description);
     }
-    if (input.keywords !== undefined) {
-      request.setKeywordsList(input.keywords);
-    }
-    if (input.icon !== undefined) {
-      request.setIcon(input.icon);
-    }
+    
+    request.setSpace(space);
 
     const metadata = await createMetadataWithAuth();
     return new Promise((resolve) => {
@@ -466,7 +473,7 @@ export async function createUploadURL(input: CreateUploadURLRequest): Promise<Ac
             ok: true,
             data: {
               uploadUrl: response.getUploadUrl(),
-              contentSourceId: response.getContentSourceId(),
+              contentSourceId: response.getContentSource()?.getId() || '',
               expiresAt: timestampToISOString(response.getExpiresAt?.()),
             }
           });
