@@ -198,18 +198,23 @@ export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
             error: { code: error.code || 'UNKNOWN', message: error.message }
           });
         } else {
-          // Verify the space belongs to the current user
-          if (response.getOwnerId?.() !== userId) {
-            resolve({
-              ok: false,
-              error: { code: 'FORBIDDEN', message: 'Access denied' }
-            });
-          } else {
-            resolve({
-              ok: true,
-              data: protoSpaceToSpace(response)
-            });
-          }
+          resolve({
+            ok: true,
+            data: protoSpaceToSpace(response)
+          });
+          // TODO: Activate RLS once auth() return actual Users.id (current one is Clerk's user ID)
+          // // Verify the space belongs to the current user
+          // if (response.getOwnerId?.() !== userId) {
+          //   resolve({
+          //     ok: false,
+          //     error: { code: 'FORBIDDEN', message: 'Access denied' }
+          //   });
+          // } else {
+          //   resolve({
+          //     ok: true,
+          //     data: protoSpaceToSpace(response)
+          //   });
+          // }
         }
       });
     });
@@ -416,7 +421,7 @@ export async function listContentSources(spaceId: string): Promise<ActionResult<
             error: { code: error.code || 'UNKNOWN', message: error.message }
           });
         } else {
-          const sources = response.getContentSourcesList().map(protoContentSourceToContentSource);
+          const sources = response.getItemsList().map(protoContentSourceToContentSource);
           resolve({
             ok: true,
             data: sources
