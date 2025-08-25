@@ -57,6 +57,21 @@
   - **Type System Enhancement**: Updated Space interface properties to camelCase and improved ContentSource mapping consistency
   - **Server Actions Update**: Simplified space access verification and fixed content source response mapping from getContentSourcesList to getItemsList
 
+
+- [ ] 3.1 Redesign space detail page layout with enhanced sidebar
+  - Remove SpaceHeader component and integrate functionality into SpaceCanvas component
+  - Redesign page layout from three-column to single-column with toggleable left sidebar
+  - Create enhanced LeftSidebar component with hover trigger and pin functionality
+  - Add sidebar header with "back to spaces" button (left) and settings/share/pin buttons (right-aligned)
+  - Display space cover image prominently in sidebar with proper aspect ratio
+  - Move ChatHistorySection component from right panel to sidebar with git tree-style visualization
+  - Implement light background theme for sidebar (not dense black) with proper contrast
+  - Add smooth slide-in/out animations and pin state management for persistent sidebar display
+  - Update right panel to contain only DocumentsSection and ChatSection components
+  - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7_
+
+
+
 - [ ] 4. Implement upload modal system with parallel routes
   - Create @modal/(.)upload/[spaceId]/page.tsx for upload modal routing
   - Build UploadModal component with tabbed interface for different upload methods
