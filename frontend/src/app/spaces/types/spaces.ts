@@ -1,29 +1,39 @@
-// Spaces types for the Knowledge Microservice (spaces DB)
-// This handles space management, collaboration, and metadata
-// Related types: ./content.ts (content_sources DB), ./canvas.ts (Canvas microservice)
+import type { 
+  BaseEntityWithUser, 
+  AccessLevel, 
+  ErrorState, 
+  ErrorAction, 
+  ValidationError, 
+  FormErrors, 
+  ApiError, 
+  ActionResult, 
+  ServerActionResult,
+  DeepPartial,
+  RequiredFields,
+  OptionalFields,
+  FilterState
+} from './shared'
 
-export interface Space {
-  id: string
-  userId: string
+// =========================================================================
+// SPACE INTERFACES
+// =========================================================================
+
+export interface Space extends BaseEntityWithUser {
   title: string
   description: string
   icon?: string
   coverImage?: string
   keywords: string[]
-  accessLevel: 'private' | 'shared' | 'public'
+  accessLevel: AccessLevel
   documentCount: number
   totalSizeBytes: number
-  createdAt: Date | string
   lastUpdatedAt: Date | string
   contentCount?: number
   userCount?: number
-
-  // Enhanced fields for new functionality
   collaborationSettings?: CollaborationSettings
   processingStats?: ProcessingStats
 }
 
-// Collaboration settings for spaces
 export interface CollaborationSettings {
   allowComments: boolean
   allowEditing: boolean
@@ -43,7 +53,6 @@ export interface CollaborationUser {
   lastActive?: Date
 }
 
-// Processing statistics for spaces
 export interface ProcessingStats {
   totalDocuments: number
   processedDocuments: number
@@ -53,54 +62,14 @@ export interface ProcessingStats {
   averageProcessingTime: number
 }
 
+// =========================================================================
+// SPACE OPERATIONS
+// =========================================================================
 
-
-// Error handling types
-export interface ErrorState {
-  type: 'validation' | 'network' | 'server' | 'processing' | 'authentication' | 'permission'
-  message: string
-  code: string
-  retryable: boolean
-  actions?: ErrorAction[]
-  details?: Record<string, any>
-}
-
-export interface ErrorAction {
-  label: string
-  action: () => void | Promise<void>
-  variant: 'primary' | 'secondary' | 'destructive'
-  loading?: boolean
-}
-
-
-
-// Validation error types
-export interface ValidationError {
-  field: string
-  message: string
-  code: string
-}
-
-export interface FormErrors {
-  [field: string]: ValidationError[]
-}
-
-// API error response type
-export interface ApiError {
-  code: string
-  message: string
-  details?: Record<string, any>
-  timestamp: string
-  requestId?: string
-}
-
-export interface SpaceFilters {
-  q?: string              // Search query
-  keywords?: string[]     // Filter by keywords
+export interface SpaceFilters extends FilterState {
+  q?: string
+  keywords?: string[]
   sortBy?: 'name' | 'created' | 'updated' | 'documents'
-  sortOrder?: 'asc' | 'desc'
-  page?: number
-  pageSize?: number
 }
 
 export interface SpaceWithStats extends Space {
@@ -138,6 +107,10 @@ export interface CreateUploadURLResponse {
   expiresAt: string
 }
 
+// =========================================================================
+// SEARCH & PAGINATION
+// =========================================================================
+
 export interface SearchSpacesRequest {
   q?: string
   keywords?: string[]
@@ -155,8 +128,12 @@ export interface SearchSpacesResponse {
   pageSize: number
 }
 
-// UI-specific types
+// =========================================================================
+// UI STATE MANAGEMENT
+// =========================================================================
+
 export type ViewMode = 'gallery' | 'list' | 'canvas'
+export type GridSize = 'small' | 'medium' | 'large'
 
 export interface SpacesUIState {
   view: ViewMode
@@ -167,36 +144,24 @@ export interface SpacesUIState {
   page: number
   pageSize: number
   isCreating: boolean
-  isDeleting: string | null // spaceId being deleted
+  isDeleting: string | null
   lastError: string | null
   selectedSpaceId: string | null
 }
 
-// Enhanced state management for spaces and content
-// Note: Content-related types are imported from ./content.ts
 export interface EnhancedSpacesState extends SpacesUIState {
-  // Content management (types from content.ts)
-  contentSources: Record<string, any[]>  // spaceId -> content sources
-  uploadProgress: Record<string, any>   // fileId -> progress  
-  processingStatus: Record<string, any> // contentId -> status
-
-  // Upload sessions (types from content.ts)
-  activeSessions: Record<string, any>    // sessionId -> session
-
-  // Error states
-  errors: Record<string, ErrorState>              // errorId -> error
-
-  // Loading states
+  contentSources: Record<string, any[]>
+  uploadProgress: Record<string, any>
+  processingStatus: Record<string, any>
+  activeSessions: Record<string, any>
+  errors: Record<string, ErrorState>
   loadingStates: {
     spaces: boolean
-    contentSources: Record<string, boolean>       // spaceId -> loading
-    uploads: Record<string, boolean>              // sessionId -> loading
+    contentSources: Record<string, boolean>
+    uploads: Record<string, boolean>
   }
 }
 
-
-
-// Space detail page UI state
 export interface SpaceDetailState {
   spaceId: string
   activeSection: 'canvas' | 'documents' | 'chat'
@@ -207,19 +172,39 @@ export interface SpaceDetailState {
   documentsPanelCollapsed: boolean
 }
 
-// Grid size options for gallery view
-export type GridSize = 'small' | 'medium' | 'large'
+// =========================================================================
+// COMPONENT PROPS
+// =========================================================================
 
-// Sort options for different views
+export interface SpaceCardProps {
+  space: SpaceWithStats
+  view: ViewMode
+  onSelect: (spaceId: string) => void
+  onEdit: (spaceId: string) => void
+  onDelete: (spaceId: string) => void
+  isDeleting?: boolean
+}
+
+export interface SpaceHeaderProps {
+  space: Space
+  onEdit: () => void
+  onDelete: () => void
+  onShare: () => void
+  isEditing?: boolean
+}
+
+// =========================================================================
+// FILTERING & SORTING
+// =========================================================================
+
 export type SortOption = {
   key: string
   label: string
   direction: 'asc' | 'desc'
 }
 
-// Filter options
 export interface FilterOptions {
-  accessLevels: ('private' | 'shared' | 'public')[]
+  accessLevels: AccessLevel[]
   dateRange?: {
     start: Date
     end: Date
@@ -231,55 +216,41 @@ export interface FilterOptions {
   hasDocuments?: boolean
 }
 
-// Server Action Result Types
-export interface ActionResult<T> {
-  ok: boolean
-  data?: T
-  error?: {
-    code: string
-    message: string
-    details?: Record<string, any>
-  }
-}
+// =========================================================================
+// CONSTANTS
+// =========================================================================
 
-// Enhanced server action types
-export interface ServerActionResult<T> extends ActionResult<T> {
-  timestamp: string
-  requestId?: string
-}
-
-
-
-export interface SpaceCardProps {
-  space: SpaceWithStats
-  view: ViewMode
-  onSelect: (spaceId: string) => void
-  onEdit: (spaceId: string) => void
-  onDelete: (spaceId: string) => void
-  isDeleting?: boolean
-}
-
-// Space-specific component prop types
-export interface SpaceHeaderProps {
-  space: Space
-  onEdit: () => void
-  onDelete: () => void
-  onShare: () => void
-  isEditing?: boolean
-}
-
-// Utility types
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
-}
-
-export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>
-
-export type OptionalFields<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
-
-// Constants for UI
 export const GRID_SIZES = {
   small: { columns: 4, cardHeight: 200 },
   medium: { columns: 3, cardHeight: 250 },
   large: { columns: 2, cardHeight: 300 }
 } as const
+
+export const SORT_OPTIONS: SortOption[] = [
+  { key: 'lastUpdatedAt', label: 'Last Updated', direction: 'desc' },
+  { key: 'createdAt', label: 'Date Created', direction: 'desc' },
+  { key: 'title', label: 'Title', direction: 'asc' },
+  { key: 'documentCount', label: 'Documents', direction: 'desc' }
+] as const
+
+export const DEFAULT_PAGE_SIZE = 12
+export const MAX_KEYWORDS = 10
+export const MAX_DESCRIPTION_LENGTH = 500
+export const MAX_TITLE_LENGTH = 100
+
+// =========================================================================
+// RE-EXPORT SHARED TYPES
+// =========================================================================
+
+export type { 
+  ErrorState, 
+  ErrorAction, 
+  ValidationError, 
+  FormErrors, 
+  ApiError, 
+  ActionResult, 
+  ServerActionResult,
+  DeepPartial,
+  RequiredFields,
+  OptionalFields
+}

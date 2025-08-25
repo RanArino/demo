@@ -1,21 +1,19 @@
+import type { BaseEntity } from './shared'
+
 // Canvas-related types for the Canvas Microservice
 // These types define the minimal necessary structure for future Canvas service implementation
 
 // Core canvas data structure
-export interface CanvasData {
-  id: string
+export interface CanvasData extends BaseEntity {
   spaceId: string
   nodes: CanvasNode[]
   connections: CanvasConnection[]
   layout: CanvasLayout
   metadata?: CanvasMetadata
-  createdAt: Date | string
-  updatedAt: Date | string
 }
 
 // Canvas node representing content or concepts
-export interface CanvasNode {
-  id: string
+export interface CanvasNode extends BaseEntity {
   canvasId: string
   type: 'document' | 'concept' | 'note' | 'cluster'
   title: string
@@ -32,14 +30,10 @@ export interface CanvasNode {
   locked?: boolean
   visible?: boolean
   selected?: boolean
-  
-  createdAt: Date | string
-  updatedAt: Date | string
 }
 
 // Canvas connection between nodes
-export interface CanvasConnection {
-  id: string
+export interface CanvasConnection extends BaseEntity {
   canvasId: string
   sourceNodeId: string
   targetNodeId: string
@@ -48,9 +42,6 @@ export interface CanvasConnection {
   label?: string
   style?: CanvasConnectionStyle
   metadata?: Record<string, any>
-  
-  createdAt: Date | string
-  updatedAt: Date | string
 }
 
 // Canvas layout configuration
@@ -115,12 +106,11 @@ export interface CanvasMetadata {
 }
 
 // Canvas operations and interactions
-export interface CanvasOperation {
-  id: string
+export interface CanvasOperation extends BaseEntity {
   canvasId: string
   type: 'create_node' | 'update_node' | 'delete_node' | 'create_connection' | 'delete_connection' | 'layout_change'
   data: Record<string, any>
-  user_id?: string
+  userId?: string
   timestamp: Date | string
 }
 
@@ -196,11 +186,10 @@ export interface CanvasToolbarProps {
 }
 
 // Canvas integration with Knowledge microservice
-export interface CanvasContentSourceLink {
+export interface CanvasContentSourceLink extends Omit<BaseEntity, 'updatedAt'> {
   canvasNodeId: string
   contentSourceId: string
   linkType: 'represents' | 'references' | 'derived_from'
-  createdAt: Date | string
 }
 
 // Error types specific to Canvas operations
