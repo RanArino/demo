@@ -29,7 +29,7 @@ export default function SpaceCard({
   const stats = 'stats' in space ? space.stats : undefined;
   
   const getAccessIcon = () => {
-    switch (space.access_level) {
+    switch (space.accessLevel) {
       case 'public': return <Globe className="h-3 w-3" />;
       case 'shared': return <Users className="h-3 w-3" />;
       case 'private': return <Lock className="h-3 w-3" />;
@@ -46,10 +46,8 @@ export default function SpaceCard({
     }
   };
 
-  const formatDate = (date: Date | string | undefined | null) => {
-    if (!date) return '—';
+  const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
-    if (!(d instanceof Date) || isNaN(d.getTime())) return '—';
     return d.toLocaleDateString();
   };
 
@@ -95,16 +93,16 @@ export default function SpaceCard({
                 className={`text-xs capitalize ${getAccessColor()} flex items-center gap-1`}
               >
                 {getAccessIcon()}
-                {space.access_level}
+                {space.accessLevel}
               </Badge>
             </div>
 
             <div className="block cursor-pointer" onClick={() => onSelect?.(space.id)}>
               {/* Cover Image */}
               <div className="relative h-48 w-full">
-                {space.cover_image ? (
+                {space.coverImage ? (
                   <Image
-                    src={space.cover_image}
+                    src={space.coverImage}
                     alt={space.title}
                     fill
                     className="object-cover transition-transform duration-200 group-hover:scale-105"
@@ -151,16 +149,16 @@ export default function SpaceCard({
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDate(space.created_at)}</span>
+                      <span>{formatDate(space.createdAt)}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <FileText className="h-3 w-3" />
-                      <span>{space.document_count || stats?.contentCount || space.contentCount || 0} docs</span>
+                      <span>{space.documentCount || stats?.contentCount || space.contentCount || 0} docs</span>
                     </div>
                   </div>
                   
                   <div className="text-xs text-gray-400">
-                    Last updated: {formatDate(space.last_updated_at)}
+                    Last updated: {formatDate(space.lastUpdatedAt)}
                   </div>
                 </div>
               </div>
@@ -176,7 +174,7 @@ export default function SpaceCard({
               <p className="text-xs text-gray-300">{space.keywords.join(', ')}</p>
             </div>
             <div className="text-xs">
-              <p>Size: {formatSize(space.total_size_bytes || 0)} MB</p>
+              <p>Size: {formatSize(space.totalSizeBytes || 0)} MB</p>
             </div>
           </div>
         </TooltipContent>
