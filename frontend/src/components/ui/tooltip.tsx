@@ -18,7 +18,11 @@ const TooltipTrigger = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLEl
 )
 TooltipTrigger.displayName = "TooltipTrigger"
 
-const TooltipContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+type TooltipContentProps = React.HTMLAttributes<HTMLDivElement> & {
+  side?: 'top' | 'bottom' | 'left' | 'right' | string
+}
+
+const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
   (_props, _ref) => null
 )
 TooltipContent.displayName = "TooltipContent"

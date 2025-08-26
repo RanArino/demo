@@ -24,9 +24,14 @@ This feature enhances the existing Knowledge Spaces frontend interface by updati
 #### Acceptance Criteria
 
 1. WHEN I click on a space card THEN the system SHALL navigate to /spaces/[spaceId] with a fully functional space detail page
-2. WHEN I am on a space detail page THEN the system SHALL display space information, document management, canvas view, and collaboration tools
-3. WHEN I upload content to a space THEN the system SHALL provide multiple upload methods (file upload, Google Drive, links, text) with progress tracking
-4. WHEN content is being processed THEN the system SHALL display real-time processing status and updates
+2. WHEN I am on a space detail page THEN the system SHALL display a single-column canvas view with integrated space information and collaboration tools
+3. WHEN I hover over the left edge of the screen THEN the system SHALL reveal a sidebar with space image, navigation, chat history, and metadata
+4. WHEN I click the pin button in the sidebar THEN the system SHALL keep the sidebar permanently visible until unpinned
+5. WHEN I view the sidebar top bar THEN the system SHALL show "back to spaces" button (left) and settings/share/pin buttons (right-aligned)
+6. WHEN I view the sidebar THEN the system SHALL display the space metadata(icon+title, image with access level at right top within its image, description, created & updated time), document statistics (number of uploaded documents and used MB), then chat history with git tree-style visualization.
+7. WHEN I view the right panel THEN the system SHALL display documents management and current chat interface
+8. WHEN I upload content to a space THEN the system SHALL provide multiple upload methods (file upload, Google Drive, links, text) with progress tracking
+9. WHEN content is being processed THEN the system SHALL display real-time processing status and updates
 
 ### Requirement 3
 

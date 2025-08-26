@@ -57,6 +57,41 @@
   - **Type System Enhancement**: Updated Space interface properties to camelCase and improved ContentSource mapping consistency
   - **Server Actions Update**: Simplified space access verification and fixed content source response mapping from getContentSourcesList to getItemsList
 
+
+- [x] 3.1 Redesign space detail page layout with enhanced sidebar
+  - Remove SpaceHeader component and integrate functionality into SpaceCanvas component
+  - Redesign page layout from three-column to single-column with toggleable left sidebar
+  - Create enhanced LeftSidebar component with hover trigger and pin functionality
+  - Add sidebar header with "back to spaces" button (left) and settings/share/pin buttons (right-aligned)
+  - Display space cover image prominently in sidebar with proper aspect ratio
+  - Move ChatHistorySection component from right panel to sidebar with git tree-style visualization
+  - Implement light background theme for sidebar (not dense black) with proper contrast
+  - Add smooth slide-in/out animations and pin state management for persistent sidebar display
+  - Update right panel to contain only DocumentsSection and ChatSection components
+  - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7_
+  
+- Implementation Summary:
+  - **Enhanced LeftSidebar Component**: Complete redesign with hover trigger, pin functionality, integrated chat history
+  - **Sidebar Features**: 
+    - Hover activation from left edge with smooth slide-in animation
+    - Pin toggle button to keep sidebar permanently visible
+    - Header with back navigation and settings/share/pin buttons (right-aligned)
+    - Space cover image display with access badge overlay
+    - Integrated ChatHistorySection with git tree-style visualization
+    - Light gray background (bg-gray-50) with proper contrast
+    - Document statistics display
+  - **Page Layout Changes**:
+    - Removed SpaceHeader component (deleted file)
+    - Single-column canvas layout with full-width visualization
+    - Integrated space title and description into SpaceCanvas header
+    - Right panel contains only DocumentsSection and ChatSection
+    - Added fullscreen toggle for canvas view
+  - **Modified Files**:
+    - frontend/src/app/spaces/[spaceId]/components/LeftSidebar.tsx
+    - frontend/src/app/spaces/[spaceId]/page.tsx
+    - frontend/src/app/spaces/[spaceId]/components/SpaceCanvas.tsx
+    - Deleted: frontend/src/app/spaces/[spaceId]/components/SpaceHeader.tsx
+
 - [ ] 4. Implement upload modal system with parallel routes
   - Create @modal/(.)upload/[spaceId]/page.tsx for upload modal routing
   - Build UploadModal component with tabbed interface for different upload methods

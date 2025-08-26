@@ -5,7 +5,7 @@ import { Space } from '@/app/spaces/types/spaces';
 import { ContentSource } from '@/app/spaces/types/content';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ZoomIn, ZoomOut, RotateCcw, Plus, FileText, Link, Type, Upload } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Plus, FileText, Link, Type, Upload, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SpaceCanvasProps {
@@ -33,6 +33,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const transform = useMemo(() => `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, [pan.x, pan.y, zoom]);
   const canvasStyle = useMemo(() => ({
@@ -133,59 +134,97 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
     console.log('Add content to space:', space.id);
   };
 
-  return (
-    <div className={cn("flex flex-col h-full bg-gray-50", className)}>
-      {/* Canvas Toolbar */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-900">Canvas View</h2>
-          <Badge variant="outline" className="text-xs">
-            {nodes.length} items
-          </Badge>
-        </div>
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
 
-        <div className="flex items-center gap-2">
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1 border border-gray-200 rounded-md">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleZoomOut}
-              className="h-8 w-8 p-0"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="px-2 text-sm font-medium min-w-[3rem] text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleZoomIn}
-              className="h-8 w-8 p-0"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
+  return (
+    <div className={cn(
+      "flex flex-col h-full bg-gray-50",
+      isFullscreen && "fixed inset-0 z-50",
+      className
+    )}>
+      {/* Canvas Header with integrated space info */}
+      <div className="bg-white border-b border-gray-200">
+        {/* Space Title and Description */}
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl flex-shrink-0">{space.icon || '📚'}</span>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-bold text-gray-900 break-words">
+                {space.title}
+              </h1>
+              {space.description && (
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                  {space.description}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Canvas Toolbar */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-medium text-gray-700">Canvas View</h2>
+            <Badge variant="outline" className="text-xs">
+              {nodes.length} items
+            </Badge>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleResetView}
-            className="flex items-center gap-2"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reset
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-1 border border-gray-200 rounded-md">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomOut}
+                className="h-8 w-8 p-0"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="px-2 text-sm font-medium min-w-[3rem] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomIn}
+                className="h-8 w-8 p-0"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
 
-          <Button
-            onClick={handleAddContent}
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Content
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleResetView}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleFullscreen}
+              className="flex items-center gap-2"
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              {isFullscreen ? 'Exit' : 'Fullscreen'}
+            </Button>
+
+            <Button
+              onClick={handleAddContent}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Content
+            </Button>
+          </div>
         </div>
       </div>
 
