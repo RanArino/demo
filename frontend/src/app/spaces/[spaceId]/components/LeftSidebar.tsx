@@ -184,12 +184,12 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
               </div>
             </div>
 
-          {/* Description */}
-          {space.description && (
-            <p className="text-gray-600 text-sm leading-relaxed mb-6">
-              {space.description}
-            </p>
-          )}
+            {/* Description */}
+            {space.description && (
+              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                {space.description}
+              </p>
+            )}
 
             {/* Timestamps */}
             <div className="flex flex-col gap-1 text-xs text-gray-600 mb-4">
