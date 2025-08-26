@@ -92,7 +92,7 @@
     - frontend/src/app/spaces/[spaceId]/components/SpaceCanvas.tsx
     - Deleted: frontend/src/app/spaces/[spaceId]/components/SpaceHeader.tsx
 
-- [ ] 3.2 Enhance sidebar interaction and responsive behavior
+- [x] 3.2 Enhance sidebar interaction and responsive behavior
   - Replace black background mask with transparent overlay (increase alpha value) to keep page content visible
   - Implement user-adjustable sidebar width with drag resize functionality
   - Add responsive canvas width adjustment when sidebar is pinned (canvas should shrink to accommodate sidebar)
@@ -101,6 +101,15 @@
   - Add minimum and maximum width constraints for sidebar resizing
   - Implement proper state management for sidebar width preferences
   - _Requirements: 2.8, 2.9, 2.10, 5.2_
+
+- Implementation Summary:
+  - **Transparent Overlay**: Replaced dark mask with subtle `bg-black/5` overlay when sidebar is open and not pinned to keep page content visible (Req 2.8).
+  - **Resizable Sidebar**: Added drag handle with min/max constraints (240–560px), smooth transitions, and persisted width via `localStorage` (Req 2.9, 5.2).
+  - **Pinned Layout Adjustment**: Main content now respects a dynamic CSS variable `--sidebar-offset` to shrink canvas area when sidebar is pinned; transitions applied for smoothness (Req 2.10).
+  - **Icon Update**: Switched pin visuals to `PanelRightOpen` (unpinned) and `PanelLeftOpen` (pinned) from Lucide React for consistency (Req 5.2).
+  - **Files Updated**:
+    - `frontend/src/app/spaces/[spaceId]/components/LeftSidebar.tsx`
+    - `frontend/src/app/spaces/[spaceId]/page.tsx`
 
 - [ ] 4. Implement upload modal system with parallel routes
   - Create @modal/(.)upload/[spaceId]/page.tsx for upload modal routing
