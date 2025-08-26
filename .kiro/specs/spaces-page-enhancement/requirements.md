@@ -30,8 +30,12 @@ This feature enhances the existing Knowledge Spaces frontend interface by updati
 5. WHEN I view the sidebar top bar THEN the system SHALL show "back to spaces" button (left) and settings/share/pin buttons (right-aligned)
 6. WHEN I view the sidebar THEN the system SHALL display the space metadata(icon+title, image with access level at right top within its image, description, created & updated time), document statistics (number of uploaded documents and used MB), then chat history with git tree-style visualization.
 7. WHEN I view the right panel THEN the system SHALL display documents management and current chat interface
-8. WHEN I upload content to a space THEN the system SHALL provide multiple upload methods (file upload, Google Drive, links, text) with progress tracking
-9. WHEN content is being processed THEN the system SHALL display real-time processing status and updates
+8. WHEN the sidebar is open without being pinned THEN the system SHALL show a transparent overlay that keeps the page content visible instead of a black mask
+9. WHEN I interact with the sidebar THEN the system SHALL allow me to adjust the sidebar width by dragging the resize handle
+10. WHEN the sidebar is pinned THEN the system SHALL adjust the canvas component width to accommodate the sidebar without overlapping
+11. WHEN I view the pin button THEN the system SHALL display panel-left-open icon when unpinned and panel-right-open icon when pinned using Lucide React icons
+12. WHEN I upload content to a space THEN the system SHALL provide multiple upload methods (file upload, Google Drive, links, text) with progress tracking
+13. WHEN content is being processed THEN the system SHALL display real-time processing status and updates
 
 ### Requirement 3
 

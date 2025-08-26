@@ -33,7 +33,10 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
       <LeftSidebar space={space} />
       
       {/* Single-column layout with right panel */}
-      <div className="flex h-screen">
+      <div
+        className="flex h-screen transition-all duration-300 ease-out"
+        style={{ marginLeft: 'var(--sidebar-offset, 0px)' }}
+      >
         {/* Main Canvas Area - Full width */}
         <div className="flex-1">
           <SpaceCanvas 

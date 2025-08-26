@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Space } from '@/app/spaces/types/spaces';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EditSpaceForm } from '@/app/spaces/components/EditSpaceForm';
 import ChatHistorySection from './ChatHistorySection';
-import { ArrowLeft, Globe, Users, Lock, Eye, Settings, Share2, Pin, PinOff } from 'lucide-react';
+import { ArrowLeft, Globe, Users, Lock, Eye, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -22,6 +23,9 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [sidebarWidthPx, setSidebarWidthPx] = useState<number>(320);
+  const isResizingRef = useRef(false);
+  const sidebarWidthRef = useRef<number>(320);
 
   const getAccessIcon = () => {
     switch (space.accessLevel) {
@@ -50,11 +54,71 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
     console.log('Share space:', space.id);
   };
 
+  // Load persisted width and pin state on mount
+  useEffect(() => {
+    try {
+      const savedWidth = localStorage.getItem('spaceSidebarWidthPx');
+      if (savedWidth) {
+        const parsed = parseInt(savedWidth, 10);
+        if (!Number.isNaN(parsed)) {
+          setSidebarWidthPx(Math.min(Math.max(parsed, 240), 560));
+        }
+      }
+      const savedPinned = localStorage.getItem('spaceSidebarPinned');
+      if (savedPinned === 'true') {
+        setIsPinned(true);
+        setIsVisible(true);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  // Sync CSS variables for layout adjustment
+  useEffect(() => {
+    // Sidebar width variable (always useful for transitions)
+    document.documentElement.style.setProperty('--left-sidebar-width', `${sidebarWidthPx}px`);
+    // Sidebar offset only when pinned
+    const offset = isPinned ? `${sidebarWidthPx}px` : '0px';
+    document.documentElement.style.setProperty('--sidebar-offset', offset);
+    sidebarWidthRef.current = sidebarWidthPx;
+  }, [sidebarWidthPx, isPinned]);
+
   const togglePin = () => {
-    setIsPinned(!isPinned);
-    if (!isPinned) {
+    const nextPinned = !isPinned;
+    setIsPinned(nextPinned);
+    try {
+      localStorage.setItem('spaceSidebarPinned', String(nextPinned));
+    } catch {
+      // ignore storage errors
+    }
+    if (nextPinned) {
       setIsVisible(true);
     }
+  };
+
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const minWidth = 240;
+      const maxWidth = 560;
+      const newWidth = Math.min(Math.max(ev.clientX, minWidth), maxWidth);
+      setSidebarWidthPx(newWidth);
+    };
+    const onMouseUp = () => {
+      isResizingRef.current = false;
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      try {
+        localStorage.setItem('spaceSidebarWidthPx', String(sidebarWidthRef.current));
+      } catch {
+        // ignore storage errors
+      }
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   };
 
   return (
@@ -67,10 +131,10 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
         />
       )}
 
-      {/* Backdrop - only when visible and not pinned */}
+      {/* Backdrop - only when visible and not pinned (transparent overlay) */}
       {isVisible && !isPinned && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-10 z-40 transition-opacity duration-200"
+          className="fixed inset-0 bg-black/10 z-40 transition-opacity duration-200"
           onClick={() => setIsVisible(false)}
         />
       )}
@@ -78,12 +142,13 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 h-full w-80 bg-gray-50 shadow-xl z-50",
+          "fixed left-0 top-0 h-full bg-gray-50 shadow-xl z-50",
           "transform transition-transform duration-300 ease-out",
           "flex flex-col",
           (isVisible || isPinned) ? "translate-x-0" : "-translate-x-full",
           className
         )}
+        style={{ width: sidebarWidthPx }}
         onMouseLeave={() => !isPinned && setIsVisible(false)}
       >
         {/* Sidebar Header with Back Button and Actions */}
@@ -127,7 +192,7 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
                   isPinned && "bg-blue-50 text-blue-600"
                 )}
               >
-                {isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                {isPinned ? <PanelLeftOpen className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -184,12 +249,12 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
               </div>
             </div>
 
-            {/* Description */}
-            {space.description && (
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                {space.description}
-              </p>
-            )}
+          {/* Description */}
+          {space.description && (
+            <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              {space.description}
+            </p>
+          )}
 
             {/* Timestamps */}
             <div className="flex flex-col gap-1 text-xs text-gray-600 mb-4">
@@ -241,6 +306,21 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
           <ChatHistorySection spaceId={space.id} className="border-t border-gray-200" />
         </div>
       </div>
+
+      {/* Resize Handle */}
+      {(isVisible || isPinned) && (
+        <div
+          onMouseDown={handleResizeStart}
+          className="fixed top-0 z-50 h-full"
+          style={{
+            left: sidebarWidthPx - 3,
+            width: 6,
+            cursor: 'col-resize'
+          }}
+        >
+          <div className="w-full h-full" />
+        </div>
+      )}
 
       {/* Settings Dialog */}
       <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
