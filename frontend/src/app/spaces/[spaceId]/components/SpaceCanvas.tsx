@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Space } from '@/app/spaces/types/spaces';
 import { ContentSource } from '@/app/spaces/types/content';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,12 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const transform = useMemo(() => `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, [pan.x, pan.y, zoom]);
+  const canvasStyle = useMemo(() => ({
+    transform,
+    transformOrigin: '0 0',
+  }), [transform]);
 
   const renderDocumentProcessingStatus = (contentSources: ContentSource[], node: CanvasNode) => {
     const source = contentSources.find(s => s.id === node.contentSourceId);
@@ -231,10 +237,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-          }}
+          style={canvasStyle}
         >
           {/* Grid Background */}
           <div 

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { EditSpaceForm } from '@/app/spaces/components/EditSpaceForm';
 import ChatHistorySection from './ChatHistorySection';
 import { ArrowLeft, Globe, Users, Lock, Eye, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
