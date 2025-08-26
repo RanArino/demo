@@ -38,7 +38,7 @@ export default function SpaceCard({
   };
 
   const getAccessColor = () => {
-    switch (space.access_level) {
+    switch (space.accessLevel) {
       case 'public': return 'bg-green-100 text-green-800 border-green-200';
       case 'shared': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'private': return 'bg-gray-100 text-gray-800 border-gray-200';
