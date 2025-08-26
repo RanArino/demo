@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EditSpaceForm } from './EditSpaceForm';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, formatSize } from '@/lib/utils';
 
 interface SpaceCardProps {
   space: Space | SpaceWithStats;
@@ -51,9 +51,7 @@ export default function SpaceCard({
     return d.toLocaleDateString();
   };
 
-  const formatSize = (bytes: number) => {
-    return (bytes / (1024 * 1024)).toFixed(1);
-  };
+  
 
   return (
     <TooltipProvider>
@@ -174,7 +172,7 @@ export default function SpaceCard({
               <p className="text-xs text-gray-300">{space.keywords.join(', ')}</p>
             </div>
             <div className="text-xs">
-              <p>Size: {formatSize(space.totalSizeBytes || 0)} MB</p>
+              <p>Size: {formatSize(space.totalSizeBytes || 0)}</p>
             </div>
           </div>
         </TooltipContent>
