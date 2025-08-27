@@ -6,16 +6,21 @@ import { cn } from '@/lib/utils';
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number;
   max?: number;
+  // Optional accessible name helpers
+  label?: string;
+  labelledBy?: string;
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value = 0, max = 100, ...props }, ref) => (
+  ({ className, value = 0, max = 100, label, labelledBy, ...props }, ref) => (
     <div
       ref={ref}
       role="progressbar"
       aria-valuemax={max}
       aria-valuemin={0}
       aria-valuenow={value}
+      aria-label={label}
+      aria-labelledby={labelledBy}
       className={cn(
         'relative h-4 w-full overflow-hidden rounded-full bg-secondary',
         className
