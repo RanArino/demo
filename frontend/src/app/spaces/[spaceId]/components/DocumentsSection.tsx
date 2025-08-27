@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ContentSource } from '@/app/spaces/types/content';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Plus, 
   FileText, 
@@ -154,10 +153,11 @@ function ContentSourceCard({ contentSource, onView, onDownload, onDelete }: Cont
 }
 
 export default function DocumentsSection({ spaceId, contentSources, className }: DocumentsSectionProps) {
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const router = useRouter();
 
   const handleAddContent = () => {
-    setIsUploadModalOpen(true);
+    // Navigate to upload modal using the parallel route
+    router.push(`/spaces/${spaceId}/upload`);
   };
 
   const handleViewContent = (source: ContentSource) => {
@@ -266,19 +266,6 @@ export default function DocumentsSection({ spaceId, contentSources, className }:
         )}
       </div>
 
-      {/* Upload Modal Placeholder */}
-      <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Content</DialogTitle>
-          </DialogHeader>
-          <div className="p-4 text-center text-gray-600">
-            Upload modal will be implemented in a future task.
-            <br />
-            <small>Space ID: {spaceId}</small>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
