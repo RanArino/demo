@@ -41,7 +41,11 @@ interface FileState {
 }
 
 function generateFileId(): string {
-  return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `file_${crypto.randomUUID()}`;
+  }
+  const randomPart = Math.random().toString(36).slice(2, 11);
+  return `file_${Date.now()}_${randomPart}`;
 }
 
 function validateFile(file: File): string | null {
