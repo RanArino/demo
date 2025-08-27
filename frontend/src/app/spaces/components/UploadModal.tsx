@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
@@ -61,21 +61,30 @@ export default function UploadModal({
   const [activeTab, setActiveTab] = useState<UploadTab>(autoOpenTab);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   const handleClose = useCallback(() => {
     if (isUploading) {
-      // Don't close while uploading, show confirmation dialog
-      const confirm = window.confirm(
-        'Uploads are in progress. Are you sure you want to close?'
-      );
-      if (!confirm) return;
+      // Don't close while uploading, show accessible confirmation dialog
+      setShowConfirmClose(true);
+      return;
     }
 
     onClose?.();
     router.back();
   }, [isUploading, onClose, router]);
+
+  const handleConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+    onClose?.();
+    router.back();
+  }, [onClose, router]);
+
+  const handleCancelClose = useCallback(() => {
+    setShowConfirmClose(false);
+  }, []);
 
   const handleUploadStart = useCallback(() => {
     setIsUploading(true);
@@ -110,17 +119,22 @@ export default function UploadModal({
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
+      if (isUploading) {
+        setShowConfirmClose(true);
+        return;
+      }
       if (activeTab !== 'file') {
         setActiveTab('file');
         return; // treat close as "back to Files" when on other tabs
       }
       handleClose();
     }
-  }, [activeTab, handleClose]);
+  }, [activeTab, handleClose, isUploading]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col pt-8 pr-8">
+    <>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col pt-8 pr-8">
         {/* Accessible title for screen readers while keeping UI visually clean */}
         <DialogHeader>
           <DialogTitle className="sr-only">Upload to {spaceName ?? 'Space'}</DialogTitle>
@@ -210,7 +224,24 @@ export default function UploadModal({
             </TabsList>
           </Tabs>
         </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Close Dialog */}
+      <Dialog open={showConfirmClose} onOpenChange={setShowConfirmClose}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Close uploader?</DialogTitle>
+            <DialogDescription>
+              Uploads are currently in progress. If you close now, uploads may be interrupted.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancelClose}>Cancel</Button>
+            <Button variant="destructive" onClick={handleConfirmClose}>Close anyway</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
