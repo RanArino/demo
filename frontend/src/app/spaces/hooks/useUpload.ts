@@ -10,7 +10,13 @@ interface UploadOptions {
   onUploadError?: (error: string) => void;
 }
 
-
+/**
+ * Represents the state of a file upload.
+ *
+ * - isUploading: Indicates whether an upload is currently in progress.
+ * - progress: Upload progress percentage in the range 0-100.
+ * - error: Error message if a failure occurred; null when no error.
+ */
 interface UploadState {
   isUploading: boolean;
   progress: number;
@@ -114,7 +120,8 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
 
         // Start the upload
         xhr.open('PUT', uploadUrl);
-        xhr.setRequestHeader('Content-Type', file.type);
+        const contentType = file.type && file.type.trim() !== '' ? file.type : 'application/octet-stream';
+        xhr.setRequestHeader('Content-Type', contentType);
         xhr.send(file);
       });
 
