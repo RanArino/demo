@@ -12,13 +12,16 @@ interface UploadProgressBarProps {
   className?: string;
 }
 
+const BYTES_PER_KB = 1024;
+const BYTES_PER_MB = 1024 * 1024;
+
 function formatSpeed(bytesPerSecond: number): string {
-  if (bytesPerSecond < 1024) {
+  if (bytesPerSecond < BYTES_PER_KB) {
     return `${bytesPerSecond.toFixed(0)} B/s`;
-  } else if (bytesPerSecond < 1024 * 1024) {
-    return `${(bytesPerSecond / 1024).toFixed(1)} KB/s`;
+  } else if (bytesPerSecond < BYTES_PER_MB) {
+    return `${(bytesPerSecond / BYTES_PER_KB).toFixed(1)} KB/s`;
   } else {
-    return `${(bytesPerSecond / (1024 * 1024)).toFixed(1)} MB/s`;
+    return `${(bytesPerSecond / BYTES_PER_MB).toFixed(1)} MB/s`;
   }
 }
 
