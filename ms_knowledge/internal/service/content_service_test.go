@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,6 +13,11 @@ import (
 
 	"github.com/google/uuid"
 )
+
+// erroringStorage implements StorageService and returns an error on DeleteObject
+type erroringStorage struct{ mockStorage }
+
+func (e *erroringStorage) DeleteObject(bucket, key string) error { return fmt.Errorf("boom") }
 
 func TestCreateUploadURL_Validation(t *testing.T) {
 	contentRepo := newMockContentRepo()
@@ -116,5 +122,59 @@ func TestUpdateContentSourceStatus(t *testing.T) {
 	}
 	if res.ProcessedBlobHash == nil || *res.ProcessedBlobHash != "processed-hash" {
 		t.Fatalf("expected processed hash to be set")
+	}
+}
+
+func TestDeleteContentSource_DeletesR2AndDB(t *testing.T) {
+	contentRepo := newMockContentRepo()
+	spaceRepo := newMockSpaceRepo()
+	graphRepo := newMockGraphRepo()
+	storage := &mockStorage{}
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "knowledge-source", log.New(os.Stdout, "", log.LstdFlags))
+
+	ctx := context.Background()
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctx, space)
+
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded}
+	_ = contentRepo.Create(ctx, item)
+
+	if err := svc.DeleteContentSource(ctx, item.ID); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if exists, _ := contentRepo.Exists(ctx, item.ID); exists {
+		t.Fatalf("expected DB row to be deleted")
+	}
+
+	if len(storage.deleted) != 1 {
+		t.Fatalf("expected one delete call to storage, got %d", len(storage.deleted))
+	}
+	d := storage.deleted[0]
+	expectedKey := "spaces/" + space.ID.String() + "/content/" + item.ID.String() + "/file.txt"
+	if d.bucket != "knowledge-source" || d.key != expectedKey {
+		t.Fatalf("unexpected delete args: bucket=%s key=%s", d.bucket, d.key)
+	}
+}
+
+func TestDeleteContentSource_ObjectDeleteFailsButDBStillRemoved(t *testing.T) {
+	contentRepo := newMockContentRepo()
+	spaceRepo := newMockSpaceRepo()
+	graphRepo := newMockGraphRepo()
+	errStorage := &erroringStorage{}
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, errStorage, nil, "knowledge-source", log.New(os.Stdout, "", log.LstdFlags))
+
+	ctx := context.Background()
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctx, space)
+
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded}
+	_ = contentRepo.Create(ctx, item)
+
+	if err := svc.DeleteContentSource(ctx, item.ID); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if exists, _ := contentRepo.Exists(ctx, item.ID); exists {
+		t.Fatalf("expected DB row to be deleted even if object delete fails")
 	}
 }
