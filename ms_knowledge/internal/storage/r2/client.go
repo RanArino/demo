@@ -125,6 +125,15 @@ func (c *Client) GeneratePresignedDownloadURL(ctx context.Context, bucket, key s
 	return req.URL, nil
 }
 
+// DeleteObject removes the object at bucket/key from R2.
+func (c *Client) DeleteObject(ctx context.Context, bucket, key string) error {
+	_, err := c.s3.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	return err
+}
+
 // CalculateSHA256 returns the hex-encoded sha256 of data.
 func CalculateSHA256(data []byte) string {
 	sum := sha256.Sum256(data)
