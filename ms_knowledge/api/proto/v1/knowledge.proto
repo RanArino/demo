@@ -23,6 +23,8 @@ service KnowledgeService {
   rpc GetContentSource(GetContentSourceRequest) returns (ContentSource);
   rpc ListContentSources(ListContentSourcesRequest) returns (ListContentSourcesResponse);
   rpc UpdateContentSourceStatus(UpdateContentSourceStatusRequest) returns (ContentSource);
+  // Download URL Generation
+  rpc GenerateDownloadURL(GenerateDownloadURLRequest) returns (GenerateDownloadURLResponse);
 
   // Knowledge Graph Management
   rpc CreateKnowledgeLink(CreateKnowledgeLinkRequest) returns (KnowledgeLink);
@@ -217,6 +219,18 @@ message UpdateContentSourceStatusRequest {
   ContentStatus status = 2;
   string processed_blob_hash = 3;
   string error_message = 4;
+}
+
+// Download URL generation
+message GenerateDownloadURLRequest {
+  string content_source_id = 1; // required
+  int32 expires_seconds = 2;    // optional, server applies bounds and defaults
+}
+
+message GenerateDownloadURLResponse {
+  string url = 1;
+  google.protobuf.Timestamp expires_at = 2;
+  string object_key = 3;
 }
 
 // Knowledge Link Request/Response Messages
