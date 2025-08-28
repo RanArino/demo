@@ -22,4 +22,6 @@ func (a *Adapter) CalculateSHA256(data []byte) string {
 	return CalculateSHA256(data)
 }
 
-
+func (a *Adapter) GeneratePresignedDownloadURL(bucket, key string, expires time.Duration) (string, error) {
+	return a.client.GeneratePresignedDownloadURL(context.Background(), bucket, key, expires)
+}
