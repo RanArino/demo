@@ -293,6 +293,59 @@ func (s *GRPCServer) UpdateContentSourceStatus(ctx context.Context, req *knowled
 	return s.domainContentSourceToProto(content), nil
 }
 
+// GenerateDownloadURL returns a presigned URL for downloading the original uploaded object.
+func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.GenerateDownloadURLRequest) (*knowledgev1.GenerateDownloadURLResponse, error) {
+	contentID, err := uuid.Parse(req.ContentSourceId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
+	}
+
+	// Fetch content for RBAC checks and to compute object key
+	content, err := s.contentService.GetContentSource(ctx, contentID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get content source: %v", err)
+	}
+
+	// RBAC/Ownership: admins bypass, others must own the content (defense in depth)
+	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
+		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
+			outCtx := metadata.NewOutgoingContext(ctx, md)
+			uReq := &userv1.GetUserRequest{}
+			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
+				callerID := uResp.GetUser().GetId()
+				if content.OwnerID.String() != callerID {
+					return nil, status.Errorf(codes.PermissionDenied, "not owner")
+				}
+			}
+		}
+	}
+
+	ttl := 15 * time.Minute
+	if req.ExpiresSeconds > 0 {
+		// Enforce reasonable bounds (30s .. 1h)
+		if req.ExpiresSeconds < 30 {
+			req.ExpiresSeconds = 30
+		}
+		if req.ExpiresSeconds > 3600 {
+			req.ExpiresSeconds = 3600
+		}
+		ttl = time.Duration(req.ExpiresSeconds) * time.Second
+	}
+
+	url, expiresAt, err := s.contentService.GenerateDownloadURL(ctx, contentID, ttl)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate download URL: %v", err)
+	}
+
+	objectKey := "spaces/" + content.SpaceID.String() + "/content/" + content.ID.String() + "/" + content.Source
+
+	return &knowledgev1.GenerateDownloadURLResponse{
+		Url:       url,
+		ExpiresAt: timestamppb.New(expiresAt),
+		ObjectKey: objectKey,
+	}, nil
+}
+
 // Knowledge Link Management
 func (s *GRPCServer) CreateKnowledgeLink(ctx context.Context, req *knowledgev1.CreateKnowledgeLinkRequest) (*knowledgev1.KnowledgeLink, error) {
 	fromID, err := uuid.Parse(req.FromContentId)
