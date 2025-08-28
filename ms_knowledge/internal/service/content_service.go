@@ -31,6 +31,7 @@ type ContentService struct {
 type StorageService interface {
 	GeneratePresignedUploadURL(bucket, key string, expires time.Duration) (string, error)
 	CalculateSHA256(data []byte) string
+	GeneratePresignedDownloadURL(bucket, key string, expires time.Duration) (string, error)
 }
 
 // NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
@@ -258,4 +259,34 @@ type SpaceContentIntegrityReport struct {
 	OrphanedCount       int               `json:"orphaned_count"`
 	OrphanedContent     []uuid.UUID       `json:"orphaned_content_ids"`
 	ValidatedSpaces     map[uuid.UUID]int `json:"validated_spaces"` // spaceID -> content count
+}
+
+// GenerateDownloadURL returns a short-lived pre-signed URL to download the original uploaded blob.
+func (s *ContentService) GenerateDownloadURL(ctx context.Context, contentID uuid.UUID, expires time.Duration) (string, time.Time, error) {
+	if contentID == uuid.Nil {
+		return "", time.Time{}, fmt.Errorf("content_id is required")
+	}
+
+	content, err := s.contentRepo.GetByID(ctx, contentID)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to get content source: %w", err)
+	}
+
+	bucket := s.sourceBucket
+	if bucket == "" {
+		bucket = "knowledge-content"
+	}
+
+	if expires <= 0 {
+		expires = 15 * time.Minute
+	}
+
+	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), content.Source)
+
+	url, err := s.storage.GeneratePresignedDownloadURL(bucket, objectKey, expires)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to generate download URL: %w", err)
+	}
+
+	return url, time.Now().Add(expires), nil
 }
