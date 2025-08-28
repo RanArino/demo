@@ -218,18 +218,26 @@ Many services need to upload and download large files or binary blobs. We use an
 
 ### **Protocol Buffers**
 
-# Generate Go gRPC code  
-protoc --go_out=. --go_opt=paths=source_relative \
-       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-       api/proto/v1/*.proto
+# Install protoc Go plugins (run once per dev machine)
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+export PATH="$(go env GOPATH)/bin:$PATH"
+
+# Generate Go gRPC code from the service directory (e.g., ms_knowledge/)
+# This writes .pb.go files to the SAME directory as the .proto files
+protoc -I . \
+  --go_out=. --go_opt=paths=source_relative \
+  --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+  api/proto/v1/*.proto
 
 # Generate Python gRPC code  
 python -m grpc_tools.protoc -I./api/proto/v1 --python_out=. --grpc_python_out=. api/proto/v1/*.proto
 
-# Generate gRPC-web client code for frontend  
-protoc -I./api/proto/v1 --js_out=import_style=commonjs:frontend/src/api/generated/ \
-       --grpc-web_out=import_style=commonjs,mode=grpcwebtext:frontend/src/api/generated/ \
-       api/proto/v1/*.proto
+# Generate gRPC-web client code for frontend
+protoc -I . \
+  --js_out=import_style=commonjs:frontend/src/api/generated/ \
+  --grpc-web_out=import_style=commonjs,mode=grpcwebtext:frontend/src/api/generated/ \
+  api/proto/v1/*.proto
 
 ### **Ent (Go)**
 
