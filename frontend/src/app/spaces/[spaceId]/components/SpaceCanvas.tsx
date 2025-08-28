@@ -216,14 +216,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
               {isFullscreen ? 'Exit' : 'Fullscreen'}
             </Button>
 
-            <Button
-              onClick={handleAddContent}
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Content
-            </Button>
+            {/* Removed toolbar Add Content button per UI request */}
           </div>
         </div>
       </div>

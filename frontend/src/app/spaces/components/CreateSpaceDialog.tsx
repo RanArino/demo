@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,7 @@ export default function CreateSpaceDialog({
   onSuccess,
 }: CreateSpaceDialogProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreateSpaceInput>({
     title: '',
@@ -49,7 +51,6 @@ export default function CreateSpaceDialog({
           title: 'Success',
           description: 'Space created successfully',
         });
-        onSuccess(result.data);
         // Reset form
         setFormData({
           title: '',
@@ -58,6 +59,12 @@ export default function CreateSpaceDialog({
           icon: '',
         });
         setKeywordInput('');
+        
+        // Call the success callback first
+        onSuccess(result.data);
+        
+        // Navigate to the space page
+        router.push(`/spaces/${result.data.id}`);
       } else {
         toast({
           title: 'Error',
@@ -65,7 +72,8 @@ export default function CreateSpaceDialog({
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Space creation error:', err);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

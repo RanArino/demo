@@ -176,8 +176,8 @@ export interface ContentSourceCardProps {
 export interface UploadModalProps {
   isOpen: boolean
   spaceId: string
-  onClose: () => void
-  onUploadComplete: (contentSources: ContentSource[]) => void
+  onClose?: () => void
+  onUploadComplete?: (contentSources: ContentSource[]) => void
   autoOpenTab?: 'file' | 'google-drive' | 'link' | 'text'
 }
 
