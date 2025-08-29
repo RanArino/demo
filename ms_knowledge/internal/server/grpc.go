@@ -272,6 +272,33 @@ func (s *GRPCServer) GetContentSource(ctx context.Context, req *knowledgev1.GetC
 	return s.domainContentSourceToProto(content), nil
 }
 
+func (s *GRPCServer) DeleteContentSource(ctx context.Context, req *knowledgev1.DeleteContentSourceRequest) (*emptypb.Empty, error) {
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
+	}
+
+	// RBAC/Ownership: admins bypass, others must own the content source
+	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
+		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
+			outCtx := metadata.NewOutgoingContext(ctx, md)
+			uReq := &userv1.GetUserRequest{}
+			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
+				ownerID := uResp.GetUser().GetId()
+				cs, _ := s.contentService.GetContentSource(ctx, id)
+				if cs != nil && cs.OwnerID.String() != ownerID {
+					return nil, status.Errorf(codes.PermissionDenied, "not owner")
+				}
+			}
+		}
+	}
+
+	if err := s.contentService.DeleteContentSource(ctx, id); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete content source: %v", err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
 func (s *GRPCServer) ListContentSources(ctx context.Context, req *knowledgev1.ListContentSourcesRequest) (*knowledgev1.ListContentSourcesResponse, error) {
 	spaceID, err := uuid.Parse(req.SpaceId)
 	if err != nil {

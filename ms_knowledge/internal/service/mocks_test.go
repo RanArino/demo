@@ -345,7 +345,9 @@ func (m *mockGraphRepo) ListKnowledgeLinksBySpace(ctx context.Context, spaceID u
 }
 
 // mockStorage implements StorageService for tests
-type mockStorage struct{}
+type mockStorage struct {
+	deleted []struct{ bucket, key string }
+}
 
 func (m *mockStorage) GeneratePresignedUploadURL(bucket, key string, expires time.Duration) (string, error) {
 	return fmt.Sprintf("https://example.com/%s", key), nil
@@ -358,4 +360,9 @@ func (m *mockStorage) CalculateSHA256(data []byte) string {
 
 func (m *mockStorage) GeneratePresignedDownloadURL(bucket, key string, expires time.Duration) (string, error) {
 	return fmt.Sprintf("https://example.com/%s", key), nil
+}
+
+func (m *mockStorage) DeleteObject(bucket, key string) error {
+	m.deleted = append(m.deleted, struct{ bucket, key string }{bucket: bucket, key: key})
+	return nil
 }

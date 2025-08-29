@@ -30,6 +30,7 @@ const (
 	KnowledgeService_GetContentSource_FullMethodName          = "/knowledge.v1.KnowledgeService/GetContentSource"
 	KnowledgeService_ListContentSources_FullMethodName        = "/knowledge.v1.KnowledgeService/ListContentSources"
 	KnowledgeService_UpdateContentSourceStatus_FullMethodName = "/knowledge.v1.KnowledgeService/UpdateContentSourceStatus"
+	KnowledgeService_DeleteContentSource_FullMethodName       = "/knowledge.v1.KnowledgeService/DeleteContentSource"
 	KnowledgeService_GenerateDownloadURL_FullMethodName       = "/knowledge.v1.KnowledgeService/GenerateDownloadURL"
 	KnowledgeService_CreateKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/CreateKnowledgeLink"
 	KnowledgeService_GetKnowledgeLink_FullMethodName          = "/knowledge.v1.KnowledgeService/GetKnowledgeLink"
@@ -59,6 +60,7 @@ type KnowledgeServiceClient interface {
 	GetContentSource(ctx context.Context, in *GetContentSourceRequest, opts ...grpc.CallOption) (*ContentSource, error)
 	ListContentSources(ctx context.Context, in *ListContentSourcesRequest, opts ...grpc.CallOption) (*ListContentSourcesResponse, error)
 	UpdateContentSourceStatus(ctx context.Context, in *UpdateContentSourceStatusRequest, opts ...grpc.CallOption) (*ContentSource, error)
+	DeleteContentSource(ctx context.Context, in *DeleteContentSourceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Download URL Generation
 	GenerateDownloadURL(ctx context.Context, in *GenerateDownloadURLRequest, opts ...grpc.CallOption) (*GenerateDownloadURLResponse, error)
 	// Knowledge Graph Management
@@ -184,6 +186,16 @@ func (c *knowledgeServiceClient) UpdateContentSourceStatus(ctx context.Context, 
 	return out, nil
 }
 
+func (c *knowledgeServiceClient) DeleteContentSource(ctx context.Context, in *DeleteContentSourceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, KnowledgeService_DeleteContentSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *knowledgeServiceClient) GenerateDownloadURL(ctx context.Context, in *GenerateDownloadURLRequest, opts ...grpc.CallOption) (*GenerateDownloadURLResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GenerateDownloadURLResponse)
@@ -292,6 +304,7 @@ type KnowledgeServiceServer interface {
 	GetContentSource(context.Context, *GetContentSourceRequest) (*ContentSource, error)
 	ListContentSources(context.Context, *ListContentSourcesRequest) (*ListContentSourcesResponse, error)
 	UpdateContentSourceStatus(context.Context, *UpdateContentSourceStatusRequest) (*ContentSource, error)
+	DeleteContentSource(context.Context, *DeleteContentSourceRequest) (*emptypb.Empty, error)
 	// Download URL Generation
 	GenerateDownloadURL(context.Context, *GenerateDownloadURLRequest) (*GenerateDownloadURLResponse, error)
 	// Knowledge Graph Management
@@ -346,6 +359,9 @@ func (UnimplementedKnowledgeServiceServer) ListContentSources(context.Context, *
 }
 func (UnimplementedKnowledgeServiceServer) UpdateContentSourceStatus(context.Context, *UpdateContentSourceStatusRequest) (*ContentSource, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateContentSourceStatus not implemented")
+}
+func (UnimplementedKnowledgeServiceServer) DeleteContentSource(context.Context, *DeleteContentSourceRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteContentSource not implemented")
 }
 func (UnimplementedKnowledgeServiceServer) GenerateDownloadURL(context.Context, *GenerateDownloadURLRequest) (*GenerateDownloadURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateDownloadURL not implemented")
@@ -575,6 +591,24 @@ func _KnowledgeService_UpdateContentSourceStatus_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KnowledgeService_DeleteContentSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteContentSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KnowledgeServiceServer).DeleteContentSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KnowledgeService_DeleteContentSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KnowledgeServiceServer).DeleteContentSource(ctx, req.(*DeleteContentSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _KnowledgeService_GenerateDownloadURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GenerateDownloadURLRequest)
 	if err := dec(in); err != nil {
@@ -783,6 +817,10 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateContentSourceStatus",
 			Handler:    _KnowledgeService_UpdateContentSourceStatus_Handler,
+		},
+		{
+			MethodName: "DeleteContentSource",
+			Handler:    _KnowledgeService_DeleteContentSource_Handler,
 		},
 		{
 			MethodName: "GenerateDownloadURL",

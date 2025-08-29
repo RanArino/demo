@@ -33,6 +33,7 @@ type StorageService interface {
 	GeneratePresignedUploadURL(bucket, key string, expires time.Duration) (string, error)
 	CalculateSHA256(data []byte) string
 	GeneratePresignedDownloadURL(bucket, key string, expires time.Duration) (string, error)
+	DeleteObject(bucket, key string) error
 }
 
 // NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
@@ -339,4 +340,30 @@ func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, conten
 	}
 
 	return url, time.Now().Add(expires), nil
+}
+
+// DeleteContentSource deletes the source object in R2 (best-effort) and removes the DB row.
+func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) error {
+	content, err := s.contentRepo.GetByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get content source: %w", err)
+	}
+
+	bucket, err := s.resolveBucket("source")
+	if err != nil {
+		return fmt.Errorf("failed to resolve source bucket: %w", err)
+	}
+
+	filename := strings.TrimSpace(content.Source)
+	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), filename)
+
+	if err := s.storage.DeleteObject(bucket, objectKey); err != nil {
+		s.logger.Printf("WARN: failed to delete R2 object (bucket=%s key=%s): %v", bucket, objectKey, err)
+	}
+
+	if err := s.contentRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("failed to delete content source from DB: %w", err)
+	}
+
+	return nil
 }
