@@ -143,7 +143,10 @@ func TestDeleteContentSource_DeletesR2AndDB(t *testing.T) {
 	spaceRepo := newMockSpaceRepo()
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
-	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "knowledge-source", log.New(os.Stdout, "", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "knowledge-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
@@ -175,7 +178,10 @@ func TestDeleteContentSource_ObjectDeleteFailsButDBStillRemoved(t *testing.T) {
 	spaceRepo := newMockSpaceRepo()
 	graphRepo := newMockGraphRepo()
 	errStorage := &erroringStorage{}
-	svc := NewContentService(contentRepo, spaceRepo, graphRepo, errStorage, nil, "knowledge-source", log.New(os.Stdout, "", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "knowledge-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, errStorage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
