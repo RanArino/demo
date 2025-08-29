@@ -190,6 +190,56 @@ func (LinkDirection) EnumDescriptor() ([]byte, []int) {
 	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{2}
 }
 
+// Specifies which object (original or processed) an operation targets
+type DownloadObjectKind int32
+
+const (
+	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_UNSPECIFIED DownloadObjectKind = 0
+	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL    DownloadObjectKind = 1 // source/original object
+	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED   DownloadObjectKind = 2 // processed object
+)
+
+// Enum value maps for DownloadObjectKind.
+var (
+	DownloadObjectKind_name = map[int32]string{
+		0: "DOWNLOAD_OBJECT_KIND_UNSPECIFIED",
+		1: "DOWNLOAD_OBJECT_KIND_ORIGINAL",
+		2: "DOWNLOAD_OBJECT_KIND_PROCESSED",
+	}
+	DownloadObjectKind_value = map[string]int32{
+		"DOWNLOAD_OBJECT_KIND_UNSPECIFIED": 0,
+		"DOWNLOAD_OBJECT_KIND_ORIGINAL":    1,
+		"DOWNLOAD_OBJECT_KIND_PROCESSED":   2,
+	}
+)
+
+func (x DownloadObjectKind) Enum() *DownloadObjectKind {
+	p := new(DownloadObjectKind)
+	*p = x
+	return p
+}
+
+func (x DownloadObjectKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DownloadObjectKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_v1_knowledge_proto_enumTypes[3].Descriptor()
+}
+
+func (DownloadObjectKind) Type() protoreflect.EnumType {
+	return &file_api_proto_v1_knowledge_proto_enumTypes[3]
+}
+
+func (x DownloadObjectKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DownloadObjectKind.Descriptor instead.
+func (DownloadObjectKind) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{3}
+}
+
 // Common Messages
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1183,6 +1233,7 @@ type CreateUploadURLRequest struct {
 	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
 	SizeBytes     int64                  `protobuf:"varint,4,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
 	Title         string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
+	ObjectKind    DownloadObjectKind     `protobuf:"varint,6,opt,name=object_kind,json=objectKind,proto3,enum=knowledge.v1.DownloadObjectKind" json:"object_kind,omitempty"` // ORIGINAL or PROCESSED (required)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1250,6 +1301,13 @@ func (x *CreateUploadURLRequest) GetTitle() string {
 		return x.Title
 	}
 	return ""
+}
+
+func (x *CreateUploadURLRequest) GetObjectKind() DownloadObjectKind {
+	if x != nil {
+		return x.ObjectKind
+	}
+	return DownloadObjectKind_DOWNLOAD_OBJECT_KIND_UNSPECIFIED
 }
 
 type CreateUploadURLResponse struct {
@@ -1321,11 +1379,12 @@ func (x *CreateUploadURLResponse) GetContentSource() *ContentSource {
 }
 
 type ConfirmUploadRequest struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	ContentSourceId  string                 `protobuf:"bytes,1,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`
-	OriginalBlobHash string                 `protobuf:"bytes,2,opt,name=original_blob_hash,json=originalBlobHash,proto3" json:"original_blob_hash,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ContentSourceId string                 `protobuf:"bytes,1,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`                      // required
+	ObjectKind      DownloadObjectKind     `protobuf:"varint,2,opt,name=object_kind,json=objectKind,proto3,enum=knowledge.v1.DownloadObjectKind" json:"object_kind,omitempty"` // required
+	BlobHash        string                 `protobuf:"bytes,3,opt,name=blob_hash,json=blobHash,proto3" json:"blob_hash,omitempty"`                                             // required
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ConfirmUploadRequest) Reset() {
@@ -1365,9 +1424,16 @@ func (x *ConfirmUploadRequest) GetContentSourceId() string {
 	return ""
 }
 
-func (x *ConfirmUploadRequest) GetOriginalBlobHash() string {
+func (x *ConfirmUploadRequest) GetObjectKind() DownloadObjectKind {
 	if x != nil {
-		return x.OriginalBlobHash
+		return x.ObjectKind
+	}
+	return DownloadObjectKind_DOWNLOAD_OBJECT_KIND_UNSPECIFIED
+}
+
+func (x *ConfirmUploadRequest) GetBlobHash() string {
+	if x != nil {
+		return x.BlobHash
 	}
 	return ""
 }
@@ -1599,8 +1665,9 @@ func (x *UpdateContentSourceStatusRequest) GetErrorMessage() string {
 // Download URL generation
 type GenerateDownloadURLRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	ContentSourceId string                 `protobuf:"bytes,1,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"` // required
-	ExpiresSeconds  int32                  `protobuf:"varint,2,opt,name=expires_seconds,json=expiresSeconds,proto3" json:"expires_seconds,omitempty"`     // optional, server applies bounds and defaults
+	ContentSourceId string                 `protobuf:"bytes,1,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`                      // required
+	ExpiresSeconds  int32                  `protobuf:"varint,2,opt,name=expires_seconds,json=expiresSeconds,proto3" json:"expires_seconds,omitempty"`                          // optional, server applies bounds and defaults
+	ObjectKind      DownloadObjectKind     `protobuf:"varint,3,opt,name=object_kind,json=objectKind,proto3,enum=knowledge.v1.DownloadObjectKind" json:"object_kind,omitempty"` // required
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1647,6 +1714,13 @@ func (x *GenerateDownloadURLRequest) GetExpiresSeconds() int32 {
 		return x.ExpiresSeconds
 	}
 	return 0
+}
+
+func (x *GenerateDownloadURLRequest) GetObjectKind() DownloadObjectKind {
+	if x != nil {
+		return x.ObjectKind
+	}
+	return DownloadObjectKind_DOWNLOAD_OBJECT_KIND_UNSPECIFIED
 }
 
 type GenerateDownloadURLResponse struct {
@@ -2416,14 +2490,16 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vhard_delete\x18\x02 \x01(\bR\n" +
 	"hardDelete\x12\x14\n" +
-	"\x05force\x18\x03 \x01(\bR\x05force\"\xa1\x01\n" +
+	"\x05force\x18\x03 \x01(\bR\x05force\"\xe4\x01\n" +
 	"\x16CreateUploadURLRequest\x12\x19\n" +
 	"\bspace_id\x18\x01 \x01(\tR\aspaceId\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
 	"\tmime_type\x18\x03 \x01(\tR\bmimeType\x12\x1d\n" +
 	"\n" +
 	"size_bytes\x18\x04 \x01(\x03R\tsizeBytes\x12\x14\n" +
-	"\x05title\x18\x05 \x01(\tR\x05title\"\xd6\x01\n" +
+	"\x05title\x18\x05 \x01(\tR\x05title\x12A\n" +
+	"\vobject_kind\x18\x06 \x01(\x0e2 .knowledge.v1.DownloadObjectKindR\n" +
+	"objectKind\"\xd6\x01\n" +
 	"\x17CreateUploadURLResponse\x12\x1d\n" +
 	"\n" +
 	"upload_url\x18\x01 \x01(\tR\tuploadUrl\x12\x1d\n" +
@@ -2432,10 +2508,12 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12B\n" +
 	"\x0econtent_source\x18\n" +
-	" \x01(\v2\x1b.knowledge.v1.ContentSourceR\rcontentSource\"p\n" +
+	" \x01(\v2\x1b.knowledge.v1.ContentSourceR\rcontentSource\"\xa2\x01\n" +
 	"\x14ConfirmUploadRequest\x12*\n" +
-	"\x11content_source_id\x18\x01 \x01(\tR\x0fcontentSourceId\x12,\n" +
-	"\x12original_blob_hash\x18\x02 \x01(\tR\x10originalBlobHash\")\n" +
+	"\x11content_source_id\x18\x01 \x01(\tR\x0fcontentSourceId\x12A\n" +
+	"\vobject_kind\x18\x02 \x01(\x0e2 .knowledge.v1.DownloadObjectKindR\n" +
+	"objectKind\x12\x1b\n" +
+	"\tblob_hash\x18\x03 \x01(\tR\bblobHash\")\n" +
 	"\x17GetContentSourceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x99\x01\n" +
 	"\x19ListContentSourcesRequest\x12\x19\n" +
@@ -2450,10 +2528,12 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x123\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1b.knowledge.v1.ContentStatusR\x06status\x12.\n" +
 	"\x13processed_blob_hash\x18\x03 \x01(\tR\x11processedBlobHash\x12#\n" +
-	"\rerror_message\x18\x04 \x01(\tR\ferrorMessage\"q\n" +
+	"\rerror_message\x18\x04 \x01(\tR\ferrorMessage\"\xb4\x01\n" +
 	"\x1aGenerateDownloadURLRequest\x12*\n" +
 	"\x11content_source_id\x18\x01 \x01(\tR\x0fcontentSourceId\x12'\n" +
-	"\x0fexpires_seconds\x18\x02 \x01(\x05R\x0eexpiresSeconds\"\x89\x01\n" +
+	"\x0fexpires_seconds\x18\x02 \x01(\x05R\x0eexpiresSeconds\x12A\n" +
+	"\vobject_kind\x18\x03 \x01(\x0e2 .knowledge.v1.DownloadObjectKindR\n" +
+	"objectKind\"\x89\x01\n" +
 	"\x1bGenerateDownloadURLResponse\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x129\n" +
 	"\n" +
@@ -2528,7 +2608,11 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x1aLINK_DIRECTION_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aINBOUND\x10\x01\x12\f\n" +
 	"\bOUTBOUND\x10\x02\x12\b\n" +
-	"\x04BOTH\x10\x032\x9b\r\n" +
+	"\x04BOTH\x10\x03*\x81\x01\n" +
+	"\x12DownloadObjectKind\x12$\n" +
+	" DOWNLOAD_OBJECT_KIND_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dDOWNLOAD_OBJECT_KIND_ORIGINAL\x10\x01\x12\"\n" +
+	"\x1eDOWNLOAD_OBJECT_KIND_PROCESSED\x10\x022\x9b\r\n" +
 	"\x10KnowledgeService\x12D\n" +
 	"\vCreateSpace\x12 .knowledge.v1.CreateSpaceRequest\x1a\x13.knowledge.v1.Space\x12>\n" +
 	"\bGetSpace\x12\x1d.knowledge.v1.GetSpaceRequest\x1a\x13.knowledge.v1.Space\x12O\n" +
@@ -2563,137 +2647,141 @@ func file_api_proto_v1_knowledge_proto_rawDescGZIP() []byte {
 	return file_api_proto_v1_knowledge_proto_rawDescData
 }
 
-var file_api_proto_v1_knowledge_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_api_proto_v1_knowledge_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_api_proto_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_api_proto_v1_knowledge_proto_goTypes = []any{
 	(ContentStatus)(0),                       // 0: knowledge.v1.ContentStatus
 	(RelationType)(0),                        // 1: knowledge.v1.RelationType
 	(LinkDirection)(0),                       // 2: knowledge.v1.LinkDirection
-	(*Pagination)(nil),                       // 3: knowledge.v1.Pagination
-	(*SpaceStats)(nil),                       // 4: knowledge.v1.SpaceStats
-	(*Space)(nil),                            // 5: knowledge.v1.Space
-	(*ContentSource)(nil),                    // 6: knowledge.v1.ContentSource
-	(*KnowledgeLink)(nil),                    // 7: knowledge.v1.KnowledgeLink
-	(*ContentPreview)(nil),                   // 8: knowledge.v1.ContentPreview
-	(*EnrichedKnowledgeLink)(nil),            // 9: knowledge.v1.EnrichedKnowledgeLink
-	(*CreateSpaceRequest)(nil),               // 10: knowledge.v1.CreateSpaceRequest
-	(*GetSpaceRequest)(nil),                  // 11: knowledge.v1.GetSpaceRequest
-	(*ListSpacesRequest)(nil),                // 12: knowledge.v1.ListSpacesRequest
-	(*ListSpacesResponse)(nil),               // 13: knowledge.v1.ListSpacesResponse
-	(*UpdateSpaceRequest)(nil),               // 14: knowledge.v1.UpdateSpaceRequest
-	(*DeleteSpaceRequest)(nil),               // 15: knowledge.v1.DeleteSpaceRequest
-	(*CreateUploadURLRequest)(nil),           // 16: knowledge.v1.CreateUploadURLRequest
-	(*CreateUploadURLResponse)(nil),          // 17: knowledge.v1.CreateUploadURLResponse
-	(*ConfirmUploadRequest)(nil),             // 18: knowledge.v1.ConfirmUploadRequest
-	(*GetContentSourceRequest)(nil),          // 19: knowledge.v1.GetContentSourceRequest
-	(*ListContentSourcesRequest)(nil),        // 20: knowledge.v1.ListContentSourcesRequest
-	(*ListContentSourcesResponse)(nil),       // 21: knowledge.v1.ListContentSourcesResponse
-	(*UpdateContentSourceStatusRequest)(nil), // 22: knowledge.v1.UpdateContentSourceStatusRequest
-	(*GenerateDownloadURLRequest)(nil),       // 23: knowledge.v1.GenerateDownloadURLRequest
-	(*GenerateDownloadURLResponse)(nil),      // 24: knowledge.v1.GenerateDownloadURLResponse
-	(*CreateKnowledgeLinkRequest)(nil),       // 25: knowledge.v1.CreateKnowledgeLinkRequest
-	(*GetKnowledgeLinkRequest)(nil),          // 26: knowledge.v1.GetKnowledgeLinkRequest
-	(*ListKnowledgeLinksRequest)(nil),        // 27: knowledge.v1.ListKnowledgeLinksRequest
-	(*ListKnowledgeLinksResponse)(nil),       // 28: knowledge.v1.ListKnowledgeLinksResponse
-	(*ListAllSpaceLinksRequest)(nil),         // 29: knowledge.v1.ListAllSpaceLinksRequest
-	(*ListAllSpaceLinksResponse)(nil),        // 30: knowledge.v1.ListAllSpaceLinksResponse
-	(*UpdateKnowledgeLinkRequest)(nil),       // 31: knowledge.v1.UpdateKnowledgeLinkRequest
-	(*DeleteKnowledgeLinkRequest)(nil),       // 32: knowledge.v1.DeleteKnowledgeLinkRequest
-	(*GetBacklinksRequest)(nil),              // 33: knowledge.v1.GetBacklinksRequest
-	(*GetBacklinksResponse)(nil),             // 34: knowledge.v1.GetBacklinksResponse
-	(*HealthStatus)(nil),                     // 35: knowledge.v1.HealthStatus
-	nil,                                      // 36: knowledge.v1.HealthStatus.ComponentsEntry
-	(*timestamppb.Timestamp)(nil),            // 37: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),            // 38: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),                    // 39: google.protobuf.Empty
+	(DownloadObjectKind)(0),                  // 3: knowledge.v1.DownloadObjectKind
+	(*Pagination)(nil),                       // 4: knowledge.v1.Pagination
+	(*SpaceStats)(nil),                       // 5: knowledge.v1.SpaceStats
+	(*Space)(nil),                            // 6: knowledge.v1.Space
+	(*ContentSource)(nil),                    // 7: knowledge.v1.ContentSource
+	(*KnowledgeLink)(nil),                    // 8: knowledge.v1.KnowledgeLink
+	(*ContentPreview)(nil),                   // 9: knowledge.v1.ContentPreview
+	(*EnrichedKnowledgeLink)(nil),            // 10: knowledge.v1.EnrichedKnowledgeLink
+	(*CreateSpaceRequest)(nil),               // 11: knowledge.v1.CreateSpaceRequest
+	(*GetSpaceRequest)(nil),                  // 12: knowledge.v1.GetSpaceRequest
+	(*ListSpacesRequest)(nil),                // 13: knowledge.v1.ListSpacesRequest
+	(*ListSpacesResponse)(nil),               // 14: knowledge.v1.ListSpacesResponse
+	(*UpdateSpaceRequest)(nil),               // 15: knowledge.v1.UpdateSpaceRequest
+	(*DeleteSpaceRequest)(nil),               // 16: knowledge.v1.DeleteSpaceRequest
+	(*CreateUploadURLRequest)(nil),           // 17: knowledge.v1.CreateUploadURLRequest
+	(*CreateUploadURLResponse)(nil),          // 18: knowledge.v1.CreateUploadURLResponse
+	(*ConfirmUploadRequest)(nil),             // 19: knowledge.v1.ConfirmUploadRequest
+	(*GetContentSourceRequest)(nil),          // 20: knowledge.v1.GetContentSourceRequest
+	(*ListContentSourcesRequest)(nil),        // 21: knowledge.v1.ListContentSourcesRequest
+	(*ListContentSourcesResponse)(nil),       // 22: knowledge.v1.ListContentSourcesResponse
+	(*UpdateContentSourceStatusRequest)(nil), // 23: knowledge.v1.UpdateContentSourceStatusRequest
+	(*GenerateDownloadURLRequest)(nil),       // 24: knowledge.v1.GenerateDownloadURLRequest
+	(*GenerateDownloadURLResponse)(nil),      // 25: knowledge.v1.GenerateDownloadURLResponse
+	(*CreateKnowledgeLinkRequest)(nil),       // 26: knowledge.v1.CreateKnowledgeLinkRequest
+	(*GetKnowledgeLinkRequest)(nil),          // 27: knowledge.v1.GetKnowledgeLinkRequest
+	(*ListKnowledgeLinksRequest)(nil),        // 28: knowledge.v1.ListKnowledgeLinksRequest
+	(*ListKnowledgeLinksResponse)(nil),       // 29: knowledge.v1.ListKnowledgeLinksResponse
+	(*ListAllSpaceLinksRequest)(nil),         // 30: knowledge.v1.ListAllSpaceLinksRequest
+	(*ListAllSpaceLinksResponse)(nil),        // 31: knowledge.v1.ListAllSpaceLinksResponse
+	(*UpdateKnowledgeLinkRequest)(nil),       // 32: knowledge.v1.UpdateKnowledgeLinkRequest
+	(*DeleteKnowledgeLinkRequest)(nil),       // 33: knowledge.v1.DeleteKnowledgeLinkRequest
+	(*GetBacklinksRequest)(nil),              // 34: knowledge.v1.GetBacklinksRequest
+	(*GetBacklinksResponse)(nil),             // 35: knowledge.v1.GetBacklinksResponse
+	(*HealthStatus)(nil),                     // 36: knowledge.v1.HealthStatus
+	nil,                                      // 37: knowledge.v1.HealthStatus.ComponentsEntry
+	(*timestamppb.Timestamp)(nil),            // 38: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),            // 39: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),                    // 40: google.protobuf.Empty
 }
 var file_api_proto_v1_knowledge_proto_depIdxs = []int32{
-	37, // 0: knowledge.v1.SpaceStats.last_activity_at:type_name -> google.protobuf.Timestamp
-	4,  // 1: knowledge.v1.Space.stats:type_name -> knowledge.v1.SpaceStats
-	37, // 2: knowledge.v1.Space.created_at:type_name -> google.protobuf.Timestamp
-	37, // 3: knowledge.v1.Space.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 0: knowledge.v1.SpaceStats.last_activity_at:type_name -> google.protobuf.Timestamp
+	5,  // 1: knowledge.v1.Space.stats:type_name -> knowledge.v1.SpaceStats
+	38, // 2: knowledge.v1.Space.created_at:type_name -> google.protobuf.Timestamp
+	38, // 3: knowledge.v1.Space.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: knowledge.v1.ContentSource.status:type_name -> knowledge.v1.ContentStatus
-	37, // 5: knowledge.v1.ContentSource.created_at:type_name -> google.protobuf.Timestamp
-	37, // 6: knowledge.v1.ContentSource.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 5: knowledge.v1.ContentSource.created_at:type_name -> google.protobuf.Timestamp
+	38, // 6: knowledge.v1.ContentSource.updated_at:type_name -> google.protobuf.Timestamp
 	1,  // 7: knowledge.v1.KnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
-	37, // 8: knowledge.v1.KnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
-	37, // 9: knowledge.v1.KnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // 10: knowledge.v1.EnrichedKnowledgeLink.from:type_name -> knowledge.v1.ContentPreview
-	8,  // 11: knowledge.v1.EnrichedKnowledgeLink.to:type_name -> knowledge.v1.ContentPreview
+	38, // 8: knowledge.v1.KnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
+	38, // 9: knowledge.v1.KnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 10: knowledge.v1.EnrichedKnowledgeLink.from:type_name -> knowledge.v1.ContentPreview
+	9,  // 11: knowledge.v1.EnrichedKnowledgeLink.to:type_name -> knowledge.v1.ContentPreview
 	1,  // 12: knowledge.v1.EnrichedKnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
-	37, // 13: knowledge.v1.EnrichedKnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
-	37, // 14: knowledge.v1.EnrichedKnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 15: knowledge.v1.ListSpacesRequest.created_after:type_name -> google.protobuf.Timestamp
-	37, // 16: knowledge.v1.ListSpacesRequest.created_before:type_name -> google.protobuf.Timestamp
-	37, // 17: knowledge.v1.ListSpacesRequest.updated_after:type_name -> google.protobuf.Timestamp
-	37, // 18: knowledge.v1.ListSpacesRequest.updated_before:type_name -> google.protobuf.Timestamp
-	3,  // 19: knowledge.v1.ListSpacesRequest.page:type_name -> knowledge.v1.Pagination
-	5,  // 20: knowledge.v1.ListSpacesResponse.items:type_name -> knowledge.v1.Space
-	5,  // 21: knowledge.v1.UpdateSpaceRequest.space:type_name -> knowledge.v1.Space
-	38, // 22: knowledge.v1.UpdateSpaceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	37, // 23: knowledge.v1.CreateUploadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
-	6,  // 24: knowledge.v1.CreateUploadURLResponse.content_source:type_name -> knowledge.v1.ContentSource
-	0,  // 25: knowledge.v1.ListContentSourcesRequest.status:type_name -> knowledge.v1.ContentStatus
-	3,  // 26: knowledge.v1.ListContentSourcesRequest.page:type_name -> knowledge.v1.Pagination
-	6,  // 27: knowledge.v1.ListContentSourcesResponse.items:type_name -> knowledge.v1.ContentSource
-	0,  // 28: knowledge.v1.UpdateContentSourceStatusRequest.status:type_name -> knowledge.v1.ContentStatus
-	37, // 29: knowledge.v1.GenerateDownloadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
-	1,  // 30: knowledge.v1.CreateKnowledgeLinkRequest.relation_type:type_name -> knowledge.v1.RelationType
-	2,  // 31: knowledge.v1.ListKnowledgeLinksRequest.direction:type_name -> knowledge.v1.LinkDirection
-	1,  // 32: knowledge.v1.ListKnowledgeLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
-	3,  // 33: knowledge.v1.ListKnowledgeLinksRequest.page:type_name -> knowledge.v1.Pagination
-	9,  // 34: knowledge.v1.ListKnowledgeLinksResponse.items:type_name -> knowledge.v1.EnrichedKnowledgeLink
-	1,  // 35: knowledge.v1.ListAllSpaceLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
-	3,  // 36: knowledge.v1.ListAllSpaceLinksRequest.page:type_name -> knowledge.v1.Pagination
-	7,  // 37: knowledge.v1.ListAllSpaceLinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
-	7,  // 38: knowledge.v1.UpdateKnowledgeLinkRequest.link:type_name -> knowledge.v1.KnowledgeLink
-	38, // 39: knowledge.v1.UpdateKnowledgeLinkRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 40: knowledge.v1.GetBacklinksRequest.page:type_name -> knowledge.v1.Pagination
-	7,  // 41: knowledge.v1.GetBacklinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
-	36, // 42: knowledge.v1.HealthStatus.components:type_name -> knowledge.v1.HealthStatus.ComponentsEntry
-	10, // 43: knowledge.v1.KnowledgeService.CreateSpace:input_type -> knowledge.v1.CreateSpaceRequest
-	11, // 44: knowledge.v1.KnowledgeService.GetSpace:input_type -> knowledge.v1.GetSpaceRequest
-	12, // 45: knowledge.v1.KnowledgeService.ListSpaces:input_type -> knowledge.v1.ListSpacesRequest
-	14, // 46: knowledge.v1.KnowledgeService.UpdateSpace:input_type -> knowledge.v1.UpdateSpaceRequest
-	15, // 47: knowledge.v1.KnowledgeService.DeleteSpace:input_type -> knowledge.v1.DeleteSpaceRequest
-	16, // 48: knowledge.v1.KnowledgeService.CreateUploadURL:input_type -> knowledge.v1.CreateUploadURLRequest
-	18, // 49: knowledge.v1.KnowledgeService.ConfirmUpload:input_type -> knowledge.v1.ConfirmUploadRequest
-	19, // 50: knowledge.v1.KnowledgeService.GetContentSource:input_type -> knowledge.v1.GetContentSourceRequest
-	20, // 51: knowledge.v1.KnowledgeService.ListContentSources:input_type -> knowledge.v1.ListContentSourcesRequest
-	22, // 52: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:input_type -> knowledge.v1.UpdateContentSourceStatusRequest
-	23, // 53: knowledge.v1.KnowledgeService.GenerateDownloadURL:input_type -> knowledge.v1.GenerateDownloadURLRequest
-	25, // 54: knowledge.v1.KnowledgeService.CreateKnowledgeLink:input_type -> knowledge.v1.CreateKnowledgeLinkRequest
-	26, // 55: knowledge.v1.KnowledgeService.GetKnowledgeLink:input_type -> knowledge.v1.GetKnowledgeLinkRequest
-	27, // 56: knowledge.v1.KnowledgeService.ListKnowledgeLinks:input_type -> knowledge.v1.ListKnowledgeLinksRequest
-	29, // 57: knowledge.v1.KnowledgeService.ListAllSpaceLinks:input_type -> knowledge.v1.ListAllSpaceLinksRequest
-	31, // 58: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:input_type -> knowledge.v1.UpdateKnowledgeLinkRequest
-	32, // 59: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:input_type -> knowledge.v1.DeleteKnowledgeLinkRequest
-	33, // 60: knowledge.v1.KnowledgeService.GetBacklinks:input_type -> knowledge.v1.GetBacklinksRequest
-	39, // 61: knowledge.v1.KnowledgeService.Healthz:input_type -> google.protobuf.Empty
-	5,  // 62: knowledge.v1.KnowledgeService.CreateSpace:output_type -> knowledge.v1.Space
-	5,  // 63: knowledge.v1.KnowledgeService.GetSpace:output_type -> knowledge.v1.Space
-	13, // 64: knowledge.v1.KnowledgeService.ListSpaces:output_type -> knowledge.v1.ListSpacesResponse
-	5,  // 65: knowledge.v1.KnowledgeService.UpdateSpace:output_type -> knowledge.v1.Space
-	39, // 66: knowledge.v1.KnowledgeService.DeleteSpace:output_type -> google.protobuf.Empty
-	17, // 67: knowledge.v1.KnowledgeService.CreateUploadURL:output_type -> knowledge.v1.CreateUploadURLResponse
-	6,  // 68: knowledge.v1.KnowledgeService.ConfirmUpload:output_type -> knowledge.v1.ContentSource
-	6,  // 69: knowledge.v1.KnowledgeService.GetContentSource:output_type -> knowledge.v1.ContentSource
-	21, // 70: knowledge.v1.KnowledgeService.ListContentSources:output_type -> knowledge.v1.ListContentSourcesResponse
-	6,  // 71: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:output_type -> knowledge.v1.ContentSource
-	24, // 72: knowledge.v1.KnowledgeService.GenerateDownloadURL:output_type -> knowledge.v1.GenerateDownloadURLResponse
-	7,  // 73: knowledge.v1.KnowledgeService.CreateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
-	9,  // 74: knowledge.v1.KnowledgeService.GetKnowledgeLink:output_type -> knowledge.v1.EnrichedKnowledgeLink
-	28, // 75: knowledge.v1.KnowledgeService.ListKnowledgeLinks:output_type -> knowledge.v1.ListKnowledgeLinksResponse
-	30, // 76: knowledge.v1.KnowledgeService.ListAllSpaceLinks:output_type -> knowledge.v1.ListAllSpaceLinksResponse
-	7,  // 77: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
-	39, // 78: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:output_type -> google.protobuf.Empty
-	34, // 79: knowledge.v1.KnowledgeService.GetBacklinks:output_type -> knowledge.v1.GetBacklinksResponse
-	35, // 80: knowledge.v1.KnowledgeService.Healthz:output_type -> knowledge.v1.HealthStatus
-	62, // [62:81] is the sub-list for method output_type
-	43, // [43:62] is the sub-list for method input_type
-	43, // [43:43] is the sub-list for extension type_name
-	43, // [43:43] is the sub-list for extension extendee
-	0,  // [0:43] is the sub-list for field type_name
+	38, // 13: knowledge.v1.EnrichedKnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
+	38, // 14: knowledge.v1.EnrichedKnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 15: knowledge.v1.ListSpacesRequest.created_after:type_name -> google.protobuf.Timestamp
+	38, // 16: knowledge.v1.ListSpacesRequest.created_before:type_name -> google.protobuf.Timestamp
+	38, // 17: knowledge.v1.ListSpacesRequest.updated_after:type_name -> google.protobuf.Timestamp
+	38, // 18: knowledge.v1.ListSpacesRequest.updated_before:type_name -> google.protobuf.Timestamp
+	4,  // 19: knowledge.v1.ListSpacesRequest.page:type_name -> knowledge.v1.Pagination
+	6,  // 20: knowledge.v1.ListSpacesResponse.items:type_name -> knowledge.v1.Space
+	6,  // 21: knowledge.v1.UpdateSpaceRequest.space:type_name -> knowledge.v1.Space
+	39, // 22: knowledge.v1.UpdateSpaceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	3,  // 23: knowledge.v1.CreateUploadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
+	38, // 24: knowledge.v1.CreateUploadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
+	7,  // 25: knowledge.v1.CreateUploadURLResponse.content_source:type_name -> knowledge.v1.ContentSource
+	3,  // 26: knowledge.v1.ConfirmUploadRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
+	0,  // 27: knowledge.v1.ListContentSourcesRequest.status:type_name -> knowledge.v1.ContentStatus
+	4,  // 28: knowledge.v1.ListContentSourcesRequest.page:type_name -> knowledge.v1.Pagination
+	7,  // 29: knowledge.v1.ListContentSourcesResponse.items:type_name -> knowledge.v1.ContentSource
+	0,  // 30: knowledge.v1.UpdateContentSourceStatusRequest.status:type_name -> knowledge.v1.ContentStatus
+	3,  // 31: knowledge.v1.GenerateDownloadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
+	38, // 32: knowledge.v1.GenerateDownloadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
+	1,  // 33: knowledge.v1.CreateKnowledgeLinkRequest.relation_type:type_name -> knowledge.v1.RelationType
+	2,  // 34: knowledge.v1.ListKnowledgeLinksRequest.direction:type_name -> knowledge.v1.LinkDirection
+	1,  // 35: knowledge.v1.ListKnowledgeLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
+	4,  // 36: knowledge.v1.ListKnowledgeLinksRequest.page:type_name -> knowledge.v1.Pagination
+	10, // 37: knowledge.v1.ListKnowledgeLinksResponse.items:type_name -> knowledge.v1.EnrichedKnowledgeLink
+	1,  // 38: knowledge.v1.ListAllSpaceLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
+	4,  // 39: knowledge.v1.ListAllSpaceLinksRequest.page:type_name -> knowledge.v1.Pagination
+	8,  // 40: knowledge.v1.ListAllSpaceLinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
+	8,  // 41: knowledge.v1.UpdateKnowledgeLinkRequest.link:type_name -> knowledge.v1.KnowledgeLink
+	39, // 42: knowledge.v1.UpdateKnowledgeLinkRequest.update_mask:type_name -> google.protobuf.FieldMask
+	4,  // 43: knowledge.v1.GetBacklinksRequest.page:type_name -> knowledge.v1.Pagination
+	8,  // 44: knowledge.v1.GetBacklinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
+	37, // 45: knowledge.v1.HealthStatus.components:type_name -> knowledge.v1.HealthStatus.ComponentsEntry
+	11, // 46: knowledge.v1.KnowledgeService.CreateSpace:input_type -> knowledge.v1.CreateSpaceRequest
+	12, // 47: knowledge.v1.KnowledgeService.GetSpace:input_type -> knowledge.v1.GetSpaceRequest
+	13, // 48: knowledge.v1.KnowledgeService.ListSpaces:input_type -> knowledge.v1.ListSpacesRequest
+	15, // 49: knowledge.v1.KnowledgeService.UpdateSpace:input_type -> knowledge.v1.UpdateSpaceRequest
+	16, // 50: knowledge.v1.KnowledgeService.DeleteSpace:input_type -> knowledge.v1.DeleteSpaceRequest
+	17, // 51: knowledge.v1.KnowledgeService.CreateUploadURL:input_type -> knowledge.v1.CreateUploadURLRequest
+	19, // 52: knowledge.v1.KnowledgeService.ConfirmUpload:input_type -> knowledge.v1.ConfirmUploadRequest
+	20, // 53: knowledge.v1.KnowledgeService.GetContentSource:input_type -> knowledge.v1.GetContentSourceRequest
+	21, // 54: knowledge.v1.KnowledgeService.ListContentSources:input_type -> knowledge.v1.ListContentSourcesRequest
+	23, // 55: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:input_type -> knowledge.v1.UpdateContentSourceStatusRequest
+	24, // 56: knowledge.v1.KnowledgeService.GenerateDownloadURL:input_type -> knowledge.v1.GenerateDownloadURLRequest
+	26, // 57: knowledge.v1.KnowledgeService.CreateKnowledgeLink:input_type -> knowledge.v1.CreateKnowledgeLinkRequest
+	27, // 58: knowledge.v1.KnowledgeService.GetKnowledgeLink:input_type -> knowledge.v1.GetKnowledgeLinkRequest
+	28, // 59: knowledge.v1.KnowledgeService.ListKnowledgeLinks:input_type -> knowledge.v1.ListKnowledgeLinksRequest
+	30, // 60: knowledge.v1.KnowledgeService.ListAllSpaceLinks:input_type -> knowledge.v1.ListAllSpaceLinksRequest
+	32, // 61: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:input_type -> knowledge.v1.UpdateKnowledgeLinkRequest
+	33, // 62: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:input_type -> knowledge.v1.DeleteKnowledgeLinkRequest
+	34, // 63: knowledge.v1.KnowledgeService.GetBacklinks:input_type -> knowledge.v1.GetBacklinksRequest
+	40, // 64: knowledge.v1.KnowledgeService.Healthz:input_type -> google.protobuf.Empty
+	6,  // 65: knowledge.v1.KnowledgeService.CreateSpace:output_type -> knowledge.v1.Space
+	6,  // 66: knowledge.v1.KnowledgeService.GetSpace:output_type -> knowledge.v1.Space
+	14, // 67: knowledge.v1.KnowledgeService.ListSpaces:output_type -> knowledge.v1.ListSpacesResponse
+	6,  // 68: knowledge.v1.KnowledgeService.UpdateSpace:output_type -> knowledge.v1.Space
+	40, // 69: knowledge.v1.KnowledgeService.DeleteSpace:output_type -> google.protobuf.Empty
+	18, // 70: knowledge.v1.KnowledgeService.CreateUploadURL:output_type -> knowledge.v1.CreateUploadURLResponse
+	7,  // 71: knowledge.v1.KnowledgeService.ConfirmUpload:output_type -> knowledge.v1.ContentSource
+	7,  // 72: knowledge.v1.KnowledgeService.GetContentSource:output_type -> knowledge.v1.ContentSource
+	22, // 73: knowledge.v1.KnowledgeService.ListContentSources:output_type -> knowledge.v1.ListContentSourcesResponse
+	7,  // 74: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:output_type -> knowledge.v1.ContentSource
+	25, // 75: knowledge.v1.KnowledgeService.GenerateDownloadURL:output_type -> knowledge.v1.GenerateDownloadURLResponse
+	8,  // 76: knowledge.v1.KnowledgeService.CreateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
+	10, // 77: knowledge.v1.KnowledgeService.GetKnowledgeLink:output_type -> knowledge.v1.EnrichedKnowledgeLink
+	29, // 78: knowledge.v1.KnowledgeService.ListKnowledgeLinks:output_type -> knowledge.v1.ListKnowledgeLinksResponse
+	31, // 79: knowledge.v1.KnowledgeService.ListAllSpaceLinks:output_type -> knowledge.v1.ListAllSpaceLinksResponse
+	8,  // 80: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
+	40, // 81: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:output_type -> google.protobuf.Empty
+	35, // 82: knowledge.v1.KnowledgeService.GetBacklinks:output_type -> knowledge.v1.GetBacklinksResponse
+	36, // 83: knowledge.v1.KnowledgeService.Healthz:output_type -> knowledge.v1.HealthStatus
+	65, // [65:84] is the sub-list for method output_type
+	46, // [46:65] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_v1_knowledge_proto_init() }
@@ -2706,7 +2794,7 @@ func file_api_proto_v1_knowledge_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_v1_knowledge_proto_rawDesc), len(file_api_proto_v1_knowledge_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
