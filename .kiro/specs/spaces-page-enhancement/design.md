@@ -30,6 +30,9 @@ frontend/src/app/spaces/
 │   │   ├── LeftSidebar.tsx         # Toggleable sidebar with space image, navigation, and chat history
 │   │   ├── ChatHistorySection.tsx  # Git tree-style chat history (within sidebar)
 │   │   ├── ContentSourceCard.tsx   # Individual document card
+│   │   ├── ContentPreviewModal.tsx # Content preview with Original/Processed tabs
+│   │   ├── OriginalContentViewer.tsx # Native format content display
+│   │   ├── ProcessedContentViewer.tsx # Rendered markdown content display
 │   │   └── UploadModal.tsx         # Upload modal component
 │   ├── layout.tsx                  # Space layout with upload modal slot
 │   └── page.tsx                    # Space detail page
@@ -217,6 +220,51 @@ graph TD
 }
 ```
 
+### Content Preview System
+
+**Preview Modal Structure:**
+- **Tabbed Interface**: "Original" and "Processed" tabs for content view switching
+- **Original Viewer**: Native format display (PDF viewer, image display, text files)
+- **Processed Viewer**: Rendered markdown with proper formatting and styling
+- **Copy Functionality**: Dropdown with "Copy as Markdown" and "Copy as Text" options
+
+**Content Processing Flow:**
+```mermaid
+graph TD
+    A[User Clicks Content] --> B[Open Preview Modal]
+    B --> C[Load Original Content]
+    B --> D[Load Processed Content]
+    C --> E[Display in Native Format]
+    D --> F[Render Markdown]
+    F --> G[Show Copy Options]
+    G --> H[Copy as Markdown]
+    G --> I[Copy as Plain Text]
+```
+
+**Copy Functionality:**
+- **Markdown Copy**: Preserves all formatting symbols (hashtags, asterisks, etc.)
+- **Plain Text Copy**: Strips formatting symbols and converts to readable text
+- **Utility Functions**: Markdown-to-text conversion with symbol removal
+
+**Styling Approach:**
+```css
+.preview-modal {
+  @apply fixed inset-0 z-50 bg-black/50 flex items-center justify-center;
+}
+
+.preview-content {
+  @apply bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] overflow-hidden;
+}
+
+.preview-tabs {
+  @apply flex border-b border-gray-200;
+}
+
+.copy-dropdown {
+  @apply absolute top-4 right-4 bg-white border rounded-lg shadow-lg;
+}
+```
+
 ### Enhanced View Components
 
 **Gallery View Enhancements:**
@@ -283,7 +331,22 @@ interface ContentSource {
   source_type: 'file' | 'url' | 'text' | 'google_drive'
   source_metadata?: Record<string, any>
   extracted_text?: string
+  processed_markdown?: string  // Processed content in markdown format
   thumbnail_url?: string
+  original_content_url?: string  // URL to access original file content
+}
+
+interface ContentPreview {
+  id: string
+  content_source_id: string
+  original_url: string
+  processed_content: string
+  preview_type: 'original' | 'processed'
+}
+
+interface CopyOptions {
+  markdown: string  // Content with formatting symbols
+  plainText: string  // Content without formatting symbols
 }
 ```
 

@@ -206,7 +206,17 @@
   - Implement processing status display with real-time updates
   - Add content source metadata and thumbnail display
   - Create confirmation dialogs for destructive operations
-  - _Requirements: 2.3, 6.1, 6.2, 6.3, 6.4_
+  - _Requirements: 2.3, 6.1, 6.2, 6.8, 6.9_
+
+- [ ] 6.1 Implement content preview system with dual view modes
+  - Create ContentPreviewModal component with tabbed interface for "Original" and "Processed" views
+  - Implement OriginalContentViewer component for displaying content in native format (PDF viewer, image display, text files)
+  - Build ProcessedContentViewer component for rendering markdown content with proper formatting
+  - Add copy functionality with dropdown menu offering "Copy as Markdown" and "Copy as Text" options
+  - Implement markdown-to-plain-text conversion utility that removes formatting symbols (hashtags, asterisks, etc.)
+  - Add proper loading states and error handling for content fetching and rendering
+  - Integrate preview modal with ContentSourceCard click handlers
+  - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7_
 
 - [ ] 7. Enhance server actions for upload and content management
   - Implement createUploadURL server action for secure file uploads
