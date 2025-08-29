@@ -109,19 +109,13 @@ func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uu
 		}
 	}
 
-	// Derive title: if request title is empty, default to filename
-	effectiveTitle := strings.TrimSpace(title)
-	if effectiveTitle == "" {
-		effectiveTitle = filename
-	}
-
 	// Create content source record
 	content := &domain.ContentSource{
 		SpaceID:   spaceID,
 		OwnerID:   ownerUUID,
 		Status:    domain.ContentStatusUploading,
 		MediaType: mimeType,
-		Title:     effectiveTitle,
+		Title:     strings.TrimSpace(title),
 		Source:    filename,
 		SizeBytes: sizeBytes,
 	}
@@ -270,36 +264,6 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	}
 
 	return content, nil
-}
-
-// UpdateContentSource performs partial updates on title and keywords only.
-func (s *ContentService) UpdateContentSource(ctx context.Context, id uuid.UUID, title *string, keywords *[]string) (*domain.ContentSource, error) {
-	// Load current content
-	content, err := s.contentRepo.GetByID(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get content source: %w", err)
-	}
-
-	// Apply partial updates
-	if title != nil {
-		trimmed := strings.TrimSpace(*title)
-		content.Title = trimmed
-	}
-	if keywords != nil {
-		// allow empty slice to clear keywords
-		content.Keywords = *keywords
-	}
-
-	if err := s.contentRepo.Update(ctx, content); err != nil {
-		return nil, fmt.Errorf("failed to update content source: %w", err)
-	}
-
-	// Re-fetch to return fresh timestamps/state
-	updated, err := s.contentRepo.GetByID(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get updated content source: %w", err)
-	}
-	return updated, nil
 }
 
 // SpaceContentIntegrityReport represents the results of space-content validation

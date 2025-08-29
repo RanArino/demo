@@ -22,7 +22,6 @@ service KnowledgeService {
   rpc ConfirmUpload(ConfirmUploadRequest) returns (ContentSource);
   rpc GetContentSource(GetContentSourceRequest) returns (ContentSource);
   rpc ListContentSources(ListContentSourcesRequest) returns (ListContentSourcesResponse);
-  rpc UpdateContentSource(UpdateContentSourceRequest) returns (ContentSource);
   rpc UpdateContentSourceStatus(UpdateContentSourceStatusRequest) returns (ContentSource);
   rpc DeleteContentSource(DeleteContentSourceRequest) returns (google.protobuf.Empty);
   // Download URL Generation
@@ -223,12 +222,6 @@ message ListContentSourcesRequest {
 message ListContentSourcesResponse {
   repeated ContentSource items = 1;
   string next_page_token = 2;
-}
-
-message UpdateContentSourceRequest {
-  string id = 1;
-  ContentSource content = 2;
-  google.protobuf.FieldMask update_mask = 3;
 }
 
 message UpdateContentSourceStatusRequest {

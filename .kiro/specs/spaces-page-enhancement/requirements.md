@@ -79,13 +79,8 @@ This feature enhances the existing Knowledge Spaces frontend interface by updati
 
 1. WHEN I create, update, or delete spaces THEN the system SHALL provide immediate visual feedback and optimistic updates
 2. WHEN I manage content sources THEN the system SHALL allow viewing, downloading, and deleting with proper confirmation dialogs
-3. WHEN I view a content source THEN the system SHALL provide tab buttons to switch between "Original" and "Processed" preview modes
-4. WHEN I select "Original" preview THEN the system SHALL display the content in its original file format (PDF viewer, image display, etc.)
-5. WHEN I select "Processed" preview THEN the system SHALL display the content in rendered markdown format (not raw markdown text)
-6. WHEN I view processed content in markdown format THEN the system SHALL provide a copy button with two copy options
-7. WHEN I click the copy button THEN the system SHALL offer "Copy as Markdown" (with formatting symbols) and "Copy as Text" (plain text without hashtags, asterisks, etc.)
-8. WHEN operations fail THEN the system SHALL display clear error messages and provide retry options
-9. WHEN operations succeed THEN the system SHALL show success notifications and update the UI accordingly
+3. WHEN operations fail THEN the system SHALL display clear error messages and provide retry options
+4. WHEN operations succeed THEN the system SHALL show success notifications and update the UI accordingly
 
 ### Requirement 7
 
