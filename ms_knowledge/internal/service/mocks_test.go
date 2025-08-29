@@ -63,7 +63,7 @@ func (m *mockSpaceRepo) GetWithStats(ctx context.Context, id uuid.UUID) (*domain
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &domain.SpaceWithStats{Space: *sp, Stats: domain.SpaceStats{
 		ContentCount: 1, // For testing - assume 1 content per space
 	}}, nil
@@ -354,4 +354,8 @@ func (m *mockStorage) GeneratePresignedUploadURL(bucket, key string, expires tim
 func (m *mockStorage) CalculateSHA256(data []byte) string {
 	sha := sha256.Sum256(data)
 	return hex.EncodeToString(sha[:])
+}
+
+func (m *mockStorage) GeneratePresignedDownloadURL(bucket, key string, expires time.Duration) (string, error) {
+	return fmt.Sprintf("https://example.com/%s", key), nil
 }

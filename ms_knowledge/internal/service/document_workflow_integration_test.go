@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
 	"demo/ms_knowledge/internal/events"
 
@@ -27,7 +28,10 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 	eventCapture := &mockEventProducer{events: make([]mockEvent, 0)}
 
 	// Services
-	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, "test-bucket", log.New(os.Stdout, "[TEST] ", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
@@ -123,7 +127,10 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 	storage := &mockStorage{}
 	eventCapture := &mockEventProducer{events: make([]mockEvent, 0)}
 
-	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, "test-bucket", log.New(os.Stdout, "[TEST] ", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
@@ -163,7 +170,10 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 
-	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "test-bucket", log.New(os.Stdout, "[TEST] ", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
@@ -230,7 +240,10 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 	storage := &mockStorage{}
 	eventCapture := &mockEventProducer{events: make([]mockEvent, 0)}
 
-	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, "test-bucket", log.New(os.Stdout, "[TEST] ", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
@@ -278,7 +291,10 @@ func TestDocumentWorkflowIntegration_SpaceContentIntegrity(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 
-	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "test-bucket", log.New(os.Stdout, "[TEST] ", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
 	ctx := context.Background()
