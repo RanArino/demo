@@ -346,6 +346,67 @@ func (s *GRPCServer) UpdateContentSourceStatus(ctx context.Context, req *knowled
 	return s.domainContentSourceToProto(content), nil
 }
 
+func (s *GRPCServer) UpdateContentSource(ctx context.Context, req *knowledgev1.UpdateContentSourceRequest) (*knowledgev1.ContentSource, error) {
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
+	}
+
+	// RBAC/Ownership: admins bypass, others must own the content
+	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
+		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
+			outCtx := metadata.NewOutgoingContext(ctx, md)
+			uReq := &userv1.GetUserRequest{}
+			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
+				callerID := uResp.GetUser().GetId()
+				cs, _ := s.contentService.GetContentSource(ctx, id)
+				if cs != nil && cs.OwnerID.String() != callerID {
+					return nil, status.Errorf(codes.PermissionDenied, "not owner")
+				}
+			}
+		}
+	}
+
+	// Determine which fields to update based on update_mask
+	var titlePtr *string
+	var keywordsPtr *[]string
+
+	if req.UpdateMask != nil && len(req.UpdateMask.Paths) > 0 {
+		for _, path := range req.UpdateMask.Paths {
+			switch path {
+			case "title":
+				t := strings.TrimSpace(req.Content.GetTitle())
+				titlePtr = &t
+			case "keywords":
+				ks := make([]string, len(req.Content.GetKeywords()))
+				copy(ks, req.Content.GetKeywords())
+				keywordsPtr = &ks
+			default:
+				return nil, status.Errorf(codes.InvalidArgument, "unsupported path in update_mask: %s", path)
+			}
+		}
+	} else {
+		// No mask: allow partial semantics based on presence in payload
+		if req.Content != nil {
+			if v := strings.TrimSpace(req.Content.GetTitle()); v != "" {
+				titlePtr = &v
+			}
+			// For keywords, use presence: if provided (even empty), apply
+			if req.Content.Keywords != nil {
+				ks := make([]string, len(req.Content.GetKeywords()))
+				copy(ks, req.Content.GetKeywords())
+				keywordsPtr = &ks
+			}
+		}
+	}
+
+	content, err := s.contentService.UpdateContentSource(ctx, id, titlePtr, keywordsPtr)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update content source: %v", err)
+	}
+	return s.domainContentSourceToProto(content), nil
+}
+
 // GenerateDownloadURL returns a presigned URL for downloading the requested object.
 func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.GenerateDownloadURLRequest) (*knowledgev1.GenerateDownloadURLResponse, error) {
 	contentID, err := uuid.Parse(req.ContentSourceId)
