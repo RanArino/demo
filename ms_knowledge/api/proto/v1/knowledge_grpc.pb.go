@@ -29,6 +29,7 @@ const (
 	KnowledgeService_ConfirmUpload_FullMethodName             = "/knowledge.v1.KnowledgeService/ConfirmUpload"
 	KnowledgeService_GetContentSource_FullMethodName          = "/knowledge.v1.KnowledgeService/GetContentSource"
 	KnowledgeService_ListContentSources_FullMethodName        = "/knowledge.v1.KnowledgeService/ListContentSources"
+	KnowledgeService_UpdateContentSource_FullMethodName       = "/knowledge.v1.KnowledgeService/UpdateContentSource"
 	KnowledgeService_UpdateContentSourceStatus_FullMethodName = "/knowledge.v1.KnowledgeService/UpdateContentSourceStatus"
 	KnowledgeService_DeleteContentSource_FullMethodName       = "/knowledge.v1.KnowledgeService/DeleteContentSource"
 	KnowledgeService_GenerateDownloadURL_FullMethodName       = "/knowledge.v1.KnowledgeService/GenerateDownloadURL"
@@ -59,6 +60,7 @@ type KnowledgeServiceClient interface {
 	ConfirmUpload(ctx context.Context, in *ConfirmUploadRequest, opts ...grpc.CallOption) (*ContentSource, error)
 	GetContentSource(ctx context.Context, in *GetContentSourceRequest, opts ...grpc.CallOption) (*ContentSource, error)
 	ListContentSources(ctx context.Context, in *ListContentSourcesRequest, opts ...grpc.CallOption) (*ListContentSourcesResponse, error)
+	UpdateContentSource(ctx context.Context, in *UpdateContentSourceRequest, opts ...grpc.CallOption) (*ContentSource, error)
 	UpdateContentSourceStatus(ctx context.Context, in *UpdateContentSourceStatusRequest, opts ...grpc.CallOption) (*ContentSource, error)
 	DeleteContentSource(ctx context.Context, in *DeleteContentSourceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Download URL Generation
@@ -170,6 +172,16 @@ func (c *knowledgeServiceClient) ListContentSources(ctx context.Context, in *Lis
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListContentSourcesResponse)
 	err := c.cc.Invoke(ctx, KnowledgeService_ListContentSources_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *knowledgeServiceClient) UpdateContentSource(ctx context.Context, in *UpdateContentSourceRequest, opts ...grpc.CallOption) (*ContentSource, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContentSource)
+	err := c.cc.Invoke(ctx, KnowledgeService_UpdateContentSource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -303,6 +315,7 @@ type KnowledgeServiceServer interface {
 	ConfirmUpload(context.Context, *ConfirmUploadRequest) (*ContentSource, error)
 	GetContentSource(context.Context, *GetContentSourceRequest) (*ContentSource, error)
 	ListContentSources(context.Context, *ListContentSourcesRequest) (*ListContentSourcesResponse, error)
+	UpdateContentSource(context.Context, *UpdateContentSourceRequest) (*ContentSource, error)
 	UpdateContentSourceStatus(context.Context, *UpdateContentSourceStatusRequest) (*ContentSource, error)
 	DeleteContentSource(context.Context, *DeleteContentSourceRequest) (*emptypb.Empty, error)
 	// Download URL Generation
@@ -356,6 +369,9 @@ func (UnimplementedKnowledgeServiceServer) GetContentSource(context.Context, *Ge
 }
 func (UnimplementedKnowledgeServiceServer) ListContentSources(context.Context, *ListContentSourcesRequest) (*ListContentSourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListContentSources not implemented")
+}
+func (UnimplementedKnowledgeServiceServer) UpdateContentSource(context.Context, *UpdateContentSourceRequest) (*ContentSource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateContentSource not implemented")
 }
 func (UnimplementedKnowledgeServiceServer) UpdateContentSourceStatus(context.Context, *UpdateContentSourceStatusRequest) (*ContentSource, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateContentSourceStatus not implemented")
@@ -569,6 +585,24 @@ func _KnowledgeService_ListContentSources_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KnowledgeServiceServer).ListContentSources(ctx, req.(*ListContentSourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KnowledgeService_UpdateContentSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateContentSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KnowledgeServiceServer).UpdateContentSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KnowledgeService_UpdateContentSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KnowledgeServiceServer).UpdateContentSource(ctx, req.(*UpdateContentSourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -813,6 +847,10 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListContentSources",
 			Handler:    _KnowledgeService_ListContentSources_Handler,
+		},
+		{
+			MethodName: "UpdateContentSource",
+			Handler:    _KnowledgeService_UpdateContentSource_Handler,
 		},
 		{
 			MethodName: "UpdateContentSourceStatus",
