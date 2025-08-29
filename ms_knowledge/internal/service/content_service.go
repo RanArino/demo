@@ -349,9 +349,9 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 		return fmt.Errorf("failed to get content source: %w", err)
 	}
 
-	bucket := s.sourceBucket
-	if bucket == "" {
-		bucket = "knowledge-content"
+	bucket, err := s.resolveBucket("source")
+	if err != nil {
+		return fmt.Errorf("failed to resolve source bucket: %w", err)
 	}
 
 	filename := strings.TrimSpace(content.Source)
