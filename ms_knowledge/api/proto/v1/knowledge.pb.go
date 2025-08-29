@@ -1594,6 +1594,66 @@ func (x *ListContentSourcesResponse) GetNextPageToken() string {
 	return ""
 }
 
+type UpdateContentSourceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Content       *ContentSource         `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateContentSourceRequest) Reset() {
+	*x = UpdateContentSourceRequest{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateContentSourceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateContentSourceRequest) ProtoMessage() {}
+
+func (x *UpdateContentSourceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateContentSourceRequest.ProtoReflect.Descriptor instead.
+func (*UpdateContentSourceRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *UpdateContentSourceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateContentSourceRequest) GetContent() *ContentSource {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *UpdateContentSourceRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
+	}
+	return nil
+}
+
 type UpdateContentSourceStatusRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1606,7 +1666,7 @@ type UpdateContentSourceStatusRequest struct {
 
 func (x *UpdateContentSourceStatusRequest) Reset() {
 	*x = UpdateContentSourceStatusRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[19]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1618,7 +1678,7 @@ func (x *UpdateContentSourceStatusRequest) String() string {
 func (*UpdateContentSourceStatusRequest) ProtoMessage() {}
 
 func (x *UpdateContentSourceStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[19]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1631,7 +1691,7 @@ func (x *UpdateContentSourceStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateContentSourceStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateContentSourceStatusRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{19}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UpdateContentSourceStatusRequest) GetId() string {
@@ -1671,7 +1731,7 @@ type DeleteContentSourceRequest struct {
 
 func (x *DeleteContentSourceRequest) Reset() {
 	*x = DeleteContentSourceRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[20]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1683,7 +1743,7 @@ func (x *DeleteContentSourceRequest) String() string {
 func (*DeleteContentSourceRequest) ProtoMessage() {}
 
 func (x *DeleteContentSourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[20]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1696,7 +1756,7 @@ func (x *DeleteContentSourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteContentSourceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteContentSourceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{20}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *DeleteContentSourceRequest) GetId() string {
@@ -1718,7 +1778,7 @@ type GenerateDownloadURLRequest struct {
 
 func (x *GenerateDownloadURLRequest) Reset() {
 	*x = GenerateDownloadURLRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[21]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1730,7 +1790,7 @@ func (x *GenerateDownloadURLRequest) String() string {
 func (*GenerateDownloadURLRequest) ProtoMessage() {}
 
 func (x *GenerateDownloadURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[21]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1743,7 +1803,7 @@ func (x *GenerateDownloadURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateDownloadURLRequest.ProtoReflect.Descriptor instead.
 func (*GenerateDownloadURLRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{21}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GenerateDownloadURLRequest) GetContentSourceId() string {
@@ -1778,7 +1838,7 @@ type GenerateDownloadURLResponse struct {
 
 func (x *GenerateDownloadURLResponse) Reset() {
 	*x = GenerateDownloadURLResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[22]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1790,7 +1850,7 @@ func (x *GenerateDownloadURLResponse) String() string {
 func (*GenerateDownloadURLResponse) ProtoMessage() {}
 
 func (x *GenerateDownloadURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[22]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1803,7 +1863,7 @@ func (x *GenerateDownloadURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateDownloadURLResponse.ProtoReflect.Descriptor instead.
 func (*GenerateDownloadURLResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{22}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GenerateDownloadURLResponse) GetUrl() string {
@@ -1840,7 +1900,7 @@ type CreateKnowledgeLinkRequest struct {
 
 func (x *CreateKnowledgeLinkRequest) Reset() {
 	*x = CreateKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[23]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1852,7 +1912,7 @@ func (x *CreateKnowledgeLinkRequest) String() string {
 func (*CreateKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *CreateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[23]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1865,7 +1925,7 @@ func (x *CreateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*CreateKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{23}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateKnowledgeLinkRequest) GetFromContentId() string {
@@ -1905,7 +1965,7 @@ type GetKnowledgeLinkRequest struct {
 
 func (x *GetKnowledgeLinkRequest) Reset() {
 	*x = GetKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1917,7 +1977,7 @@ func (x *GetKnowledgeLinkRequest) String() string {
 func (*GetKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *GetKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1930,7 +1990,7 @@ func (x *GetKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*GetKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{24}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetKnowledgeLinkRequest) GetId() string {
@@ -1953,7 +2013,7 @@ type ListKnowledgeLinksRequest struct {
 
 func (x *ListKnowledgeLinksRequest) Reset() {
 	*x = ListKnowledgeLinksRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1965,7 +2025,7 @@ func (x *ListKnowledgeLinksRequest) String() string {
 func (*ListKnowledgeLinksRequest) ProtoMessage() {}
 
 func (x *ListKnowledgeLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1978,7 +2038,7 @@ func (x *ListKnowledgeLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKnowledgeLinksRequest.ProtoReflect.Descriptor instead.
 func (*ListKnowledgeLinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{25}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListKnowledgeLinksRequest) GetContentId() string {
@@ -2019,7 +2079,7 @@ type ListKnowledgeLinksResponse struct {
 
 func (x *ListKnowledgeLinksResponse) Reset() {
 	*x = ListKnowledgeLinksResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2031,7 +2091,7 @@ func (x *ListKnowledgeLinksResponse) String() string {
 func (*ListKnowledgeLinksResponse) ProtoMessage() {}
 
 func (x *ListKnowledgeLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2044,7 +2104,7 @@ func (x *ListKnowledgeLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKnowledgeLinksResponse.ProtoReflect.Descriptor instead.
 func (*ListKnowledgeLinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{26}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListKnowledgeLinksResponse) GetItems() []*EnrichedKnowledgeLink {
@@ -2073,7 +2133,7 @@ type ListAllSpaceLinksRequest struct {
 
 func (x *ListAllSpaceLinksRequest) Reset() {
 	*x = ListAllSpaceLinksRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2085,7 +2145,7 @@ func (x *ListAllSpaceLinksRequest) String() string {
 func (*ListAllSpaceLinksRequest) ProtoMessage() {}
 
 func (x *ListAllSpaceLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2098,7 +2158,7 @@ func (x *ListAllSpaceLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllSpaceLinksRequest.ProtoReflect.Descriptor instead.
 func (*ListAllSpaceLinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{27}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListAllSpaceLinksRequest) GetSpaceId() string {
@@ -2132,7 +2192,7 @@ type ListAllSpaceLinksResponse struct {
 
 func (x *ListAllSpaceLinksResponse) Reset() {
 	*x = ListAllSpaceLinksResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2144,7 +2204,7 @@ func (x *ListAllSpaceLinksResponse) String() string {
 func (*ListAllSpaceLinksResponse) ProtoMessage() {}
 
 func (x *ListAllSpaceLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2157,7 +2217,7 @@ func (x *ListAllSpaceLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllSpaceLinksResponse.ProtoReflect.Descriptor instead.
 func (*ListAllSpaceLinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{28}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListAllSpaceLinksResponse) GetItems() []*KnowledgeLink {
@@ -2185,7 +2245,7 @@ type UpdateKnowledgeLinkRequest struct {
 
 func (x *UpdateKnowledgeLinkRequest) Reset() {
 	*x = UpdateKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2197,7 +2257,7 @@ func (x *UpdateKnowledgeLinkRequest) String() string {
 func (*UpdateKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *UpdateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2210,7 +2270,7 @@ func (x *UpdateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{29}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateKnowledgeLinkRequest) GetId() string {
@@ -2243,7 +2303,7 @@ type DeleteKnowledgeLinkRequest struct {
 
 func (x *DeleteKnowledgeLinkRequest) Reset() {
 	*x = DeleteKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2255,7 +2315,7 @@ func (x *DeleteKnowledgeLinkRequest) String() string {
 func (*DeleteKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *DeleteKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2268,7 +2328,7 @@ func (x *DeleteKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{30}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *DeleteKnowledgeLinkRequest) GetId() string {
@@ -2288,7 +2348,7 @@ type GetBacklinksRequest struct {
 
 func (x *GetBacklinksRequest) Reset() {
 	*x = GetBacklinksRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2300,7 +2360,7 @@ func (x *GetBacklinksRequest) String() string {
 func (*GetBacklinksRequest) ProtoMessage() {}
 
 func (x *GetBacklinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2313,7 +2373,7 @@ func (x *GetBacklinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBacklinksRequest.ProtoReflect.Descriptor instead.
 func (*GetBacklinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{31}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetBacklinksRequest) GetContentId() string {
@@ -2340,7 +2400,7 @@ type GetBacklinksResponse struct {
 
 func (x *GetBacklinksResponse) Reset() {
 	*x = GetBacklinksResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2352,7 +2412,7 @@ func (x *GetBacklinksResponse) String() string {
 func (*GetBacklinksResponse) ProtoMessage() {}
 
 func (x *GetBacklinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2365,7 +2425,7 @@ func (x *GetBacklinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBacklinksResponse.ProtoReflect.Descriptor instead.
 func (*GetBacklinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{32}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetBacklinksResponse) GetItems() []*KnowledgeLink {
@@ -2393,7 +2453,7 @@ type HealthStatus struct {
 
 func (x *HealthStatus) Reset() {
 	*x = HealthStatus{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2405,7 +2465,7 @@ func (x *HealthStatus) String() string {
 func (*HealthStatus) ProtoMessage() {}
 
 func (x *HealthStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2418,7 +2478,7 @@ func (x *HealthStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthStatus.ProtoReflect.Descriptor instead.
 func (*HealthStatus) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{33}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *HealthStatus) GetStatus() string {
@@ -2567,7 +2627,12 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	" \x01(\v2\x18.knowledge.v1.PaginationR\x04page\"w\n" +
 	"\x1aListContentSourcesResponse\x121\n" +
 	"\x05items\x18\x01 \x03(\v2\x1b.knowledge.v1.ContentSourceR\x05items\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xbc\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa0\x01\n" +
+	"\x1aUpdateContentSourceRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x125\n" +
+	"\acontent\x18\x02 \x01(\v2\x1b.knowledge.v1.ContentSourceR\acontent\x12;\n" +
+	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"updateMask\"\xbc\x01\n" +
 	" UpdateContentSourceStatusRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x123\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1b.knowledge.v1.ContentStatusR\x06status\x12.\n" +
@@ -2658,7 +2723,7 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x12DownloadObjectKind\x12$\n" +
 	" DOWNLOAD_OBJECT_KIND_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dDOWNLOAD_OBJECT_KIND_ORIGINAL\x10\x01\x12\"\n" +
-	"\x1eDOWNLOAD_OBJECT_KIND_PROCESSED\x10\x022\xf4\r\n" +
+	"\x1eDOWNLOAD_OBJECT_KIND_PROCESSED\x10\x022\xd2\x0e\n" +
 	"\x10KnowledgeService\x12D\n" +
 	"\vCreateSpace\x12 .knowledge.v1.CreateSpaceRequest\x1a\x13.knowledge.v1.Space\x12>\n" +
 	"\bGetSpace\x12\x1d.knowledge.v1.GetSpaceRequest\x1a\x13.knowledge.v1.Space\x12O\n" +
@@ -2669,7 +2734,8 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x0fCreateUploadURL\x12$.knowledge.v1.CreateUploadURLRequest\x1a%.knowledge.v1.CreateUploadURLResponse\x12P\n" +
 	"\rConfirmUpload\x12\".knowledge.v1.ConfirmUploadRequest\x1a\x1b.knowledge.v1.ContentSource\x12V\n" +
 	"\x10GetContentSource\x12%.knowledge.v1.GetContentSourceRequest\x1a\x1b.knowledge.v1.ContentSource\x12g\n" +
-	"\x12ListContentSources\x12'.knowledge.v1.ListContentSourcesRequest\x1a(.knowledge.v1.ListContentSourcesResponse\x12h\n" +
+	"\x12ListContentSources\x12'.knowledge.v1.ListContentSourcesRequest\x1a(.knowledge.v1.ListContentSourcesResponse\x12\\\n" +
+	"\x13UpdateContentSource\x12(.knowledge.v1.UpdateContentSourceRequest\x1a\x1b.knowledge.v1.ContentSource\x12h\n" +
 	"\x19UpdateContentSourceStatus\x12..knowledge.v1.UpdateContentSourceStatusRequest\x1a\x1b.knowledge.v1.ContentSource\x12W\n" +
 	"\x13DeleteContentSource\x12(.knowledge.v1.DeleteContentSourceRequest\x1a\x16.google.protobuf.Empty\x12j\n" +
 	"\x13GenerateDownloadURL\x12(.knowledge.v1.GenerateDownloadURLRequest\x1a).knowledge.v1.GenerateDownloadURLResponse\x12\\\n" +
@@ -2695,7 +2761,7 @@ func file_api_proto_v1_knowledge_proto_rawDescGZIP() []byte {
 }
 
 var file_api_proto_v1_knowledge_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_api_proto_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_api_proto_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
 var file_api_proto_v1_knowledge_proto_goTypes = []any{
 	(ContentStatus)(0),                       // 0: knowledge.v1.ContentStatus
 	(RelationType)(0),                        // 1: knowledge.v1.RelationType
@@ -2720,118 +2786,123 @@ var file_api_proto_v1_knowledge_proto_goTypes = []any{
 	(*GetContentSourceRequest)(nil),          // 20: knowledge.v1.GetContentSourceRequest
 	(*ListContentSourcesRequest)(nil),        // 21: knowledge.v1.ListContentSourcesRequest
 	(*ListContentSourcesResponse)(nil),       // 22: knowledge.v1.ListContentSourcesResponse
-	(*UpdateContentSourceStatusRequest)(nil), // 23: knowledge.v1.UpdateContentSourceStatusRequest
-	(*DeleteContentSourceRequest)(nil),       // 24: knowledge.v1.DeleteContentSourceRequest
-	(*GenerateDownloadURLRequest)(nil),       // 25: knowledge.v1.GenerateDownloadURLRequest
-	(*GenerateDownloadURLResponse)(nil),      // 26: knowledge.v1.GenerateDownloadURLResponse
-	(*CreateKnowledgeLinkRequest)(nil),       // 27: knowledge.v1.CreateKnowledgeLinkRequest
-	(*GetKnowledgeLinkRequest)(nil),          // 28: knowledge.v1.GetKnowledgeLinkRequest
-	(*ListKnowledgeLinksRequest)(nil),        // 29: knowledge.v1.ListKnowledgeLinksRequest
-	(*ListKnowledgeLinksResponse)(nil),       // 30: knowledge.v1.ListKnowledgeLinksResponse
-	(*ListAllSpaceLinksRequest)(nil),         // 31: knowledge.v1.ListAllSpaceLinksRequest
-	(*ListAllSpaceLinksResponse)(nil),        // 32: knowledge.v1.ListAllSpaceLinksResponse
-	(*UpdateKnowledgeLinkRequest)(nil),       // 33: knowledge.v1.UpdateKnowledgeLinkRequest
-	(*DeleteKnowledgeLinkRequest)(nil),       // 34: knowledge.v1.DeleteKnowledgeLinkRequest
-	(*GetBacklinksRequest)(nil),              // 35: knowledge.v1.GetBacklinksRequest
-	(*GetBacklinksResponse)(nil),             // 36: knowledge.v1.GetBacklinksResponse
-	(*HealthStatus)(nil),                     // 37: knowledge.v1.HealthStatus
-	nil,                                      // 38: knowledge.v1.HealthStatus.ComponentsEntry
-	(*timestamppb.Timestamp)(nil),            // 39: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),            // 40: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),                    // 41: google.protobuf.Empty
+	(*UpdateContentSourceRequest)(nil),       // 23: knowledge.v1.UpdateContentSourceRequest
+	(*UpdateContentSourceStatusRequest)(nil), // 24: knowledge.v1.UpdateContentSourceStatusRequest
+	(*DeleteContentSourceRequest)(nil),       // 25: knowledge.v1.DeleteContentSourceRequest
+	(*GenerateDownloadURLRequest)(nil),       // 26: knowledge.v1.GenerateDownloadURLRequest
+	(*GenerateDownloadURLResponse)(nil),      // 27: knowledge.v1.GenerateDownloadURLResponse
+	(*CreateKnowledgeLinkRequest)(nil),       // 28: knowledge.v1.CreateKnowledgeLinkRequest
+	(*GetKnowledgeLinkRequest)(nil),          // 29: knowledge.v1.GetKnowledgeLinkRequest
+	(*ListKnowledgeLinksRequest)(nil),        // 30: knowledge.v1.ListKnowledgeLinksRequest
+	(*ListKnowledgeLinksResponse)(nil),       // 31: knowledge.v1.ListKnowledgeLinksResponse
+	(*ListAllSpaceLinksRequest)(nil),         // 32: knowledge.v1.ListAllSpaceLinksRequest
+	(*ListAllSpaceLinksResponse)(nil),        // 33: knowledge.v1.ListAllSpaceLinksResponse
+	(*UpdateKnowledgeLinkRequest)(nil),       // 34: knowledge.v1.UpdateKnowledgeLinkRequest
+	(*DeleteKnowledgeLinkRequest)(nil),       // 35: knowledge.v1.DeleteKnowledgeLinkRequest
+	(*GetBacklinksRequest)(nil),              // 36: knowledge.v1.GetBacklinksRequest
+	(*GetBacklinksResponse)(nil),             // 37: knowledge.v1.GetBacklinksResponse
+	(*HealthStatus)(nil),                     // 38: knowledge.v1.HealthStatus
+	nil,                                      // 39: knowledge.v1.HealthStatus.ComponentsEntry
+	(*timestamppb.Timestamp)(nil),            // 40: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),            // 41: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),                    // 42: google.protobuf.Empty
 }
 var file_api_proto_v1_knowledge_proto_depIdxs = []int32{
-	39, // 0: knowledge.v1.SpaceStats.last_activity_at:type_name -> google.protobuf.Timestamp
+	40, // 0: knowledge.v1.SpaceStats.last_activity_at:type_name -> google.protobuf.Timestamp
 	5,  // 1: knowledge.v1.Space.stats:type_name -> knowledge.v1.SpaceStats
-	39, // 2: knowledge.v1.Space.created_at:type_name -> google.protobuf.Timestamp
-	39, // 3: knowledge.v1.Space.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 2: knowledge.v1.Space.created_at:type_name -> google.protobuf.Timestamp
+	40, // 3: knowledge.v1.Space.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: knowledge.v1.ContentSource.status:type_name -> knowledge.v1.ContentStatus
-	39, // 5: knowledge.v1.ContentSource.created_at:type_name -> google.protobuf.Timestamp
-	39, // 6: knowledge.v1.ContentSource.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 5: knowledge.v1.ContentSource.created_at:type_name -> google.protobuf.Timestamp
+	40, // 6: knowledge.v1.ContentSource.updated_at:type_name -> google.protobuf.Timestamp
 	1,  // 7: knowledge.v1.KnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
-	39, // 8: knowledge.v1.KnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
-	39, // 9: knowledge.v1.KnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 8: knowledge.v1.KnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
+	40, // 9: knowledge.v1.KnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
 	9,  // 10: knowledge.v1.EnrichedKnowledgeLink.from:type_name -> knowledge.v1.ContentPreview
 	9,  // 11: knowledge.v1.EnrichedKnowledgeLink.to:type_name -> knowledge.v1.ContentPreview
 	1,  // 12: knowledge.v1.EnrichedKnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
-	39, // 13: knowledge.v1.EnrichedKnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
-	39, // 14: knowledge.v1.EnrichedKnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
-	39, // 15: knowledge.v1.ListSpacesRequest.created_after:type_name -> google.protobuf.Timestamp
-	39, // 16: knowledge.v1.ListSpacesRequest.created_before:type_name -> google.protobuf.Timestamp
-	39, // 17: knowledge.v1.ListSpacesRequest.updated_after:type_name -> google.protobuf.Timestamp
-	39, // 18: knowledge.v1.ListSpacesRequest.updated_before:type_name -> google.protobuf.Timestamp
+	40, // 13: knowledge.v1.EnrichedKnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
+	40, // 14: knowledge.v1.EnrichedKnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 15: knowledge.v1.ListSpacesRequest.created_after:type_name -> google.protobuf.Timestamp
+	40, // 16: knowledge.v1.ListSpacesRequest.created_before:type_name -> google.protobuf.Timestamp
+	40, // 17: knowledge.v1.ListSpacesRequest.updated_after:type_name -> google.protobuf.Timestamp
+	40, // 18: knowledge.v1.ListSpacesRequest.updated_before:type_name -> google.protobuf.Timestamp
 	4,  // 19: knowledge.v1.ListSpacesRequest.page:type_name -> knowledge.v1.Pagination
 	6,  // 20: knowledge.v1.ListSpacesResponse.items:type_name -> knowledge.v1.Space
 	6,  // 21: knowledge.v1.UpdateSpaceRequest.space:type_name -> knowledge.v1.Space
-	40, // 22: knowledge.v1.UpdateSpaceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	41, // 22: knowledge.v1.UpdateSpaceRequest.update_mask:type_name -> google.protobuf.FieldMask
 	3,  // 23: knowledge.v1.CreateUploadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
-	39, // 24: knowledge.v1.CreateUploadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
+	40, // 24: knowledge.v1.CreateUploadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
 	7,  // 25: knowledge.v1.CreateUploadURLResponse.content_source:type_name -> knowledge.v1.ContentSource
 	3,  // 26: knowledge.v1.ConfirmUploadRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
 	0,  // 27: knowledge.v1.ListContentSourcesRequest.status:type_name -> knowledge.v1.ContentStatus
 	4,  // 28: knowledge.v1.ListContentSourcesRequest.page:type_name -> knowledge.v1.Pagination
 	7,  // 29: knowledge.v1.ListContentSourcesResponse.items:type_name -> knowledge.v1.ContentSource
-	0,  // 30: knowledge.v1.UpdateContentSourceStatusRequest.status:type_name -> knowledge.v1.ContentStatus
-	3,  // 31: knowledge.v1.GenerateDownloadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
-	39, // 32: knowledge.v1.GenerateDownloadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
-	1,  // 33: knowledge.v1.CreateKnowledgeLinkRequest.relation_type:type_name -> knowledge.v1.RelationType
-	2,  // 34: knowledge.v1.ListKnowledgeLinksRequest.direction:type_name -> knowledge.v1.LinkDirection
-	1,  // 35: knowledge.v1.ListKnowledgeLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
-	4,  // 36: knowledge.v1.ListKnowledgeLinksRequest.page:type_name -> knowledge.v1.Pagination
-	10, // 37: knowledge.v1.ListKnowledgeLinksResponse.items:type_name -> knowledge.v1.EnrichedKnowledgeLink
-	1,  // 38: knowledge.v1.ListAllSpaceLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
-	4,  // 39: knowledge.v1.ListAllSpaceLinksRequest.page:type_name -> knowledge.v1.Pagination
-	8,  // 40: knowledge.v1.ListAllSpaceLinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
-	8,  // 41: knowledge.v1.UpdateKnowledgeLinkRequest.link:type_name -> knowledge.v1.KnowledgeLink
-	40, // 42: knowledge.v1.UpdateKnowledgeLinkRequest.update_mask:type_name -> google.protobuf.FieldMask
-	4,  // 43: knowledge.v1.GetBacklinksRequest.page:type_name -> knowledge.v1.Pagination
-	8,  // 44: knowledge.v1.GetBacklinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
-	38, // 45: knowledge.v1.HealthStatus.components:type_name -> knowledge.v1.HealthStatus.ComponentsEntry
-	11, // 46: knowledge.v1.KnowledgeService.CreateSpace:input_type -> knowledge.v1.CreateSpaceRequest
-	12, // 47: knowledge.v1.KnowledgeService.GetSpace:input_type -> knowledge.v1.GetSpaceRequest
-	13, // 48: knowledge.v1.KnowledgeService.ListSpaces:input_type -> knowledge.v1.ListSpacesRequest
-	15, // 49: knowledge.v1.KnowledgeService.UpdateSpace:input_type -> knowledge.v1.UpdateSpaceRequest
-	16, // 50: knowledge.v1.KnowledgeService.DeleteSpace:input_type -> knowledge.v1.DeleteSpaceRequest
-	17, // 51: knowledge.v1.KnowledgeService.CreateUploadURL:input_type -> knowledge.v1.CreateUploadURLRequest
-	19, // 52: knowledge.v1.KnowledgeService.ConfirmUpload:input_type -> knowledge.v1.ConfirmUploadRequest
-	20, // 53: knowledge.v1.KnowledgeService.GetContentSource:input_type -> knowledge.v1.GetContentSourceRequest
-	21, // 54: knowledge.v1.KnowledgeService.ListContentSources:input_type -> knowledge.v1.ListContentSourcesRequest
-	23, // 55: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:input_type -> knowledge.v1.UpdateContentSourceStatusRequest
-	24, // 56: knowledge.v1.KnowledgeService.DeleteContentSource:input_type -> knowledge.v1.DeleteContentSourceRequest
-	25, // 57: knowledge.v1.KnowledgeService.GenerateDownloadURL:input_type -> knowledge.v1.GenerateDownloadURLRequest
-	27, // 58: knowledge.v1.KnowledgeService.CreateKnowledgeLink:input_type -> knowledge.v1.CreateKnowledgeLinkRequest
-	28, // 59: knowledge.v1.KnowledgeService.GetKnowledgeLink:input_type -> knowledge.v1.GetKnowledgeLinkRequest
-	29, // 60: knowledge.v1.KnowledgeService.ListKnowledgeLinks:input_type -> knowledge.v1.ListKnowledgeLinksRequest
-	31, // 61: knowledge.v1.KnowledgeService.ListAllSpaceLinks:input_type -> knowledge.v1.ListAllSpaceLinksRequest
-	33, // 62: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:input_type -> knowledge.v1.UpdateKnowledgeLinkRequest
-	34, // 63: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:input_type -> knowledge.v1.DeleteKnowledgeLinkRequest
-	35, // 64: knowledge.v1.KnowledgeService.GetBacklinks:input_type -> knowledge.v1.GetBacklinksRequest
-	41, // 65: knowledge.v1.KnowledgeService.Healthz:input_type -> google.protobuf.Empty
-	6,  // 66: knowledge.v1.KnowledgeService.CreateSpace:output_type -> knowledge.v1.Space
-	6,  // 67: knowledge.v1.KnowledgeService.GetSpace:output_type -> knowledge.v1.Space
-	14, // 68: knowledge.v1.KnowledgeService.ListSpaces:output_type -> knowledge.v1.ListSpacesResponse
-	6,  // 69: knowledge.v1.KnowledgeService.UpdateSpace:output_type -> knowledge.v1.Space
-	41, // 70: knowledge.v1.KnowledgeService.DeleteSpace:output_type -> google.protobuf.Empty
-	18, // 71: knowledge.v1.KnowledgeService.CreateUploadURL:output_type -> knowledge.v1.CreateUploadURLResponse
-	7,  // 72: knowledge.v1.KnowledgeService.ConfirmUpload:output_type -> knowledge.v1.ContentSource
-	7,  // 73: knowledge.v1.KnowledgeService.GetContentSource:output_type -> knowledge.v1.ContentSource
-	22, // 74: knowledge.v1.KnowledgeService.ListContentSources:output_type -> knowledge.v1.ListContentSourcesResponse
-	7,  // 75: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:output_type -> knowledge.v1.ContentSource
-	41, // 76: knowledge.v1.KnowledgeService.DeleteContentSource:output_type -> google.protobuf.Empty
-	26, // 77: knowledge.v1.KnowledgeService.GenerateDownloadURL:output_type -> knowledge.v1.GenerateDownloadURLResponse
-	8,  // 78: knowledge.v1.KnowledgeService.CreateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
-	10, // 79: knowledge.v1.KnowledgeService.GetKnowledgeLink:output_type -> knowledge.v1.EnrichedKnowledgeLink
-	30, // 80: knowledge.v1.KnowledgeService.ListKnowledgeLinks:output_type -> knowledge.v1.ListKnowledgeLinksResponse
-	32, // 81: knowledge.v1.KnowledgeService.ListAllSpaceLinks:output_type -> knowledge.v1.ListAllSpaceLinksResponse
-	8,  // 82: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
-	41, // 83: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:output_type -> google.protobuf.Empty
-	36, // 84: knowledge.v1.KnowledgeService.GetBacklinks:output_type -> knowledge.v1.GetBacklinksResponse
-	37, // 85: knowledge.v1.KnowledgeService.Healthz:output_type -> knowledge.v1.HealthStatus
-	66, // [66:86] is the sub-list for method output_type
-	46, // [46:66] is the sub-list for method input_type
-	46, // [46:46] is the sub-list for extension type_name
-	46, // [46:46] is the sub-list for extension extendee
-	0,  // [0:46] is the sub-list for field type_name
+	7,  // 30: knowledge.v1.UpdateContentSourceRequest.content:type_name -> knowledge.v1.ContentSource
+	41, // 31: knowledge.v1.UpdateContentSourceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	0,  // 32: knowledge.v1.UpdateContentSourceStatusRequest.status:type_name -> knowledge.v1.ContentStatus
+	3,  // 33: knowledge.v1.GenerateDownloadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
+	40, // 34: knowledge.v1.GenerateDownloadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
+	1,  // 35: knowledge.v1.CreateKnowledgeLinkRequest.relation_type:type_name -> knowledge.v1.RelationType
+	2,  // 36: knowledge.v1.ListKnowledgeLinksRequest.direction:type_name -> knowledge.v1.LinkDirection
+	1,  // 37: knowledge.v1.ListKnowledgeLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
+	4,  // 38: knowledge.v1.ListKnowledgeLinksRequest.page:type_name -> knowledge.v1.Pagination
+	10, // 39: knowledge.v1.ListKnowledgeLinksResponse.items:type_name -> knowledge.v1.EnrichedKnowledgeLink
+	1,  // 40: knowledge.v1.ListAllSpaceLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
+	4,  // 41: knowledge.v1.ListAllSpaceLinksRequest.page:type_name -> knowledge.v1.Pagination
+	8,  // 42: knowledge.v1.ListAllSpaceLinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
+	8,  // 43: knowledge.v1.UpdateKnowledgeLinkRequest.link:type_name -> knowledge.v1.KnowledgeLink
+	41, // 44: knowledge.v1.UpdateKnowledgeLinkRequest.update_mask:type_name -> google.protobuf.FieldMask
+	4,  // 45: knowledge.v1.GetBacklinksRequest.page:type_name -> knowledge.v1.Pagination
+	8,  // 46: knowledge.v1.GetBacklinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
+	39, // 47: knowledge.v1.HealthStatus.components:type_name -> knowledge.v1.HealthStatus.ComponentsEntry
+	11, // 48: knowledge.v1.KnowledgeService.CreateSpace:input_type -> knowledge.v1.CreateSpaceRequest
+	12, // 49: knowledge.v1.KnowledgeService.GetSpace:input_type -> knowledge.v1.GetSpaceRequest
+	13, // 50: knowledge.v1.KnowledgeService.ListSpaces:input_type -> knowledge.v1.ListSpacesRequest
+	15, // 51: knowledge.v1.KnowledgeService.UpdateSpace:input_type -> knowledge.v1.UpdateSpaceRequest
+	16, // 52: knowledge.v1.KnowledgeService.DeleteSpace:input_type -> knowledge.v1.DeleteSpaceRequest
+	17, // 53: knowledge.v1.KnowledgeService.CreateUploadURL:input_type -> knowledge.v1.CreateUploadURLRequest
+	19, // 54: knowledge.v1.KnowledgeService.ConfirmUpload:input_type -> knowledge.v1.ConfirmUploadRequest
+	20, // 55: knowledge.v1.KnowledgeService.GetContentSource:input_type -> knowledge.v1.GetContentSourceRequest
+	21, // 56: knowledge.v1.KnowledgeService.ListContentSources:input_type -> knowledge.v1.ListContentSourcesRequest
+	23, // 57: knowledge.v1.KnowledgeService.UpdateContentSource:input_type -> knowledge.v1.UpdateContentSourceRequest
+	24, // 58: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:input_type -> knowledge.v1.UpdateContentSourceStatusRequest
+	25, // 59: knowledge.v1.KnowledgeService.DeleteContentSource:input_type -> knowledge.v1.DeleteContentSourceRequest
+	26, // 60: knowledge.v1.KnowledgeService.GenerateDownloadURL:input_type -> knowledge.v1.GenerateDownloadURLRequest
+	28, // 61: knowledge.v1.KnowledgeService.CreateKnowledgeLink:input_type -> knowledge.v1.CreateKnowledgeLinkRequest
+	29, // 62: knowledge.v1.KnowledgeService.GetKnowledgeLink:input_type -> knowledge.v1.GetKnowledgeLinkRequest
+	30, // 63: knowledge.v1.KnowledgeService.ListKnowledgeLinks:input_type -> knowledge.v1.ListKnowledgeLinksRequest
+	32, // 64: knowledge.v1.KnowledgeService.ListAllSpaceLinks:input_type -> knowledge.v1.ListAllSpaceLinksRequest
+	34, // 65: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:input_type -> knowledge.v1.UpdateKnowledgeLinkRequest
+	35, // 66: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:input_type -> knowledge.v1.DeleteKnowledgeLinkRequest
+	36, // 67: knowledge.v1.KnowledgeService.GetBacklinks:input_type -> knowledge.v1.GetBacklinksRequest
+	42, // 68: knowledge.v1.KnowledgeService.Healthz:input_type -> google.protobuf.Empty
+	6,  // 69: knowledge.v1.KnowledgeService.CreateSpace:output_type -> knowledge.v1.Space
+	6,  // 70: knowledge.v1.KnowledgeService.GetSpace:output_type -> knowledge.v1.Space
+	14, // 71: knowledge.v1.KnowledgeService.ListSpaces:output_type -> knowledge.v1.ListSpacesResponse
+	6,  // 72: knowledge.v1.KnowledgeService.UpdateSpace:output_type -> knowledge.v1.Space
+	42, // 73: knowledge.v1.KnowledgeService.DeleteSpace:output_type -> google.protobuf.Empty
+	18, // 74: knowledge.v1.KnowledgeService.CreateUploadURL:output_type -> knowledge.v1.CreateUploadURLResponse
+	7,  // 75: knowledge.v1.KnowledgeService.ConfirmUpload:output_type -> knowledge.v1.ContentSource
+	7,  // 76: knowledge.v1.KnowledgeService.GetContentSource:output_type -> knowledge.v1.ContentSource
+	22, // 77: knowledge.v1.KnowledgeService.ListContentSources:output_type -> knowledge.v1.ListContentSourcesResponse
+	7,  // 78: knowledge.v1.KnowledgeService.UpdateContentSource:output_type -> knowledge.v1.ContentSource
+	7,  // 79: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:output_type -> knowledge.v1.ContentSource
+	42, // 80: knowledge.v1.KnowledgeService.DeleteContentSource:output_type -> google.protobuf.Empty
+	27, // 81: knowledge.v1.KnowledgeService.GenerateDownloadURL:output_type -> knowledge.v1.GenerateDownloadURLResponse
+	8,  // 82: knowledge.v1.KnowledgeService.CreateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
+	10, // 83: knowledge.v1.KnowledgeService.GetKnowledgeLink:output_type -> knowledge.v1.EnrichedKnowledgeLink
+	31, // 84: knowledge.v1.KnowledgeService.ListKnowledgeLinks:output_type -> knowledge.v1.ListKnowledgeLinksResponse
+	33, // 85: knowledge.v1.KnowledgeService.ListAllSpaceLinks:output_type -> knowledge.v1.ListAllSpaceLinksResponse
+	8,  // 86: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
+	42, // 87: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:output_type -> google.protobuf.Empty
+	37, // 88: knowledge.v1.KnowledgeService.GetBacklinks:output_type -> knowledge.v1.GetBacklinksResponse
+	38, // 89: knowledge.v1.KnowledgeService.Healthz:output_type -> knowledge.v1.HealthStatus
+	69, // [69:90] is the sub-list for method output_type
+	48, // [48:69] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_v1_knowledge_proto_init() }
@@ -2845,7 +2916,7 @@ func file_api_proto_v1_knowledge_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_v1_knowledge_proto_rawDesc), len(file_api_proto_v1_knowledge_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   35,
+			NumMessages:   36,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
