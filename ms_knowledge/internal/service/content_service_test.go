@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
 
 	"github.com/google/uuid"
@@ -18,7 +19,10 @@ func TestCreateUploadURL_Validation(t *testing.T) {
 	spaceRepo := newMockSpaceRepo()
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
-	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "", log.New(os.Stdout, "", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	spaceID := uuid.New()
@@ -43,7 +47,10 @@ func TestCreateUploadURL_Success(t *testing.T) {
 	spaceRepo := newMockSpaceRepo()
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
-	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "", log.New(os.Stdout, "", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
@@ -72,7 +79,10 @@ func TestConfirmUpload_UpdatesStatusAndHash(t *testing.T) {
 	spaceRepo := newMockSpaceRepo()
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
-	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "", log.New(os.Stdout, "", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
@@ -98,7 +108,10 @@ func TestUpdateContentSourceStatus(t *testing.T) {
 	spaceRepo := newMockSpaceRepo()
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
-	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, "", log.New(os.Stdout, "", log.LstdFlags))
+	cfg := &config.Config{}
+	cfg.R2.BucketSourceName = "test-source"
+	cfg.R2.BucketProcessedName = "test-processed"
+	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}

@@ -118,7 +118,7 @@ func main() {
 	defer producer.Close()
 
 	r2Storage := storager2.NewAdapter(r2Client)
-	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg.R2.BucketSourceName, contentLogger)
+	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg, contentLogger)
 	knowledgeLinkService := service.NewKnowledgeLinkService(graphRepo, contentRepo)
 
 	// Initialize gRPC server

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	knowledgev1 "demo/ms_knowledge/api/proto/v1"
@@ -205,15 +206,26 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 		}
 	}
 
-	content, uploadURL, err := s.contentService.CreateUploadURL(ctx, spaceID, req.Filename, req.MimeType, req.SizeBytes, req.Title)
+	// Map object_kind enum to kind string
+	var kind string
+	switch req.ObjectKind {
+	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL:
+		kind = "source"
+	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED:
+		kind = "processed"
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "object_kind is required")
+	}
+
+	content, uploadURL, objectKey, expiresAt, err := s.contentService.CreateUploadURLWithKind(ctx, spaceID, req.Filename, req.MimeType, req.SizeBytes, req.Title, kind)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create upload URL: %v", err)
 	}
 
 	return &knowledgev1.CreateUploadURLResponse{
 		UploadUrl:     uploadURL,
-		ObjectKey:     "spaces/" + spaceID.String() + "/content/" + content.ID.String() + "/" + req.Filename,
-		ExpiresAt:     timestamppb.New(time.Now().Add(1 * time.Hour)),
+		ObjectKey:     objectKey,
+		ExpiresAt:     timestamppb.New(expiresAt),
 		ContentSource: s.domainContentSourceToProto(content),
 	}, nil
 }
@@ -224,7 +236,21 @@ func (s *GRPCServer) ConfirmUpload(ctx context.Context, req *knowledgev1.Confirm
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
 	}
 
-	content, err := s.contentService.ConfirmUpload(ctx, contentID, req.OriginalBlobHash)
+	// Validate kind and map
+	var kind string
+	switch req.ObjectKind {
+	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL:
+		kind = "source"
+	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED:
+		kind = "processed"
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "object_kind is required")
+	}
+	if strings.TrimSpace(req.BlobHash) == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "blob_hash is required")
+	}
+
+	content, err := s.contentService.ConfirmUploadWithKind(ctx, contentID, kind, req.BlobHash)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to confirm upload: %v", err)
 	}
@@ -291,6 +317,70 @@ func (s *GRPCServer) UpdateContentSourceStatus(ctx context.Context, req *knowled
 	}
 
 	return s.domainContentSourceToProto(content), nil
+}
+
+// GenerateDownloadURL returns a presigned URL for downloading the requested object.
+func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.GenerateDownloadURLRequest) (*knowledgev1.GenerateDownloadURLResponse, error) {
+	contentID, err := uuid.Parse(req.ContentSourceId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
+	}
+
+	// Validate object_kind early
+	var kind string
+	switch req.ObjectKind {
+	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL:
+		kind = "source"
+	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED:
+		kind = "processed"
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "object_kind is required")
+	}
+
+	// TTL bounds
+	ttl := 15 * time.Minute
+	if req.ExpiresSeconds > 0 {
+		if req.ExpiresSeconds < 30 {
+			req.ExpiresSeconds = 30
+		}
+		if req.ExpiresSeconds > 3600 {
+			req.ExpiresSeconds = 3600
+		}
+		ttl = time.Duration(req.ExpiresSeconds) * time.Second
+	}
+
+	// Fetch content for RBAC checks and to compute object key
+	content, err := s.contentService.GetContentSource(ctx, contentID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get content source: %v", err)
+	}
+
+	// RBAC/Ownership: admins bypass, others must own the content (defense in depth)
+	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
+		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
+			outCtx := metadata.NewOutgoingContext(ctx, md)
+			uReq := &userv1.GetUserRequest{}
+			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
+				callerID := uResp.GetUser().GetId()
+				if content.OwnerID.String() != callerID {
+					return nil, status.Errorf(codes.PermissionDenied, "not owner")
+				}
+			}
+		}
+	}
+
+	url, expiresAt, err := s.contentService.GenerateDownloadURLWithKind(ctx, contentID, ttl, kind)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate download URL: %v", err)
+	}
+
+	objectKey := "spaces/" + content.SpaceID.String() + "/content/" + content.ID.String() + "/" + content.Source
+
+	return &knowledgev1.GenerateDownloadURLResponse{
+		Url:       url,
+		ExpiresAt: timestamppb.New(expiresAt),
+		ObjectKey: objectKey,
+	}, nil
 }
 
 // Knowledge Link Management

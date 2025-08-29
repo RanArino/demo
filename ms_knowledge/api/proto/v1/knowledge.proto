@@ -23,6 +23,8 @@ service KnowledgeService {
   rpc GetContentSource(GetContentSourceRequest) returns (ContentSource);
   rpc ListContentSources(ListContentSourcesRequest) returns (ListContentSourcesResponse);
   rpc UpdateContentSourceStatus(UpdateContentSourceStatusRequest) returns (ContentSource);
+  // Download URL Generation
+  rpc GenerateDownloadURL(GenerateDownloadURLRequest) returns (GenerateDownloadURLResponse);
 
   // Knowledge Graph Management
   rpc CreateKnowledgeLink(CreateKnowledgeLinkRequest) returns (KnowledgeLink);
@@ -63,6 +65,13 @@ enum LinkDirection {
   INBOUND = 1;
   OUTBOUND = 2;
   BOTH = 3;
+}
+
+// Specifies which object (original or processed) an operation targets
+enum DownloadObjectKind {
+  DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
+  DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;  // source/original object
+  DOWNLOAD_OBJECT_KIND_PROCESSED = 2; // processed object
 }
 
 // Common Messages
@@ -183,6 +192,7 @@ message CreateUploadURLRequest {
   string mime_type = 3;
   int64 size_bytes = 4;
   string title = 5;
+  DownloadObjectKind object_kind = 6; // ORIGINAL or PROCESSED (required)
 }
 
 message CreateUploadURLResponse {
@@ -193,8 +203,9 @@ message CreateUploadURLResponse {
 }
 
 message ConfirmUploadRequest {
-  string content_source_id = 1;
-  string original_blob_hash = 2;
+  string content_source_id = 1;      // required
+  DownloadObjectKind object_kind = 2; // required
+  string blob_hash = 3;              // required
 }
 
 message GetContentSourceRequest {
@@ -217,6 +228,19 @@ message UpdateContentSourceStatusRequest {
   ContentStatus status = 2;
   string processed_blob_hash = 3;
   string error_message = 4;
+}
+
+// Download URL generation
+message GenerateDownloadURLRequest {
+  string content_source_id = 1; // required
+  int32 expires_seconds = 2;    // optional, server applies bounds and defaults
+  DownloadObjectKind object_kind = 3; // required
+}
+
+message GenerateDownloadURLResponse {
+  string url = 1;
+  google.protobuf.Timestamp expires_at = 2;
+  string object_key = 3;
 }
 
 // Knowledge Link Request/Response Messages

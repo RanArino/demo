@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
 	"demo/ms_knowledge/internal/events"
 
@@ -19,52 +20,84 @@ type EventProducer interface {
 }
 
 type ContentService struct {
-	contentRepo  domain.ContentRepository
-	spaceRepo    domain.SpaceRepository
-	graphRepo    domain.GraphRepository
-	storage      StorageService
-	producer     EventProducer
-	sourceBucket string
-	logger       *log.Logger
+	contentRepo domain.ContentRepository
+	spaceRepo   domain.SpaceRepository
+	graphRepo   domain.GraphRepository
+	storage     StorageService
+	producer    EventProducer
+	cfg         *config.Config
+	logger      *log.Logger
 }
 
 type StorageService interface {
 	GeneratePresignedUploadURL(bucket, key string, expires time.Duration) (string, error)
 	CalculateSHA256(data []byte) string
+	GeneratePresignedDownloadURL(bucket, key string, expires time.Duration) (string, error)
 }
 
 // NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
-func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer EventProducer, sourceBucket string, logger *log.Logger) *ContentService {
+func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer EventProducer, cfg *config.Config, logger *log.Logger) *ContentService {
 	return &ContentService{
-		contentRepo:  contentRepo,
-		spaceRepo:    spaceRepo,
-		graphRepo:    graphRepo,
-		storage:      storage,
-		producer:     producer,
-		sourceBucket: sourceBucket,
-		logger:       logger,
+		contentRepo: contentRepo,
+		spaceRepo:   spaceRepo,
+		graphRepo:   graphRepo,
+		storage:     storage,
+		producer:    producer,
+		cfg:         cfg,
+		logger:      logger,
+	}
+}
+
+// resolveBucket returns the bucket name for a given kind ("source" or "processed").
+func (s *ContentService) resolveBucket(kind string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case "source", "original":
+		if s.cfg == nil || s.cfg.R2.BucketSourceName == "" {
+			return "", fmt.Errorf("R2 source bucket not configured")
+		}
+		return s.cfg.R2.BucketSourceName, nil
+	case "processed":
+		if s.cfg == nil || s.cfg.R2.BucketProcessedName == "" {
+			return "", fmt.Errorf("R2 processed bucket not configured")
+		}
+		return s.cfg.R2.BucketProcessedName, nil
+	default:
+		return "", fmt.Errorf("invalid kind: %s", kind)
 	}
 }
 
 func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID, filename, mimeType string, sizeBytes int64, title string) (*domain.ContentSource, string, error) {
+	content, uploadURL, _, _, err := s.CreateUploadURLWithKind(ctx, spaceID, filename, mimeType, sizeBytes, title, "source")
+	if err != nil {
+		return nil, "", err
+	}
+	return content, uploadURL, nil
+}
+
+// CreateUploadURLWithKind issues a presigned upload URL for the requested kind ("source" or "processed").
+// Returns content, uploadURL, objectKey, expiresAt.
+func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uuid.UUID, filename, mimeType string, sizeBytes int64, title, kind string) (*domain.ContentSource, string, string, time.Time, error) {
 	// Validate inputs
 	if spaceID == uuid.Nil {
-		return nil, "", fmt.Errorf("space_id is required")
+		return nil, "", "", time.Time{}, fmt.Errorf("space_id is required")
 	}
 	if strings.TrimSpace(filename) == "" {
-		return nil, "", fmt.Errorf("filename is required")
+		return nil, "", "", time.Time{}, fmt.Errorf("filename is required")
 	}
 	if strings.TrimSpace(mimeType) == "" {
-		return nil, "", fmt.Errorf("mime_type is required")
+		return nil, "", "", time.Time{}, fmt.Errorf("mime_type is required")
+	}
+	if strings.TrimSpace(kind) == "" {
+		return nil, "", "", time.Time{}, fmt.Errorf("kind is required")
 	}
 
 	// Check if space exists
 	exists, err := s.spaceRepo.Exists(ctx, spaceID)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to check space existence: %w", err)
+		return nil, "", "", time.Time{}, fmt.Errorf("failed to check space existence: %w", err)
 	}
 	if !exists {
-		return nil, "", fmt.Errorf("space not found")
+		return nil, "", "", time.Time{}, fmt.Errorf("space not found")
 	}
 
 	// Derive owner for the content from context
@@ -88,53 +121,66 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 
 	err = s.contentRepo.Create(ctx, content)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create content source: %w", err)
+		return nil, "", "", time.Time{}, fmt.Errorf("failed to create content source: %w", err)
 	}
 
 	// Generate object key based on persisted content ID
 	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", spaceID.String(), content.ID.String(), filename)
 
-	// Generate pre-signed URL
-	bucket := s.sourceBucket
-	if bucket == "" {
-		bucket = "knowledge-content"
-	}
-	uploadURL, err := s.storage.GeneratePresignedUploadURL(bucket, objectKey, 1*time.Hour)
+	// Resolve bucket for requested kind
+	bucket, err := s.resolveBucket(kind)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to generate upload URL: %w", err)
+		return nil, "", "", time.Time{}, err
 	}
 
-	return content, uploadURL, nil
+	// Short TTL (default 15m)
+	expires := 15 * time.Minute
+	uploadURL, err := s.storage.GeneratePresignedUploadURL(bucket, objectKey, expires)
+	if err != nil {
+		return nil, "", "", time.Time{}, fmt.Errorf("failed to generate upload URL: %w", err)
+	}
+
+	return content, uploadURL, objectKey, time.Now().Add(expires), nil
 }
 
+// ConfirmUpload remains for backward-compatibility and updates original blob hash.
 func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID, originalBlobHash string) (*domain.ContentSource, error) {
+	return s.ConfirmUploadWithKind(ctx, contentID, "source", originalBlobHash)
+}
+
+// ConfirmUploadWithKind updates only the corresponding hash field based on kind.
+func (s *ContentService) ConfirmUploadWithKind(ctx context.Context, contentID uuid.UUID, kind string, blobHash string) (*domain.ContentSource, error) {
 	// Get content source
 	content, err := s.contentRepo.GetByID(ctx, contentID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
-	// Update status to UPLOADED
-	content.Status = domain.ContentStatusUploaded
-	content.OriginalBlobHash = originalBlobHash
+	// Update only the targeted field
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case "source", "original":
+		content.Status = domain.ContentStatusUploaded
+		content.OriginalBlobHash = blobHash
+	case "processed":
+		content.ProcessedBlobHash = &blobHash
+	default:
+		return nil, fmt.Errorf("invalid kind: %s", kind)
+	}
 
 	err = s.contentRepo.Update(ctx, content)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update content source: %w", err)
 	}
 
-	// Emit document.uploaded event
-	if s.producer != nil {
+	// Emit document.uploaded event only for ORIGINAL confirms
+	if s.producer != nil && (strings.ToLower(strings.TrimSpace(kind)) == "source" || strings.ToLower(strings.TrimSpace(kind)) == "original") {
 		evt := events.DocumentUploadedEvent{
 			ContentSourceID:  content.ID,
-			OriginalBlobHash: originalBlobHash,
+			OriginalBlobHash: blobHash,
 			SpaceID:          content.SpaceID,
 		}
 		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
 			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id (content.ID=%s): %v", content.ID, err)
-			// Note: We don't return an error to the client here. The upload was confirmed
-			// and the status is updated. The event failure should be handled by a
-			// separate monitoring or reconciliation process.
 		}
 	}
 
@@ -219,6 +265,14 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	return content, nil
 }
 
+// SpaceContentIntegrityReport represents the results of space-content validation
+type SpaceContentIntegrityReport struct {
+	TotalContentSources int               `json:"total_content_sources"`
+	OrphanedCount       int               `json:"orphaned_count"`
+	OrphanedContent     []uuid.UUID       `json:"orphaned_content_ids"`
+	ValidatedSpaces     map[uuid.UUID]int `json:"validated_spaces"` // spaceID -> content count
+}
+
 // ValidateSpaceContentIntegrity checks for orphaned content sources and returns validation results
 func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*SpaceContentIntegrityReport, error) {
 	// Get all content sources
@@ -252,10 +306,37 @@ func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*Sp
 	return report, nil
 }
 
-// SpaceContentIntegrityReport represents the results of space-content validation
-type SpaceContentIntegrityReport struct {
-	TotalContentSources int               `json:"total_content_sources"`
-	OrphanedCount       int               `json:"orphaned_count"`
-	OrphanedContent     []uuid.UUID       `json:"orphaned_content_ids"`
-	ValidatedSpaces     map[uuid.UUID]int `json:"validated_spaces"` // spaceID -> content count
+// GenerateDownloadURL returns a short-lived pre-signed URL to download the original uploaded blob.
+func (s *ContentService) GenerateDownloadURL(ctx context.Context, contentID uuid.UUID, expires time.Duration) (string, time.Time, error) {
+	return s.GenerateDownloadURLWithKind(ctx, contentID, expires, "source")
+}
+
+// GenerateDownloadURLWithKind generates a presigned download URL for the requested kind.
+func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, contentID uuid.UUID, expires time.Duration, kind string) (string, time.Time, error) {
+	if contentID == uuid.Nil {
+		return "", time.Time{}, fmt.Errorf("content_id is required")
+	}
+
+	content, err := s.contentRepo.GetByID(ctx, contentID)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to get content source: %w", err)
+	}
+
+	bucket, err := s.resolveBucket(kind)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	if expires <= 0 {
+		expires = 15 * time.Minute
+	}
+
+	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), content.Source)
+
+	url, err := s.storage.GeneratePresignedDownloadURL(bucket, objectKey, expires)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to generate download URL: %w", err)
+	}
+
+	return url, time.Now().Add(expires), nil
 }
