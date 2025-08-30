@@ -3,7 +3,6 @@
 import { auth } from '@clerk/nextjs/server';
 import * as grpc from '@grpc/grpc-js';
 import { getKnowledgeServiceClient } from '../server-client';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const knowledge: any = require('../generated/v1/knowledge_pb');
 import { ActionResult } from '@/app/spaces/types/shared';
 import { ContentSource, ContentSourceStatus, ContentSourceType } from '@/app/spaces/types/content';
@@ -85,7 +84,7 @@ export async function listContentSources(spaceId: string): Promise<ActionResult<
         }
       });
     });
-  } catch (error) {
+  } catch {
     return { ok: false, error: { code: 'INTERNAL', message: 'An unexpected error occurred' } };
   }
 }
@@ -119,7 +118,7 @@ export async function createUploadURL(input: CreateUploadURLRequest): Promise<Ac
         }
       });
     });
-  } catch (error) {
+  } catch {
     return { ok: false, error: { code: 'INTERNAL', message: 'An unexpected error occurred' } };
   }
 }
@@ -151,7 +150,7 @@ export async function confirmUpload(
         }
       });
     });
-  } catch (error) {
+  } catch {
     return { ok: false, error: { code: 'INTERNAL', message: 'An unexpected error occurred' } };
   }
 }
@@ -189,7 +188,7 @@ export async function generateDownloadURL(
         }
       });
     });
-  } catch (error) {
+  } catch {
     return { ok: false, error: { code: 'INTERNAL', message: 'An unexpected error occurred' } };
   }
 }
@@ -211,7 +210,7 @@ export async function deleteContentSource(contentSourceId: string): Promise<Acti
         }
       });
     });
-  } catch (error) {
+  } catch {
     return { ok: false, error: { code: 'INTERNAL', message: 'An unexpected error occurred' } };
   }
 }
