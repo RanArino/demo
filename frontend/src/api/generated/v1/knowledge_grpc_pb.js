@@ -84,6 +84,17 @@ function deserialize_knowledge_v1_CreateUploadURLResponse(buffer_arg) {
   return v1_knowledge_pb.CreateUploadURLResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_knowledge_v1_DeleteContentSourceRequest(arg) {
+  if (!(arg instanceof v1_knowledge_pb.DeleteContentSourceRequest)) {
+    throw new Error('Expected argument of type knowledge.v1.DeleteContentSourceRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_knowledge_v1_DeleteContentSourceRequest(buffer_arg) {
+  return v1_knowledge_pb.DeleteContentSourceRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_knowledge_v1_DeleteKnowledgeLinkRequest(arg) {
   if (!(arg instanceof v1_knowledge_pb.DeleteKnowledgeLinkRequest)) {
     throw new Error('Expected argument of type knowledge.v1.DeleteKnowledgeLinkRequest');
@@ -115,6 +126,28 @@ function serialize_knowledge_v1_EnrichedKnowledgeLink(arg) {
 
 function deserialize_knowledge_v1_EnrichedKnowledgeLink(buffer_arg) {
   return v1_knowledge_pb.EnrichedKnowledgeLink.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_knowledge_v1_GenerateDownloadURLRequest(arg) {
+  if (!(arg instanceof v1_knowledge_pb.GenerateDownloadURLRequest)) {
+    throw new Error('Expected argument of type knowledge.v1.GenerateDownloadURLRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_knowledge_v1_GenerateDownloadURLRequest(buffer_arg) {
+  return v1_knowledge_pb.GenerateDownloadURLRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_knowledge_v1_GenerateDownloadURLResponse(arg) {
+  if (!(arg instanceof v1_knowledge_pb.GenerateDownloadURLResponse)) {
+    throw new Error('Expected argument of type knowledge.v1.GenerateDownloadURLResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_knowledge_v1_GenerateDownloadURLResponse(buffer_arg) {
+  return v1_knowledge_pb.GenerateDownloadURLResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_knowledge_v1_GetBacklinksRequest(arg) {
@@ -293,6 +326,17 @@ function deserialize_knowledge_v1_Space(buffer_arg) {
   return v1_knowledge_pb.Space.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_knowledge_v1_UpdateContentSourceRequest(arg) {
+  if (!(arg instanceof v1_knowledge_pb.UpdateContentSourceRequest)) {
+    throw new Error('Expected argument of type knowledge.v1.UpdateContentSourceRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_knowledge_v1_UpdateContentSourceRequest(buffer_arg) {
+  return v1_knowledge_pb.UpdateContentSourceRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_knowledge_v1_UpdateContentSourceStatusRequest(arg) {
   if (!(arg instanceof v1_knowledge_pb.UpdateContentSourceStatusRequest)) {
     throw new Error('Expected argument of type knowledge.v1.UpdateContentSourceStatusRequest');
@@ -430,6 +474,17 @@ createUploadURL: {
     responseSerialize: serialize_knowledge_v1_ListContentSourcesResponse,
     responseDeserialize: deserialize_knowledge_v1_ListContentSourcesResponse,
   },
+  updateContentSource: {
+    path: '/knowledge.v1.KnowledgeService/UpdateContentSource',
+    requestStream: false,
+    responseStream: false,
+    requestType: v1_knowledge_pb.UpdateContentSourceRequest,
+    responseType: v1_knowledge_pb.ContentSource,
+    requestSerialize: serialize_knowledge_v1_UpdateContentSourceRequest,
+    requestDeserialize: deserialize_knowledge_v1_UpdateContentSourceRequest,
+    responseSerialize: serialize_knowledge_v1_ContentSource,
+    responseDeserialize: deserialize_knowledge_v1_ContentSource,
+  },
   updateContentSourceStatus: {
     path: '/knowledge.v1.KnowledgeService/UpdateContentSourceStatus',
     requestStream: false,
@@ -440,6 +495,29 @@ createUploadURL: {
     requestDeserialize: deserialize_knowledge_v1_UpdateContentSourceStatusRequest,
     responseSerialize: serialize_knowledge_v1_ContentSource,
     responseDeserialize: deserialize_knowledge_v1_ContentSource,
+  },
+  deleteContentSource: {
+    path: '/knowledge.v1.KnowledgeService/DeleteContentSource',
+    requestStream: false,
+    responseStream: false,
+    requestType: v1_knowledge_pb.DeleteContentSourceRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_knowledge_v1_DeleteContentSourceRequest,
+    requestDeserialize: deserialize_knowledge_v1_DeleteContentSourceRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Download URL Generation
+generateDownloadURL: {
+    path: '/knowledge.v1.KnowledgeService/GenerateDownloadURL',
+    requestStream: false,
+    responseStream: false,
+    requestType: v1_knowledge_pb.GenerateDownloadURLRequest,
+    responseType: v1_knowledge_pb.GenerateDownloadURLResponse,
+    requestSerialize: serialize_knowledge_v1_GenerateDownloadURLRequest,
+    requestDeserialize: deserialize_knowledge_v1_GenerateDownloadURLRequest,
+    responseSerialize: serialize_knowledge_v1_GenerateDownloadURLResponse,
+    responseDeserialize: deserialize_knowledge_v1_GenerateDownloadURLResponse,
   },
   // Knowledge Graph Management
 createKnowledgeLink: {
