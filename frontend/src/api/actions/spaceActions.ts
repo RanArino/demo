@@ -1,11 +1,11 @@
 'use server';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { getKnowledgeServiceClient } from '../server-client';
 import * as grpc from '@grpc/grpc-js';
 // knowledge_pb is generated JS (google-protobuf); use require to avoid TS type issues
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const knowledge: any = require('../generated/v1/knowledge_pb');
 import { 
   Space, 
@@ -15,7 +15,6 @@ import {
   UpdateSpaceInput,
   ActionResult,
 } from '@/app/spaces/types/spaces';
-import { ContentSource, ContentSourceType, ContentSourceStatus } from '@/app/spaces/types/content';
 
 
 // Create gRPC metadata with Clerk JWT
