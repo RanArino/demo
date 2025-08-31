@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -43,20 +42,8 @@ func (s *GRPCServer) WithUserClient(c userv1.UserServiceClient) *GRPCServer {
 
 // Space Management
 func (s *GRPCServer) CreateSpace(ctx context.Context, req *knowledgev1.CreateSpaceRequest) (*knowledgev1.Space, error) {
-	// Derive owner_id server-side. Prefer resolving via ms_user using the incoming JWT.
-	ctxOwner := ctx
-	if s.userClient != nil {
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				// Inject resolved internal user id into context for services
-				ctxOwner = context.WithValue(ctx, domain.ContextKey("owner_id"), uResp.GetUser().GetId())
-			}
-		}
-	}
-
-	space, err := s.spaceService.CreateSpace(ctxOwner, req.Title, req.Description)
+	// Auth interceptor has already validated the user and injected context values
+	space, err := s.spaceService.CreateSpace(ctx, req.Title, req.Description)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create space: %v", err)
 	}
@@ -123,17 +110,15 @@ func (s *GRPCServer) UpdateSpace(ctx context.Context, req *knowledgev1.UpdateSpa
 	}
 
 	// RBAC/Ownership: admins bypass, others must own
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				ownerID := uResp.GetUser().GetId()
-				sp, _ := s.spaceService.GetSpace(ctx, id)
-				if sp != nil && sp.OwnerID.String() != ownerID {
-					return nil, status.Errorf(codes.PermissionDenied, "not owner")
-				}
-			}
+	if !domain.IsAdmin(ctx) {
+		ownerID, ok := domain.GetOwnerID(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+		}
+		
+		sp, _ := s.spaceService.GetSpace(ctx, id)
+		if sp != nil && sp.OwnerID.String() != ownerID {
+			return nil, status.Errorf(codes.PermissionDenied, "not owner")
 		}
 	}
 
@@ -162,17 +147,15 @@ func (s *GRPCServer) DeleteSpace(ctx context.Context, req *knowledgev1.DeleteSpa
 	}
 
 	// RBAC/Ownership: admins bypass, others must own
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				ownerID := uResp.GetUser().GetId()
-				sp, _ := s.spaceService.GetSpace(ctx, id)
-				if sp != nil && sp.OwnerID.String() != ownerID {
-					return nil, status.Errorf(codes.PermissionDenied, "not owner")
-				}
-			}
+	if !domain.IsAdmin(ctx) {
+		ownerID, ok := domain.GetOwnerID(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+		}
+		
+		sp, _ := s.spaceService.GetSpace(ctx, id)
+		if sp != nil && sp.OwnerID.String() != ownerID {
+			return nil, status.Errorf(codes.PermissionDenied, "not owner")
 		}
 	}
 
@@ -192,17 +175,15 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 	}
 
 	// RBAC/Ownership: admins bypass, others must own the space
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				ownerID := uResp.GetUser().GetId()
-				sp, _ := s.spaceService.GetSpace(ctx, spaceID)
-				if sp != nil && sp.OwnerID.String() != ownerID {
-					return nil, status.Errorf(codes.PermissionDenied, "not owner")
-				}
-			}
+	if !domain.IsAdmin(ctx) {
+		ownerID, ok := domain.GetOwnerID(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+		}
+		
+		sp, _ := s.spaceService.GetSpace(ctx, spaceID)
+		if sp != nil && sp.OwnerID.String() != ownerID {
+			return nil, status.Errorf(codes.PermissionDenied, "not owner")
 		}
 	}
 
@@ -279,17 +260,15 @@ func (s *GRPCServer) DeleteContentSource(ctx context.Context, req *knowledgev1.D
 	}
 
 	// RBAC/Ownership: admins bypass, others must own the content source
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				ownerID := uResp.GetUser().GetId()
-				cs, _ := s.contentService.GetContentSource(ctx, id)
-				if cs != nil && cs.OwnerID.String() != ownerID {
-					return nil, status.Errorf(codes.PermissionDenied, "not owner")
-				}
-			}
+	if !domain.IsAdmin(ctx) {
+		ownerID, ok := domain.GetOwnerID(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+		}
+		
+		cs, _ := s.contentService.GetContentSource(ctx, id)
+		if cs != nil && cs.OwnerID.String() != ownerID {
+			return nil, status.Errorf(codes.PermissionDenied, "not owner")
 		}
 	}
 
@@ -360,17 +339,15 @@ func (s *GRPCServer) UpdateContentSource(ctx context.Context, req *knowledgev1.U
 	}
 
 	// RBAC/Ownership: admins bypass, others must own the content
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				callerID := uResp.GetUser().GetId()
-				cs, _ := s.contentService.GetContentSource(ctx, id)
-				if cs != nil && cs.OwnerID.String() != callerID {
-					return nil, status.Errorf(codes.PermissionDenied, "not owner")
-				}
-			}
+	if !domain.IsAdmin(ctx) {
+		ownerID, ok := domain.GetOwnerID(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+		}
+		
+		cs, _ := s.contentService.GetContentSource(ctx, id)
+		if cs != nil && cs.OwnerID.String() != ownerID {
+			return nil, status.Errorf(codes.PermissionDenied, "not owner")
 		}
 	}
 
@@ -451,16 +428,14 @@ func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.G
 	}
 
 	// RBAC/Ownership: admins bypass, others must own the content (defense in depth)
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && s.userClient != nil {
-			outCtx := metadata.NewOutgoingContext(ctx, md)
-			uReq := &userv1.GetUserRequest{}
-			if uResp, err := s.userClient.GetUser(outCtx, uReq); err == nil && uResp.GetUser() != nil {
-				callerID := uResp.GetUser().GetId()
-				if content.OwnerID.String() != callerID {
-					return nil, status.Errorf(codes.PermissionDenied, "not owner")
-				}
-			}
+	if !domain.IsAdmin(ctx) {
+		ownerID, ok := domain.GetOwnerID(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+		}
+		
+		if content.OwnerID.String() != ownerID {
+			return nil, status.Errorf(codes.PermissionDenied, "not owner")
 		}
 	}
 
