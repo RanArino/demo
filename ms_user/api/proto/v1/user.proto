@@ -78,7 +78,10 @@ message ActivateUserResponse {
 
 // Request to get a user's details.
 message GetUserRequest {
-  string user_id = 1;
+  oneof identifier {
+    string user_id = 1;        // Internal user ID
+    string clerk_user_id = 2;  // Clerk user ID (for auth resolution)
+  }
 }
 
 // Response with a user's details.
