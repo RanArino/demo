@@ -1,4 +1,5 @@
 'use server';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 
 import { auth } from '@clerk/nextjs/server';
 import * as grpc from '@grpc/grpc-js';
@@ -32,11 +33,15 @@ function timestampToISOString(ts: any): string {
 }
 
 function protoContentSourceToContentSource(protoSource: any): ContentSource {
+  // Map proto enum knowledge.v1.ContentStatus -> UI ContentSourceStatus
+  // Proto: 0=UNSPECIFIED, 1=UPLOADING, 2=UPLOADED, 3=PROCESSING, 4=PROCESSED, 5=FAILED
   const statusMap: Record<number, ContentSourceStatus> = {
     0: ContentSourceStatus.PENDING,
-    1: ContentSourceStatus.PROCESSING,
-    2: ContentSourceStatus.COMPLETED,
-    3: ContentSourceStatus.FAILED,
+    1: ContentSourceStatus.PROCESSING,  // uploading => show masked card
+    2: ContentSourceStatus.PROCESSING,  // uploaded (waiting to process)
+    3: ContentSourceStatus.PROCESSING,
+    4: ContentSourceStatus.COMPLETED,
+    5: ContentSourceStatus.FAILED,
   };
   const status = protoSource.getStatus();
   const processingStatus = statusMap[status] || ContentSourceStatus.PENDING;
@@ -64,15 +69,27 @@ export interface CreateUploadURLResponse {
   uploadUrl: string;
   contentSourceId: string;
   expiresAt: string;
+  objectKey: string;
 }
 
-export async function listContentSources(spaceId: string): Promise<ActionResult<ContentSource[]>> {
+export async function listContentSources(spaceId: string, status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'): Promise<ActionResult<ContentSource[]>> {
   try {
     const { userId } = await auth();
     if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
     const client = getKnowledgeServiceClient();
     const request = new knowledge.ListContentSourcesRequest();
     request.setSpaceId(spaceId);
+    if (status) {
+      const statusMap: Record<string, number> = {
+        uploading: knowledge.ContentStatus.UPLOADING,
+        uploaded: knowledge.ContentStatus.UPLOADED,
+        processing: knowledge.ContentStatus.PROCESSING,
+        processed: knowledge.ContentStatus.PROCESSED,
+        failed: knowledge.ContentStatus.FAILED,
+      };
+      const mapped = statusMap[status];
+      if (mapped !== undefined) request.setStatus(mapped);
+    }
     const metadata = await createMetadataWithAuth();
     return new Promise((resolve) => {
       client.listContentSources(request, metadata, (error: any, response: any) => {
@@ -113,6 +130,7 @@ export async function createUploadURL(input: CreateUploadURLRequest): Promise<Ac
               uploadUrl: response.getUploadUrl(),
               contentSourceId: response.getContentSource()?.getId() || '',
               expiresAt: timestampToISOString(response.getExpiresAt?.()),
+              objectKey: response.getObjectKey?.() || '',
             },
           });
         }
@@ -207,6 +225,28 @@ export async function deleteContentSource(contentSourceId: string): Promise<Acti
           resolve({ ok: false, error: { code: error.code || 'UNKNOWN', message: error.message } });
         } else {
           resolve({ ok: true });
+        }
+      });
+    });
+  } catch {
+    return { ok: false, error: { code: 'INTERNAL', message: 'An unexpected error occurred' } };
+  }
+}
+
+export async function getContentSource(contentSourceId: string): Promise<ActionResult<ContentSource>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+    const client = getKnowledgeServiceClient();
+    const request = new knowledge.GetContentSourceRequest();
+    request.setId(contentSourceId);
+    const metadata = await createMetadataWithAuth();
+    return new Promise((resolve) => {
+      client.getContentSource(request, metadata, (error: any, response: any) => {
+        if (error) {
+          resolve({ ok: false, error: { code: error.code || 'UNKNOWN', message: error.message } });
+        } else {
+          resolve({ ok: true, data: protoContentSourceToContentSource(response) });
         }
       });
     });
