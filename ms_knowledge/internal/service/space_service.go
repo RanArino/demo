@@ -24,21 +24,30 @@ func NewSpaceService(spaceRepo domain.SpaceRepository, contentRepo domain.Conten
 	}
 }
 
+// enforceRLSForSpace ensures the caller owns the given space owner UUID.
+func (s *SpaceService) enforceRLSForSpace(ctx context.Context, spaceOwner uuid.UUID) error {
+	return EnforceOwner(ctx, spaceOwner)
+}
+
+// scopeSpaceFilterToOwner forces the filter to the caller's owner_id.
+func (s *SpaceService) scopeSpaceFilterToOwner(ctx context.Context, filter domain.SpaceFilter) (domain.SpaceFilter, error) {
+	ownerUUID, err := MustGetOwnerUUID(ctx)
+	if err != nil {
+		return filter, err
+	}
+	filter.OwnerID = ownerUUID
+	return filter, nil
+}
+
 func (s *SpaceService) CreateSpace(ctx context.Context, title, description string) (*domain.Space, error) {
 	// Validate inputs
 	if strings.TrimSpace(title) == "" {
 		return nil, fmt.Errorf("title is required")
 	}
 	// Resolve owner ID from context (set by gRPC layer)
-	ownerIDValue, ok := ctx.Value(domain.OwnerIDKey).(string)
-	if !ok || strings.TrimSpace(ownerIDValue) == "" {
-		return nil, fmt.Errorf("owner_id is required")
-	}
-
-	// Parse ownerID as UUID
-	ownerUUID, parseErr := uuid.Parse(strings.TrimSpace(ownerIDValue))
+	ownerUUID, parseErr := MustGetOwnerUUID(ctx)
 	if parseErr != nil {
-		return nil, fmt.Errorf("invalid owner_id format: %w", parseErr)
+		return nil, parseErr
 	}
 
 	space := &domain.Space{
@@ -61,19 +70,19 @@ func (s *SpaceService) GetSpace(ctx context.Context, id uuid.UUID) (*domain.Spac
 		return nil, fmt.Errorf("failed to get space: %w", err)
 	}
 
+	// Enforce RLS: caller must be the owner
+	if err := s.enforceRLSForSpace(ctx, space.Space.OwnerID); err != nil {
+		return nil, err
+	}
+
 	return space, nil
 }
 
 func (s *SpaceService) ListSpaces(ctx context.Context, filter domain.SpaceFilter) ([]*domain.SpaceWithStats, error) {
-	// Scope to caller when not admin and no explicit owner set
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if filter.OwnerID == uuid.Nil {
-			if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
-				if ownerUUID, err := uuid.Parse(ownerIDStr); err == nil {
-					filter.OwnerID = ownerUUID
-				}
-			}
-		}
+	var err error
+	filter, err = s.scopeSpaceFilterToOwner(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
 	spaces, err := s.spaceRepo.ListWithStats(ctx, filter)
@@ -91,17 +100,9 @@ func (s *SpaceService) UpdateSpace(ctx context.Context, id uuid.UUID, updates ma
 		return nil, fmt.Errorf("failed to get space: %w", err)
 	}
 
-	// RBAC/Ownership enforcement (defense in depth)
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
-			ownerUUID, parseErr := uuid.Parse(ownerIDStr)
-			if parseErr != nil {
-				return nil, fmt.Errorf("invalid owner_id format: %w", parseErr)
-			}
-			if existing.OwnerID != ownerUUID {
-				return nil, fmt.Errorf("forbidden: not the owner")
-			}
-		}
+	// Enforce RLS: caller must be the owner
+	if err := s.enforceRLSForSpace(ctx, existing.OwnerID); err != nil {
+		return nil, err
 	}
 
 	// Apply updates
@@ -111,13 +112,7 @@ func (s *SpaceService) UpdateSpace(ctx context.Context, id uuid.UUID, updates ma
 	if description, ok := updates["description"].(string); ok {
 		existing.Description = strings.TrimSpace(description)
 	}
-	if ownerID, ok := updates["owner_id"].(string); ok && strings.TrimSpace(ownerID) != "" {
-		ownerUUID, err := uuid.Parse(strings.TrimSpace(ownerID))
-		if err != nil {
-			return nil, fmt.Errorf("invalid owner_id format: %w", err)
-		}
-		existing.OwnerID = ownerUUID
-	}
+	// Disallow changing owner_id via update
 
 	err = s.spaceRepo.Update(ctx, existing)
 	if err != nil {
@@ -128,22 +123,13 @@ func (s *SpaceService) UpdateSpace(ctx context.Context, id uuid.UUID, updates ma
 }
 
 func (s *SpaceService) DeleteSpace(ctx context.Context, id uuid.UUID, hardDelete, force bool) error {
-	// RBAC/Ownership enforcement (defense in depth)
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
-			ownerUUID, parseErr := uuid.Parse(ownerIDStr)
-			if parseErr != nil {
-				return fmt.Errorf("invalid owner_id format: %w", parseErr)
-			}
-			// Ensure the space belongs to caller before proceeding
-			existing, err := s.spaceRepo.GetByID(ctx, id)
-			if err != nil {
-				return fmt.Errorf("failed to get space: %w", err)
-			}
-			if existing.OwnerID != ownerUUID {
-				return fmt.Errorf("forbidden: not the owner")
-			}
-		}
+	// Ensure the space belongs to caller before proceeding
+	existing, err := s.spaceRepo.GetByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get space: %w", err)
+	}
+	if err := s.enforceRLSForSpace(ctx, existing.OwnerID); err != nil {
+		return err
 	}
 
 	// Check if space has content (unless force is true)
@@ -157,7 +143,7 @@ func (s *SpaceService) DeleteSpace(ctx context.Context, id uuid.UUID, hardDelete
 		}
 	}
 
-	err := s.spaceRepo.Delete(ctx, id, hardDelete)
+	err = s.spaceRepo.Delete(ctx, id, hardDelete)
 	if err != nil {
 		return fmt.Errorf("failed to delete space: %w", err)
 	}
@@ -169,15 +155,11 @@ func (s *SpaceService) SearchSpaces(ctx context.Context, query string, filter do
 	if strings.TrimSpace(query) == "" {
 		return s.ListSpaces(ctx, filter)
 	}
-	// Scope to caller when not admin and no explicit owner set
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if filter.OwnerID == uuid.Nil {
-			if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
-				if ownerUUID, err := uuid.Parse(ownerIDStr); err == nil {
-					filter.OwnerID = ownerUUID
-				}
-			}
-		}
+	// Scope strictly to caller
+	var err error
+	filter, err = s.scopeSpaceFilterToOwner(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
 	spaces, err := s.spaceRepo.Search(ctx, query, filter)
