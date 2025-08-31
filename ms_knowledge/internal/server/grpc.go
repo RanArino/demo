@@ -108,20 +108,6 @@ func (s *GRPCServer) UpdateSpace(ctx context.Context, req *knowledgev1.UpdateSpa
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
 	}
-
-	// RBAC/Ownership: admins bypass, others must own
-	if !domain.IsAdmin(ctx) {
-		ownerID, ok := domain.GetOwnerID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-		
-		sp, _ := s.spaceService.GetSpace(ctx, id)
-		if sp != nil && sp.OwnerID.String() != ownerID {
-			return nil, status.Errorf(codes.PermissionDenied, "not owner")
-		}
-	}
-
 	updates := make(map[string]interface{})
 	if req.Space.GetTitle() != "" {
 		updates["title"] = req.Space.GetTitle()
@@ -145,20 +131,6 @@ func (s *GRPCServer) DeleteSpace(ctx context.Context, req *knowledgev1.DeleteSpa
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
 	}
-
-	// RBAC/Ownership: admins bypass, others must own
-	if !domain.IsAdmin(ctx) {
-		ownerID, ok := domain.GetOwnerID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-		
-		sp, _ := s.spaceService.GetSpace(ctx, id)
-		if sp != nil && sp.OwnerID.String() != ownerID {
-			return nil, status.Errorf(codes.PermissionDenied, "not owner")
-		}
-	}
-
 	err = s.spaceService.DeleteSpace(ctx, id, req.HardDelete, req.Force)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete space: %v", err)
@@ -172,19 +144,6 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 	spaceID, err := uuid.Parse(req.SpaceId)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
-	}
-
-	// RBAC/Ownership: admins bypass, others must own the space
-	if !domain.IsAdmin(ctx) {
-		ownerID, ok := domain.GetOwnerID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-		
-		sp, _ := s.spaceService.GetSpace(ctx, spaceID)
-		if sp != nil && sp.OwnerID.String() != ownerID {
-			return nil, status.Errorf(codes.PermissionDenied, "not owner")
-		}
 	}
 
 	// Map object_kind enum to kind string
@@ -259,19 +218,6 @@ func (s *GRPCServer) DeleteContentSource(ctx context.Context, req *knowledgev1.D
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
 	}
 
-	// RBAC/Ownership: admins bypass, others must own the content source
-	if !domain.IsAdmin(ctx) {
-		ownerID, ok := domain.GetOwnerID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-		
-		cs, _ := s.contentService.GetContentSource(ctx, id)
-		if cs != nil && cs.OwnerID.String() != ownerID {
-			return nil, status.Errorf(codes.PermissionDenied, "not owner")
-		}
-	}
-
 	if err := s.contentService.DeleteContentSource(ctx, id); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete content source: %v", err)
 	}
@@ -336,19 +282,6 @@ func (s *GRPCServer) UpdateContentSource(ctx context.Context, req *knowledgev1.U
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
-	}
-
-	// RBAC/Ownership: admins bypass, others must own the content
-	if !domain.IsAdmin(ctx) {
-		ownerID, ok := domain.GetOwnerID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-		
-		cs, _ := s.contentService.GetContentSource(ctx, id)
-		if cs != nil && cs.OwnerID.String() != ownerID {
-			return nil, status.Errorf(codes.PermissionDenied, "not owner")
-		}
 	}
 
 	// Determine which fields to update based on update_mask
@@ -421,22 +354,10 @@ func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.G
 		ttl = time.Duration(req.ExpiresSeconds) * time.Second
 	}
 
-	// Fetch content for RBAC checks and to compute object key
+	// Fetch content to compute object key; RLS is enforced in service layer
 	content, err := s.contentService.GetContentSource(ctx, contentID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get content source: %v", err)
-	}
-
-	// RBAC/Ownership: admins bypass, others must own the content (defense in depth)
-	if !domain.IsAdmin(ctx) {
-		ownerID, ok := domain.GetOwnerID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-		
-		if content.OwnerID.String() != ownerID {
-			return nil, status.Errorf(codes.PermissionDenied, "not owner")
-		}
 	}
 
 	url, expiresAt, err := s.contentService.GenerateDownloadURLWithKind(ctx, contentID, ttl, kind)
