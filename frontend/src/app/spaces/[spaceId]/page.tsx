@@ -1,9 +1,13 @@
 import { notFound } from 'next/navigation';
-import { getSpace, listContentSources } from '@/api/actions/spaceActions';
+import { getSpace } from '@/api/actions/spaceActions';
+import { listContentSources } from '@/api/actions/contentActions';
 import SpaceCanvas from './components/SpaceCanvas';
-import DocumentsSection from './components/DocumentsSection';
+import ContentSourcesSection from './components/ContentSourcesSection';
 import ChatSection from './components/ChatSection';
 import LeftSidebar from './components/LeftSidebar';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface SpaceDetailPageProps {
   params: {
@@ -17,7 +21,7 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
   // Fetch space data and content sources in parallel
   const [spaceResult, contentSourcesResult] = await Promise.all([
     getSpace(spaceId),
-    listContentSources(spaceId)
+    listContentSources(spaceId, 'processed')
   ]);
 
   if (!spaceResult.ok || !spaceResult.data) {
@@ -26,6 +30,7 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
 
   const space = spaceResult.data;
   const contentSources = contentSourcesResult.ok ? contentSourcesResult.data || [] : [];
+  const contentError = contentSourcesResult.ok ? undefined : (contentSourcesResult.error?.message || 'Failed to load documents');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,7 +55,7 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
         <div className="w-80 xl:w-96 bg-white border-l border-gray-200 flex flex-col">
           {/* Documents Section */}
           <div className="flex-1 overflow-y-auto border-b border-gray-200">
-            <DocumentsSection spaceId={spaceId} contentSources={contentSources} />
+            <ContentSourcesSection spaceId={spaceId} contentSources={contentSources} errorMessage={contentError} />
           </div>
           
           {/* Chat Section */}
