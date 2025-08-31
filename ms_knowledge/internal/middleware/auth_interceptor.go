@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	domain "demo/ms_knowledge/internal/domain"
+	userv1 "demo/ms_user/api/proto/v1"
 )
 
 // AuthInterceptor validates Clerk JWTs on inbound gRPC requests and resolves user identities.
@@ -23,7 +24,15 @@ type AuthInterceptor struct {
 }
 
 // NewAuthInterceptor constructs a new AuthInterceptor using Clerk JWKS and User service client.
+// Both clerkSecretKey and userClient are required for proper authentication flow.
 func NewAuthInterceptor(clerkSecretKey string, userClient userv1.UserServiceClient) *AuthInterceptor {
+	if clerkSecretKey == "" {
+		panic("clerkSecretKey is required for AuthInterceptor")
+	}
+	if userClient == nil {
+		panic("userClient is required for AuthInterceptor")
+	}
+	
 	jwksClient := jwks.NewClient(&clerk.ClientConfig{
 		BackendConfig: clerk.BackendConfig{Key: &clerkSecretKey},
 	})
@@ -66,3 +75,10 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		return handler(ctx, req)
 	}
 }
+
+// resolveUserInfo calls the User service to resolve Clerk user ID to internal user ID and role.
+func (i *AuthInterceptor) resolveUserInfo(ctx context.Context, md metadata.MD) (string, string, error) {
+	// User service client should always be available due to constructor validation
+	if i.userClient == nil {
+		return "", "", status.Errorf(codes.Internal, "user service client not configured")
+	}
