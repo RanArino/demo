@@ -12,9 +12,10 @@ const (
 
 // DocumentUploadedEvent is produced by ms_knowledge when a client confirms an upload.
 type DocumentUploadedEvent struct {
-	ContentSourceID  uuid.UUID `json:"content_source_id"`
-	OriginalBlobHash string    `json:"original_blob_hash"`
-	SpaceID          uuid.UUID `json:"space_id"`
+	ContentSourceID   uuid.UUID `json:"content_source_id"`
+	OriginalBlobHash  string    `json:"original_blob_hash"`
+	SpaceID           uuid.UUID `json:"space_id"`
+	OriginalObjectKey string    `json:"original_object_key"`
 }
 
 // ProcessStatus is the processing outcome in the processed event.
