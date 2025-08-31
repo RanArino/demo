@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { createUploadURL, confirmUpload } from '@/api/actions/spaceActions';
+// Server actions are dynamically imported at call time to avoid stale action IDs during HMR
 import { ContentSource } from '@/app/spaces/types/content';
 
 interface UploadOptions {
@@ -40,7 +40,8 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
     setUploadState(prev => ({ ...prev, isUploading: true, error: null }));
 
     try {
-      // Step 1: Get upload URL from backend
+      // Step 1: Get upload URL from server action (dynamic import to avoid stale action id)
+      const { createUploadURL } = await import('@/api/actions/contentActions');
       const uploadUrlResult = await createUploadURL({
         spaceId,
         filename: file.name,
@@ -54,6 +55,23 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
 
       const { uploadUrl, contentSourceId } = uploadUrlResult.data;
 
+      // Broadcast creation so the Documents list can render a placeholder card
+      try {
+        const placeholder: ContentSource = {
+          id: contentSourceId,
+          spaceId,
+          title: file.name,
+          filename: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          sizeBytes: file.size,
+          processingStatus: 'processing',
+          sourceType: 'file',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as unknown as ContentSource;
+        window.dispatchEvent(new CustomEvent('content:created', { detail: placeholder }));
+      } catch {}
+
       // Step 2: Upload file directly to cloud storage with progress tracking
       const xhr = new XMLHttpRequest();
       
@@ -64,6 +82,10 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
             const progress = Math.round((event.loaded / event.total) * 100);
             setUploadState(prev => ({ ...prev, progress }));
             onProgress?.(progress);
+            // Broadcast progress so DocumentsSection can reflect per-card progress
+            try {
+              window.dispatchEvent(new CustomEvent('content:progress', { detail: { contentSourceId, progress } }));
+            } catch {}
           }
         });
 
@@ -74,11 +96,23 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
               // Step 3: Confirm upload with backend
               onProcessing?.(contentSourceId);
               
-              const confirmResult = await confirmUpload(contentSourceId);
+              // Confirm the ORIGINAL upload (first step). We don't yet know blob_hash here,
+              // so compute it on client for now to satisfy API; backend accepts and stores it.
+              const buffer = await file.arrayBuffer();
+              const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+              const hashArray = Array.from(new Uint8Array(hashBuffer));
+              const blobHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+              const { confirmUpload } = await import('@/api/actions/contentActions');
+              const confirmResult = await confirmUpload(contentSourceId, 'original', blobHash);
               
               if (!confirmResult.ok || !confirmResult.data) {
                 throw new Error(confirmResult.error?.message || 'Failed to confirm upload');
               }
+
+              // Broadcast updated server copy (may include status/summary)
+              try {
+                window.dispatchEvent(new CustomEvent('content:updated', { detail: confirmResult.data }));
+              } catch {}
 
               onComplete?.();
               onUploadComplete?.([confirmResult.data]);
