@@ -310,9 +310,16 @@ func (s *GRPCServer) ListContentSources(ctx context.Context, req *knowledgev1.Li
 		pageSize = int(req.Page.PageSize)
 	}
 
+	// Build status string but keep assignment inside struct literal to avoid
+	// mutating the filter after construction (keeps initialization atomic).
+	statusStr := ""
+	if req.Status != knowledgev1.ContentStatus_CONTENT_STATUS_UNSPECIFIED {
+		statusStr = req.Status.String()
+	}
+
 	filter := domain.ContentSourceFilter{
 		SpaceID: spaceID,
-		Status:  domain.ContentStatus(req.Status.String()),
+		Status:  domain.ContentStatus(statusStr),
 		Limit:   pageSize,
 		Offset:  0, // TODO: Implement pagination with page token
 	}

@@ -43,10 +43,13 @@ class DocumentProcessService:
     def process_document(self, event: DocumentUploadedEvent):
         logger.info(f"Processing document for content_source_id: {event.content_source_id}")
         try:
+            # Determine key to fetch original (prefer object key if present)
+            source_key = event.original_object_key if getattr(event, 'original_object_key', None) else event.original_blob_hash
+
             # Download the document from R2 (with retries)
             document_content = self._retry_with_backoff(
                 "download_source_document",
-                lambda: self.document_repository.download_source_document(event.original_blob_hash),
+                lambda: self.document_repository.download_source_document(source_key),
             )
 
             # Convert the document to Markdown
@@ -80,12 +83,11 @@ class DocumentProcessService:
             logger.info(f"Successfully processed document for content_source_id: {event.content_source_id}")
 
         except Exception as e:
-            logger.error(f"Failed to process document for content_source_id: {event.content_source_id}", exc_info=True)
-            # Produce a failure event
-            processed_event = DocumentProcessedEvent(
+            logger.error(f"Processing failed for content_source_id: {event.content_source_id}: {e}", exc_info=True)
+            failed_event = DocumentProcessedEvent(
                 content_source_id=event.content_source_id,
                 processed_blob_hash=None,
                 status="FAILED",
                 error_message=str(e),
             )
-            self.kafka_producer.produce_document_processed_event(processed_event)
+            self.kafka_producer.produce_document_processed_event(failed_event)

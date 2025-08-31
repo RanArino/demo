@@ -181,10 +181,12 @@ func (s *ContentService) ConfirmUploadWithKind(ctx context.Context, contentID uu
 
 	// Emit document.uploaded event only for ORIGINAL confirms
 	if s.producer != nil && (strings.ToLower(strings.TrimSpace(kind)) == "source" || strings.ToLower(strings.TrimSpace(kind)) == "original") {
+		objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), strings.TrimSpace(content.Source))
 		evt := events.DocumentUploadedEvent{
-			ContentSourceID:  content.ID,
-			OriginalBlobHash: blobHash,
-			SpaceID:          content.SpaceID,
+			ContentSourceID:   content.ID,
+			OriginalBlobHash:  blobHash,
+			SpaceID:           content.SpaceID,
+			OriginalObjectKey: objectKey,
 		}
 		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
 			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id (content.ID=%s): %v", content.ID, err)

@@ -6,6 +6,7 @@ class DocumentUploadedEvent(BaseModel):
     content_source_id: UUID
     original_blob_hash: str
     space_id: UUID
+    original_object_key: Optional[str] = None
 
 class DocumentProcessedEvent(BaseModel):
     content_source_id: UUID
