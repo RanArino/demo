@@ -196,6 +196,14 @@ func main() {
 	slog.Info("Shutting down server...")
 	cancel() // Cancel context for consumer
 	srv.GracefulStop()
+	
+	// Close User service connection
+	if userConn != nil {
+		if err := userConn.Close(); err != nil {
+			slog.Warn("Failed to close User service connection", "error", err)
+		}
+	}
+	
 	slog.Info("Server stopped")
 }
 
