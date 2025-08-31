@@ -129,8 +129,8 @@ func main() {
 	var userConn *grpc.ClientConn
 	userSvcAddr := cfg.Services.UserGRPCAddr
 	if userSvcAddr != "" {
-	conn, err := grpc.NewClient(userSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
+		conn, err := grpc.NewClient(userSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
 			slog.Error("Failed to connect to User service", "address", userSvcAddr, "error", err)
 			os.Exit(1)
 		}
