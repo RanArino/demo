@@ -124,22 +124,38 @@ func main() {
 	// Initialize gRPC server
 	grpcServer := server.NewGRPCServer(spaceService, contentService, knowledgeLinkService)
 
-	// Wire user service client for server-side identity resolution
+	// Initialize User service client for authentication
+	var userClient userv1.UserServiceClient
+	var userConn *grpc.ClientConn
 	userSvcAddr := cfg.Services.UserGRPCAddr
+	if userSvcAddr != "" {
 	conn, err := grpc.NewClient(userSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		slog.Warn("Failed to connect to ms_user; identity resolution disabled", "error", err)
+			slog.Error("Failed to connect to User service", "address", userSvcAddr, "error", err)
+			os.Exit(1)
+		}
+		userClient = userv1.NewUserServiceClient(conn)
+		userConn = conn
+		slog.Info("Connected to User service", "address", userSvcAddr)
 	} else {
-		grpcServer = grpcServer.WithUserClient(userv1.NewUserServiceClient(conn))
+		slog.Error("User service address not configured", "config_key", "Services.UserGRPCAddr")
+		os.Exit(1)
 	}
 
-	// Create gRPC server
-	// Add Clerk auth interceptor (validate JWT on all RPCs)
+	// Wire user service client for server-side identity resolution
+	grpcServer = grpcServer.WithUserClient(userClient)
+
+	// Create gRPC server with authentication
 	clerkKey := cfg.Auth.ClerkSecretKey
 	var serverOpts []grpc.ServerOption
 	if clerkKey != "" {
-		authI := kmw.NewAuthInterceptor(clerkKey)
+		// Create auth interceptor with User service client dependency
+		authI := kmw.NewAuthInterceptor(clerkKey, userClient)
 		serverOpts = append(serverOpts, grpc.UnaryInterceptor(authI.Unary()))
+		slog.Info("Authentication interceptor enabled", "clerk_configured", true, "user_service_configured", true)
+	} else {
+		slog.Error("Clerk secret key not configured", "config_key", "Auth.ClerkSecretKey")
+		os.Exit(1)
 	}
 	srv := grpc.NewServer(serverOpts...)
 	knowledgev1.RegisterKnowledgeServiceServer(srv, grpcServer)
