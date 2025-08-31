@@ -16,17 +16,21 @@ import (
 	domain "demo/ms_knowledge/internal/domain"
 )
 
-// AuthInterceptor validates Clerk JWTs on inbound gRPC requests.
+// AuthInterceptor validates Clerk JWTs on inbound gRPC requests and resolves user identities.
 type AuthInterceptor struct {
 	jwksClient *jwks.Client
+	userClient userv1.UserServiceClient
 }
 
-// NewAuthInterceptor constructs a new AuthInterceptor using Clerk JWKS.
-func NewAuthInterceptor(clerkSecretKey string) *AuthInterceptor {
+// NewAuthInterceptor constructs a new AuthInterceptor using Clerk JWKS and User service client.
+func NewAuthInterceptor(clerkSecretKey string, userClient userv1.UserServiceClient) *AuthInterceptor {
 	jwksClient := jwks.NewClient(&clerk.ClientConfig{
 		BackendConfig: clerk.BackendConfig{Key: &clerkSecretKey},
 	})
-	return &AuthInterceptor{jwksClient: jwksClient}
+	return &AuthInterceptor{
+		jwksClient: jwksClient,
+		userClient: userClient,
+	}
 }
 
 // Unary returns a gRPC unary interceptor that validates the Authorization Bearer token.
