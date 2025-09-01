@@ -13,6 +13,27 @@ logger = logging.getLogger(__name__)
 # Encoding constant for consistent text encoding throughout the service
 ENCODING = 'utf-8'
 
+
+def _derive_processed_key_from_source(source_key: str) -> str:
+    """Replace the filename extension with .md or append .md if none."""
+    if not source_key:
+        return "processed.md"
+    # Find last '/' to isolate filename
+    slash = source_key.rfind('/')
+    if slash >= 0:
+        prefix = source_key[:slash+1]
+        filename = source_key[slash+1:]
+    else:
+        prefix = ""
+        filename = source_key
+    dot = filename.rfind('.')
+    if dot > 0:
+        md_name = filename[:dot] + '.md'
+    else:
+        md_name = filename + '.md'
+    return prefix + md_name
+
+
 class DocumentProcessService:
     def __init__(self, document_repository: DocumentRepository, kafka_producer: KafkaProducer):
         self.document_repository = document_repository
@@ -60,15 +81,20 @@ class DocumentProcessService:
                 lambda: convert_document_to_markdown(document_content, "pdf"),
             )
 
-            # Calculate the hash of the processed content
+            # Calculate the hash of the processed content (metadata)
             processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
 
-            # Upload the processed document to R2
-            # Upload the processed document (with retries)
+            # Upload the processed document to R2 next to original (with retries)
+            if '/' in source_key:
+                processed_key = _derive_processed_key_from_source(source_key)
+            else:
+                # Legacy fallback: use the same key with .md appended
+                processed_key = source_key + '.md'
+
             self._retry_with_backoff(
                 "upload_processed_document",
                 lambda: self.document_repository.upload_processed_document(
-                    processed_blob_hash, markdown_content.encode(ENCODING)
+                    processed_key, markdown_content.encode(ENCODING)
                 ),
             )
 
