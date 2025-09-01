@@ -61,6 +61,11 @@ func (s *ContentService) scopeContentFilterToOwner(ctx context.Context, filter d
 
 // resolveBucket returns the bucket name for a given kind ("source" or "processed").
 func (s *ContentService) resolveBucket(kind string) (string, error) {
+	// Prefer unified content-source bucket if configured
+	if s.cfg != nil && strings.TrimSpace(s.cfg.R2.BucketContentSourceName) != "" {
+		return s.cfg.R2.BucketContentSourceName, nil
+	}
+	// Legacy fallback by kind
 	switch strings.ToLower(strings.TrimSpace(kind)) {
 	case "source", "original":
 		if s.cfg == nil || s.cfg.R2.BucketSourceName == "" {
@@ -75,6 +80,24 @@ func (s *ContentService) resolveBucket(kind string) (string, error) {
 	default:
 		return "", fmt.Errorf("invalid kind: %s", kind)
 	}
+}
+
+// processedFilename derives the processed filename by replacing the extension with .md or appending .md
+func processedFilename(original string) string {
+	name := strings.TrimSpace(original)
+	if name == "" {
+		return "processed.md"
+	}
+	if dot := strings.LastIndex(name, "."); dot > 0 {
+		return name[:dot] + ".md"
+	}
+	return name + ".md"
+}
+
+// buildObjectKey constructs the R2 object key including the owner prefix and space/content path
+func buildObjectKey(ownerID, spaceID, contentID uuid.UUID, filename string) string {
+	// <userId>/spaces/<spaceId>/content/<contentSourceId>/<fileName>
+	return ownerID.String() + "/spaces/" + spaceID.String() + "/content/" + contentID.String() + "/" + strings.TrimSpace(filename)
 }
 
 func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID, filename, mimeType string, sizeBytes int64, title string) (*domain.ContentSource, string, error) {
@@ -140,7 +163,7 @@ func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uu
 	}
 
 	// Generate object key based on persisted content ID
-	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", spaceID.String(), content.ID.String(), filename)
+	objectKey := buildObjectKey(ownerUUID, spaceID, content.ID, filename)
 
 	// Resolve bucket for requested kind
 	bucket, err := s.resolveBucket(kind)
@@ -194,7 +217,7 @@ func (s *ContentService) ConfirmUploadWithKind(ctx context.Context, contentID uu
 
 	// Emit document.uploaded event only for ORIGINAL confirms
 	if s.producer != nil && (strings.ToLower(strings.TrimSpace(kind)) == "source" || strings.ToLower(strings.TrimSpace(kind)) == "original") {
-		objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), strings.TrimSpace(content.Source))
+		objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, strings.TrimSpace(content.Source))
 		evt := events.DocumentUploadedEvent{
 			ContentSourceID:   content.ID,
 			OriginalBlobHash:  blobHash,
@@ -257,8 +280,6 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
-	// Note: this is typically called by internal pipelines; if exposed to users,
-	// enforce RLS here. For now, ensure only the owner can update status.
 	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
 		return nil, err
 	}
@@ -272,8 +293,6 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	// Validate status transition
 	if err := content.Status.ValidateTransition(status); err != nil {
 		s.logger.Printf("Invalid status transition for content source %s: %v", id, err)
-		// Log the error but still allow the transition for now to avoid breaking existing workflows
-		// In production, you might want to return this error instead
 	}
 
 	// Update status
@@ -281,9 +300,6 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	if err != nil {
 		return nil, fmt.Errorf("failed to update content source status: %w", err)
 	}
-
-	// Content nodes are automatically created in Neo4j when content is created in the repository
-	// No additional graph operations needed here
 
 	// Get updated content source
 	content, err = s.contentRepo.GetByID(ctx, id)
@@ -400,7 +416,11 @@ func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, conten
 		expires = 15 * time.Minute
 	}
 
-	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), content.Source)
+	filename := content.Source
+	if strings.ToLower(strings.TrimSpace(kind)) == "processed" {
+		filename = processedFilename(filename)
+	}
+	objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, filename)
 
 	url, err := s.storage.GeneratePresignedDownloadURL(bucket, objectKey, expires)
 	if err != nil {
@@ -428,10 +448,13 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 	}
 
 	filename := strings.TrimSpace(content.Source)
-	objectKey := fmt.Sprintf("spaces/%s/content/%s/%s", content.SpaceID.String(), content.ID.String(), filename)
-
-	if err := s.storage.DeleteObject(bucket, objectKey); err != nil {
-		s.logger.Printf("WARN: failed to delete R2 object (bucket=%s key=%s): %v", bucket, objectKey, err)
+	origKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, filename)
+	procKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, processedFilename(filename))
+	if err := s.storage.DeleteObject(bucket, origKey); err != nil {
+		s.logger.Printf("WARN: failed to delete R2 object (bucket=%s key=%s): %v", bucket, origKey, err)
+	}
+	if err := s.storage.DeleteObject(bucket, procKey); err != nil {
+		s.logger.Printf("WARN: failed to delete R2 object (bucket=%s key=%s): %v", bucket, procKey, err)
 	}
 
 	if err := s.contentRepo.Delete(ctx, id); err != nil {
@@ -439,4 +462,13 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 	}
 
 	return nil
+}
+
+// GetContentOwner returns the owner UUID for a content source (no RLS checks; for internal use)
+func (s *ContentService) GetContentOwner(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	content, err := s.contentRepo.GetByID(ctx, id)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to get content source: %w", err)
+	}
+	return content.OwnerID, nil
 }
