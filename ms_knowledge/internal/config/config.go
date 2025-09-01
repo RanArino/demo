@@ -31,15 +31,12 @@ type Config struct {
 		SecurityProtocol string
 	}
 	R2 struct {
-		AccessKeyID     string
-		SecretAccessKey string
-		AccountID       string
-		Endpoint        string
-		Region          string
-		// BucketContentSourceName is the unified bucket for both original and processed objects
+		AccessKeyID             string
+		SecretAccessKey         string
+		AccountID               string
+		Endpoint                string
+		Region                  string
 		BucketContentSourceName string
-		BucketSourceName        string
-		BucketProcessedName     string
 	}
 	Auth struct {
 		ClerkSecretKey string
@@ -100,8 +97,6 @@ func Load() (*Config, error) {
 	cfg.R2.Endpoint = getEnvOrDefault("R2_ENDPOINT", "")
 	cfg.R2.Region = getEnvOrDefault("R2_REGION", "auto")
 	cfg.R2.BucketContentSourceName = getEnvOrDefault("R2_BUCKET_CONTENT_SOURCE", "")
-	cfg.R2.BucketSourceName = getEnvOrDefault("R2_BUCKET_SOURCE_NAME", "knowledge-source")
-	cfg.R2.BucketProcessedName = getEnvOrDefault("R2_BUCKET_PROCESSED_NAME", "knowledge-processed")
 
 	// Auth configuration
 	cfg.Auth.ClerkSecretKey = getEnvOrDefault("CLERK_SECRET_KEY", "")
@@ -164,8 +159,6 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	config.R2.Endpoint = secretValues["R2_ENDPOINT"]
 	config.R2.Region = secretValues["R2_REGION"]
 	config.R2.BucketContentSourceName = secretValues["R2_BUCKET_CONTENT_SOURCE"]
-	config.R2.BucketSourceName = secretValues["R2_BUCKET_SOURCE_NAME"]
-	config.R2.BucketProcessedName = secretValues["R2_BUCKET_PROCESSED_NAME"]
 
 	// Auth configuration
 	config.Auth.ClerkSecretKey = secretValues["CLERK_SECRET_KEY"]
