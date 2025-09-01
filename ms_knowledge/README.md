@@ -9,8 +9,7 @@ sequenceDiagram
     participant Client
     participant KS as "Knowledge Service (Go)"
     participant DPS as "Doc Process Service (Python)"
-    participant R2S as "Cloudflare R2 (Source Bucket)"
-    participant R2P as "Cloudflare R2 (Processed Bucket)"
+    participant R2 as "Cloudflare R2 (Content Bucket)"
     participant Kafka
     participant PostgreSQL
     participant Neo4j
@@ -20,23 +19,23 @@ sequenceDiagram
     Client->>+KS: 1. Request pre-signed URL for upload
     KS->>+PostgreSQL: 2. Create CONTENT_SOURCES record (status UPLOADING)
     PostgreSQL-->>-KS: Done
-    KS->>+R2S: 3. Generate pre-signed URL (Source bucket)
-    R2S-->>-KS: URL
+    KS->>+R2: 3. Generate pre-signed URL (Content bucket)
+    R2-->>-KS: URL
     KS-->>-Client: 4. Return pre-signed URL
 
-    Client->>+R2S: 5. Upload file directly (Source bucket)
-    R2S-->>-Client: OK
+    Client->>+R2: 5. Upload file directly (Content bucket)
+    R2-->>-Client: OK
 
     Client->>+KS: 6. Confirm upload completion
     KS->>+Kafka: 7. Publish document.uploaded event
     Kafka-->>-KS: OK
 
     Kafka->>+DPS: 8. Consume document.uploaded event
-    DPS->>+R2S: 9. Download original file (from Source bucket)
-    R2S-->>-DPS: File
+    DPS->>+R2: 9. Download original file (Content bucket)
+    R2-->>-DPS: File
     DPS->>DPS: 10. Process file (convert to Markdown)
-    DPS->>+R2P: 11. Upload processed file (to Processed bucket)
-    R2P-->>-DPS: OK
+    DPS->>+R2: 11. Upload processed file (same folder, .md)
+    R2-->>-DPS: OK
     DPS->>+Kafka: 12. Publish document.processed event
     Kafka-->>-DPS: OK
 
