@@ -7,6 +7,8 @@ import { getKnowledgeServiceClient } from '../server-client';
 const knowledge: any = require('../generated/v1/knowledge_pb');
 import { ActionResult } from '@/app/spaces/types/shared';
 import { ContentSource, ContentSourceStatus, ContentSourceType } from '@/app/spaces/types/content';
+import { CreateUploadURLRequest, CreateUploadURLResponse } from '@/app/spaces/types/content';
+
 
 async function createMetadataWithAuth(): Promise<grpc.Metadata> {
   const { getToken } = await auth();
@@ -59,19 +61,6 @@ function protoContentSourceToContentSource(protoSource: any): ContentSource {
   };
 }
 
-export interface CreateUploadURLRequest {
-  spaceId: string;
-  filename: string;
-  mimeType: string;
-  sizeBytes: number;
-}
-export interface CreateUploadURLResponse {
-  uploadUrl: string;
-  contentSourceId: string;
-  expiresAt: string;
-  objectKey: string;
-}
-
 export async function listContentSources(spaceId: string, status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'): Promise<ActionResult<ContentSource[]>> {
   try {
     const { userId } = await auth();
@@ -106,7 +95,6 @@ export async function listContentSources(spaceId: string, status?: 'uploading' |
   }
 }
 
-// Create upload URL for ORIGINAL object (first step)
 export async function createUploadURL(input: CreateUploadURLRequest): Promise<ActionResult<CreateUploadURLResponse>> {
   try {
     const { userId } = await auth();
@@ -117,7 +105,10 @@ export async function createUploadURL(input: CreateUploadURLRequest): Promise<Ac
     request.setFilename(input.filename);
     request.setMimeType(input.mimeType);
     request.setSizeBytes(input.sizeBytes);
-    request.setObjectKind(knowledge.DownloadObjectKind.DOWNLOAD_OBJECT_KIND_ORIGINAL);
+    const objectKind = input.objectKind === 'processed' 
+      ? knowledge.DownloadObjectKind.DOWNLOAD_OBJECT_KIND_PROCESSED 
+      : knowledge.DownloadObjectKind.DOWNLOAD_OBJECT_KIND_ORIGINAL;
+    request.setObjectKind(objectKind);
     const metadata = await createMetadataWithAuth();
     return new Promise((resolve) => {
       client.createUploadURL(request, metadata, (error: any, response: any) => {
@@ -143,7 +134,6 @@ export async function createUploadURL(input: CreateUploadURLRequest): Promise<Ac
 
 export async function confirmUpload(
   contentSourceId: string,
-  kind: 'original' | 'processed',
   blobHash: string,
 ): Promise<ActionResult<ContentSource>> {
   try {
@@ -152,11 +142,6 @@ export async function confirmUpload(
     const client = getKnowledgeServiceClient();
     const request = new knowledge.ConfirmUploadRequest();
     request.setContentSourceId(contentSourceId);
-    request.setObjectKind(
-      kind === 'processed'
-        ? knowledge.DownloadObjectKind.DOWNLOAD_OBJECT_KIND_PROCESSED
-        : knowledge.DownloadObjectKind.DOWNLOAD_OBJECT_KIND_ORIGINAL,
-    );
     request.setBlobHash(blobHash);
     const metadata = await createMetadataWithAuth();
     return new Promise((resolve) => {
