@@ -440,3 +440,12 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 
 	return nil
 }
+
+// GetContentOwner returns the owner UUID for a content source (no RLS checks; for internal use)
+func (s *ContentService) GetContentOwner(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	content, err := s.contentRepo.GetByID(ctx, id)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to get content source: %w", err)
+	}
+	return content.OwnerID, nil
+}
