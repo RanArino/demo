@@ -146,18 +146,7 @@ func (s *GRPCServer) CreateUploadURL(ctx context.Context, req *knowledgev1.Creat
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
 	}
 
-	// Map object_kind enum to kind string
-	var kind string
-	switch req.ObjectKind {
-	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL:
-		kind = "source"
-	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED:
-		kind = "processed"
-	default:
-		return nil, status.Errorf(codes.InvalidArgument, "object_kind is required")
-	}
-
-	content, uploadURL, objectKey, expiresAt, err := s.contentService.CreateUploadURLWithKind(ctx, spaceID, req.Filename, req.MimeType, req.SizeBytes, req.Title, kind)
+	content, uploadURL, objectKey, expiresAt, err := s.contentService.CreateUploadURL(ctx, spaceID, req.Filename, req.MimeType, req.SizeBytes, req.Title)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create upload URL: %v", err)
 	}
@@ -176,21 +165,11 @@ func (s *GRPCServer) ConfirmUpload(ctx context.Context, req *knowledgev1.Confirm
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
 	}
 
-	// Validate kind and map
-	var kind string
-	switch req.ObjectKind {
-	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL:
-		kind = "source"
-	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED:
-		kind = "processed"
-	default:
-		return nil, status.Errorf(codes.InvalidArgument, "object_kind is required")
-	}
 	if strings.TrimSpace(req.BlobHash) == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "blob_hash is required")
 	}
 
-	content, err := s.contentService.ConfirmUploadWithKind(ctx, contentID, kind, req.BlobHash)
+	content, err := s.contentService.ConfirmUpload(ctx, contentID, req.BlobHash)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to confirm upload: %v", err)
 	}
@@ -331,17 +310,6 @@ func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.G
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
 	}
 
-	// Validate object_kind early
-	var kind string
-	switch req.ObjectKind {
-	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL:
-		kind = "source"
-	case knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED:
-		kind = "processed"
-	default:
-		return nil, status.Errorf(codes.InvalidArgument, "object_kind is required")
-	}
-
 	// TTL bounds
 	ttl := 15 * time.Minute
 	if req.ExpiresSeconds > 0 {
@@ -360,7 +328,7 @@ func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.G
 		return nil, status.Errorf(codes.Internal, "failed to get content source: %v", err)
 	}
 
-	url, expiresAt, err := s.contentService.GenerateDownloadURLWithKind(ctx, contentID, ttl, kind)
+	url, expiresAt, err := s.contentService.GenerateDownloadURL(ctx, contentID, ttl)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate download URL: %v", err)
 	}
