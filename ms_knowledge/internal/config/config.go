@@ -31,13 +31,15 @@ type Config struct {
 		SecurityProtocol string
 	}
 	R2 struct {
-		AccessKeyID         string
-		SecretAccessKey     string
-		AccountID           string
-		Endpoint            string
-		Region              string
-		BucketSourceName    string
-		BucketProcessedName string
+		AccessKeyID     string
+		SecretAccessKey string
+		AccountID       string
+		Endpoint        string
+		Region          string
+		// BucketContentSourceName is the unified bucket for both original and processed objects
+		BucketContentSourceName string
+		BucketSourceName        string
+		BucketProcessedName     string
 	}
 	Auth struct {
 		ClerkSecretKey string
@@ -62,6 +64,7 @@ var SecretKeys = []string{
 	"R2_ACCOUNT_ID",
 	"R2_ENDPOINT",
 	"R2_REGION",
+	"R2_BUCKET_CONTENT_SOURCE",
 	"R2_BUCKET_SOURCE_NAME",
 	"R2_BUCKET_PROCESSED_NAME",
 	"CLERK_SECRET_KEY",
@@ -96,6 +99,7 @@ func Load() (*Config, error) {
 	cfg.R2.AccountID = getEnvOrDefault("R2_ACCOUNT_ID", "")
 	cfg.R2.Endpoint = getEnvOrDefault("R2_ENDPOINT", "")
 	cfg.R2.Region = getEnvOrDefault("R2_REGION", "auto")
+	cfg.R2.BucketContentSourceName = getEnvOrDefault("R2_BUCKET_CONTENT_SOURCE", "")
 	cfg.R2.BucketSourceName = getEnvOrDefault("R2_BUCKET_SOURCE_NAME", "knowledge-source")
 	cfg.R2.BucketProcessedName = getEnvOrDefault("R2_BUCKET_PROCESSED_NAME", "knowledge-processed")
 
@@ -159,6 +163,7 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	config.R2.AccountID = secretValues["R2_ACCOUNT_ID"]
 	config.R2.Endpoint = secretValues["R2_ENDPOINT"]
 	config.R2.Region = secretValues["R2_REGION"]
+	config.R2.BucketContentSourceName = secretValues["R2_BUCKET_CONTENT_SOURCE"]
 	config.R2.BucketSourceName = secretValues["R2_BUCKET_SOURCE_NAME"]
 	config.R2.BucketProcessedName = secretValues["R2_BUCKET_PROCESSED_NAME"]
 
@@ -199,6 +204,7 @@ func loadFromEnv() (*Config, error) {
 	config.R2.AccountID = os.Getenv("R2_ACCOUNT_ID")
 	config.R2.Endpoint = os.Getenv("R2_ENDPOINT")
 	config.R2.Region = os.Getenv("R2_REGION")
+	config.R2.BucketContentSourceName = os.Getenv("R2_BUCKET_CONTENT_SOURCE")
 	config.R2.BucketSourceName = os.Getenv("R2_BUCKET_SOURCE_NAME")
 	config.R2.BucketProcessedName = os.Getenv("R2_BUCKET_PROCESSED_NAME")
 
