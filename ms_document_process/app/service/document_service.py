@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # Encoding constant for consistent text encoding throughout the service
 ENCODING = 'utf-8'
 
+
 class DocumentProcessService:
     def __init__(self, document_repository: DocumentRepository, kafka_producer: KafkaProducer):
         self.document_repository = document_repository
@@ -60,15 +61,13 @@ class DocumentProcessService:
                 lambda: convert_document_to_markdown(document_content, "pdf"),
             )
 
-            # Calculate the hash of the processed content
+            # Calculate the hash of the processed content (metadata)
             processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
 
-            # Upload the processed document to R2
-            # Upload the processed document (with retries)
             self._retry_with_backoff(
                 "upload_processed_document",
                 lambda: self.document_repository.upload_processed_document(
-                    processed_blob_hash, markdown_content.encode(ENCODING)
+                    source_key, markdown_content.encode(ENCODING)
                 ),
             )
 
