@@ -46,7 +46,8 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
         spaceId,
         filename: file.name,
         mimeType: file.type,
-        sizeBytes: file.size
+        sizeBytes: file.size,
+        objectKind: 'original'
       });
 
       if (!uploadUrlResult.ok || !uploadUrlResult.data) {
@@ -103,7 +104,7 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
               const hashArray = Array.from(new Uint8Array(hashBuffer));
               const blobHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
               const { confirmUpload } = await import('@/api/actions/contentActions');
-              const confirmResult = await confirmUpload(contentSourceId, 'original', blobHash);
+              const confirmResult = await confirmUpload(contentSourceId, blobHash);
               
               if (!confirmResult.ok || !confirmResult.data) {
                 throw new Error(confirmResult.error?.message || 'Failed to confirm upload');
