@@ -120,16 +120,17 @@ export interface DeleteContentSourceRequest {
 }
 
 export interface CreateUploadURLRequest {
-  spaceId: string
-  filename: string
-  mimeType: string
-  sizeBytes: number
+  spaceId: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  objectKind?: 'original' | 'processed';
 }
-
 export interface CreateUploadURLResponse {
-  uploadUrl: string
-  contentSourceId: string
-  expiresAt: string
+  uploadUrl: string;
+  contentSourceId: string;
+  expiresAt: string;
+  objectKey: string;
 }
 
 // =========================================================================\n// GOOGLE DRIVE INTEGRATION\n// =========================================================================
