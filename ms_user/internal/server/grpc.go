@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	userv1 "demo/ms_user/api/proto/v1"
 	"demo/ms_user/internal/domain"
 	"demo/ms_user/internal/service"
@@ -32,7 +33,24 @@ func (s *grpcServer) CreateUser(ctx context.Context, req *userv1.CreateUserReque
 
 // GetUser handles the gRPC request to get a user.
 func (s *grpcServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
-	user, err := s.userService.GetUser(ctx)
+	var user *domain.User
+	var err error
+
+	// Handle the oneof identifier field
+	switch identifier := req.GetIdentifier().(type) {
+	case *userv1.GetUserRequest_UserId:
+		// Lookup by internal user ID
+		user, err = s.userService.GetUserByID(ctx, identifier.UserId)
+	case *userv1.GetUserRequest_ClerkUserId:
+		// Lookup by Clerk user ID
+		user, err = s.userService.GetUserByClerkID(ctx, identifier.ClerkUserId)
+	case nil:
+		// No identifier provided, try to get from context (for authenticated requests)
+		user, err = s.userService.GetUser(ctx)
+	default:
+		return nil, fmt.Errorf("invalid identifier type")
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -130,6 +148,7 @@ func toUserPb(user *domain.User) *userv1.User {
 		Email:             user.Email,
 		FullName:          user.FullName,
 		Username:          user.Username,
+		Role:              user.Role,
 		StorageUsedBytes:  user.StorageUsedBytes,
 		StorageQuotaBytes: user.StorageQuotaBytes,
 		Status:            user.Status,

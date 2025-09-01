@@ -49,6 +49,16 @@ func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.Sp
 	}
 }
 
+// scopeContentFilterToOwner forces the filter to the caller's owner_id.
+func (s *ContentService) scopeContentFilterToOwner(ctx context.Context, filter domain.ContentSourceFilter) (domain.ContentSourceFilter, error) {
+	ownerUUID, err := MustGetOwnerUUID(ctx)
+	if err != nil {
+		return filter, err
+	}
+	filter.OwnerID = ownerUUID
+	return filter, nil
+}
+
 // resolveBucket returns the bucket name for a given kind ("source" or "processed").
 func (s *ContentService) resolveBucket(kind string) (string, error) {
 	switch strings.ToLower(strings.TrimSpace(kind)) {
@@ -102,11 +112,9 @@ func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uu
 	}
 
 	// Derive owner for the content from context
-	var ownerUUID uuid.UUID
-	if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
-		if v, err := uuid.Parse(ownerIDStr); err == nil {
-			ownerUUID = v
-		}
+	ownerUUID, err := MustGetOwnerUUID(ctx)
+	if err != nil {
+		return nil, "", "", time.Time{}, err
 	}
 
 	// Derive title: if request title is empty, default to filename
@@ -163,6 +171,11 @@ func (s *ContentService) ConfirmUploadWithKind(ctx context.Context, contentID uu
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
+	// Enforce RLS: caller must be the owner
+	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
+		return nil, err
+	}
+
 	// Update only the targeted field
 	switch strings.ToLower(strings.TrimSpace(kind)) {
 	case "source", "original":
@@ -202,19 +215,20 @@ func (s *ContentService) GetContentSource(ctx context.Context, id uuid.UUID) (*d
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
+	// Enforce RLS
+	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
+		return nil, err
+	}
+
 	return content, nil
 }
 
 func (s *ContentService) ListContentSources(ctx context.Context, filter domain.ContentSourceFilter) ([]*domain.ContentSource, error) {
-	// Scope to caller when not admin and no explicit owner set
-	if role, ok := ctx.Value(domain.RoleKey).(string); !(ok && role == "admin") {
-		if filter.OwnerID == uuid.Nil {
-			if ownerIDStr, ok := ctx.Value(domain.OwnerIDKey).(string); ok && ownerIDStr != "" {
-				if ownerUUID, err := uuid.Parse(ownerIDStr); err == nil {
-					filter.OwnerID = ownerUUID
-				}
-			}
-		}
+	// Enforce RLS: always scope to caller's owner_id
+	var err error
+	filter, err = s.scopeContentFilterToOwner(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
 	// If filtering by specific space, validate it exists
@@ -241,6 +255,12 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	content, err := s.contentRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get content source: %w", err)
+	}
+
+	// Note: this is typically called by internal pipelines; if exposed to users,
+	// enforce RLS here. For now, ensure only the owner can update status.
+	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
+		return nil, err
 	}
 
 	// Idempotency check: if already in the target status, return early
@@ -280,6 +300,11 @@ func (s *ContentService) UpdateContentSource(ctx context.Context, id uuid.UUID, 
 	content, err := s.contentRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get content source: %w", err)
+	}
+
+	// Enforce RLS
+	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
+		return nil, err
 	}
 
 	// Apply partial updates
@@ -361,6 +386,11 @@ func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, conten
 		return "", time.Time{}, fmt.Errorf("failed to get content source: %w", err)
 	}
 
+	// Enforce RLS: caller must be the owner
+	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
+		return "", time.Time{}, err
+	}
+
 	bucket, err := s.resolveBucket(kind)
 	if err != nil {
 		return "", time.Time{}, err
@@ -385,6 +415,11 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 	content, err := s.contentRepo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to get content source: %w", err)
+	}
+
+	// Enforce RLS
+	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
+		return err
 	}
 
 	bucket, err := s.resolveBucket("source")

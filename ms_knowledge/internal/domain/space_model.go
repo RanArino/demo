@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -90,4 +91,30 @@ const (
 	OwnerIDKey ContextKey = "owner_id"
 	// RoleKey carries the caller's role (e.g., admin, user) from JWT
 	RoleKey ContextKey = "role"
+	// ClerkUserIDKey carries the Clerk user ID from JWT (for debugging/logging)
+	ClerkUserIDKey ContextKey = "clerk_user_id"
 )
+
+// GetOwnerID retrieves the internal user ID from context
+func GetOwnerID(ctx context.Context) (string, bool) {
+	ownerID, ok := ctx.Value(OwnerIDKey).(string)
+	return ownerID, ok && ownerID != ""
+}
+
+// GetRole retrieves the user role from context
+func GetRole(ctx context.Context) (string, bool) {
+	role, ok := ctx.Value(RoleKey).(string)
+	return role, ok && role != ""
+}
+
+// GetClerkUserID retrieves the Clerk user ID from context
+func GetClerkUserID(ctx context.Context) (string, bool) {
+	clerkUserID, ok := ctx.Value(ClerkUserIDKey).(string)
+	return clerkUserID, ok && clerkUserID != ""
+}
+
+// IsAdmin checks if the user's role in the context is 'admin'
+func IsAdmin(ctx context.Context) bool {
+	role, ok := GetRole(ctx)
+	return ok && strings.ToLower(role) == "admin"
+}
