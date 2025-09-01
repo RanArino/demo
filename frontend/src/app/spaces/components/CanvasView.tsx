@@ -189,7 +189,7 @@ export default function CanvasView({
                     <Calendar className="h-4 w-4" />
                     <span>Created</span>
                   </div>
-                  <span>{formatDate(currentSpace.created_at)}</span>
+                  <span>{formatDate(currentSpace.createdAt)}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -197,7 +197,7 @@ export default function CanvasView({
                     <FileText className="h-4 w-4" />
                     <span>Documents</span>
                   </div>
-                  <span>{currentSpace.document_count || 0}</span>
+                  <span>{currentSpace.documentCount || 0}</span>
                 </div>
               </div>
 

@@ -52,7 +52,7 @@ export default function ListView({
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
 
-        if (sortConfig.key === 'created_at' || sortConfig.key === 'last_updated_at') {
+        if (sortConfig.key === 'createdAt' || sortConfig.key === 'lastUpdatedAt') {
           // Ensure values are parsed as dates for correct comparison
           const aDate = new Date(aValue as string | Date);
           const bDate = new Date(bValue as string | Date);
