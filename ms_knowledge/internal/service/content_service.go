@@ -59,29 +59,6 @@ func (s *ContentService) scopeContentFilterToOwner(ctx context.Context, filter d
 	return filter, nil
 }
 
-// resolveBucket returns the bucket name for a given kind ("source" or "processed").
-func (s *ContentService) resolveBucket(kind string) (string, error) {
-	// Prefer unified content-source bucket if configured
-	if s.cfg != nil && strings.TrimSpace(s.cfg.R2.BucketContentSourceName) != "" {
-		return s.cfg.R2.BucketContentSourceName, nil
-	}
-	// Legacy fallback by kind
-	switch strings.ToLower(strings.TrimSpace(kind)) {
-	case "source", "original":
-		if s.cfg == nil || s.cfg.R2.BucketSourceName == "" {
-			return "", fmt.Errorf("R2 source bucket not configured")
-		}
-		return s.cfg.R2.BucketSourceName, nil
-	case "processed":
-		if s.cfg == nil || s.cfg.R2.BucketProcessedName == "" {
-			return "", fmt.Errorf("R2 processed bucket not configured")
-		}
-		return s.cfg.R2.BucketProcessedName, nil
-	default:
-		return "", fmt.Errorf("invalid kind: %s", kind)
-	}
-}
-
 // processedFilename derives the processed filename by replacing the extension with .md or appending .md
 func processedFilename(original string) string {
 	name := strings.TrimSpace(original)
@@ -165,11 +142,11 @@ func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uu
 	// Generate object key based on persisted content ID
 	objectKey := buildObjectKey(ownerUUID, spaceID, content.ID, filename)
 
-	// Resolve bucket for requested kind
-	bucket, err := s.resolveBucket(kind)
-	if err != nil {
-		return nil, "", "", time.Time{}, err
+	// Get bucket from config
+	if s.cfg == nil || strings.TrimSpace(s.cfg.R2.BucketContentSourceName) == "" {
+		return nil, "", "", time.Time{}, fmt.Errorf("R2 content source bucket not configured")
 	}
+	bucket := s.cfg.R2.BucketContentSourceName
 
 	// Short TTL (default 15m)
 	expires := 15 * time.Minute
@@ -246,6 +223,15 @@ func (s *ContentService) GetContentSource(ctx context.Context, id uuid.UUID) (*d
 	return content, nil
 }
 
+// GetContentOwner returns the owner UUID for a content source (no RLS checks; for internal use)
+func (s *ContentService) GetContentOwner(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	content, err := s.contentRepo.GetByID(ctx, id)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to get content source: %w", err)
+	}
+	return content.OwnerID, nil
+}
+
 func (s *ContentService) ListContentSources(ctx context.Context, filter domain.ContentSourceFilter) ([]*domain.ContentSource, error) {
 	// Enforce RLS: always scope to caller's owner_id
 	var err error
@@ -280,6 +266,7 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 		return nil, fmt.Errorf("failed to get content source: %w", err)
 	}
 
+	// enforce RLS here. For now, ensure only the owner can update status.
 	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
 		return nil, err
 	}
@@ -293,6 +280,7 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	// Validate status transition
 	if err := content.Status.ValidateTransition(status); err != nil {
 		s.logger.Printf("Invalid status transition for content source %s: %v", id, err)
+		// In production, you might want to return this error instead
 	}
 
 	// Update status
@@ -407,10 +395,11 @@ func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, conten
 		return "", time.Time{}, err
 	}
 
-	bucket, err := s.resolveBucket(kind)
-	if err != nil {
-		return "", time.Time{}, err
+	// Get bucket from config
+	if s.cfg == nil || strings.TrimSpace(s.cfg.R2.BucketContentSourceName) == "" {
+		return "", time.Time{}, fmt.Errorf("R2 content source bucket not configured")
 	}
+	bucket := s.cfg.R2.BucketContentSourceName
 
 	if expires <= 0 {
 		expires = 15 * time.Minute
@@ -442,10 +431,11 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 		return err
 	}
 
-	bucket, err := s.resolveBucket("source")
-	if err != nil {
-		return fmt.Errorf("failed to resolve source bucket: %w", err)
+	// Get bucket from config
+	if s.cfg == nil || strings.TrimSpace(s.cfg.R2.BucketContentSourceName) == "" {
+		return fmt.Errorf("R2 content source bucket not configured")
 	}
+	bucket := s.cfg.R2.BucketContentSourceName
 
 	filename := strings.TrimSpace(content.Source)
 	origKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, filename)
@@ -462,13 +452,4 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 	}
 
 	return nil
-}
-
-// GetContentOwner returns the owner UUID for a content source (no RLS checks; for internal use)
-func (s *ContentService) GetContentOwner(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
-	content, err := s.contentRepo.GetByID(ctx, id)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("failed to get content source: %w", err)
-	}
-	return content.OwnerID, nil
 }
