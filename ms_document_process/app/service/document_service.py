@@ -44,8 +44,11 @@ class DocumentProcessService:
     def process_document(self, event: DocumentUploadedEvent):
         logger.info(f"Processing document for content_source_id: {event.content_source_id}")
         try:
-            # Determine key to fetch original (prefer object key if present)
-            source_key = event.original_object_key if getattr(event, 'original_object_key', None) else event.original_blob_hash
+            # Determine key to fetch original - use object key for consistent path structure
+            if not event.original_object_key:
+                logger.error(f"Missing original_object_key for content_source_id: {event.content_source_id}")
+                raise ValueError(f"original_object_key is required for processing content_source_id: {event.content_source_id}")
+            source_key = event.original_object_key
 
             # Download the document from R2 (with retries)
             document_content = self._retry_with_backoff(
