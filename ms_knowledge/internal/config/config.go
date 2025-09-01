@@ -205,8 +205,6 @@ func loadFromEnv() (*Config, error) {
 	config.R2.Endpoint = os.Getenv("R2_ENDPOINT")
 	config.R2.Region = os.Getenv("R2_REGION")
 	config.R2.BucketContentSourceName = os.Getenv("R2_BUCKET_CONTENT_SOURCE")
-	config.R2.BucketSourceName = os.Getenv("R2_BUCKET_SOURCE_NAME")
-	config.R2.BucketProcessedName = os.Getenv("R2_BUCKET_PROCESSED_NAME")
 
 	// Auth configuration
 	config.Auth.ClerkSecretKey = os.Getenv("CLERK_SECRET_KEY")
