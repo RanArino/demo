@@ -11,6 +11,7 @@ import (
 
 	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
+	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 
 	"github.com/google/uuid"
 )
@@ -33,17 +34,17 @@ func TestCreateUploadURL_Validation(t *testing.T) {
 	ctx := context.Background()
 	spaceID := uuid.New()
 
-	if _, _, err := svc.CreateUploadURL(ctx, uuid.Nil, "file.txt", "text/plain", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, uuid.Nil, "file.txt", "text/plain", 10, "title", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL); err == nil {
 		t.Fatalf("expected error for empty space id")
 	}
-	if _, _, err := svc.CreateUploadURL(ctx, spaceID, "", "text/plain", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, spaceID, "", "text/plain", 10, "title", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL); err == nil {
 		t.Fatalf("expected error for empty filename")
 	}
-	if _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "", 10, "title", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL); err == nil {
 		t.Fatalf("expected error for empty mime type")
 	}
 	// Space not found
-	if _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "text/plain", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "text/plain", 10, "title", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL); err == nil {
 		t.Fatalf("expected error for space not found")
 	}
 }
@@ -62,7 +63,7 @@ func TestCreateUploadURL_Success(t *testing.T) {
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
 	_ = spaceRepo.Create(ctx, space)
 
-	content, url, err := svc.CreateUploadURL(ctx, space.ID, "note.pdf", "application/pdf", 123, "  Report  ")
+	content, url, _, _, err := svc.CreateUploadURL(ctx, space.ID, "note.pdf", "application/pdf", 123, "  Report  ", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -212,7 +213,7 @@ func TestCreateUploadURL_DefaultsTitleToFilename(t *testing.T) {
 	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
 	_ = spaceRepo.Create(ctx, space)
 
-	content, _, err := svc.CreateUploadURL(ctx, space.ID, "file-name.txt", "text/plain", 1, "   ")
+	content, _, _, _, err := svc.CreateUploadURL(ctx, space.ID, "file-name.txt", "text/plain", 1, "   ", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
