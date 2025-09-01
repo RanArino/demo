@@ -365,7 +365,7 @@ func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.G
 		return nil, status.Errorf(codes.Internal, "failed to generate download URL: %v", err)
 	}
 
-	objectKey := "spaces/" + content.SpaceID.String() + "/content/" + content.ID.String() + "/" + content.Source
+	objectKey := content.OwnerID.String() + "/spaces/" + content.SpaceID.String() + "/content/" + content.ID.String() + "/" + content.Source
 
 	return &knowledgev1.GenerateDownloadURLResponse{
 		Url:       url,
