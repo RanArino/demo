@@ -62,20 +62,8 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
     );
   };
 
-  // Initialize nodes from content sources
   useEffect(() => {
-    const initialNodes: CanvasNode[] = contentSources.map((source, index) => ({
-      id: source.id,
-      x: 100 + (index % 3) * 250,
-      y: 100 + Math.floor(index / 3) * 200,
-      width: 200,
-      height: 150,
-      type: 'document',
-      title: source.title || source.filename || 'Untitled Document',
-      contentSourceId: source.id,
-    }));
-
-    setNodes(initialNodes);
+    setNodes([]);
   }, [contentSources]);
 
   const handleZoomIn = () => {
@@ -278,13 +266,6 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
                   <p className="text-xs opacity-70 line-clamp-3 flex-1">
                     {node.content}
                   </p>
-                )}
-
-                {/* Processing Status for Documents */}
-                {node.type === 'document' && node.contentSourceId && (
-                  <div className="mt-auto">
-                    {renderDocumentProcessingStatus(contentSources, node)}
-                  </div>
                 )}
               </div>
             </div>
