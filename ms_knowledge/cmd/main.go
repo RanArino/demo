@@ -196,14 +196,14 @@ func main() {
 	slog.Info("Shutting down server...")
 	cancel() // Cancel context for consumer
 	srv.GracefulStop()
-	
+
 	// Close User service connection
 	if userConn != nil {
 		if err := userConn.Close(); err != nil {
 			slog.Warn("Failed to close User service connection", "error", err)
 		}
 	}
-	
+
 	slog.Info("Server stopped")
 }
 
@@ -238,6 +238,13 @@ func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event ev
 	if event.ProcessedBlobHash != nil {
 		processedHash = *event.ProcessedBlobHash
 	}
-	_, err = h.svc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage)
+
+	ownerID, err := h.svc.GetContentOwner(ctx, event.ContentSourceID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve content owner: %w", err)
+	}
+	ctxWithOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+
+	_, err = h.svc.UpdateContentSourceStatus(ctxWithOwner, event.ContentSourceID, status, processedHash, event.ErrorMessage)
 	return err
 }
