@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # Encoding constant for consistent text encoding throughout the service
 ENCODING = 'utf-8'
 
+
 class DocumentProcessService:
     def __init__(self, document_repository: DocumentRepository, kafka_producer: KafkaProducer):
         self.document_repository = document_repository
@@ -43,8 +44,11 @@ class DocumentProcessService:
     def process_document(self, event: DocumentUploadedEvent):
         logger.info(f"Processing document for content_source_id: {event.content_source_id}")
         try:
-            # Determine key to fetch original (prefer object key if present)
-            source_key = event.original_object_key if getattr(event, 'original_object_key', None) else event.original_blob_hash
+            # Determine key to fetch original - use object key for consistent path structure
+            if not event.original_object_key:
+                logger.error(f"Missing original_object_key for content_source_id: {event.content_source_id}")
+                raise ValueError(f"original_object_key is required for processing content_source_id: {event.content_source_id}")
+            source_key = event.original_object_key
 
             # Download the document from R2 (with retries)
             document_content = self._retry_with_backoff(
@@ -60,15 +64,13 @@ class DocumentProcessService:
                 lambda: convert_document_to_markdown(document_content, "pdf"),
             )
 
-            # Calculate the hash of the processed content
+            # Calculate the hash of the processed content (metadata)
             processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
 
-            # Upload the processed document to R2
-            # Upload the processed document (with retries)
             self._retry_with_backoff(
                 "upload_processed_document",
                 lambda: self.document_repository.upload_processed_document(
-                    processed_blob_hash, markdown_content.encode(ENCODING)
+                    source_key, markdown_content.encode(ENCODING)
                 ),
             )
 
