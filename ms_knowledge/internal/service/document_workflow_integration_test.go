@@ -11,6 +11,7 @@ import (
 	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
 	"demo/ms_knowledge/internal/events"
+	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 
 	"github.com/google/uuid"
 )
@@ -44,7 +45,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 	}
 
 	// Step 2: Create upload URL
-	content, uploadURL, err := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-document.pdf", "application/pdf", 1024, "Test Document")
+	content, uploadURL, _, _, err := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-document.pdf", "application/pdf", 1024, "Test Document", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	if err != nil {
 		t.Fatalf("Failed to create upload URL: %v", err)
 	}
@@ -138,7 +139,7 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 
 	// Create space and content
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
-	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test 1: Processing failure
@@ -181,7 +182,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 
 	// Setup test data
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
-	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
 
@@ -210,7 +211,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	}
 
 	// Test failure event
-	content2, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2")
+	content2, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	contentSvc.ConfirmUpload(ctxOwner, content2.ID, "original-hash-2")
 	contentSvc.UpdateContentSourceStatus(ctxOwner, content2.ID, domain.ContentStatusProcessing, "", "")
 
@@ -251,7 +252,7 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 
 	// Setup
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
-	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test concurrent status updates (simulates race conditions)
@@ -305,8 +306,8 @@ func TestDocumentWorkflowIntegration_SpaceContentIntegrity(t *testing.T) {
 	space2, _ := spaceSvc.CreateSpace(ctxOwner, "Space 2", "Space 2")
 
 	// Add content to both spaces
-	_, _, _ = contentSvc.CreateUploadURL(ctxOwner, space1.ID, "doc1.pdf", "application/pdf", 1024, "Doc 1")
-	_, _, _ = contentSvc.CreateUploadURL(ctxOwner, space2.ID, "doc2.pdf", "application/pdf", 1024, "Doc 2")
+	_, _, _, _, _ = contentSvc.CreateUploadURL(ctxOwner, space1.ID, "doc1.pdf", "application/pdf", 1024, "Doc 1", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
+	_, _, _, _, _ = contentSvc.CreateUploadURL(ctxOwner, space2.ID, "doc2.pdf", "application/pdf", 1024, "Doc 2", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 
 	// Create orphaned content (simulate space deletion)
 	orphanedSpaceID := uuid.New()

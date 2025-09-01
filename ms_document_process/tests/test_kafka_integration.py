@@ -74,10 +74,16 @@ class TestKafkaIntegration(unittest.TestCase):
 
     def test_end_to_end_processes_message_and_emits_processed_event(self):
         with kafka_topics(self.admin, [self.source_topic, self.processed_topic]):
+            content_source_id = uuid4()
+            space_id = uuid4()
+            owner_id = uuid4()
+            filename = "test-document.pdf"
+            
             event = DocumentUploadedEvent(
-                content_source_id=uuid4(),
+                content_source_id=content_source_id,
                 original_blob_hash='original_hash',
-                space_id=uuid4(),
+                space_id=space_id,
+                original_object_key=f"{owner_id}/spaces/{space_id}/content/{content_source_id}/{filename}"
             )
 
             # Patch conversion to avoid external PDF tooling

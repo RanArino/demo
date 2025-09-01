@@ -19,10 +19,17 @@ class TestDocumentProcessService(unittest.TestCase):
     @patch('app.service.document_service.convert_document_to_markdown')
     def test_process_document_success(self, mock_convert):
         # Arrange
+        content_source_id = uuid4()
+        space_id = uuid4()
+        owner_id = uuid4()
+        filename = "test-document.pdf"
+        object_key = f"{owner_id}/spaces/{space_id}/content/{content_source_id}/{filename}"
+        
         event = DocumentUploadedEvent(
-            content_source_id=uuid4(),
+            content_source_id=content_source_id,
             original_blob_hash='original_hash',
-            space_id=uuid4()
+            space_id=space_id,
+            original_object_key=object_key
         )
         document_content = b'pdf content'
         markdown_content = '# Markdown'
@@ -35,10 +42,10 @@ class TestDocumentProcessService(unittest.TestCase):
         self.service.process_document(event)
 
         # Assert
-        self.mock_document_repository.download_source_document.assert_called_once_with('original_hash')
+        self.mock_document_repository.download_source_document.assert_called_once_with(object_key)
         mock_convert.assert_called_once_with(document_content, 'pdf')
         self.mock_document_repository.upload_processed_document.assert_called_once_with(
-            processed_hash, markdown_content.encode('utf-8')
+            object_key, markdown_content.encode('utf-8')
         )
         
         # Check that the success event was produced
@@ -50,10 +57,17 @@ class TestDocumentProcessService(unittest.TestCase):
 
     def test_process_document_failure(self):
         # Arrange
+        content_source_id = uuid4()
+        space_id = uuid4()
+        owner_id = uuid4()
+        filename = "test-document.pdf"
+        object_key = f"{owner_id}/spaces/{space_id}/content/{content_source_id}/{filename}"
+        
         event = DocumentUploadedEvent(
-            content_source_id=uuid4(),
+            content_source_id=content_source_id,
             original_blob_hash='original_hash',
-            space_id=uuid4()
+            space_id=space_id,
+            original_object_key=object_key
         )
         self.mock_document_repository.download_source_document.side_effect = Exception("Download failed")
 
@@ -66,7 +80,25 @@ class TestDocumentProcessService(unittest.TestCase):
         produced_event = self.mock_kafka_producer.produce_document_processed_event.call_args[0][0]
         self.assertIsInstance(produced_event, DocumentProcessedEvent)
         self.assertEqual(produced_event.status, "FAILED")
-        self.assertIsNotNone(produced_event.error_message)
+
+    def test_process_document_missing_object_key(self):
+        # Arrange - event without original_object_key
+        event = DocumentUploadedEvent(
+            content_source_id=uuid4(),
+            original_blob_hash='original_hash',
+            space_id=uuid4()
+            # original_object_key is intentionally omitted
+        )
+
+        # Act
+        self.service.process_document(event)
+
+        # Assert - should produce failure event due to missing object key
+        self.mock_kafka_producer.produce_document_processed_event.assert_called_once()
+        produced_event = self.mock_kafka_producer.produce_document_processed_event.call_args[0][0]
+        self.assertIsInstance(produced_event, DocumentProcessedEvent)
+        self.assertEqual(produced_event.status, "FAILED")
+        self.assertIn("original_object_key is required", produced_event.error_message)
 
 if __name__ == '__main__':
     unittest.main()
