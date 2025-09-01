@@ -10,7 +10,7 @@ interface UploadModalSkeletonProps {
 export default function UploadModalSkeleton({ isOpen }: UploadModalSkeletonProps) {
   return (
     <Dialog open={isOpen}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">Uploading...</DialogTitle>
           <div className="flex items-center justify-between">

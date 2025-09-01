@@ -338,7 +338,7 @@ export default function ListView({
                             {space.documentCount || 0}
                           </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent aria-describedby={undefined}>
                           <DialogHeader>
                             <DialogTitle>Documents in {space.title}</DialogTitle>
                           </DialogHeader>
@@ -381,7 +381,7 @@ export default function ListView({
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent aria-describedby={undefined}>
                           <DialogHeader>
                             <DialogTitle>Edit Space</DialogTitle>
                           </DialogHeader>

@@ -129,7 +129,7 @@ export default function UploadModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col pt-8 pr-8">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col pt-8 pr-8" aria-describedby={undefined}>
         {/* Accessible title for screen readers while keeping UI visually clean */}
         <DialogHeader>
           <DialogTitle className="sr-only">Upload to {spaceName ?? 'Space'}</DialogTitle>

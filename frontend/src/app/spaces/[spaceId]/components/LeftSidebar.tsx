@@ -324,7 +324,7 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
 
       {/* Settings Dialog */}
       <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Space Settings</DialogTitle>
           </DialogHeader>

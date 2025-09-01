@@ -151,7 +151,7 @@ export default function CanvasView({
                       <Settings className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Edit Space</DialogTitle>
                     </DialogHeader>
@@ -210,7 +210,7 @@ export default function CanvasView({
                       Quick Preview
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl">
+                  <DialogContent className="max-w-4xl" aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Quick Preview - {currentSpace.title}</DialogTitle>
                     </DialogHeader>
