@@ -26,24 +26,23 @@ func TestCreateUploadURL_Validation(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
 	spaceID := uuid.New()
 
-	if _, _, err := svc.CreateUploadURL(ctx, uuid.Nil, "file.txt", "text/plain", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, uuid.Nil, "file.txt", "text/plain", 10, "title"); err == nil {
 		t.Fatalf("expected error for empty space id")
 	}
-	if _, _, err := svc.CreateUploadURL(ctx, spaceID, "", "text/plain", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, spaceID, "", "text/plain", 10, "title"); err == nil {
 		t.Fatalf("expected error for empty filename")
 	}
-	if _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "", 10, "title"); err == nil {
 		t.Fatalf("expected error for empty mime type")
 	}
 	// Space not found
-	if _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "text/plain", 10, "title"); err == nil {
+	if _, _, _, _, err := svc.CreateUploadURL(ctx, spaceID, "file.txt", "text/plain", 10, "title"); err == nil {
 		t.Fatalf("expected error for space not found")
 	}
 }
@@ -54,15 +53,16 @@ func TestCreateUploadURL_Success(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	content, url, err := svc.CreateUploadURL(ctx, space.ID, "note.pdf", "application/pdf", 123, "  Report  ")
+	content, url, _, _, err := svc.CreateUploadURL(ctxOwner, space.ID, "note.pdf", "application/pdf", 123, "  Report  ")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -86,18 +86,19 @@ func TestConfirmUpload_UpdatesStatusAndHash(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "f", Status: domain.ContentStatusUploaded}
-	_ = contentRepo.Create(ctx, item)
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, OwnerID: ownerID, Title: "Doc", MediaType: "text/plain", Source: "f", Status: domain.ContentStatusUploaded}
+	_ = contentRepo.Create(ctxOwner, item)
 
-	updated, err := svc.ConfirmUpload(ctx, item.ID, "original-hash")
+	updated, err := svc.ConfirmUpload(ctxOwner, item.ID, "original-hash")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -115,18 +116,19 @@ func TestUpdateContentSourceStatus(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "f", Status: domain.ContentStatusUploaded}
-	_ = contentRepo.Create(ctx, item)
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, OwnerID: ownerID, Title: "Doc", MediaType: "text/plain", Source: "f", Status: domain.ContentStatusUploaded}
+	_ = contentRepo.Create(ctxOwner, item)
 
-	res, err := svc.UpdateContentSourceStatus(ctx, item.ID, domain.ContentStatusProcessed, "processed-hash", "")
+	res, err := svc.UpdateContentSourceStatus(ctxOwner, item.ID, domain.ContentStatusProcessed, "processed-hash", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -144,32 +146,36 @@ func TestDeleteContentSource_DeletesR2AndDB(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "knowledge-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "knowledge-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded}
-	_ = contentRepo.Create(ctx, item)
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, OwnerID: ownerID, Title: "Doc", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded}
+	_ = contentRepo.Create(ctxOwner, item)
 
-	if err := svc.DeleteContentSource(ctx, item.ID); err != nil {
+	if err := svc.DeleteContentSource(ctxOwner, item.ID); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if exists, _ := contentRepo.Exists(ctx, item.ID); exists {
+	if exists, _ := contentRepo.Exists(ctxOwner, item.ID); exists {
 		t.Fatalf("expected DB row to be deleted")
 	}
 
-	if len(storage.deleted) != 1 {
-		t.Fatalf("expected one delete call to storage, got %d", len(storage.deleted))
+	if len(storage.deleted) != 2 {
+		t.Fatalf("expected two delete calls to storage (original and processed), got %d", len(storage.deleted))
 	}
-	d := storage.deleted[0]
-	expectedKey := "spaces/" + space.ID.String() + "/content/" + item.ID.String() + "/file.txt"
-	if d.bucket != "knowledge-source" || d.key != expectedKey {
-		t.Fatalf("unexpected delete args: bucket=%s key=%s", d.bucket, d.key)
+	// Check that both original and processed files are deleted
+	expectedOrigKey := ownerID.String() + "/spaces/" + space.ID.String() + "/content/" + item.ID.String() + "/file.txt"
+	expectedProcKey := ownerID.String() + "/spaces/" + space.ID.String() + "/content/" + item.ID.String() + "/file.md"
+	
+	keys := []string{storage.deleted[0].key, storage.deleted[1].key}
+	if !contains(keys, expectedOrigKey) || !contains(keys, expectedProcKey) {
+		t.Fatalf("expected keys %s and %s, got %v", expectedOrigKey, expectedProcKey, keys)
 	}
 }
 
@@ -179,21 +185,22 @@ func TestDeleteContentSource_ObjectDeleteFailsButDBStillRemoved(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	errStorage := &erroringStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "knowledge-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "knowledge-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, errStorage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded}
-	_ = contentRepo.Create(ctx, item)
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, OwnerID: ownerID, Title: "Doc", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded}
+	_ = contentRepo.Create(ctxOwner, item)
 
-	if err := svc.DeleteContentSource(ctx, item.ID); err != nil {
+	if err := svc.DeleteContentSource(ctxOwner, item.ID); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if exists, _ := contentRepo.Exists(ctx, item.ID); exists {
+	if exists, _ := contentRepo.Exists(ctxOwner, item.ID); exists {
 		t.Fatalf("expected DB row to be deleted even if object delete fails")
 	}
 }
@@ -204,15 +211,16 @@ func TestCreateUploadURL_DefaultsTitleToFilename(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	content, _, err := svc.CreateUploadURL(ctx, space.ID, "file-name.txt", "text/plain", 1, "   ")
+	content, _, _, _, err := svc.CreateUploadURL(ctxOwner, space.ID, "file-name.txt", "text/plain", 1, "   ")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -227,20 +235,21 @@ func TestUpdateContentSource_PartialUpdates(t *testing.T) {
 	graphRepo := newMockGraphRepo()
 	storage := &mockStorage{}
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	svc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "", log.LstdFlags))
 
 	ctx := context.Background()
-	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: uuid.New(), CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
-	_ = spaceRepo.Create(ctx, space)
+	ownerID := uuid.New()
+	ctxOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
+	space := &domain.Space{ID: uuid.New(), Title: "s", OwnerID: ownerID, CreatedAt: time.Now(), LastUpdatedAt: time.Now()}
+	_ = spaceRepo.Create(ctxOwner, space)
 
-	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Old", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded, Keywords: []string{"a", "b"}}
-	_ = contentRepo.Create(ctx, item)
+	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, OwnerID: ownerID, Title: "Old", MediaType: "text/plain", Source: "file.txt", Status: domain.ContentStatusUploaded, Keywords: []string{"a", "b"}}
+	_ = contentRepo.Create(ctxOwner, item)
 
 	// Update title only
 	newTitle := "New Title"
-	updated, err := svc.UpdateContentSource(ctx, item.ID, &newTitle, nil)
+	updated, err := svc.UpdateContentSource(ctxOwner, item.ID, &newTitle, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -253,7 +262,7 @@ func TestUpdateContentSource_PartialUpdates(t *testing.T) {
 
 	// Update keywords only (clear then set)
 	empty := []string{}
-	updated, err = svc.UpdateContentSource(ctx, item.ID, nil, &empty)
+	updated, err = svc.UpdateContentSource(ctxOwner, item.ID, nil, &empty)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -261,11 +270,20 @@ func TestUpdateContentSource_PartialUpdates(t *testing.T) {
 		t.Fatalf("expected keywords cleared, got %v", updated.Keywords)
 	}
 	ks := []string{"x", "y"}
-	updated, err = svc.UpdateContentSource(ctx, item.ID, nil, &ks)
+	updated, err = svc.UpdateContentSource(ctxOwner, item.ID, nil, &ks)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if got, want := strings.Join(updated.Keywords, ","), "x,y"; got != want {
 		t.Fatalf("expected keywords %q, got %q", want, got)
 	}
+}
+// Helper function to check if a slice contains a string
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }

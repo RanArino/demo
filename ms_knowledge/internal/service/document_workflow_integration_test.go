@@ -29,8 +29,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 
 	// Services
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
@@ -44,7 +43,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 	}
 
 	// Step 2: Create upload URL
-	content, uploadURL, err := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-document.pdf", "application/pdf", 1024, "Test Document")
+	content, uploadURL, _, _, err := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-document.pdf", "application/pdf", 1024, "Test Document")
 	if err != nil {
 		t.Fatalf("Failed to create upload URL: %v", err)
 	}
@@ -128,8 +127,7 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 	eventCapture := &mockEventProducer{events: make([]mockEvent, 0)}
 
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
@@ -138,7 +136,7 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 
 	// Create space and content
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
-	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test 1: Processing failure
@@ -171,8 +169,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	storage := &mockStorage{}
 
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
@@ -181,7 +178,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 
 	// Setup test data
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
-	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
 
@@ -210,7 +207,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	}
 
 	// Test failure event
-	content2, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2")
+	content2, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2")
 	contentSvc.ConfirmUpload(ctxOwner, content2.ID, "original-hash-2")
 	contentSvc.UpdateContentSourceStatus(ctxOwner, content2.ID, domain.ContentStatusProcessing, "", "")
 
@@ -241,8 +238,7 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 	eventCapture := &mockEventProducer{events: make([]mockEvent, 0)}
 
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, eventCapture, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
@@ -251,7 +247,7 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 
 	// Setup
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
-	content, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
+	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc")
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test concurrent status updates (simulates race conditions)
@@ -292,8 +288,7 @@ func TestDocumentWorkflowIntegration_SpaceContentIntegrity(t *testing.T) {
 	storage := &mockStorage{}
 
 	cfg := &config.Config{}
-	cfg.R2.BucketSourceName = "test-source"
-	cfg.R2.BucketProcessedName = "test-processed"
+	cfg.R2.BucketContentSourceName = "test-source"
 	contentSvc := NewContentService(contentRepo, spaceRepo, graphRepo, storage, nil, cfg, log.New(os.Stdout, "[TEST] ", log.LstdFlags))
 	spaceSvc := NewSpaceService(spaceRepo, contentRepo, graphRepo)
 
@@ -305,8 +300,8 @@ func TestDocumentWorkflowIntegration_SpaceContentIntegrity(t *testing.T) {
 	space2, _ := spaceSvc.CreateSpace(ctxOwner, "Space 2", "Space 2")
 
 	// Add content to both spaces
-	_, _, _ = contentSvc.CreateUploadURL(ctxOwner, space1.ID, "doc1.pdf", "application/pdf", 1024, "Doc 1")
-	_, _, _ = contentSvc.CreateUploadURL(ctxOwner, space2.ID, "doc2.pdf", "application/pdf", 1024, "Doc 2")
+	_, _, _, _, _ = contentSvc.CreateUploadURL(ctxOwner, space1.ID, "doc1.pdf", "application/pdf", 1024, "Doc 1")
+	_, _, _, _, _ = contentSvc.CreateUploadURL(ctxOwner, space2.ID, "doc2.pdf", "application/pdf", 1024, "Doc 2")
 
 	// Create orphaned content (simulate space deletion)
 	orphanedSpaceID := uuid.New()
