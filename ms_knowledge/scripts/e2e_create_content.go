@@ -42,12 +42,11 @@ func main() {
 	fmt.Println("space:", sp.GetId())
 
 	resp, err := c.CreateUploadURL(ctx, &knowledgev1.CreateUploadURLRequest{
-		SpaceId:    sp.GetId(),
-		Filename:   "doc.pdf",
-		MimeType:   "application/pdf",
-		SizeBytes:  12345,
-		Title:      "Doc",
-		ObjectKind: knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL,
+		SpaceId:   sp.GetId(),
+		Filename:  "doc.pdf",
+		MimeType:  "application/pdf",
+		SizeBytes: 12345,
+		Title:     "Doc",
 	})
 	if err != nil {
 		log.Fatalf("CreateUploadURL: %v", err)
