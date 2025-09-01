@@ -206,7 +206,6 @@ message CreateUploadURLResponse {
 
 message ConfirmUploadRequest {
   string content_source_id = 1;      // required
-  DownloadObjectKind object_kind = 2; // required
   string blob_hash = 3;              // required
 }
 
