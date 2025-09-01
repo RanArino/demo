@@ -77,17 +77,9 @@ func buildObjectKey(ownerID, spaceID, contentID uuid.UUID, filename string) stri
 	return ownerID.String() + "/spaces/" + spaceID.String() + "/content/" + contentID.String() + "/" + strings.TrimSpace(filename)
 }
 
-func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID, filename, mimeType string, sizeBytes int64, title string) (*domain.ContentSource, string, error) {
-	content, uploadURL, _, _, err := s.CreateUploadURLWithKind(ctx, spaceID, filename, mimeType, sizeBytes, title, "source")
-	if err != nil {
-		return nil, "", err
-	}
-	return content, uploadURL, nil
-}
-
-// CreateUploadURLWithKind issues a presigned upload URL for the requested kind ("source" or "processed").
+// CreateUploadURL issues a presigned upload URL for the original content source.
 // Returns content, uploadURL, objectKey, expiresAt.
-func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uuid.UUID, filename, mimeType string, sizeBytes int64, title, kind string) (*domain.ContentSource, string, string, time.Time, error) {
+func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID, filename, mimeType string, sizeBytes int64, title string) (*domain.ContentSource, string, string, time.Time, error) {
 	// Validate inputs
 	if spaceID == uuid.Nil {
 		return nil, "", "", time.Time{}, fmt.Errorf("space_id is required")
@@ -97,9 +89,6 @@ func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uu
 	}
 	if strings.TrimSpace(mimeType) == "" {
 		return nil, "", "", time.Time{}, fmt.Errorf("mime_type is required")
-	}
-	if strings.TrimSpace(kind) == "" {
-		return nil, "", "", time.Time{}, fmt.Errorf("kind is required")
 	}
 
 	// Check if space exists
@@ -158,13 +147,8 @@ func (s *ContentService) CreateUploadURLWithKind(ctx context.Context, spaceID uu
 	return content, uploadURL, objectKey, time.Now().Add(expires), nil
 }
 
-// ConfirmUpload remains for backward-compatibility and updates original blob hash.
-func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID, originalBlobHash string) (*domain.ContentSource, error) {
-	return s.ConfirmUploadWithKind(ctx, contentID, "source", originalBlobHash)
-}
-
-// ConfirmUploadWithKind updates only the corresponding hash field based on kind.
-func (s *ContentService) ConfirmUploadWithKind(ctx context.Context, contentID uuid.UUID, kind string, blobHash string) (*domain.ContentSource, error) {
+// ConfirmUpload updates the original blob hash and marks the content as uploaded.
+func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID, blobHash string) (*domain.ContentSource, error) {
 	// Get content source
 	content, err := s.contentRepo.GetByID(ctx, contentID)
 	if err != nil {
@@ -176,24 +160,17 @@ func (s *ContentService) ConfirmUploadWithKind(ctx context.Context, contentID uu
 		return nil, err
 	}
 
-	// Update only the targeted field
-	switch strings.ToLower(strings.TrimSpace(kind)) {
-	case "source", "original":
-		content.Status = domain.ContentStatusUploaded
-		content.OriginalBlobHash = blobHash
-	case "processed":
-		content.ProcessedBlobHash = &blobHash
-	default:
-		return nil, fmt.Errorf("invalid kind: %s", kind)
-	}
+	// Update status and hash for the original upload
+	content.Status = domain.ContentStatusUploaded
+	content.OriginalBlobHash = blobHash
 
 	err = s.contentRepo.Update(ctx, content)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update content source: %w", err)
 	}
 
-	// Emit document.uploaded event only for ORIGINAL confirms
-	if s.producer != nil && (strings.ToLower(strings.TrimSpace(kind)) == "source" || strings.ToLower(strings.TrimSpace(kind)) == "original") {
+	// Emit document.uploaded event
+	if s.producer != nil {
 		objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, strings.TrimSpace(content.Source))
 		evt := events.DocumentUploadedEvent{
 			ContentSourceID:   content.ID,
@@ -376,11 +353,6 @@ func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*Sp
 
 // GenerateDownloadURL returns a short-lived pre-signed URL to download the original uploaded blob.
 func (s *ContentService) GenerateDownloadURL(ctx context.Context, contentID uuid.UUID, expires time.Duration) (string, time.Time, error) {
-	return s.GenerateDownloadURLWithKind(ctx, contentID, expires, "source")
-}
-
-// GenerateDownloadURLWithKind generates a presigned download URL for the requested kind.
-func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, contentID uuid.UUID, expires time.Duration, kind string) (string, time.Time, error) {
 	if contentID == uuid.Nil {
 		return "", time.Time{}, fmt.Errorf("content_id is required")
 	}
@@ -406,9 +378,6 @@ func (s *ContentService) GenerateDownloadURLWithKind(ctx context.Context, conten
 	}
 
 	filename := content.Source
-	if strings.ToLower(strings.TrimSpace(kind)) == "processed" {
-		filename = processedFilename(filename)
-	}
 	objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, filename)
 
 	url, err := s.storage.GeneratePresignedDownloadURL(bucket, objectKey, expires)
