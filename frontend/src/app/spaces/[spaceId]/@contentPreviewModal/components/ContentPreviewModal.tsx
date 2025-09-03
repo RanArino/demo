@@ -1,28 +1,32 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { generateDownloadURL } from '@/api/actions/contentActions';
-import { copyMarkdownToClipboard, markdownToPlainText } from '@/app/spaces/utils/markdown';
+import { generateDownloadURL, getContentSource } from '@/api/actions/contentActions';
 import OriginalContentViewer from './OriginalContentViewer';
 import ProcessedContentViewer from './ProcessedContentViewer';
-import { Clipboard, ClipboardCheck, Download, ChevronDown } from 'lucide-react';
+import { ChevronDown, FileText } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ContentSource } from '@/app/spaces/types/content';
 
 interface ContentPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // Optional: allow callers to pass an id directly via route
   contentSourceId?: string;
 }
 
 export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }: ContentPreviewModalProps) {
   const [activeTab, setActiveTab] = useState<'original' | 'processed'>('processed');
-  const [showCopyMenu, setShowCopyMenu] = useState(false);
-  const [isCopying, setIsCopying] = useState(false);
+  const [contentSource, setContentSource] = useState<ContentSource | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -30,39 +34,51 @@ export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }
   useEffect(() => {
     if (isOpen) {
       setActiveTab('processed');
-      setShowCopyMenu(false);
+      if (contentSourceId) {
+        getContentSource(contentSourceId).then((result) => {
+          if (result.ok && result.data) {
+            setContentSource(result.data);
+          }
+        });
+      }
+    } else {
+      setContentSource(null);
     }
-  }, [isOpen]);
+  }, [isOpen, contentSourceId]);
 
   const title = useMemo(() => 'Preview', []);
 
-  const handleDownload = useCallback(async (kind: 'original' | 'processed') => {
-    if (!contentSourceId) return;
-    const res = await generateDownloadURL(contentSourceId, kind);
-    if (res.ok && res.data) {
-      window.open(res.data.url, '_blank');
-    } else {
-      toast({ title: 'Download failed', description: res.error?.message || 'Unable to get download URL', variant: 'destructive' });
-    }
-  }, [contentSourceId, toast]);
+  const originalFileFormat = useMemo(() => {
+    if (!contentSource) return 'Original File';
+    const mimeType = contentSource.mimeType;
+    if (!mimeType) return 'Original File';
+    const parts = mimeType.split('/');
+    const fileType = parts.length > 1 ? parts[1] : parts[0];
+    const friendlyNames: Record<string, string> = {
+      pdf: 'PDF',
+      'vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
+      plain: 'Text',
+      markdown: 'Markdown',
+    };
+    return friendlyNames[fileType] || fileType.toUpperCase();
+  }, [contentSource]);
 
-  const handleCopy = useCallback(async (mode: 'markdown' | 'text', markdown?: string) => {
-    if (!markdown) return;
-    setIsCopying(true);
-    try {
-      if (mode === 'markdown') {
-        await copyMarkdownToClipboard(markdown);
+  const handleDownload = useCallback(
+    async (kind: 'original' | 'processed') => {
+      if (!contentSourceId) return;
+      const res = await generateDownloadURL(contentSourceId, kind);
+      if (res.ok && res.data) {
+        window.open(res.data.url, '_blank');
       } else {
-        await navigator.clipboard.writeText(markdownToPlainText(markdown));
+        toast({
+          title: 'Download failed',
+          description: res.error?.message || 'Unable to get download URL',
+          variant: 'destructive',
+        });
       }
-      toast({ title: 'Copied', description: mode === 'markdown' ? 'Markdown copied to clipboard' : 'Plain text copied to clipboard' });
-    } catch {
-      toast({ title: 'Copy failed', description: 'Unable to write to clipboard', variant: 'destructive' });
-    } finally {
-      setIsCopying(false);
-      setShowCopyMenu(false);
-    }
-  }, [toast]);
+    },
+    [contentSourceId, toast]
+  );
 
   return (
     <Dialog
@@ -70,10 +86,9 @@ export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }
       onOpenChange={(open) => {
         if (!open) {
           onClose();
-          const segments = (pathname ?? '').split('/').filter(Boolean);
-          if (segments.length >= 2) {
-            const target = '/' + segments.slice(0, 2).join('/');
-            router.push(target);
+          const match = (pathname ?? '').match(/^(\/spaces\/[^/]+)/);
+          if (match) {
+            router.push(match[1]);
           } else {
             router.push('/spaces');
           }
@@ -85,26 +100,19 @@ export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }
           <div className="flex items-center justify-between">
             <DialogTitle className="truncate mr-3">{title}</DialogTitle>
             <div className="relative flex items-center gap-2">
-              <div className="relative">
-                <Button size="sm" variant="secondary" onClick={() => setShowCopyMenu((v) => !v)}>
-                  {isCopying ? <ClipboardCheck className="h-4 w-4 mr-2" /> : <Clipboard className="h-4 w-4 mr-2" />} Copy <ChevronDown className="h-4 w-4 ml-1" />
-                </Button>
-                {showCopyMenu && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
-                    <button className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm" onClick={() => document.dispatchEvent(new CustomEvent('content-preview-copy', { detail: { mode: 'markdown' } }))}>Copy as Markdown</button>
-                    <button className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm" onClick={() => document.dispatchEvent(new CustomEvent('content-preview-copy', { detail: { mode: 'text' } }))}>Copy as Text</button>
-                  </div>
-                )}
-              </div>
-              <div className="relative">
-                <Button size="sm" onClick={() => handleDownload('original')}>
-                  <Download className="h-4 w-4 mr-2" /> Download
-                </Button>
-                <div className="absolute right-0" />
-              </div>
-              <div className="relative">
-                <Button size="sm" variant="outline" onClick={() => handleDownload('processed')}>Processed (.md)</Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="secondary">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Open
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleDownload('original')}>{originalFileFormat}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownload('processed')}>Text/Markdown</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </DialogHeader>
@@ -117,14 +125,10 @@ export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }
 
           <div className="mt-4">
             <TabsContent value="original">
-              {contentSourceId && (
-                <OriginalContentViewer contentSourceId={contentSourceId} />
-              )}
+              {contentSourceId && <OriginalContentViewer contentSourceId={contentSourceId} />}
             </TabsContent>
             <TabsContent value="processed">
-              {contentSourceId && (
-                <ProcessedContentViewer contentSourceId={contentSourceId} onCopy={handleCopy} />
-              )}
+              {contentSourceId && <ProcessedContentViewer contentSourceId={contentSourceId} />}
             </TabsContent>
           </div>
         </Tabs>
