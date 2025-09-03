@@ -13,10 +13,10 @@ import {
   FileText,
   AlertCircle
 } from 'lucide-react';
-import FileUploadArea from './FileUploadArea';
-import LinkUploadForm from './LinkUploadForm';
-import TextUploadForm from './TextUploadForm';
-import GoogleDriveUpload from './GoogleDriveUpload';
+import FileUploadArea from './components/FileUploadArea';
+import LinkUploadForm from './components/LinkUploadForm';
+import TextUploadForm from './components/TextUploadForm';
+import GoogleDriveUpload from './components/GoogleDriveUpload';
 import { UploadModalProps, ContentSource } from '@/app/spaces/types/content';
 
 type UploadTab = 'file' | 'google-drive' | 'link' | 'text';
@@ -88,22 +88,17 @@ export default function UploadModal({
 
   const handleUploadStart = useCallback(() => {
     setIsUploading(true);
-  }, []);
+    // Immediately return to the space page; progress will be tracked on cards
+    onClose?.();
+    // Prefer history back to properly close intercepting route overlay
+    router.back();
+  }, [onClose, router]);
 
   const handleUploadComplete = useCallback((contentSources: ContentSource[]) => {
     setIsUploading(false);
     setError(null);
     onUploadComplete?.(contentSources);
-    
-    toast({
-      title: 'Upload Complete',
-      description: `Successfully uploaded ${contentSources.length} file${contentSources.length !== 1 ? 's' : ''}`,
-    });
-    
-    // Close modal after successful upload
-    setTimeout(() => {
-      handleClose();
-    }, 1000);
+    // Do not navigate or toast here; processing happens asynchronously.
   }, [onUploadComplete, handleClose, toast]);
 
   const handleUploadError = useCallback((errorMessage: string) => {
@@ -134,7 +129,7 @@ export default function UploadModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col pt-8 pr-8">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col pt-8 pr-8" aria-describedby={undefined}>
         {/* Accessible title for screen readers while keeping UI visually clean */}
         <DialogHeader>
           <DialogTitle className="sr-only">Upload to {spaceName ?? 'Space'}</DialogTitle>

@@ -94,18 +94,6 @@ export interface UpdateSpaceInput {
   icon?: string
 }
 
-export interface CreateUploadURLRequest {
-  spaceId: string
-  filename: string
-  mimeType: string
-  sizeBytes: number
-}
-
-export interface CreateUploadURLResponse {
-  uploadUrl: string
-  contentSourceId: string
-  expiresAt: string
-}
 
 // =========================================================================
 // SEARCH & PAGINATION

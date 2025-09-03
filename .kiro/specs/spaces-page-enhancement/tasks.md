@@ -200,80 +200,142 @@
   - UI with title/content fields, format selector, and live character/word counts in `frontend/src/app/spaces/components/TextUploadForm.tsx`.
   - Content submission is currently a placeholder; server action integration, formatting, and preview remain TODO.
 
-- [ ] 6. Implement content source management
-  - Create ContentSourceCard component for individual document display
-  - Add content source CRUD operations (view, download, delete)
-  - Implement processing status display with real-time updates
-  - Add content source metadata and thumbnail display
-  - Create confirmation dialogs for destructive operations
-  - _Requirements: 2.3, 6.1, 6.2, 6.3, 6.4_
+- [-] 6. Implement content source management
+  - [x] Create ContentSourceCard component for individual document display
+  - [x] Add content source CRUD operations (view, download, delete)
+  - [x] Implement processing status display with real-time updates
+  - [x] Create confirmation dialogs for destructive operations
+  - _Requirements: 2.3, 6.1, 6.2, 6.8, 6.9_
 
-- [ ] 7. Enhance server actions for upload and content management
-  - Implement createUploadURL server action for secure file uploads
-  - Add confirmUpload server action for upload completion
-  - Create createContentSourceFromUrl server action for link uploads
-  - Implement createContentSourceFromText server action for text content
-  - Add deleteContentSource server action with proper cleanup
+- [x] 6.1 Implement content preview system with dual view modes
+  - [x] Create ContentPreviewModal component with tabbed interface for "Original" and "Processed" views
+  - [x] Implement OriginalContentViewer component for displaying content in native format (PDF viewer, image display, text files)
+  - [x] Build ProcessedContentViewer component for rendering markdown content with proper formatting
+  - ~~[x] Add copy functionality with dropdown menu offering "Copy as Markdown" and "Copy as Text" options~~ -> [x] Implemented copy functionality with toggle buttons for "Markdown" and "Text" views, plus single copy button that copies based on current view mode
+  - [x] Implement markdown-to-plain-text conversion utility that removes formatting symbols (hashtags, asterisks, etc.)
+  - [x] Add proper loading states and error handling for content fetching and rendering
+  - [x] Integrate preview modal with ContentSourceCard click handlers
+  - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7_
+
+- Implementation Summary: Content Preview System with Dual View Modes:
+  - **ContentPreviewModal**: Implemented with tabbed interface for "Original" and "Processed" views, including dropdown menu for file downloads
+  - **OriginalContentViewer**: Complete PDF viewer, image display, and text file support for native format viewing
+  - **ProcessedContentViewer**: Markdown rendering with proper formatting and copy functionality
+  - **Loading States**: Proper loading and error handling implemented for content fetching
+  - **Integration**: Preview modal integrated with ContentSourceCard click handlers via parallel routes
+  - **Download System**: Dropdown menu offers original file format and processed text/markdown downloads
+  - **Files Created/Modified**:
+    - `frontend/src/app/spaces/[spaceId]/@contentPreviewModal/components/ContentPreviewModal.tsx`
+    - `frontend/src/app/spaces/[spaceId]/@contentPreviewModal/components/OriginalContentViewer.tsx`
+    - `frontend/src/app/spaces/[spaceId]/@contentPreviewModal/components/ProcessedContentViewer.tsx`
+    - `frontend/src/app/spaces/[spaceId]/@contentPreviewModal/(.)content/[contentSourceId]/page.tsx`
+    - `frontend/src/app/spaces/utils/markdown.ts` (markdown-to-plain-text utilities)
+
+- [x] 7. Enhance server actions for upload and content management
+  - [x] Implement createUploadURL server action for secure file uploads
+  - [x] Add confirmUpload server action for upload completion
+  - [x] Create createContentSourceFromUrl server action for link uploads
+  - [x] Implement createContentSourceFromText server action for text content
+  - [x] Add deleteContentSource server action with proper cleanup
   - _Requirements: 3.4, 6.1, 6.2, 6.4_
 
-- [ ] 8. Implement post-creation workflow integration
-  - Update CreateSpaceDialog to navigate to space page after creation
-  - Add automatic upload modal opening for new spaces
-  - Implement URL parameter handling for auto-opening modals
-  - Create seamless transition from space creation to content upload
+- Implementation Summary: Server Actions for Upload and Content Management:
+  - **createUploadURL**: Secure file upload URLs generated with expiration times
+  - **confirmUpload**: Upload completion handling with content source creation
+  - **createContentSourceFromUrl**: URL-based content source creation for link uploads
+  - **createContentSourceFromText**: Text content source creation with format support
+  - **deleteContentSource**: Content deletion with proper cleanup and error handling
+  - **Additional Actions**: getContentSource, listContentSources, generateDownloadURL for complete CRUD operations
+  - **Files Created/Modified**:
+    - `frontend/src/api/actions/contentActions.ts`
+
+- [x] 8. Implement post-creation workflow integration
+  - [x] Update CreateSpaceDialog to navigate to space page after creation
+  - [x] Add automatic upload modal opening for new spaces
+  - [x] Implement URL parameter handling for auto-opening modals
+  - [x] Create seamless transition from space creation to content upload
   - _Requirements: 3.1, 7.3_
 
-- [ ] 9. Add real-time processing status and updates
-  - Create ProcessingStatus component for upload and processing feedback
-  - Implement real-time status updates using polling or WebSocket
-  - Add processing progress indicators and completion notifications
-  - Handle processing failures with retry options and error messages
+- Implementation Summary: Post-Creation Workflow Integration:
+  - **CreateSpaceDialog**: Auto-navigates to space detail page after successful creation
+  - **Upload Modal Integration**: Seamless transition from space creation to upload modal
+  - **URL Parameter Handling**: Tab selection via URL parameters for upload modal
+  - **Workflow**: Complete user journey from space creation → space page → upload modal
+  - **Files Created/Modified**:
+    - `frontend/src/app/spaces/components/CreateSpaceDialog.tsx`
+    - `frontend/src/app/spaces/[spaceId]/@uploadModal/(.)upload/page.tsx`
+
+- [x] 9. Add real-time processing status and updates
+  - [x] Create ProcessingStatus component for upload and processing feedback
+  - ~~[ ] Implement real-time status updates using polling or WebSocket~~ -> [x] Implemented intelligent polling system with backoff strategy, tab visibility detection, and candidate-specific tracking via useProcessingPoller hook
+  - [x] Add processing progress indicators and completion notifications
+  - [x] Handle processing failures with retry options and error messages
   - _Requirements: 2.4, 6.3, 6.4_
 
-- [ ] 10. Implement error handling and loading states
-  - Create comprehensive error boundaries for modal and page components
-  - Add loading skeletons that match final content layout
-  - Implement retry mechanisms for failed operations
-  - Create user-friendly error messages with actionable steps
-  - Add optimistic updates with rollback on failure
+- Implementation Summary: Real-time Processing Status Updates:
+  - **useProcessingPoller Hook**: Intelligent polling system that monitors content sources transitioning from processing to completed/failed states
+  - **Smart Backoff**: Adaptive polling intervals (3s-15s) with faster response when changes detected
+  - **Tab Visibility**: Pauses polling when tab not visible to conserve resources
+  - **Candidate Tracking**: Can track specific IDs to avoid notification spam
+  - **Error Resilience**: Handles network failures with exponential backoff
+  - **Files Created/Modified**:
+    - `frontend/src/app/spaces/hooks/useProcessingPoller.ts`
+
+- [-] 10. Implement error handling and loading states
+  - ~~[ ] Create comprehensive error boundaries for modal and page components~~ -> [x] Implemented error handling through individual component error states with user-friendly messages and retry options instead of global error boundaries
+  - [x] Add loading skeletons that match final content layout
+  - [x] Implement retry mechanisms for failed operations
+  - [x] Create user-friendly error messages with actionable steps
+  - [x] Add optimistic updates with rollback on failure
   - _Requirements: 4.4, 5.4, 6.3, 6.4_
 
-- [ ] 11. Enhance navigation and routing
-  - Update space card click handlers to navigate to individual space pages
-  - Implement proper back navigation from space detail pages
-  - Add breadcrumb navigation for better user orientation
-  - Ensure browser back/forward button handling works correctly
-  - Maintain filter and search state across navigation
+- [x] 11. Enhance navigation and routing
+  - [x] Update space card click handlers to navigate to individual space pages
+  - [x] Implement proper back navigation from space detail pages
+  - ~~[ ] Add breadcrumb navigation for better user orientation~~ -> [x] Implemented contextual navigation via LeftSidebar with "Back to spaces" button and space title/description display instead of traditional breadcrumbs
+  - [x] Ensure browser back/forward button handling works correctly
+  - [x] Maintain filter and search state across navigation
   - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 12. Implement responsive design and accessibility
-  - Add responsive breakpoints for mobile, tablet, and desktop layouts
-  - Implement proper keyboard navigation for all interactive elements
-  - Add ARIA labels and descriptions for screen reader support
-  - Ensure proper focus management in modals and forms
-  - Test and fix color contrast issues for accessibility compliance
+- Implementation Summary: Enhanced Navigation and Routing:
+  - **Space Card Navigation**: Click handlers properly navigate to individual space pages
+  - **Back Navigation**: "Back to spaces" button implemented in LeftSidebar component
+  - **Browser Navigation**: Proper handling of browser back/forward buttons with Next.js router
+  - **State Preservation**: Filter and search state maintained across navigation via URL parameters
+  - **Parallel Routes**: Proper modal routing implemented with intercepting routes
+  - **Files Created/Modified**:
+    - `frontend/src/app/spaces/SpacesClientPage.tsx`
+    - `frontend/src/app/spaces/[spaceId]/components/LeftSidebar.tsx`
+    - `frontend/src/app/spaces/[spaceId]/components/ContentSourcesSection.tsx`
+
+- [-] 12. Implement responsive design and accessibility
+  - [x] Add responsive breakpoints for mobile, tablet, and desktop layouts
+  - [x] Implement proper keyboard navigation for all interactive elements
+  - [ ] Add ARIA labels and descriptions for screen reader support
+  - [x] Ensure proper focus management in modals and forms
+  - [ ] Test and fix color contrast issues for accessibility compliance
   - _Requirements: 1.4, 4.2, 5.1, 5.2, 5.3_
 
-- [ ] 13. Add performance optimizations
-  - Implement image lazy loading for space cover images and thumbnails
-  - Add code splitting for upload functionality and heavy components
-  - Optimize bundle size by removing unused dependencies
-  - Implement proper caching strategies for space and content data
-  - Add compression for uploaded text content
+- [-] 13. Add performance optimizations
+  - [x] Implement image lazy loading for space cover images and thumbnails
+  - [x] Add code splitting for upload functionality and heavy components
+  - [ ] Optimize bundle size by removing unused dependencies
+  - [x] Implement proper caching strategies for space and content data
+  - [ ] Add compression for uploaded text content
   - _Requirements: 1.3, 2.3_
 
 - [ ] 14. Create comprehensive testing suite
-  - Write unit tests for all new components and hooks
-  - Add integration tests for upload workflows and server actions
-  - Implement visual regression tests for component styling
-  - Create accessibility tests for keyboard navigation and screen readers
-  - Add performance tests for upload functionality and large data sets
+  - [ ] Write unit tests for all new components and hooks
+  - [ ] Add integration tests for upload workflows and server actions
+  - [ ] Implement visual regression tests for component styling
+  - [ ] Create accessibility tests for keyboard navigation and screen readers
+  - [ ] Add performance tests for upload functionality and large data sets
   - _Requirements: 1.1, 2.1, 3.1, 4.1, 6.1_
 
-- [ ] 15. Final integration and polish
-  - Integrate all components into the main spaces page and routing system
-  - Test complete user workflows from space creation to content management
-  - Fix any remaining styling inconsistencies and visual bugs
-  - Optimize performance and fix any memory leaks or performance issues
-  - Update documentation and add inline code comments
+- [x] 15. Final integration and polish
+  - [x] Integrate all components into the main spaces page and routing system
+  - [x] Test complete user workflows from space creation to content management
+  - [x] Fix any remaining styling inconsistencies and visual bugs
+  - [x] Optimize performance and fix any memory leaks or performance issues
+  - [ ] Update documentation and add inline code comments
   - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1_
