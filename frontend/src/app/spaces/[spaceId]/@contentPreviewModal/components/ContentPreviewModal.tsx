@@ -9,7 +9,6 @@ import { generateDownloadURL, getContentSource } from '@/api/actions/contentActi
 import OriginalContentViewer from './OriginalContentViewer';
 import ProcessedContentViewer from './ProcessedContentViewer';
 import { ChevronDown, FileText } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ContentSource } from '@/app/spaces/types/content';
+import { getFriendlyNameFromMimeType } from '@/lib/mime-types';
 
 interface ContentPreviewModalProps {
   isOpen: boolean;
@@ -24,43 +24,35 @@ interface ContentPreviewModalProps {
   contentSourceId?: string;
 }
 
+const DIALOG_TITLE = 'Preview';
+
 export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }: ContentPreviewModalProps) {
   const [activeTab, setActiveTab] = useState<'original' | 'processed'>('processed');
   const [contentSource, setContentSource] = useState<ContentSource | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
-    if (isOpen) {
+    let isMounted = true;
+
+    if (isOpen && contentSourceId) {
       setActiveTab('processed');
-      if (contentSourceId) {
-        getContentSource(contentSourceId).then((result) => {
-          if (result.ok && result.data) {
-            setContentSource(result.data);
-          }
-        });
-      }
+      getContentSource(contentSourceId).then((result) => {
+        if (isMounted && result.ok && result.data) {
+          setContentSource(result.data);
+        }
+      });
     } else {
       setContentSource(null);
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [isOpen, contentSourceId]);
 
-  const title = useMemo(() => 'Preview', []);
-
   const originalFileFormat = useMemo(() => {
-    if (!contentSource) return 'Original File';
-    const mimeType = contentSource.mimeType;
-    if (!mimeType) return 'Original File';
-    const parts = mimeType.split('/');
-    const fileType = parts.length > 1 ? parts[1] : parts[0];
-    const friendlyNames: Record<string, string> = {
-      pdf: 'PDF',
-      'vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
-      plain: 'Text',
-      markdown: 'Markdown',
-    };
-    return friendlyNames[fileType] || fileType.toUpperCase();
+    if (!contentSource?.mimeType) return 'Original File';
+    return getFriendlyNameFromMimeType(contentSource.mimeType);
   }, [contentSource]);
 
   const handleDownload = useCallback(
@@ -80,25 +72,18 @@ export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }
     [contentSourceId, toast]
   );
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-          const match = (pathname ?? '').match(/^(\/spaces\/[^/]+)/);
-          if (match) {
-            router.push(match[1]);
-          } else {
-            router.push('/spaces');
-          }
-        }
-      }}
-    >
-      <DialogContent className="max-w-5xl w-[90vw]" aria-describedby={undefined}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-5xl w-[90vw]">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="truncate mr-3">{title}</DialogTitle>
+            <DialogTitle className="truncate mr-3">{DIALOG_TITLE}</DialogTitle>
             <div className="relative flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -123,7 +108,7 @@ export default function ContentPreviewModal({ isOpen, onClose, contentSourceId }
             <TabsTrigger value="processed">Processed</TabsTrigger>
           </TabsList>
 
-          <div className="mt-4">
+          <div className="mt-4 h-[60vh] overflow-y-auto">
             <TabsContent value="original">
               {contentSourceId && <OriginalContentViewer contentSourceId={contentSourceId} />}
             </TabsContent>
