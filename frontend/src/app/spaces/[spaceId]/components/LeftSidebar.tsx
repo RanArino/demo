@@ -172,6 +172,7 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
                 size="icon"
                 onClick={() => setIsSettingsDialogOpen(true)}
                 className="h-8 w-8"
+                aria-label="Open space settings"
               >
                 <Settings className="h-4 w-4" />
               </Button>
@@ -180,6 +181,7 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
                 size="icon"
                 onClick={handleShare}
                 className="h-8 w-8"
+                aria-label="Share space"
               >
                 <Share2 className="h-4 w-4" />
               </Button>
@@ -191,6 +193,7 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
                   "h-8 w-8",
                   isPinned && "bg-blue-50 text-blue-600"
                 )}
+                aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
               >
                 {isPinned ? <PanelLeftOpen className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
               </Button>

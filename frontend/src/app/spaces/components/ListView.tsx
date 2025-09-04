@@ -203,6 +203,7 @@ export default function ListView({
                   <TableHead
                     onClick={() => requestSort('title')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors"
+                    aria-label="Sort by Title"
                   >
                     <div className="flex items-center gap-2">
                       Title
@@ -214,6 +215,7 @@ export default function ListView({
                   <TableHead
                     onClick={() => requestSort('documentCount')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors text-center"
+                    aria-label="Sort by Document Count"
                   >
                     <div className="flex items-center justify-center gap-2">
                       <FileText className="h-4 w-4" />
@@ -224,6 +226,7 @@ export default function ListView({
                   <TableHead
                     onClick={() => requestSort('createdAt')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors"
+                    aria-label="Sort by Creation Date"
                   >
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
@@ -234,6 +237,7 @@ export default function ListView({
                   <TableHead
                     onClick={() => requestSort('lastUpdatedAt')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors"
+                    aria-label="Sort by Last Updated Date"
                   >
                     <div className="flex items-center gap-2">
                       Updated
@@ -334,7 +338,7 @@ export default function ListView({
                     <TableCell className="text-center">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+                          <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" aria-label={`View documents for ${space.title}`}>
                             {space.documentCount || 0}
                           </Button>
                         </DialogTrigger>
@@ -377,7 +381,7 @@ export default function ListView({
                     <TableCell>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit space ${space.title}`}>
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
