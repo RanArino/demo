@@ -40,8 +40,8 @@ export function ProfileSetupForm({ userEmail }: ProfileSetupFormProps) {
         console.error('DEBUG: Profile activation failed:', result.error);
         setError(result.error || 'Failed to activate profile');
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_err) {
+    } catch (err) {
+      console.error('DEBUG: Unexpected error during profile activation:', err);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
