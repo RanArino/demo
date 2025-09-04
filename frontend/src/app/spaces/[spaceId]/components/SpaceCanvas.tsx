@@ -168,10 +168,11 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
                 size="sm"
                 onClick={handleZoomOut}
                 className="h-8 w-8 p-0"
+                aria-label="Zoom out"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
-              <span className="px-2 text-sm font-medium min-w-[3rem] text-center">
+              <span className="px-2 text-sm font-medium min-w-[3rem] text-center" aria-live="polite">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
@@ -179,6 +180,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
                 size="sm"
                 onClick={handleZoomIn}
                 className="h-8 w-8 p-0"
+                aria-label="Zoom in"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
@@ -189,6 +191,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
               size="sm"
               onClick={handleResetView}
               className="flex items-center gap-2"
+              aria-label="Reset view"
             >
               <RotateCcw className="h-4 w-4" />
               Reset
@@ -199,6 +202,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
               size="sm"
               onClick={toggleFullscreen}
               className="flex items-center gap-2"
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               {isFullscreen ? 'Exit' : 'Fullscreen'}

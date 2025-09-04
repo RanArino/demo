@@ -71,6 +71,7 @@ export default function GalleryView({
             variant={cardSize === 'small' ? 'default' : 'ghost'}
             size="sm"
             className="h-8 w-8 p-0"
+            aria-label="Small grid"
           >
             <Grid3X3 className="h-4 w-4" />
           </Button>
@@ -79,6 +80,7 @@ export default function GalleryView({
             variant={cardSize === 'medium' ? 'default' : 'ghost'}
             size="sm"
             className="h-8 w-8 p-0"
+            aria-label="Medium grid"
           >
             <Grid2X2 className="h-4 w-4" />
           </Button>
@@ -87,6 +89,7 @@ export default function GalleryView({
             variant={cardSize === 'large' ? 'default' : 'ghost'}
             size="sm"
             className="h-8 w-8 p-0"
+            aria-label="Large grid"
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>

@@ -29,6 +29,7 @@ export interface ContentSourceCardProps {
 
 export default function ContentSourceCard({ contentSource, onView, onDownload, onDelete, selected, onSelectChange, progress }: ContentSourceCardProps) {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const title = contentSource.title || contentSource.filename || 'Untitled';
 
   const getSourceIcon = () => {
     switch (contentSource.sourceType) {
@@ -61,6 +62,7 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
       onClick={() => onView(contentSource)}
       role="button"
       tabIndex={0}
+      aria-label={`View content source: ${title}`}
     >
       {!isReady && (
         <div className="absolute inset-0 rounded-lg bg-transparent pointer-events-none" />
@@ -74,6 +76,7 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
             onChange={(e) => onSelectChange(contentSource.id, e.currentTarget.checked)}
             onClick={(e) => e.stopPropagation()}
             className="h-4 w-4 border-gray-400 rounded"
+            aria-label={`Select content source: ${title}`}
           />
         ) : (
           <div className="flex items-center gap-2 text-blue-600">
@@ -86,7 +89,7 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
           </div>
         )}
         <h3 className="font-medium text-gray-900 truncate flex-1">
-          {contentSource.title || contentSource.filename || 'Untitled'}
+          {title}
         </h3>
       </div>
 
@@ -106,6 +109,7 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
                 className="h-8 w-8 p-0 flex items-center justify-center"
                 aria-haspopup="menu"
                 aria-expanded={showDownloadMenu}
+                aria-label="Open download options"
               >
                 <Download className="h-4 w-4" />
               </Button>
@@ -132,7 +136,7 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
             size="icon"
             onClick={() => onDelete(contentSource)}
             className="h-8 w-8 p-0 flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50"
-            aria-label="Delete"
+            aria-label={`Delete content source: ${title}`}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
