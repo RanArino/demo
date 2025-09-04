@@ -287,7 +287,7 @@ export function ProfileView() {
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="flex-1 bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-600"
                 >
                   Delete Account
                 </button>
@@ -313,7 +313,7 @@ export function ProfileView() {
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                  className="flex-1 bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50"
                 >
                   {loading ? 'Deleting...' : 'Delete Account'}
                 </button>
