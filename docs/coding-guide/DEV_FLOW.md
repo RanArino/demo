@@ -90,9 +90,9 @@ This command should be run from the frontend directory. It generates universal T
 \# version: v1  
 \# plugins:  
 \#   \- plugin: es  
-\#     out: src/api/generated  
+\#     out: frontend/src/api/generated  
 \#   \- plugin: grpc-web  
-\#     out: src/api/generated  
+\#     out: frontend/src/api/generated  
 \#     opt:  
 \#       \- import\_style=typescript
 

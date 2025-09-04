@@ -40,12 +40,42 @@ frontend/src/
 
 ### **1. Protocol Buffer Code Generation**
 
-Use protobuf-ts to generate universal TypeScript code. The output should be configured to go into src/api/generated/.
+Use Buf to generate code as configured in `buf.gen.yaml`. This repo currently generates JavaScript stubs (google-protobuf + grpc-js) into `src/api/generated`.
 
 # In your package.json scripts  
 "scripts": {  
-  "proto:gen": "npx @bufbuild/buf generate"  
+  "proto:gen": "npx buf generate"  
 }
+
+Current `buf.gen.yaml` (JS + Node gRPC stubs):
+
+```yaml
+version: v1
+plugins:
+  - plugin: buf.build/protocolbuffers/js:v3.21.2
+    out: src/api/generated
+    opt:
+      - import_style=commonjs
+      - binary
+  - plugin: buf.build/grpc/node:v1.13.0
+    out: src/api/generated
+    opt:
+      - grpc_js
+```
+
+Optional (TypeScript via ts-proto):
+
+```yaml
+version: v1
+plugins:
+  - plugin: buf.build/community/stephenh/ts-proto
+    out: src/api/generated
+    opt:
+      - outputServices=grpc-js
+      - env=node
+```
+
+If you choose ts-proto, update imports/usages accordingly; otherwise, the existing JS stubs work with `@grpc/grpc-js` as shown in `src/api/server-client.ts`.
 
 ### **2. Configure Server-Side gRPC Client**
 

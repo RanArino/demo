@@ -1,6 +1,11 @@
 # Authentication & Authorization Architecture Refactor Plan
 
-Updated Date: 2025-08-31
+Updated Date: 2025-09-03
+
+Please again which approach is better; discussed in chat https://g.co/gemini/share/9bf5bd83a868
+- give all user-related info (id, role, subscription-plan, etc.) to the Clerk's private metadata, which adds to custom JWT
+- implement API Gateway pattern to validate Clerk JWT and revise to internal JWT, which includes all user-related info (id, role, subscription-plan, etc.)
+
 
 ## Current Situation Analysis
 
