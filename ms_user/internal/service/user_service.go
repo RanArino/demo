@@ -112,6 +112,23 @@ func (s *UserService) GetUser(ctx context.Context) (*domain.User, error) {
 	return s.repo.GetByClerkID(ctx, clerkUserID)
 }
 
+// GetUserByID retrieves a user by their internal user ID.
+func (s *UserService) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID format: %w", err)
+	}
+	return s.repo.GetByID(ctx, id)
+}
+
+// GetUserByClerkID retrieves a user by their Clerk user ID.
+func (s *UserService) GetUserByClerkID(ctx context.Context, clerkUserID string) (*domain.User, error) {
+	if clerkUserID == "" {
+		return nil, fmt.Errorf("clerk user ID cannot be empty")
+	}
+	return s.repo.GetByClerkID(ctx, clerkUserID)
+}
+
 // UpdateUser updates a user's profile information.
 func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username *string) (*domain.User, error) {
 	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)

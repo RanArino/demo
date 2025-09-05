@@ -6,6 +6,7 @@ Please again which approach is better; discussed in chat https://g.co/gemini/sha
 - give all user-related info (id, role, subscription-plan, etc.) to the Clerk's private metadata, which adds to custom JWT
 - implement API Gateway pattern to validate Clerk JWT and revise to internal JWT, which includes all user-related info (id, role, subscription-plan, etc.)
 
+
 ## Current Situation Analysis
 
 ### Existing Architecture Problems

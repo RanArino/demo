@@ -1,0 +1,318 @@
+syntax = "proto3";
+
+package knowledge.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "demo/ms_knowledge/api/proto/v1;knowledgev1";
+
+// Knowledge Service provides APIs for managing knowledge spaces, content sources, and knowledge graph links
+service KnowledgeService {
+  // Space Management
+  rpc CreateSpace(CreateSpaceRequest) returns (Space);
+  rpc GetSpace(GetSpaceRequest) returns (Space);
+  rpc ListSpaces(ListSpacesRequest) returns (ListSpacesResponse);
+  rpc UpdateSpace(UpdateSpaceRequest) returns (Space);
+  rpc DeleteSpace(DeleteSpaceRequest) returns (google.protobuf.Empty);
+
+  // Content Source Management
+  rpc CreateUploadURL(CreateUploadURLRequest) returns (CreateUploadURLResponse);
+  rpc ConfirmUpload(ConfirmUploadRequest) returns (ContentSource);
+  rpc GetContentSource(GetContentSourceRequest) returns (ContentSource);
+  rpc ListContentSources(ListContentSourcesRequest) returns (ListContentSourcesResponse);
+  rpc UpdateContentSource(UpdateContentSourceRequest) returns (ContentSource);
+  rpc UpdateContentSourceStatus(UpdateContentSourceStatusRequest) returns (ContentSource);
+  rpc DeleteContentSource(DeleteContentSourceRequest) returns (google.protobuf.Empty);
+  // Download URL Generation
+  rpc GenerateDownloadURL(GenerateDownloadURLRequest) returns (GenerateDownloadURLResponse);
+
+  // Knowledge Graph Management
+  rpc CreateKnowledgeLink(CreateKnowledgeLinkRequest) returns (KnowledgeLink);
+  // Single enriched link by id
+  rpc GetKnowledgeLink(GetKnowledgeLinkRequest) returns (EnrichedKnowledgeLink);
+  // Focused enriched list by content
+  rpc ListKnowledgeLinks(ListKnowledgeLinksRequest) returns (ListKnowledgeLinksResponse);
+  // Bulk simple list by space
+  rpc ListAllSpaceLinks(ListAllSpaceLinksRequest) returns (ListAllSpaceLinksResponse);
+  rpc UpdateKnowledgeLink(UpdateKnowledgeLinkRequest) returns (KnowledgeLink);
+  rpc DeleteKnowledgeLink(DeleteKnowledgeLinkRequest) returns (google.protobuf.Empty);
+  rpc GetBacklinks(GetBacklinksRequest) returns (GetBacklinksResponse);
+
+  // Utilities
+  rpc Healthz(google.protobuf.Empty) returns (HealthStatus);
+}
+
+// Enums
+enum ContentStatus {
+  CONTENT_STATUS_UNSPECIFIED = 0;
+  UPLOADING = 1;
+  UPLOADED = 2;
+  PROCESSING = 3;
+  PROCESSED = 4;
+  FAILED = 5;
+}
+
+enum RelationType {
+  RELATION_TYPE_UNSPECIFIED = 0;
+  REFERENCES = 1;
+  CONTAINS = 2;
+  RELATED = 3;
+  FOLLOWS = 4;
+}
+
+enum LinkDirection {
+  LINK_DIRECTION_UNSPECIFIED = 0;
+  INBOUND = 1;
+  OUTBOUND = 2;
+  BOTH = 3;
+}
+
+// Specifies which object (original or processed) an operation targets
+enum DownloadObjectKind {
+  DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
+  DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;  // source/original object
+  DOWNLOAD_OBJECT_KIND_PROCESSED = 2; // processed object
+}
+
+// Common Messages
+message Pagination {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+
+// Core Entities
+message SpaceStats {
+  int64 content_count = 1;
+  int64 link_count = 2;
+  google.protobuf.Timestamp last_activity_at = 3;
+}
+
+message Space {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string owner_id = 4;
+  SpaceStats stats = 10;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
+message ContentSource {
+  string id = 1;
+  string space_id = 2;
+  ContentStatus status = 3;
+  string owner_id = 4;
+  string source = 5;
+  string mime_type = 6;
+  int64 size_bytes = 7;
+  string title = 8;
+  string original_blob_hash = 9;
+  string processed_blob_hash = 10;
+  string content_summary = 11;
+  repeated string keywords = 12;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
+// Simple link (used for bulk list)
+message KnowledgeLink {
+  string id = 1;
+  string from_content_id = 2;
+  string to_content_id = 3;
+  RelationType relation_type = 4;
+  double weight = 5;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
+// Enriched link view (used for focused list and single get)
+message ContentPreview {
+  string id = 1;
+  string title = 2;
+  string content_summary = 3;
+}
+
+message EnrichedKnowledgeLink {
+  string id = 1;
+  ContentPreview from = 2;
+  ContentPreview to = 3;
+  RelationType relation_type = 4;
+  double weight = 5;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
+// Space Request/Response Messages
+message CreateSpaceRequest {
+  string title = 1;
+  string description = 2;
+}
+
+message GetSpaceRequest {
+  string id = 1;
+}
+
+message ListSpacesRequest {
+  string q = 1;
+  string owner_id = 2;
+  repeated string keywords = 3;
+  string access_level = 4;
+  string status = 5;
+  google.protobuf.Timestamp created_after = 6;
+  google.protobuf.Timestamp created_before = 7;
+  google.protobuf.Timestamp updated_after = 8;
+  google.protobuf.Timestamp updated_before = 9;
+  Pagination page = 10;
+}
+
+message ListSpacesResponse {
+  repeated Space items = 1;
+  string next_page_token = 2;
+}
+
+message UpdateSpaceRequest {
+  string id = 1;
+  Space space = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message DeleteSpaceRequest {
+  string id = 1;
+  bool hard_delete = 2;
+  bool force = 3;
+}
+
+// SearchSpacesRequest removed; use ListSpacesRequest.q instead
+
+// Content Source Request/Response Messages
+message CreateUploadURLRequest {
+  string space_id = 1;
+  string filename = 2;
+  string mime_type = 3;
+  int64 size_bytes = 4;
+  string title = 5;
+  DownloadObjectKind object_kind = 6; // ORIGINAL or PROCESSED (required)
+}
+
+message CreateUploadURLResponse {
+  string upload_url = 1;
+  string object_key = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  ContentSource content_source = 10;
+}
+
+message ConfirmUploadRequest {
+  string content_source_id = 1;      // required
+  string blob_hash = 3;              // required
+}
+
+message GetContentSourceRequest {
+  string id = 1;
+}
+
+message ListContentSourcesRequest {
+  string space_id = 1;
+  ContentStatus status = 2;
+  Pagination page = 10;
+}
+
+message ListContentSourcesResponse {
+  repeated ContentSource items = 1;
+  string next_page_token = 2;
+}
+
+message UpdateContentSourceRequest {
+  string id = 1;
+  ContentSource content = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message UpdateContentSourceStatusRequest {
+  string id = 1;
+  ContentStatus status = 2;
+  string processed_blob_hash = 3;
+  string error_message = 4;
+}
+
+message DeleteContentSourceRequest {
+  string id = 1;
+}
+
+// Download URL generation
+message GenerateDownloadURLRequest {
+  string content_source_id = 1; // required
+  int32 expires_seconds = 2;    // optional, server applies bounds and defaults
+  DownloadObjectKind object_kind = 3; // required
+}
+
+message GenerateDownloadURLResponse {
+  string url = 1;
+  google.protobuf.Timestamp expires_at = 2;
+  string object_key = 3;
+}
+
+// Knowledge Link Request/Response Messages
+message CreateKnowledgeLinkRequest {
+  string from_content_id = 1;
+  string to_content_id = 2;
+  RelationType relation_type = 3;
+  double weight = 4;
+}
+
+message GetKnowledgeLinkRequest {
+  string id = 1;
+}
+
+// Focused, enriched list by content
+message ListKnowledgeLinksRequest {
+  string content_id = 1;
+  LinkDirection direction = 2;
+  RelationType relation_type = 3;
+  Pagination page = 10;
+}
+
+message ListKnowledgeLinksResponse {
+  repeated EnrichedKnowledgeLink items = 1;
+  string next_page_token = 2;
+}
+
+// Bulk, simple list by space
+message ListAllSpaceLinksRequest {
+  string space_id = 1;
+  RelationType relation_type = 2;
+  Pagination page = 10;
+}
+
+message ListAllSpaceLinksResponse {
+  repeated KnowledgeLink items = 1;
+  string next_page_token = 2;
+}
+
+message UpdateKnowledgeLinkRequest {
+  string id = 1;
+  KnowledgeLink link = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message DeleteKnowledgeLinkRequest {
+  string id = 1;
+}
+
+message GetBacklinksRequest {
+  string content_id = 1;
+  Pagination page = 10;
+}
+
+message GetBacklinksResponse {
+  repeated KnowledgeLink items = 1;
+  string next_page_token = 2;
+}
+
+// Utility Messages
+message HealthStatus {
+  string status = 1;
+  map<string, string> components = 2;
+}

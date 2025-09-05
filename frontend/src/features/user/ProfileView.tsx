@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { getUser, updateUser, deleteUser } from '@/api/actions/userActions';
+import { formatSize } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -122,13 +123,7 @@ export function ProfileView() {
     }
   };
 
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  
 
   if (loading && !user) {
     return (
@@ -270,7 +265,7 @@ export function ProfileView() {
                 <div className="pt-4 border-t border-gray-200">
                   <dt className="text-sm font-medium text-gray-500">Storage Usage</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formatBytes(user.storageUsedBytes || 0)} of {formatBytes(user.storageQuotaBytes)}
+                    {formatSize(user.storageUsedBytes || 0)} of {formatSize(user.storageQuotaBytes)}
                   </dd>
                   <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                     <div 
@@ -292,7 +287,7 @@ export function ProfileView() {
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="flex-1 bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-600"
                 >
                   Delete Account
                 </button>
@@ -318,7 +313,7 @@ export function ProfileView() {
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                  className="flex-1 bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50"
                 >
                   {loading ? 'Deleting...' : 'Delete Account'}
                 </button>

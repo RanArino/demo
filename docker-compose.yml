@@ -18,6 +18,62 @@ services:
     networks:
       - app-network
 
+  ms_knowledge:
+    build:
+      context: .
+      dockerfile: ms_knowledge/Dockerfile
+    ports:
+      - "50052:50052"
+    env_file:
+      - ./ms_knowledge/.env.local
+    environment:
+      - GRPC_PORT=50052
+      - DISABLE_NEO4J=1
+      - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
+      - DATABASE_URL=${DATABASE_URL}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
+      - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
+      - KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_REGION=${R2_REGION}
+      - R2_BUCKET_SOURCE_NAME=${R2_BUCKET_SOURCE_NAME}
+      - R2_BUCKET_PROCESSED_NAME=${R2_BUCKET_PROCESSED_NAME}
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  ms_document_process:
+    build:
+      context: ./ms_document_process
+      dockerfile: Dockerfile
+    ports:
+      - "50053:50053"
+    env_file:
+      - ./ms_document_process/.env.local
+    environment:
+      - GRPC_PORT=50053
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
+      - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
+      - KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_BUCKET_SOURCE_NAME=${R2_BUCKET_SOURCE_NAME}
+      - R2_BUCKET_PROCESSED_NAME=${R2_BUCKET_PROCESSED_NAME}
+      - MS_KNOWLEDGE_GRPC_URL=ms_knowledge:50052
+    depends_on:
+      - ms_knowledge
+    restart: unless-stopped
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -37,6 +93,7 @@ services:
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/profile/setup
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/profile/setup
       - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
+      - MS_KNOWLEDGE_GRPC_URL_INTERNAL=ms_knowledge:50052
     depends_on:
       - ms_user
     restart: unless-stopped
@@ -61,36 +118,7 @@ services:
     networks:
       - app-network
 
-
-  # envoy:
-  #   image: envoyproxy/envoy:v1.28-latest
-  #   ports:
-  #     - "8080:8080"  # gRPC-Web proxy port
-  #     - "9901:9901"  # Envoy admin interface
-  #   volumes:
-  #     - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
-  #   environment:
-  #     - MS_USER_ADDRESS=ms_user
-  #     - MS_USER_PORT=50051
-  #   depends_on:
-  #     - ms_user
-  #   restart: unless-stopped
-  #   networks:
-  #     - app-network
-
-  # qdrant:
-  #   image: qdrant/qdrant:latest
-  #   ports:
-  #     - "6333:6333"
-  #     - "6334:6334"
-  #   volumes:
-  #     - qdrant_data:/qdrant/storage
-  #   restart: unless-stopped
-  #   networks:
-  #     - app-network
-
-# volumes:
-#   qdrant_data:
+  
 
 networks:
   app-network:
