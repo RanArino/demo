@@ -4,10 +4,10 @@
 
 ### **Project Structure & Development Flow:**
 
-1. Define the proto file under api/proto/v{version\_num}/.  
+1. Define the proto file under api/proto/v{version_num}/.  
 2. Generate gRPC and protobuf code.  
-   protoc \--go\_out=. \--go\_opt=paths=source\_relative \\  
-       \--go-grpc\_out=. \--go-grpc\_opt=paths=source\_relative \\  
+   protoc --go_out=. --go_opt=paths=source_relative \  
+       --go-grpc_out=. --go-grpc_opt=paths=source_relative \  
        api/proto/v1/{service}.proto
 
 3. Define the Ent schema under ent/schema/.  
@@ -23,16 +23,16 @@
 ### **Development Commands:**
 
 cd go-service-name  
-go mod tidy             \# Install/tidy dependencies  
-go run ./cmd/server/main.go \# Run the server  
-go build \-o app ./cmd/server/main.go \# Build binary  
-go test ./...          \# Run tests
+go mod tidy             # Install/tidy dependencies  
+go run ./cmd/server/main.go # Run the server  
+go build -o app ./cmd/server/main.go # Build binary  
+go test ./...          # Run tests
 
 ## **Python Backend Development (FastAPI)**
 
 ### **Project Structure & Development Flow:**
 
-1. Define the proto file under api/proto/v{version\_num}/ (if gRPC is needed).  
+1. Define the proto file under api/proto/v{version_num}/ (if gRPC is needed).  
 2. Define Pydantic models under app/domain/ (for business entities).  
 3. Define database schemas under app/repository/ (e.g., SQLAlchemy models).  
 4. Implement the repository layer under app/repository/.  
@@ -45,13 +45,13 @@ go test ./...          \# Run tests
 ### **Development Commands:**
 
 cd python-service-name  
-python \-m venv venv     \# Create virtual environment  
-source venv/bin/activate \# Activate virtual environment (Linux/Mac)  
-\# venv\\Scripts\\activate  \# Activate virtual environment (Windows)  
-pip install \-r requirements.txt \# Install dependencies  
-uvicorn app.main:app \--reload \--host 0.0.0.0 \--port 8000 \# Run with hot reload  
-pytest tests/          \# Run tests  
-pip freeze \> requirements.txt \# Update dependencies
+python -m venv venv     # Create virtual environment  
+source venv/bin/activate # Activate virtual environment (Linux/Mac)  
+# venv\Scripts\activate  # Activate virtual environment (Windows)  
+pip install -r requirements.txt # Install dependencies  
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 # Run with hot reload  
+pytest tests/          # Run tests  
+pip freeze > requirements.txt # Update dependencies
 
 ## **Frontend Development (Next.js)**
 
@@ -70,69 +70,72 @@ pip freeze \> requirements.txt \# Update dependencies
 ### **Development Commands:**
 
 cd frontend  
-npm install              \# Install dependencies  
-npm run dev             \# Start dev server (http://localhost:3000)  
-npm run build           \# Production build  
-npm run start           \# Start production server  
-npm run lint            \# Run ESLint  
-npm run proto:gen       \# Generate gRPC/Protobuf code
+npm install              # Install dependencies  
+npm run dev             # Start dev server (http://localhost:3000)  
+npm run build           # Production build  
+npm run start           # Start production server  
+npm run lint            # Run ESLint  
+npm run proto:gen       # Generate gRPC/Protobuf code
 
 ### **Protocol Buffer Code Generation:**
 
-This command should be run from the frontend directory. It generates universal TypeScript code that can be used by both the server and client.
+This command generates TypeScript code from the `.proto` files. It should be run from the **project root directory** to ensure it can find all the necessary `.proto` files defined in the root `buf.work.yaml`. 
 
-\# In package.json  
-"scripts": {  
-  "proto:gen": "npx @bufbuild/buf generate"  
+The generation is configured in `frontend/buf.gen.yaml`. For a modern, TypeScript-first workflow, the following configuration is recommended. It uses the `@bufbuild/es` plugin to generate a single, comprehensive `.ts` file per proto file, which is ideal for Next.js applications.
+
+To execute the generation, you can run the `buf` command directly from the project root:
+
+```bash
+npx buf generate --template frontend/buf.gen.yaml
+```
+
+For convenience, you can update the `proto:gen` script in `frontend/package.json` to navigate to the root directory before running the command. This allows you to still run `npm run proto:gen` from the `frontend` directory.
+
+```json
+// frontend/package.json
+"scripts": {
+  "proto:gen": "cd .. && npx buf generate --template frontend/buf.gen.yaml"
 }
+```
 
-\# Assumes a buf.gen.yaml file in the frontend root:  
-\# version: v1  
-\# plugins:  
-\#   \- plugin: es  
-\#     out: frontend/src/api/generated  
-\#   \- plugin: grpc-web  
-\#     out: frontend/src/api/generated  
-\#     opt:  
-\#       \- import\_style=typescript
 
 ## **Multi-Service Development**
 
 ### **Full Stack Development Commands:**
 
-\# Start all services with Docker Compose in detached mode  
-docker-compose up \-d
+# Start all services with Docker Compose in detached mode  
+docker-compose up -d
 
-\# Start specific services  
-docker-compose up \-d ms\_user frontend envoy
+# Start specific services  
+docker-compose up -d ms_user frontend envoy
 
-\# Rebuild containers after changes  
-docker-compose up \-d \--build
+# Rebuild containers after changes  
+docker-compose up -d --build
 
-\# View logs for a specific service  
-docker-compose logs \-f \[service-name\]
+# View logs for a specific service  
+docker-compose logs -f [service-name]
 
-\# Stop all services  
+# Stop all services  
 docker-compose down
 
 ## **Testing Workflows**
 
 ### **Go Backend Testing:**
 
-go test ./... \-v        \# Run all tests with verbose output  
-go test ./internal/service \-v \# Test specific package  
-go test \-race ./...     \# Test with race condition detection  
-go test \-cover ./...    \# Test with coverage report
+go test ./... -v        # Run all tests with verbose output  
+go test ./internal/service -v # Test specific package  
+go test -race ./...     # Test with race condition detection  
+go test -cover ./...    # Test with coverage report
 
 ### **Python Backend Testing:**
 
-pytest tests/ \-v       \# Run all tests with verbose output  
-pytest tests/test\_service.py \-v \# Test specific file  
-pytest \--cov=app tests/ \# Test with coverage report
+pytest tests/ -v       # Run all tests with verbose output  
+pytest tests/test_service.py -v # Test specific file  
+pytest --cov=app tests/ # Test with coverage report
 
 ### **Frontend Testing:**
 
-npm test                \# Run Jest/Vitest tests  
-npm run test:watch     \# Run tests in watch mode  
-npm run test:coverage  \# Run tests with coverage  
-npm run e2e            \# Run end-to-end tests (e.g., Playwright/Cypress)  
+npm test                # Run Jest/Vitest tests  
+npm run test:watch     # Run tests in watch mode  
+npm run test:coverage  # Run tests with coverage  
+npm run e2e            # Run end-to-end tests (e.g., Playwright/Cypress)  
