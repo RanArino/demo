@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { searchSpaces } from '@/api/actions/spaceActions';
+import { SpaceFilters, ListSpacesRequest } from '@/api/generated/v1/knowledge_pb';
 import SpacesClientPage from './SpacesClientPage';
 import SpacesLoading from './loading';
 
@@ -18,16 +19,18 @@ export default async function SpacesPage({
   searchParams: SearchParams;
 }) {
   // Parse search parameters
-  const filters = {
-    q: searchParams.q,
+  const filters = new SpaceFilters({
+    q: searchParams.q || '',
     keywords: Array.isArray(searchParams.keywords) 
       ? searchParams.keywords 
-      : searchParams.keywords?.split(',').filter(Boolean),
-    page: searchParams.page ? parseInt(searchParams.page) : 1,
-    pageSize: searchParams.pageSize ? parseInt(searchParams.pageSize) : 20,
-    sortBy: searchParams.sortBy as any,
-    sortOrder: searchParams.sortOrder as any,
-  };
+      : searchParams.keywords?.split(',').filter(Boolean) || [],
+    sortBy: searchParams.sortBy || 'created',
+    sortOrder: searchParams.sortOrder || 'desc',
+  });
+
+  // Parse pagination parameters separately
+  const page = searchParams.page ? parseInt(searchParams.page) : 1;
+  const pageSize = searchParams.pageSize ? parseInt(searchParams.pageSize) : 20;
 
   // Fetch initial spaces data
   const result = await searchSpaces(filters);
@@ -48,16 +51,24 @@ export default async function SpacesPage({
     );
   }
 
-  const { spaces = [], totalCount = 0, page = 1, pageSize = 20 } = result.data || {};
+  const { spaces = [], totalCount = 0, page: resultPage = 1, pageSize: resultPageSize = 20 } = result.data || {};
+
+  // Create initialFilters object for the client component
+  const initialFilters: Partial<ListSpacesRequest> = {
+    q: searchParams.q,
+    keywords: Array.isArray(searchParams.keywords) 
+      ? searchParams.keywords 
+      : searchParams.keywords?.split(',').filter(Boolean),
+  };
 
   return (
     <Suspense fallback={<SpacesLoading />}>
       <SpacesClientPage
         initialSpaces={spaces}
-        initialFilters={filters}
-        totalCount={totalCount}
-        currentPage={page}
-        pageSize={pageSize}
+        initialFilters={initialFilters}
+        totalCount={Number(totalCount)}
+        currentPage={resultPage}
+        pageSize={resultPageSize}
       />
     </Suspense>
   );
