@@ -4,86 +4,29 @@ import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { getKnowledgeServiceClient } from '../server-client';
 import {
+  Space,
+  SpaceFilters,
   ListSpacesRequest,
   GetSpaceRequest,
   CreateSpaceRequest,
   UpdateSpaceRequest,
   DeleteSpaceRequest,
-  Space as ProtoSpace,
-  Pagination,
 } from '../generated/v1/knowledge_pb';
-import {
-  Space,
-  SpaceFilters,
-  SearchSpacesResponse,
-  CreateSpaceInput,
-  UpdateSpaceInput,
-  ActionResult,
-} from '@/app/spaces/types/spaces';
-import { AccessLevel } from '@/app/spaces/types/shared';
-import { ConnectError } from '@bufbuild/connect';
+import { ActionResult, safeTimestampToDate } from '@/lib/types'; 
 import { Timestamp } from '@bufbuild/protobuf';
+import { createAuthHeaders, sanitizeError } from './utils';
 
-/**
- * Helper function to create headers with JWT token
- */
-async function createAuthHeaders(): Promise<Headers> {
-  const { getToken } = await auth();
-  const token = await getToken({ template: 'ms-user-auth' });
-
-  const headers = new Headers();
-  if (token) {
-    headers.append('authorization', `Bearer ${token}`);
-  }
-
-  return headers;
-}
-
-/**
- * Helper function to sanitize error messages for security
- */
-function sanitizeError(error: unknown): { code: string; message: string } {
-  if (error instanceof ConnectError) {
-    return { code: error.code.toString(), message: error.message };
-  }
-
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-
-  return {
-    code: 'INTERNAL',
-    message: isDevelopment ? message : 'An unexpected error occurred. Please try again.',
-  };
-}
 
 function protoTimestampToISOString(ts: Timestamp | undefined): string {
   if (!ts) return '';
-  return ts.toDate().toISOString();
-}
-
-// Helper function to convert proto Space to our TypeScript Space type
-function protoSpaceToSpace(protoSpace: ProtoSpace): Space {
-  return {
-    id: protoSpace.id,
-    userId: protoSpace.ownerId,
-    title: protoSpace.title,
-    description: protoSpace.description,
-    keywords: [], // keywords are not part of the proto Space message
-    accessLevel: AccessLevel.PRIVATE, // accessLevel is not part of the proto Space message
-    createdAt: protoTimestampToISOString(protoSpace.createdAt),
-    updatedAt: protoTimestampToISOString(protoSpace.updatedAt),
-    lastUpdatedAt: protoTimestampToISOString(protoSpace.updatedAt),
-    documentCount: Number(protoSpace.stats?.contentCount ?? 0),
-    totalSizeBytes: 0, // totalSizeBytes is not part of the proto Space message
-    contentCount: Number(protoSpace.stats?.contentCount ?? 0),
-    userCount: Number(protoSpace.stats?.linkCount ?? 0),
-  };
+  const date = safeTimestampToDate(ts);
+  return date ? date.toISOString() : '';
 }
 
 /**
  * Search/list spaces with filters
  */
-export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult<SearchSpacesResponse>> {
+export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult<{spaces: Space[], totalCount: bigint, page: number, pageSize: number}>> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -101,20 +44,19 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
     if (filters?.keywords && filters.keywords.length > 0) {
       request.keywords = filters.keywords;
     }
-    if (filters?.pageSize) {
-      request.page = new Pagination({ pageSize: filters.pageSize });
-    }
+    // Note: SpaceFilters from protobuf does not have pageSize/page properties
+    // These would need to be handled differently or the proto definition updated
 
     const response = await client.listSpaces(request, { headers });
 
-    const spaces = response.items.map(protoSpaceToSpace);
+    const spaces = response.items;
     return {
       ok: true,
       data: {
         spaces,
-        totalCount: spaces.length,
-        page: filters?.page || 1,
-        pageSize: filters?.pageSize || spaces.length,
+        totalCount: BigInt(spaces.length),
+        page: 1, // Default page since SpaceFilters doesn't have page property
+        pageSize: spaces.length, // Default pageSize since SpaceFilters doesn't have pageSize property
       },
     };
   } catch (error) {
@@ -141,7 +83,7 @@ export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
 
     return {
       ok: true,
-      data: protoSpaceToSpace(response),
+      data: response,
     };
   } catch (error) {
     console.error('getSpace action error:', error);
@@ -152,7 +94,7 @@ export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
 /**
  * Create a new space
  */
-export async function createSpace(input: CreateSpaceInput): Promise<ActionResult<Space>> {
+export async function createSpace(input: CreateSpaceRequest): Promise<ActionResult<Space>> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -171,7 +113,7 @@ export async function createSpace(input: CreateSpaceInput): Promise<ActionResult
     revalidatePath('/spaces');
     return {
       ok: true,
-      data: protoSpaceToSpace(response),
+      data: response,
     };
   } catch (error) {
     console.error('createSpace action error:', error);
@@ -182,7 +124,7 @@ export async function createSpace(input: CreateSpaceInput): Promise<ActionResult
 /**
  * Update an existing space
  */
-export async function updateSpace(spaceId: string, input: UpdateSpaceInput): Promise<ActionResult<Space>> {
+export async function updateSpace(spaceId: string, input: UpdateSpaceRequest): Promise<ActionResult<Space>> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -192,17 +134,11 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceInput): Pro
     const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
 
-    const spaceToUpdate: Partial<ProtoSpace> = {};
-    if (input.title !== undefined) {
-      spaceToUpdate.title = input.title;
-    }
-    if (input.description !== undefined) {
-      spaceToUpdate.description = input.description;
-    }
-
     const request = new UpdateSpaceRequest({
-      id: spaceId,
-      space: new ProtoSpace(spaceToUpdate),
+      title: input.title,
+      description: input.description,
+      keywords: input.keywords || [],
+      icon: input.icon || '',
     });
 
     const response = await client.updateSpace(request, { headers });
@@ -211,7 +147,7 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceInput): Pro
     revalidatePath(`/spaces/${spaceId}`);
     return {
       ok: true,
-      data: protoSpaceToSpace(response),
+      data: response,
     };
   } catch (error) {
     console.error('updateSpace action error:', error);
