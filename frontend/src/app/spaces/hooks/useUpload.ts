@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 // Server actions are dynamically imported at call time to avoid stale action IDs during HMR
-import { ContentSource } from '@/app/spaces/types/content';
+import { ContentSource, ContentStatus, DownloadObjectKind, CreateUploadURLRequest } from '@/api/generated/v1/knowledge_pb';
+import { Timestamp } from '@bufbuild/protobuf';
 
 interface UploadOptions {
   spaceId: string;
@@ -42,34 +43,37 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
     try {
       // Step 1: Get upload URL from server action (dynamic import to avoid stale action id)
       const { createUploadURL } = await import('@/api/actions/contentActions');
-      const uploadUrlResult = await createUploadURL({
+      const uploadUrlResult = await createUploadURL(new CreateUploadURLRequest({
         spaceId,
         filename: file.name,
         mimeType: file.type,
-        sizeBytes: file.size,
-        objectKind: 'original'
-      });
+        sizeBytes: BigInt(file.size),
+        objectKind: DownloadObjectKind.ORIGINAL
+      }));
 
       if (!uploadUrlResult.ok || !uploadUrlResult.data) {
         throw new Error(uploadUrlResult.error?.message || 'Failed to create upload URL');
       }
 
-      const { uploadUrl, contentSourceId } = uploadUrlResult.data;
+      const { uploadUrl, contentSource } = uploadUrlResult.data;
+      const contentSourceId = contentSource?.id;
+      
+      if (!contentSourceId) {
+        throw new Error('Failed to get content source ID from upload response');
+      }
 
       // Broadcast creation so the Documents list can render a placeholder card
       try {
-        const placeholder: ContentSource = {
+        const placeholder = new ContentSource({
           id: contentSourceId,
           spaceId,
           title: file.name,
-          filename: file.name,
           mimeType: file.type || 'application/octet-stream',
-          sizeBytes: file.size,
-          processingStatus: 'processing',
-          sourceType: 'file',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as unknown as ContentSource;
+          sizeBytes: BigInt(file.size),
+          status: ContentStatus.UPLOADING,
+          createdAt: Timestamp.fromDate(new Date()),
+          updatedAt: Timestamp.fromDate(new Date()),
+        });
         window.dispatchEvent(new CustomEvent('content:created', { detail: placeholder }));
       } catch {}
 

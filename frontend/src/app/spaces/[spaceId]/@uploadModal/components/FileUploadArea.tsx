@@ -12,9 +12,9 @@ import {
   SUPPORTED_FILE_TYPES, 
   MAX_FILE_SIZE, 
   MAX_FILES_PER_UPLOAD,
-  type SupportedMimeType,
-  type ContentSource
-} from '@/app/spaces/types/content';
+  type SupportedMimeType
+} from '@/lib/files';
+import { ContentSource } from '@/api/generated/v1/knowledge_pb';
 import { useUpload } from '@/app/spaces/hooks/useUpload';
 
 interface FileUploadAreaProps {

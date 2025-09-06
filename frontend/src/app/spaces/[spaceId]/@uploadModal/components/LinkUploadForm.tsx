@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link, Loader2 } from 'lucide-react';
-import { ContentSource } from '@/app/spaces/types/content';
+import { ContentSource } from '@/api/generated/v1/knowledge_pb';
 
 interface LinkUploadFormProps {
   spaceId: string;
