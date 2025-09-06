@@ -12,6 +12,19 @@
   - [x] Update import paths.
   - [x] Update message creation and field access to be compatible with the new TypeScript types.
   - [x] Update gRPC client usage to use the new `connect-web` clients.
+- [x] **Component Refactoring:** Update components to use generated types.
+  - [x] Refactor `frontend/src/components/content/ContentSourceCard.tsx`.
+  - [x] Refactor `frontend/src/app/spaces/components/SpaceCard.tsx`.
+  - [x] Refactor `frontend/src/app/spaces/[spaceId]/components/ContentSourcesSection.tsx`.
+- [x] **Action Refactoring:** Update server actions to use generated types.
+  - [x] Refactor `frontend/src/api/actions/contentActions.ts`.
+  - [x] Refactor `frontend/src/api/actions/spaceActions.ts`.
+- [x] **Hook Refactoring:** Update hooks to use generated types.
+  - [x] Refactor `frontend/src/app/spaces/hooks/useProcessingPoller.ts`.
+  - [x] Refactor `frontend/src/app/spaces/hooks/useUpload.ts`.
+- [x] **Type Definition Cleanup:** Remove all files in `frontend/src/app/spaces/types/` and update `frontend/src/app/spaces/types/index.ts` to export only the remaining necessary types.
+
+- [x] **Global:** Delete the `frontend/src/app/spaces/types` directory.
 
 ## Phase 3: Verification
 
