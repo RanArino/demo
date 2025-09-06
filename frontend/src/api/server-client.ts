@@ -14,10 +14,11 @@ class GRPCClientManager {
   static getUserInstance(): PromiseClient<typeof UserService> {
     if (!this.userInstance) {
       const grpcUrl = process.env.MS_USER_GRPC_URL_INTERNAL || 'http://localhost:50051';
+      const fullUrl = grpcUrl.startsWith('http') ? grpcUrl : `http://${grpcUrl}`;
       
       const transport = createGrpcTransport({
         httpVersion: '2',
-        baseUrl: grpcUrl,
+        baseUrl: fullUrl,
       });
       
       this.userInstance = createPromiseClient(UserService, transport);
@@ -29,10 +30,11 @@ class GRPCClientManager {
   static getKnowledgeInstance(): PromiseClient<typeof KnowledgeService> {
     if (!this.knowledgeInstance) {
       const grpcUrl = process.env.MS_KNOWLEDGE_GRPC_URL_INTERNAL || 'http://localhost:50052';
+      const fullUrl = grpcUrl.startsWith('http') ? grpcUrl : `http://${grpcUrl}`;
       
       const transport = createGrpcTransport({
         httpVersion: '2',
-        baseUrl: grpcUrl,
+        baseUrl: fullUrl,
       });
       
       this.knowledgeInstance = createPromiseClient(KnowledgeService, transport);
