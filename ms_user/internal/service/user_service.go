@@ -172,28 +172,14 @@ func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username 
 	return s.repo.Update(ctx, userDomain.ID, updates)
 }
 
-// DeleteUser soft deletes the current authenticated user.
-func (s *UserService) DeleteUser(ctx context.Context) error {
-	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
-	if !ok {
-		return fmt.Errorf("user_id not found in context")
-	}
-
-	user, err := s.repo.GetByClerkID(ctx, clerkUserID)
-	if err != nil {
-		return err
-	}
-
-	return s.repo.Delete(ctx, user.ID)
-}
-
-// DeleteUserByID soft deletes a user by their internal user ID.
-func (s *UserService) DeleteUserByID(ctx context.Context, userID string) error {
-	id, err := uuid.Parse(userID)
+// DeleteUser soft deletes a user by ID.
+func (s *UserService) DeleteUser(ctx context.Context, userID string) error {
+	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		return fmt.Errorf("invalid user ID format: %w", err)
 	}
-	return s.repo.Delete(ctx, id)
+
+	return s.repo.Delete(ctx, userUUID)
 }
 
 // UpdateUserPreferences updates a user's preferences.
