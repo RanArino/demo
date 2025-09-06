@@ -1,25 +1,29 @@
 import { create } from 'zustand';
-import { SpacesUIState, ViewMode } from '@/app/spaces/types/spaces';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { SpacesUIState, ViewMode } from '@/api/generated/v1/knowledge_pb';
 
-interface SpacesStore extends SpacesUIState {
+// Extract plain data type from protobuf class (without protobuf methods)
+type SpacesState = PlainMessage<SpacesUIState>;
+
+interface SpacesStore extends SpacesState {
   // Actions
   setView: (view: ViewMode) => void;
   setSearchTerm: (term: string) => void;
   setSelectedKeywords: (keywords: string[]) => void;
-  setSortBy: (sortBy: SpacesUIState['sortBy']) => void;
-  setSortOrder: (order: SpacesUIState['sortOrder']) => void;
+  setSortBy: (sortBy: string) => void;
+  setSortOrder: (order: string) => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
   setIsCreating: (isCreating: boolean) => void;
-  setIsDeleting: (spaceId: string | null) => void;
-  setLastError: (error: string | null) => void;
-  setSelectedSpaceId: (spaceId: string | null) => void;
+  setIsDeleting: (spaceId: string | undefined) => void;
+  setLastError: (error: string | undefined) => void;
+  setSelectedSpaceId: (spaceId: string | undefined) => void;
   clearFilters: () => void;
   reset: () => void;
 }
 
-const initialState: SpacesUIState = {
-  view: 'gallery',
+const initialState: SpacesState = {
+  view: ViewMode.GALLERY,
   searchTerm: '',
   selectedKeywords: [],
   sortBy: 'created',
@@ -27,9 +31,9 @@ const initialState: SpacesUIState = {
   page: 1,
   pageSize: 20,
   isCreating: false,
-  isDeleting: null,
-  lastError: null,
-  selectedSpaceId: null,
+  isDeleting: undefined,
+  lastError: undefined,
+  selectedSpaceId: undefined,
 };
 
 export const useSpacesStore = create<SpacesStore>((set) => ({
@@ -61,6 +65,9 @@ export const useSpacesStore = create<SpacesStore>((set) => ({
     sortBy: 'created',
     sortOrder: 'desc',
     page: 1,
+    isDeleting: undefined,
+    lastError: undefined,
+    selectedSpaceId: undefined,
   }),
   
   reset: () => set(initialState),
