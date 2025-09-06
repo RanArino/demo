@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "proto:gen": "cd .. && buf generate --template frontend/buf.gen.yaml",
+    "proto:gen": "cd .. && buf generate",
     "dev": "npm run proto:gen && next dev --turbopack",
     "build": "next build",
     "build:with-proto": "npm run proto:gen && next build",

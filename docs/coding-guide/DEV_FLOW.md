@@ -79,24 +79,19 @@ npm run proto:gen       # Generate gRPC/Protobuf code
 
 ### **Protocol Buffer Code Generation:**
 
-This command generates TypeScript code from the `.proto` files. It should be run from the **project root directory** to ensure it can find all the necessary `.proto` files defined in the root `buf.work.yaml`. 
+This process generates the necessary TypeScript client and message types from the shared `.proto` files.
 
-The generation is configured in `frontend/buf.gen.yaml`. For a modern, TypeScript-first workflow, the following configuration is recommended. It uses the `@bufbuild/es` plugin to generate a single, comprehensive `.ts` file per proto file, which is ideal for Next.js applications.
+The entire Protobuf configuration is managed from the **project root** to serve as a single source of truth for all microservices and the frontend. The two main configuration files are:
 
-To execute the generation, you can run the `buf` command directly from the project root:
+  * `(root)/buf.work.yaml`: Defines which directories contain your `.proto` source files.
+  * `(root)/buf.gen.yaml`: Defines what code to generate (e.g., TypeScript messages, Connect clients).
 
-```bash
-npx buf generate --template frontend/buf.gen.yaml
+The generation command is intended to be run from within the `frontend` directory via an `npm` script.
+```
+cd frontend && npm run proto:gen
 ```
 
-For convenience, you can update the `proto:gen` script in `frontend/package.json` to navigate to the root directory before running the command. This allows you to still run `npm run proto:gen` from the `frontend` directory.
-
-```json
-// frontend/package.json
-"scripts": {
-  "proto:gen": "cd .. && npx buf generate --template frontend/buf.gen.yaml"
-}
-```
+The `proto:gen` script in `frontend/package.json` should be configured to navigate up to the root directory before executing the command. This allows `buf` to find the root-level configuration files automatically.
 
 
 ## **Multi-Service Development**

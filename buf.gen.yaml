@@ -1,14 +1,15 @@
+# (root)/buf.gen.yaml
+
 version: v1
 plugins:
-  # This generates the message and enum types (e.g., Space, ContentStatus)
   - plugin: buf.build/bufbuild/es:v1.8.0
     out: frontend/src/api/generated
     opt:
       - target=ts
+      - import_extension=none
 
-  # This generates the type-safe client for your services
-  # Using the correct, available version v0.8.6
   - plugin: buf.build/bufbuild/connect-web:v0.8.6
     out: frontend/src/api/generated
     opt:
       - target=ts
+      - import_extension=none
