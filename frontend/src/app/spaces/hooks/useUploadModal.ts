@@ -2,8 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ContentSource } from '@/app/spaces/types/content';
-
 interface UseUploadModalOptions {
   spaceId: string;
   onClose?: () => void;
