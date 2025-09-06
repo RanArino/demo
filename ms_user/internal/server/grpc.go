@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"fmt"
 	userv1 "demo/ms_user/api/proto/v1"
 	"demo/ms_user/internal/domain"
 	"demo/ms_user/internal/service"
+	"fmt"
 
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -73,7 +73,16 @@ func (s *grpcServer) UpdateUser(ctx context.Context, req *userv1.UpdateUserReque
 
 // DeleteUser handles the gRPC request to delete a user.
 func (s *grpcServer) DeleteUser(ctx context.Context, req *userv1.DeleteUserRequest) (*userv1.DeleteUserResponse, error) {
-	err := s.userService.DeleteUser(ctx)
+	var err error
+
+	if req.UserId != "" {
+		// Delete by internal user ID
+		err = s.userService.DeleteUserByID(ctx, req.UserId)
+	} else {
+		// No user ID provided, delete current authenticated user
+		err = s.userService.DeleteUser(ctx)
+	}
+
 	if err != nil {
 		return nil, err
 	}
