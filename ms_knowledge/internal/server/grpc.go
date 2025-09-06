@@ -43,7 +43,7 @@ func (s *GRPCServer) WithUserClient(c userv1.UserServiceClient) *GRPCServer {
 // Space Management
 func (s *GRPCServer) CreateSpace(ctx context.Context, req *knowledgev1.CreateSpaceRequest) (*knowledgev1.Space, error) {
 	// Auth interceptor has already validated the user and injected context values
-	space, err := s.spaceService.CreateSpace(ctx, req.Title, req.Description)
+	space, err := s.spaceService.CreateSpace(ctx, req.Title, req.Description, req.Keywords, req.Icon)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create space: %v", err)
 	}
@@ -109,11 +109,17 @@ func (s *GRPCServer) UpdateSpace(ctx context.Context, req *knowledgev1.UpdateSpa
 		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
 	}
 	updates := make(map[string]interface{})
-	if req.Space.GetTitle() != "" {
-		updates["title"] = req.Space.GetTitle()
+	if req.Title != "" {
+		updates["title"] = req.Title
 	}
-	if req.Space.GetDescription() != "" {
-		updates["description"] = req.Space.GetDescription()
+	if req.Description != "" {
+		updates["description"] = req.Description
+	}
+	if req.Keywords != nil {
+		updates["keywords"] = req.Keywords
+	}
+	if req.Icon != "" {
+		updates["icon"] = req.Icon
 	}
 	// SECURITY: Do not allow changing owner_id via this endpoint to prevent privilege escalation.
 	// If ownership transfer is needed, implement a dedicated admin-authorized flow.

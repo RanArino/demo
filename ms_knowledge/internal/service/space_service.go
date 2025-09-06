@@ -39,7 +39,7 @@ func (s *SpaceService) scopeSpaceFilterToOwner(ctx context.Context, filter domai
 	return filter, nil
 }
 
-func (s *SpaceService) CreateSpace(ctx context.Context, title, description string) (*domain.Space, error) {
+func (s *SpaceService) CreateSpace(ctx context.Context, title, description string, keywords []string, icon string) (*domain.Space, error) {
 	// Validate inputs
 	if strings.TrimSpace(title) == "" {
 		return nil, fmt.Errorf("title is required")
@@ -53,6 +53,8 @@ func (s *SpaceService) CreateSpace(ctx context.Context, title, description strin
 	space := &domain.Space{
 		Title:       strings.TrimSpace(title),
 		Description: strings.TrimSpace(description),
+		Keywords:    keywords,
+		Icon:        strings.TrimSpace(icon),
 		OwnerID:     ownerUUID,
 	}
 
