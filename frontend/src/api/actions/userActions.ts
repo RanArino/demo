@@ -1,61 +1,78 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import * as grpc from '@grpc/grpc-js';
 import { getUserServiceClient } from '../server-client';
 import {
   CreateUserRequest,
-  CreateUserResponse,
   GetUserRequest,
-  GetUserResponse,
   UpdateUserRequest,
-  UpdateUserResponse,
   DeleteUserRequest,
-  DeleteUserResponse,
   CheckUserStatusRequest,
-  CheckUserStatusResponse,
   ActivateUserRequest,
-  ActivateUserResponse,
+  User,
 } from '../generated/v1/user_pb';
+import { ConnectError } from '@bufbuild/connect';
+
+export type PlainUser = {
+  id: string;
+  clerkUserId: string;
+  email: string;
+  fullName: string;
+  username: string;
+  role: string;
+  status: string;
+  storageUsedBytes: bigint;
+  storageQuotaBytes: bigint;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
 
 /**
- * Helper function to create gRPC metadata with JWT token
+ * Helper function to create headers with JWT token
  */
-async function createMetadataWithAuth(): Promise<grpc.Metadata> {
+async function createAuthHeaders(): Promise<Headers> {
   const { getToken } = await auth();
-  // Get token using the custom JWT template
   const token = await getToken({ template: 'ms-user-auth' });
-
-  const metadata = new grpc.Metadata();
+  
+  const headers = new Headers();
   if (token) {
-    metadata.add('authorization', `Bearer ${token}`);
+    headers.append('authorization', `Bearer ${token}`);
   }
   
-  return metadata;
+  return headers;
 }
 
 /**
  * Helper function to sanitize error messages for security
  */
-function sanitizeError(error: any): string {
+function sanitizeError(error: unknown): string {
+  if (error instanceof ConnectError) {
+    return error.message;
+  }
+
   const isDevelopment = process.env.NODE_ENV === 'development';
   
   if (isDevelopment) {
-    // In development, provide more context but still avoid exposing sensitive data
-    if (error.message?.includes('token verification failed')) {
-      return 'Authentication failed. Please sign in again.';
-    }
-    if (error.message?.includes('UNAUTHENTICATED')) {
-      return 'Authentication required. Please sign in.';
-    }
-    return error.message || 'An error occurred';
+    return error instanceof Error ? error.message : 'An error occurred';
   } else {
-    // In production, return generic error messages
-    if (error.code === 16 || error.message?.includes('UNAUTHENTICATED')) {
-      return 'Authentication failed. Please sign in again.';
-    }
     return 'An error occurred. Please try again.';
   }
+}
+
+function toPlainUserObject(user: User): PlainUser {
+  return {
+    id: user.id,
+    clerkUserId: user.clerkUserId,
+    email: user.email,
+    fullName: user.fullName,
+    username: user.username,
+    role: user.role,
+    status: user.status,
+    storageUsedBytes: user.storageUsedBytes,
+    storageQuotaBytes: user.storageQuotaBytes,
+    createdAt: user.createdAt?.toDate(),
+    updatedAt: user.updatedAt?.toDate(),
+  };
 }
 
 /**
@@ -66,7 +83,7 @@ export async function createUser(userData: {
   fullName: string;
   username: string;
   role?: string;
-}): Promise<{ success: boolean; user?: any; error?: string }> {
+}): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -74,42 +91,26 @@ export async function createUser(userData: {
     }
 
     const client = getUserServiceClient();
-    const metadata = await createMetadataWithAuth();
-    const request = new CreateUserRequest();
+    const headers = await createAuthHeaders();
     
-    request.setClerkUserId(userId);
-    request.setEmail(userData.email);
-    request.setFullName(userData.fullName);
-    request.setUsername(userData.username);
-    request.setRole(userData.role || 'user');
-
-    return new Promise((resolve) => {
-      client.createUser(request, metadata, (error: any, response: CreateUserResponse) => {
-        if (error) {
-          console.error('gRPC createUser error:', error);
-          resolve({ success: false, error: sanitizeError(error) });
-          return;
-        }
-
-        const user = response.getUser();
-        if (user) {
-          resolve({
-            success: true,
-            user: {
-              id: user.getId(),
-              clerkUserId: user.getClerkUserId(),
-              email: user.getEmail(),
-              fullName: user.getFullName(),
-              username: user.getUsername(),
-              role: user.getRole(),
-              status: user.getStatus(),
-            },
-          });
-        } else {
-          resolve({ success: false, error: 'No user returned' });
-        }
-      });
+    const request = new CreateUserRequest({
+      clerkUserId: userId,
+      email: userData.email,
+      // fullName: userData.fullName,
+      // username: userData.username,
+      // role: userData.role || 'user',
     });
+
+    const response = await client.createUser(request, { headers });
+
+    if (response.user) {
+      return {
+        success: true,
+        user: toPlainUserObject(response.user),
+      };
+    } else {
+      return { success: false, error: 'No user returned' };
+    }
   } catch (error) {
     console.error('createUser action error:', error);
     return { success: false, error: sanitizeError(error) };
@@ -122,7 +123,7 @@ export async function createUser(userData: {
 export async function activateUser(userData: {
   fullName: string;
   username: string;
-}): Promise<{ success: boolean; user?: any; error?: string }> {
+}): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -130,39 +131,23 @@ export async function activateUser(userData: {
     }
 
     const client = getUserServiceClient();
-    const metadata = await createMetadataWithAuth();
-    const request = new ActivateUserRequest();
+    const headers = await createAuthHeaders();
     
-    request.setFullName(userData.fullName);
-    request.setUsername(userData.username);
-
-    return new Promise((resolve) => {
-      client.activateUser(request, metadata, (error: any, response: ActivateUserResponse) => {
-        if (error) {
-          console.error('gRPC activateUser error:', error);
-          resolve({ success: false, error: sanitizeError(error) });
-          return;
-        }
-
-        const user = response.getUser();
-        if (user) {
-          resolve({
-            success: true,
-            user: {
-              id: user.getId(),
-              clerkUserId: user.getClerkUserId(),
-              email: user.getEmail(),
-              fullName: user.getFullName(),
-              username: user.getUsername(),
-              role: user.getRole(),
-              status: user.getStatus(),
-            },
-          });
-        } else {
-          resolve({ success: false, error: 'No user returned' });
-        }
-      });
+    const request = new ActivateUserRequest({
+      fullName: userData.fullName,
+      username: userData.username,
     });
+
+    const response = await client.activateUser(request, { headers });
+
+    if (response.user) {
+      return {
+        success: true,
+        user: toPlainUserObject(response.user),
+      };
+    } else {
+      return { success: false, error: 'No user returned' };
+    }
   } catch (error) {
     console.error('activateUser action error:', error);
     return { success: false, error: sanitizeError(error) };
@@ -173,7 +158,7 @@ export async function activateUser(userData: {
 /**
  * Server action to get user details
  */
-export async function getUser(userId?: string): Promise<{ success: boolean; user?: any; error?: string }> {
+export async function getUser(userId?: string): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
   try {
     const { userId: authUserId } = await auth();
     if (!authUserId) {
@@ -181,41 +166,37 @@ export async function getUser(userId?: string): Promise<{ success: boolean; user
     }
 
     const client = getUserServiceClient();
-    const metadata = await createMetadataWithAuth();
-    const request = new GetUserRequest();
-    request.setUserId(userId || authUserId);
-
-    return new Promise((resolve) => {
-      client.getUser(request, metadata, (error: any, response: GetUserResponse) => {
-        if (error) {
-          console.error('gRPC getUser error:', error);
-          resolve({ success: false, error: sanitizeError(error) });
-          return;
-        }
-
-        const user = response.getUser();
-        if (user) {
-          resolve({
-            success: true,
-            user: {
-              id: user.getId(),
-              clerkUserId: user.getClerkUserId(),
-              email: user.getEmail(),
-              fullName: user.getFullName(),
-              username: user.getUsername(),
-              role: user.getRole(),
-              status: user.getStatus(),
-              storageUsedBytes: user.getStorageUsedBytes(),
-              storageQuotaBytes: user.getStorageQuotaBytes(),
-              createdAt: user.getCreatedAt()?.toDate(),
-              updatedAt: user.getUpdatedAt()?.toDate(),
-            },
-          });
-        } else {
-          resolve({ success: false, error: 'User not found' });
-        }
-      });
+    const headers = await createAuthHeaders();
+    
+    // Determine which type of ID we're using
+    const targetUserId = userId || authUserId;
+    
+    // Helper function to detect if a string is a UUID (internal user ID)
+    const isUUID = (str: string): boolean => {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(str);
+    };
+    
+    // Determine the identifier type:
+    const isInternalUserId = userId && isUUID(userId);
+    
+    const request = new GetUserRequest({ 
+      identifier: { 
+        case: isInternalUserId ? "userId" : "clerkUserId", 
+        value: targetUserId 
+      } 
     });
+
+    const response = await client.getUser(request, { headers });
+
+    if (response.user) {
+      return {
+        success: true,
+        user: toPlainUserObject(response.user),
+      };
+    } else {
+      return { success: false, error: 'User not found' };
+    }
   } catch (error) {
     console.error('getUser action error:', error);
     return { success: false, error: sanitizeError(error) };
@@ -231,7 +212,7 @@ export async function updateUser(userData: {
   fullName?: string;
   username?: string;
   role?: string;
-}): Promise<{ success: boolean; user?: any; error?: string }> {
+}): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
   try {
     const { userId: authUserId } = await auth();
     if (!authUserId) {
@@ -239,43 +220,25 @@ export async function updateUser(userData: {
     }
 
     const client = getUserServiceClient();
-    const metadata = await createMetadataWithAuth();
-    const request = new UpdateUserRequest();
+    const headers = await createAuthHeaders();
     
-    request.setUserId(userData.userId || authUserId);
-    if (userData.email) request.setEmail(userData.email);
-    if (userData.fullName) request.setFullName(userData.fullName);
-    if (userData.username) request.setUsername(userData.username);
-    if (userData.role) request.setRole(userData.role);
-
-    return new Promise((resolve) => {
-      client.updateUser(request, metadata, (error: any, response: UpdateUserResponse) => {
-        if (error) {
-          console.error('gRPC updateUser error:', error);
-          resolve({ success: false, error: sanitizeError(error) });
-          return;
-        }
-
-        const user = response.getUser();
-        if (user) {
-          resolve({
-            success: true,
-            user: {
-              id: user.getId(),
-              clerkUserId: user.getClerkUserId(),
-              email: user.getEmail(),
-              fullName: user.getFullName(),
-              username: user.getUsername(),
-              role: user.getRole(),
-              status: user.getStatus(),
-              updatedAt: user.getUpdatedAt()?.toDate(),
-            },
-          });
-        } else {
-          resolve({ success: false, error: 'No user returned' });
-        }
-      });
+    const request = new UpdateUserRequest({
+      email: userData.email,
+      fullName: userData.fullName,
+      username: userData.username,
+      role: userData.role,
     });
+
+    const response = await client.updateUser(request, { headers });
+
+    if (response.user) {
+      return {
+        success: true,
+        user: toPlainUserObject(response.user),
+      };
+    } else {
+      return { success: false, error: 'No user returned' };
+    }
   } catch (error) {
     console.error('updateUser action error:', error);
     return { success: false, error: sanitizeError(error) };
@@ -290,7 +253,7 @@ export async function checkUserStatus(): Promise<{
   profileCompleted?: boolean; 
   needsRedirect?: boolean; 
   redirectUrl?: string; 
-  user?: any; 
+  user?: PlainUser; 
   error?: string; 
 }> {
   try {
@@ -300,35 +263,18 @@ export async function checkUserStatus(): Promise<{
     }
 
     const client = getUserServiceClient();
-    const metadata = await createMetadataWithAuth();
+    const headers = await createAuthHeaders();
     const request = new CheckUserStatusRequest();
 
-    return new Promise((resolve) => {
-      client.checkUserStatus(request, metadata, (error: any, response: CheckUserStatusResponse) => {
-        if (error) {
-          console.error('gRPC checkUserStatus error:', error);
-          resolve({ success: false, error: sanitizeError(error) });
-          return;
-        }
+    const response = await client.checkUserStatus(request, { headers });
 
-        const user = response.getUser();
-        resolve({
-          success: true,
-          profileCompleted: response.getProfileCompleted(),
-          needsRedirect: response.getNeedsRedirect(),
-          redirectUrl: response.getRedirectUrl(),
-          user: user ? {
-            id: user.getId(),
-            clerkUserId: user.getClerkUserId(),
-            email: user.getEmail(),
-            fullName: user.getFullName(),
-            username: user.getUsername(),
-            role: user.getRole(),
-            status: user.getStatus(),
-          } : undefined,
-        });
-      });
-    });
+    return {
+      success: true,
+      profileCompleted: response.profileCompleted,
+      needsRedirect: response.needsRedirect,
+      redirectUrl: response.redirectUrl,
+      user: response.user ? toPlainUserObject(response.user) : undefined,
+    };
   } catch (error) {
     console.error('checkUserStatus action error:', error);
     return { success: false, error: sanitizeError(error) };
@@ -346,21 +292,16 @@ export async function deleteUser(userId?: string): Promise<{ success: boolean; e
     }
 
     const client = getUserServiceClient();
-    const metadata = await createMetadataWithAuth();
-    const request = new DeleteUserRequest();
-    request.setUserId(userId || authUserId);
-
-    return new Promise((resolve) => {
-      client.deleteUser(request, metadata, (error: any, response: DeleteUserResponse) => {
-        if (error) {
-          console.error('gRPC deleteUser error:', error);
-          resolve({ success: false, error: sanitizeError(error) });
-          return;
-        }
-
-        resolve({ success: true });
-      });
+    const headers = await createAuthHeaders();
+    
+    // If userId is provided, use it; otherwise delete current authenticated user
+    const request = new DeleteUserRequest({
+      userId: userId || ""
     });
+
+    await client.deleteUser(request, { headers });
+
+    return { success: true };
   } catch (error) {
     console.error('deleteUser action error:', error);
     return { success: false, error: sanitizeError(error) };
