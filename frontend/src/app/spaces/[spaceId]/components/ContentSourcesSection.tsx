@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ContentSource, ContentSourceStatus } from '@/app/spaces/types/content';
+import { ContentSource, ContentStatus } from '@/api/generated/v1/knowledge_pb';
 import { generateDownloadURL, deleteContentSource } from '@/api/actions/contentActions';
 import { useToast } from '@/components/ui/use-toast';
 import { useProcessingPoller } from '@/app/spaces/hooks/useProcessingPoller';
@@ -36,8 +36,8 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
     };
     const onUpdated = (e: CustomEvent<ContentSource>) => {
       const detail = e.detail;
-      setSources((prev) => prev.map((s) => (s.id === detail.id ? { ...s, ...detail } : s)));
-      if (detail.processingStatus === ContentSourceStatus.COMPLETED) {
+      setSources((prev) => prev.map((s) => (s.id === detail.id ? detail : s)));
+      if (detail.status === ContentStatus.PROCESSED) {
         setSelectedIds((prev) => {
           const next = new Set(prev);
           next.add(detail.id);
@@ -109,16 +109,16 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
 
   useProcessingPoller({
     spaceId,
-    candidateIds: useMemo(() => sources.filter(s => s.processingStatus !== ContentSourceStatus.COMPLETED && s.processingStatus !== ContentSourceStatus.FAILED).map(s => s.id), [sources]),
+    candidateIds: useMemo(() => sources.filter(s => s.status !== ContentStatus.PROCESSED && s.status !== ContentStatus.FAILED).map(s => s.id), [sources]),
     onUpdates: useCallback((updates) => {
       if (!updates || updates.length === 0) return;
       setSources((list) => list.map((s) => {
         const hit = updates.find((u) => u.id === s.id);
-        return hit ? { ...s, processingStatus: hit.processingStatus } as ContentSource : s;
+        return hit ? { ...s, status: hit.status } as ContentSource : s;
       }));
 
       updates.forEach((u) => {
-        if (u.processingStatus === ContentSourceStatus.COMPLETED) {
+        if (u.status === ContentStatus.PROCESSED) {
           try {
             const completed = sources.find((s) => s.id === u.id);
             toast({ title: 'Processed Files', description: completed?.title || 'Your file is ready' });
@@ -136,7 +136,7 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
             });
           }, 1500);
         }
-        if (u.processingStatus === ContentSourceStatus.FAILED) {
+        if (u.status === ContentStatus.FAILED) {
           toast({ title: 'Processing failed', description: 'An error occurred while processing the file', variant: 'destructive' });
           setProgressById((prev) => {
             const { [u.id]: _, ...rest } = prev;
@@ -149,9 +149,9 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
 
   const statusCounts = useMemo(() => ({
     total: sources.length,
-    completed: sources.filter(s => s.processingStatus === ContentSourceStatus.COMPLETED).length,
-    processing: sources.filter(s => s.processingStatus === ContentSourceStatus.PROCESSING).length,
-    failed: sources.filter(s => s.processingStatus === ContentSourceStatus.FAILED).length,
+    completed: sources.filter(s => s.status === ContentStatus.PROCESSED).length,
+    processing: sources.filter(s => s.status === ContentStatus.PROCESSING).length,
+    failed: sources.filter(s => s.status === ContentStatus.FAILED).length,
   }), [sources]);
 
   return (
