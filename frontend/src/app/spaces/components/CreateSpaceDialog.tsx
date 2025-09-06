@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createSpace } from '@/api/actions/spaceActions';
-import { Space, CreateSpaceInput } from '../types/spaces';
+import { Space, CreateSpaceRequest } from '@/api/generated/v1/knowledge_pb';
 import { useToast } from '@/components/ui/use-toast';
 
 interface CreateSpaceDialogProps {
@@ -23,18 +23,15 @@ export default function CreateSpaceDialog({
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<CreateSpaceInput>({
+  const [formData, setFormData] = useState<Partial<CreateSpaceRequest>>({
     title: '',
     description: '',
-    keywords: [],
-    icon: '',
   });
-  const [keywordInput, setKeywordInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
+    if (!formData.title?.trim()) {
       toast({
         title: 'Error',
         description: 'Please enter a space title',
@@ -45,7 +42,7 @@ export default function CreateSpaceDialog({
 
     setLoading(true);
     try {
-      const result = await createSpace(formData);
+      const result = await createSpace(formData as CreateSpaceRequest);
       if (result.ok && result.data) {
         toast({
           title: 'Success',
@@ -55,10 +52,7 @@ export default function CreateSpaceDialog({
         setFormData({
           title: '',
           description: '',
-          keywords: [],
-          icon: '',
         });
-        setKeywordInput('');
         
         // Call the success callback first
         onSuccess(result.data);
@@ -82,24 +76,6 @@ export default function CreateSpaceDialog({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAddKeyword = () => {
-    const trimmed = keywordInput.trim();
-    if (trimmed && !formData.keywords?.includes(trimmed)) {
-      setFormData({
-        ...formData,
-        keywords: [...(formData.keywords || []), trimmed],
-      });
-      setKeywordInput('');
-    }
-  };
-
-  const handleRemoveKeyword = (keyword: string) => {
-    setFormData({
-      ...formData,
-      keywords: formData.keywords?.filter(k => k !== keyword),
-    });
   };
 
   if (!open) return null;
@@ -141,69 +117,6 @@ export default function CreateSpaceDialog({
               className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm min-h-[80px] resize-none"
               disabled={loading}
             />
-          </div>
-
-          {/* Icon */}
-          <div>
-            <Label htmlFor="icon">Icon (Emoji)</Label>
-            <Input
-              id="icon"
-              value={formData.icon || ''}
-              onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              placeholder="📚"
-              disabled={loading}
-              maxLength={2}
-            />
-          </div>
-
-          {/* Keywords */}
-          <div>
-            <Label htmlFor="keywords">Keywords</Label>
-            <div className="flex gap-2 mb-2">
-              <Input
-                id="keywords"
-                value={keywordInput}
-                onChange={(e) => setKeywordInput(e.target.value)}
-                placeholder="Add a keyword"
-                disabled={loading}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddKeyword();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddKeyword}
-                disabled={loading}
-              >
-                Add
-              </Button>
-            </div>
-            
-            {/* Keywords list */}
-            {formData.keywords && formData.keywords.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {formData.keywords.map((keyword) => (
-                  <span
-                    key={keyword}
-                    className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-md flex items-center gap-1"
-                  >
-                    {keyword}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveKeyword(keyword)}
-                      className="hover:text-destructive"
-                      disabled={loading}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Actions */}

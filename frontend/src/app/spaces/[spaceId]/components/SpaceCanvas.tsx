@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Space } from '@/app/spaces/types/spaces';
-import { ContentSource } from '@/app/spaces/types/content';
+import { Space, ContentSource, ContentStatus } from '@/api/generated/v1/knowledge_pb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ZoomIn, ZoomOut, RotateCcw, Plus, FileText, Link, Type, Upload, Maximize2, Minimize2 } from 'lucide-react';
@@ -46,18 +45,20 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
     if (!source) return null;
     
     const statusColors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-blue-100 text-blue-800',
-      completed: 'bg-green-100 text-green-800',
-      failed: 'bg-red-100 text-red-800',
+      [ContentStatus.CONTENT_STATUS_UNSPECIFIED]: 'bg-gray-100 text-gray-800',
+      [ContentStatus.UPLOADING]: 'bg-yellow-100 text-yellow-800',
+      [ContentStatus.UPLOADED]: 'bg-blue-100 text-blue-800',
+      [ContentStatus.PROCESSING]: 'bg-blue-100 text-blue-800',
+      [ContentStatus.PROCESSED]: 'bg-green-100 text-green-800',
+      [ContentStatus.FAILED]: 'bg-red-100 text-red-800',
     };
 
     return (
       <Badge 
         variant="outline" 
-        className={`text-xs ${statusColors[source.processingStatus]}`}
+        className={`text-xs ${statusColors[source.status]}`}
       >
-        {source.processingStatus}
+        {ContentStatus[source.status]}
       </Badge>
     );
   };
@@ -137,7 +138,7 @@ export default function SpaceCanvas({ space, contentSources, className }: SpaceC
         {/* Space Title and Description */}
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-start gap-3">
-            <span className="text-2xl flex-shrink-0">{space.icon || '📚'}</span>
+            <span className="text-2xl flex-shrink-0">📚</span>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl font-bold text-gray-900 break-words">
                 {space.title}

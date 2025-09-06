@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Space } from '@/app/spaces/types/spaces';
+import { Space } from '@/api/generated/v1/knowledge_pb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import ChatHistorySection from './ChatHistorySection';
 import { ArrowLeft, Globe, Users, Lock, Eye, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { safeTimestampToDate } from '@/lib/types';
 import Image from 'next/image';
 
 interface LeftSidebarProps {
@@ -28,21 +29,13 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
   const sidebarWidthRef = useRef<number>(320);
 
   const getAccessIcon = () => {
-    switch (space.accessLevel) {
-      case 'public': return <Globe className="h-4 w-4" />;
-      case 'shared': return <Users className="h-4 w-4" />;
-      case 'private': return <Lock className="h-4 w-4" />;
-      default: return <Eye className="h-4 w-4" />;
-    }
+    // TODO: Implement access level logic based on new data model
+    return <Globe className="h-4 w-4" />;
   };
 
   const getAccessColor = () => {
-    switch (space.accessLevel) {
-      case 'public': return 'bg-green-100 text-green-800 border-green-200';
-      case 'shared': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'private': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    // TODO: Implement access level logic based on new data model
+    return 'bg-green-100 text-green-800 border-green-200';
   };
 
   const handleBack = () => {
@@ -204,51 +197,41 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           {/* Space Cover Image */}
-          {space.coverImage && (
-            <div className="relative h-48 w-full bg-white">
-              <Image
-                src={space.coverImage}
-                alt={space.title}
-                fill
-                className="object-cover"
-              />
-              {/* Access Badge on Image */}
-              <div className="absolute top-3 right-3">
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "text-xs capitalize flex items-center gap-1 backdrop-blur-sm",
-                    getAccessColor()
-                  )}
-                >
-                  {getAccessIcon()}
-                  {space.accessLevel}
-                </Badge>
-              </div>
+          <div className="relative h-48 w-full bg-white">
+            {/* Access Badge on Image */}
+            <div className="absolute top-3 right-3">
+              <Badge 
+                variant="secondary" 
+                className={cn(
+                  "text-xs capitalize flex items-center gap-1 backdrop-blur-sm",
+                  getAccessColor()
+                )}
+              >
+                {getAccessIcon()}
+                {/* {space.accessLevel} */}
+              </Badge>
             </div>
-          )}
+          </div>
           
           {/* Space Info */}
           <div className="p-6 bg-white border-b border-gray-200">
             {/* Space Icon and Title */}
             <div className="flex items-start gap-3 mb-4">
-              <span className="text-3xl flex-shrink-0">{space.icon || '📚'}</span>
+              <span className="text-3xl flex-shrink-0">📚</span>
               <div className="min-w-0 flex-1">
                 <h1 className="text-xl font-bold text-gray-900 break-words">
                   {space.title}
                 </h1>
-                {!space.coverImage && (
-                  <Badge 
-                    variant="secondary" 
-                    className={cn(
-                      "text-xs capitalize mt-2 inline-flex items-center gap-1",
-                      getAccessColor()
-                    )}
-                  >
-                    {getAccessIcon()}
-                    {space.accessLevel}
-                  </Badge>
-                )}
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "text-xs capitalize mt-2 inline-flex items-center gap-1",
+                    getAccessColor()
+                  )}
+                >
+                  {getAccessIcon()}
+                  {/* {space.accessLevel} */}
+                </Badge>
               </div>
             </div>
 
@@ -263,11 +246,11 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
             <div className="flex flex-col gap-1 text-xs text-gray-600 mb-4">
               <div>
                 <span className="font-medium">Created:</span>{' '}
-                {new Date(space.createdAt).toLocaleDateString()}
+                {safeTimestampToDate(space.createdAt)?.toLocaleDateString() || 'Unknown'}
               </div>
               <div>
                 <span className="font-medium">Updated:</span>{' '}
-                {new Date(space.lastUpdatedAt).toLocaleDateString()}
+                {safeTimestampToDate(space.updatedAt)?.toLocaleDateString() || 'Unknown'}
               </div>
             </div>
 
@@ -275,34 +258,32 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-xl font-bold text-gray-900">
-                  {space.documentCount || 0}
+                  {space.stats?.contentCount.toString() || 0}
                 </div>
                 <div className="text-xs text-gray-600">Documents</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-xl font-bold text-gray-900">
-                  {((space.totalSizeBytes || 0) / (1024 * 1024)).toFixed(1)}
+                  0
                 </div>
                 <div className="text-xs text-gray-600">MB Used</div>
               </div>
             </div>
 
             {/* Keywords */}
-            {space.keywords && space.keywords.length > 0 && (
-              <div>
-                <h3 className="text-xs font-medium text-gray-900 mb-2">Keywords</h3>
-                <div className="flex flex-wrap gap-1">
-                  {space.keywords.map((keyword) => (
-                    <span
-                      key={keyword}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
+            <div>
+              <h3 className="text-xs font-medium text-gray-900 mb-2">Keywords</h3>
+              <div className="flex flex-wrap gap-1">
+                {/* {space.keywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {keyword}
+                  </span>
+                ))} */}
               </div>
-            )}
+            </div>
           </div>
           
           {/* Chat History Section */}

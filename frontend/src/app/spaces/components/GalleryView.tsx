@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Space } from '../types/spaces';
+import { Space } from '@/api/generated/v1/knowledge_pb';
 import SpaceCard from './SpaceCard';
 import { Button } from '@/components/ui/button';
 import { Grid3X3, Grid2X2, LayoutGrid } from 'lucide-react';
