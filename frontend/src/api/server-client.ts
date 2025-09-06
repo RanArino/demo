@@ -1,62 +1,53 @@
-import * as grpc from '@grpc/grpc-js';
-import { UserServiceClient } from './generated/v1/user_grpc_pb';
-import { KnowledgeServiceClient } from './generated/v1/knowledge_grpc_pb';
+import { createPromiseClient, PromiseClient } from '@bufbuild/connect';
+import { createGrpcTransport } from '@bufbuild/connect-node';
+import { UserService } from './generated/v1/user_connectweb';
+import { KnowledgeService } from './generated/v1/knowledge_connectweb';
 
 /**
  * Singleton gRPC client manager for server-side operations
  * These clients are used in server actions and API routes
  */
 class GRPCClientManager {
-  private static userInstance: UserServiceClient | null = null;
-  private static knowledgeInstance: KnowledgeServiceClient | null = null;
+  private static userInstance: PromiseClient<typeof UserService> | null = null;
+  private static knowledgeInstance: PromiseClient<typeof KnowledgeService> | null = null;
 
-  static getUserInstance(): UserServiceClient {
+  static getUserInstance(): PromiseClient<typeof UserService> {
     if (!this.userInstance) {
-      const grpcUrl = process.env.MS_USER_GRPC_URL_INTERNAL || 'localhost:50051';
+      const grpcUrl = process.env.MS_USER_GRPC_URL_INTERNAL || 'http://localhost:50051';
       
-      // Create credentials for internal communication
-      // In production, this should use TLS, but for internal services we can use insecure
-      const credentials = grpc.credentials.createInsecure();
+      const transport = createGrpcTransport({
+        httpVersion: '2',
+        baseUrl: grpcUrl,
+      });
       
-      this.userInstance = new UserServiceClient(grpcUrl, credentials);
+      this.userInstance = createPromiseClient(UserService, transport);
     }
     
     return this.userInstance;
   }
 
-  static getKnowledgeInstance(): KnowledgeServiceClient {
+  static getKnowledgeInstance(): PromiseClient<typeof KnowledgeService> {
     if (!this.knowledgeInstance) {
-      const grpcUrl = process.env.MS_KNOWLEDGE_GRPC_URL_INTERNAL || 'localhost:50052';
+      const grpcUrl = process.env.MS_KNOWLEDGE_GRPC_URL_INTERNAL || 'http://localhost:50052';
       
-      // Create credentials for internal communication
-      const credentials = grpc.credentials.createInsecure();
+      const transport = createGrpcTransport({
+        httpVersion: '2',
+        baseUrl: grpcUrl,
+      });
       
-      this.knowledgeInstance = new KnowledgeServiceClient(grpcUrl, credentials);
+      this.knowledgeInstance = createPromiseClient(KnowledgeService, transport);
     }
     
     return this.knowledgeInstance;
   }
-
-  static closeAll(): void {
-    if (this.userInstance) {
-      this.userInstance.close();
-      this.userInstance = null;
-    }
-    if (this.knowledgeInstance) {
-      this.knowledgeInstance.close();
-      this.knowledgeInstance = null;
-    }
-  }
 }
 
-export const getUserServiceClient = (): UserServiceClient => {
+export const getUserServiceClient = (): PromiseClient<typeof UserService> => {
   return GRPCClientManager.getUserInstance();
 };
 
-export const getKnowledgeServiceClient = (): KnowledgeServiceClient => {
+export const getKnowledgeServiceClient = (): PromiseClient<typeof KnowledgeService> => {
   return GRPCClientManager.getKnowledgeInstance();
 };
 
-export const closeGRPCClient = (): void => {
-  GRPCClientManager.closeAll();
-};
+// No close method is needed for the new clients.
