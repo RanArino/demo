@@ -445,3 +445,10 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 		ProcessingStats:   processingStats,
 	}, nil
 }
+
+func (r *spaceRepository) UpdateStats(ctx context.Context, spaceID uuid.UUID, docCountChange int, sizeChange int64) error {
+	return r.client.Space.UpdateOneID(spaceID).
+		AddDocumentCount(docCountChange).
+		AddTotalSizeBytes(sizeChange).
+		Exec(ctx)
+}
