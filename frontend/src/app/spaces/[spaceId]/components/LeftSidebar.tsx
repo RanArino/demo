@@ -10,7 +10,7 @@ import { EditSpaceForm } from '@/app/spaces/components/EditSpaceForm';
 import ChatHistorySection from './ChatHistorySection';
 import { ArrowLeft, Globe, Users, Lock, Eye, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn, formatSize } from '@/lib/utils';
 import { safeTimestampToDate } from '@/lib/types';
 import Image from 'next/image';
 
@@ -264,9 +264,9 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-xl font-bold text-gray-900">
-                  0
+                  {formatSize(Number(space.totalSizeBytes) || 0)}
                 </div>
-                <div className="text-xs text-gray-600">MB Used</div>
+                <div className="text-xs text-gray-600">Storage Used</div>
               </div>
             </div>
 
