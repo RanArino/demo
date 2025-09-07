@@ -51,35 +51,35 @@
 
 ## Feature 2: Backend Fixes (Requirements 2, 4, 5)
 
-- [ ] **2.1. Fix `space_service.go` (created_by)**
+- [x] **2.1. Fix `space_service.go` (created_by)**
   > Add code to set `CreatedBy` and `LastUpdatedBy` in the `domain.Space` struct within the `CreateSpace` function.
   > **Related Requirements:** 2
 
-- [ ] **2.2. Fix `space_service.go` (access_level)**
+- [x] **2.2. Fix `space_service.go` (access_level)**
   > Explicitly set `AccessLevel` to `"private"` in the `domain.Space` struct within the `CreateSpace` function.
   > **Related Requirements:** 5
 
-- [ ] **2.3. Update `domain.SpaceRepository` interface**
+- [x] **2.3. Update `domain.SpaceRepository` interface**
   > Add `UpdateStats` method definition to `domain/space.go`.
   > **Related Requirements:** 4
 
-- [ ] **2.4. Implement `UpdateStats` in `space_repository.go`**
+- [x] **2.4. Implement `UpdateStats` in `space_repository.go`**
   > Implement logic to atomically update statistics using Ent's `AddDocumentCount` and `AddTotalSizeBytes`.
   > **Related Requirements:** 4
 
-- [ ] **2.5. Fix `content_service.go`'s `CreateUploadURL`**
+- [x] **2.5. Fix `content_service.go`'s `CreateUploadURL`**
   > Implement processing to call `spaceRepo.UpdateStats`, increment document count by +1, and add size.
   > **Related Requirements:** 4
 
-- [ ] **2.6. Fix `content_service.go`'s `DeleteContentSource`**
+- [x] **2.6. Fix `content_service.go`'s `DeleteContentSource`**
   > Implement processing to call `spaceRepo.UpdateStats`, decrement document count by -1, and subtract size.
   > **Related Requirements:** 4
 
-- [ ] **2.7. Create database backfill script**
+- [x] **2.7. Create database backfill script**
   > Prepare a one-time script or admin functionality to fix statistics (`document_count`, `total_size_bytes`) and `access_level` for existing spaces.
   > **Related Requirements:** 4, 5
 
-- [ ] **2.8. Fix `content_repository.go` missing `size_bytes` field**
+- [x] **2.8. Fix `content_repository.go` missing `size_bytes` field**
   > Add missing `SetSizeBytes(content.SizeBytes)` in Create method and `SizeBytes` field mapping in GetByID and List methods.
   > **Related Requirements:** 7
   > - `ms_knowledge/internal/repository/content_repository.go`
