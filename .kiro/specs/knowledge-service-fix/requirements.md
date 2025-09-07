@@ -48,7 +48,7 @@ AND the `created_by` and `last_updated_by` fields of that record should be set t
 
 ### Requirement 3: Resolving Conflict Between Inline Editing and Navigation in List View
 **User Story:**
-> As a space management user, when I click on a space title in the list view on the `/spaces` page, I want to be able to edit the title inline without page navigation. This is because I want to update multiple space information intuitively and quickly.
+> As a space management user, when I click on a space title in the list view on the `/spaces` page, I want to be able to edit the title inline without page navigation. Additionally, I want a clear way to navigate to individual space pages through a dedicated navigation icon in the Actions column. This is because I want to update multiple space information intuitively and quickly while also having easy access to detailed space views.
 
 **Acceptance Criteria:**
 ```gherkin
@@ -58,7 +58,9 @@ THEN the title should switch to an editable input field
 AND no page navigation should occur
 WHEN I click on Description or Keywords text
 THEN each field should become editable inline
-AND the "Actions" column (pencil icon that opens edit modal) should be removed from the table
+AND the "Actions" column should contain a navigation icon (e.g., external link or arrow icon) instead of the pencil/edit icon
+WHEN I click on the navigation icon in the Actions column
+THEN I should be navigated to the `/spaces/[spaceId]` page for that specific space
 ```
 
 ### Requirement 4: Database Update for Space Statistics (Document Count and Total Size)

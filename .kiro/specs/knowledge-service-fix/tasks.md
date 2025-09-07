@@ -92,7 +92,7 @@
   > - `frontend/src/app/spaces/components/ListView/SpacesTable.tsx`
 
 - [ ] **3.2. Modify Actions column in `ListView.tsx`**
-  > Replace the "Edit" (`Pencil`) icon and its `Dialog` with a navigation icon that links to `/spaces/[spaceId]`. This provides a clear way to navigate to the space details.
+  > Replace the "Edit" (`Pencil`) icon and its `Dialog` with a navigation icon (e.g., external link or arrow icon) that links to `/spaces/[spaceId]`. This provides a clear way to navigate to the space details while maintaining inline editing functionality for other fields.
   > **Related Requirements:** 3
   > - `frontend/src/app/spaces/components/ListView/SpacesTable.tsx`
 
