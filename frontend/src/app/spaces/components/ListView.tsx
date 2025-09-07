@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Space } from '@/api/generated/v1/knowledge_pb';
+import { Space, ContentSource } from '@/api/generated/v1/knowledge_pb';
 import { Timestamp } from '@bufbuild/protobuf';
 import { safeTimestampToDate } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,10 +17,12 @@ import {
   Calendar,
   Globe,
   Lock,
-  Eye
+  Eye,
+  Loader2
 } from 'lucide-react';
 import { EditSpaceForm } from './EditSpaceForm';
 import Link from 'next/link';
+import { listContentSources } from '@/api/actions/contentActions';
 
 interface ListViewProps {
   spaces: Space[];
@@ -46,6 +48,29 @@ export default function ListView({
   const [editedValue, setEditedValue] = useState<string | string[] | null>(null);
   const [spaces, setSpaces] = useState<Space[]>(initialSpaces);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
+
+  const [documents, setDocuments] = useState<ContentSource[]>([]);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
+  const [errorDocs, setErrorDocs] = useState<string | null>(null);
+
+  const handleOpenDocumentDialog = async (spaceId: string) => {
+    if (!spaceId) return;
+    setIsLoadingDocs(true);
+    setErrorDocs(null);
+    setDocuments([]);
+    try {
+      const result = await listContentSources(spaceId);
+      if (result.ok && result.data) {
+        setDocuments(result.data);
+      } else {
+        setErrorDocs(result.error?.message || 'Failed to fetch documents.');
+      }
+    } catch (error: any) {
+      setErrorDocs(error.message || 'Failed to fetch documents.');
+    } finally {
+      setIsLoadingDocs(false);
+    }
+  };
 
   const sortedSpaces = React.useMemo(() => {
     const sortableSpaces = [...spaces];
@@ -343,7 +368,7 @@ export default function ListView({
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <Dialog>
+                      <Dialog onOpenChange={(open) => open && handleOpenDocumentDialog(space.id)}>
                         <DialogTrigger asChild>
                           <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" aria-label={`View documents for ${space.title}`}>
                             {space.stats?.contentCount.toString() || 0}
@@ -353,12 +378,38 @@ export default function ListView({
                           <DialogHeader>
                             <DialogTitle>Documents in {space.title}</DialogTitle>
                           </DialogHeader>
-                          <div className="text-center py-8">
-                            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-500">
-                              Document list view will be implemented here
-                            </p>
-                          </div>
+                          {isLoadingDocs ? (
+                            <div className="flex justify-center items-center py-8">
+                              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                            </div>
+                          ) : errorDocs ? (
+                            <div className="text-center py-8 text-red-600">
+                              <p>Error: {errorDocs}</p>
+                            </div>
+                          ) : documents.length > 0 ? (
+                            <div className="max-h-96 overflow-y-auto">
+                              <ul className="divide-y divide-gray-200">
+                                {documents.map((doc) => (
+                                  <li key={doc.id} className="p-3 flex items-center gap-3">
+                                    <FileText className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
+                                      <p className="text-xs text-gray-500">
+                                        {doc.source}
+                                      </p>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                              <p className="text-gray-500">
+                                No documents found in this space.
+                              </p>
+                            </div>
+                          )}
                         </DialogContent>
                       </Dialog>
                     </TableCell>
