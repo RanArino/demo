@@ -56,7 +56,7 @@ export function useSpacesTable() {
 
   const formatTimestamp = useCallback((timestamp: unknown) => {
     const date = safeTimestampToDate(timestamp);
-    return date ? date.toLocaleDateString() : '—';
+    return date ? date.toLocaleDateString() : '';
   }, []);
 
   return {
