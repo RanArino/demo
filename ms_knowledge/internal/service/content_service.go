@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -140,7 +141,7 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 
 	// Update statistics
 	if err := s.spaceRepo.UpdateStats(ctx, spaceID, 1, sizeBytes); err != nil {
-		s.logger.Printf("WARN: failed to update space stats for space %s: %v", spaceID, err)
+		slog.Warn("Failed to update space stats", "space_id", spaceID, "error", err)
 		// Log error but don't fail the upload process itself
 	}
 
@@ -195,7 +196,7 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 			OriginalObjectKey: objectKey,
 		}
 		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
-			s.logger.Printf("ERROR: failed to produce document.uploaded event for content_source_id (content.ID=%s): %v", content.ID, err)
+			slog.Error("Failed to produce document.uploaded event", "content_id", content.ID, "error", err)
 		}
 	}
 
@@ -257,13 +258,13 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 
 	// Idempotency check: if already in the target status, return early
 	if content.Status == status {
-		s.logger.Printf("Content source %s already in status %s, skipping update", id, status)
+		slog.Info("Content source already in target status; skipping update", "content_id", id, "status", status)
 		return content, nil
 	}
 
 	// Validate status transition
 	if err := content.Status.ValidateTransition(status); err != nil {
-		s.logger.Printf("Invalid status transition for content source %s: %v", id, err)
+		slog.Warn("Invalid status transition for content source", "content_id", id, "error", err)
 		// In production, you might want to return this error instead
 	}
 
@@ -343,7 +344,7 @@ func (s *ContentService) ValidateSpaceContentIntegrity(ctx context.Context) (*Sp
 	for _, content := range allContent {
 		exists, err := s.spaceRepo.Exists(ctx, content.SpaceID)
 		if err != nil {
-			s.logger.Printf("Error checking space %s for content %s: %v", content.SpaceID, content.ID, err)
+			slog.Error("Error checking space for content", "space_id", content.SpaceID, "content_id", content.ID, "error", err)
 			continue
 		}
 
@@ -409,7 +410,7 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 
 	// Update statistics
 	if err := s.spaceRepo.UpdateStats(ctx, content.SpaceID, -1, -content.SizeBytes); err != nil {
-		s.logger.Printf("WARN: failed to update space stats for space %s: %v", content.SpaceID, err)
+		slog.Warn("Failed to update space stats", "space_id", content.SpaceID, "error", err)
 	}
 
 	filename := strings.TrimSpace(content.Source)
@@ -419,14 +420,14 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 	// Try source bucket
 	if s.cfg != nil && strings.TrimSpace(s.cfg.R2.BucketSourceName) != "" {
 		if err := s.storage.DeleteObject(s.cfg.R2.BucketSourceName, objectKey); err != nil {
-			s.logger.Printf("WARN: failed to delete R2 object from source bucket (bucket=%s key=%s): %v", s.cfg.R2.BucketSourceName, objectKey, err)
+			slog.Warn("Failed to delete R2 object from source bucket", "bucket", s.cfg.R2.BucketSourceName, "key", objectKey, "error", err)
 		}
 	}
 
 	// Try processed bucket
 	if s.cfg != nil && strings.TrimSpace(s.cfg.R2.BucketProcessedName) != "" {
 		if err := s.storage.DeleteObject(s.cfg.R2.BucketProcessedName, objectKey); err != nil {
-			s.logger.Printf("WARN: failed to delete R2 object from processed bucket (bucket=%s key=%s): %v", s.cfg.R2.BucketProcessedName, objectKey, err)
+			slog.Warn("Failed to delete R2 object from processed bucket", "bucket", s.cfg.R2.BucketProcessedName, "key", objectKey, "error", err)
 		}
 	}
 
