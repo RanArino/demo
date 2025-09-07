@@ -138,6 +138,12 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 		return nil, "", "", time.Time{}, fmt.Errorf("failed to create content source: %w", err)
 	}
 
+	// Update statistics
+	if err := s.spaceRepo.UpdateStats(ctx, spaceID, 1, sizeBytes); err != nil {
+		s.logger.Printf("WARN: failed to update space stats for space %s: %v", spaceID, err)
+		// Log error but don't fail the upload process itself
+	}
+
 	// Generate object key based on persisted content ID
 	objectKey := buildObjectKey(ownerUUID, spaceID, content.ID, filename)
 
@@ -399,6 +405,11 @@ func (s *ContentService) DeleteContentSource(ctx context.Context, id uuid.UUID) 
 	// Enforce RLS
 	if err := EnforceOwner(ctx, content.OwnerID); err != nil {
 		return err
+	}
+
+	// Update statistics
+	if err := s.spaceRepo.UpdateStats(ctx, content.SpaceID, -1, -content.SizeBytes); err != nil {
+		s.logger.Printf("WARN: failed to update space stats for space %s: %v", content.SpaceID, err)
 	}
 
 	filename := strings.TrimSpace(content.Source)
