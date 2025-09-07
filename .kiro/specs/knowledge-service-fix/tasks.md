@@ -87,12 +87,14 @@
 ## Feature 3: Frontend UI/UX Improvements (Requirements 3, 5, 6)
 
 - [ ] **3.1. Fix inline editing in `ListView.tsx`**
-  > Remove navigation `button` from title cell and make it enter edit mode only on click.
+  > Remove the nested `button` with `onSelect` from the title cell to prevent conflicting click handlers. The `div` wrapper will handle inline editing.
   > **Related Requirements:** 3
+  > - `frontend/src/app/spaces/components/ListView/SpacesTable.tsx`
 
-- [ ] **3.2. Remove Actions column from `ListView.tsx`**
-  > Remove `TableHead` and `TableCell` related to Actions column from `TableHeader` and `TableBody`.
+- [ ] **3.2. Modify Actions column in `ListView.tsx`**
+  > Replace the "Edit" (`Pencil`) icon and its `Dialog` with a navigation icon that links to `/spaces/[spaceId]`. This provides a clear way to navigate to the space details.
   > **Related Requirements:** 3
+  > - `frontend/src/app/spaces/components/ListView/SpacesTable.tsx`
 
 - [ ] **3.3. Create new `AccessLevelModal.tsx` component**
   > Implement modal UI and logic for changing access level.
