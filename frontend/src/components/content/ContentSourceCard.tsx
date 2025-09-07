@@ -14,7 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ContentSource, ContentSourceStatus } from '@/app/spaces/types/content';
+import { ContentSource, ContentStatus } from '@/api/generated/v1/knowledge_pb';
 import { formatDate, fileTypeLabel } from '@/lib/contentSource';
 
 export interface ContentSourceCardProps {
@@ -29,29 +29,43 @@ export interface ContentSourceCardProps {
 
 export default function ContentSourceCard({ contentSource, onView, onDownload, onDelete, selected, onSelectChange, progress }: ContentSourceCardProps) {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const title = contentSource.title || contentSource.filename || 'Untitled';
+  const title = contentSource.title || 'Untitled';
 
   const getSourceIcon = () => {
-    switch (contentSource.sourceType) {
-      case 'file': return <FileText className="h-4 w-4" />;
-      case 'url': return <LinkIcon className="h-4 w-4" />;
-      case 'text': return <Type className="h-4 w-4" />;
-      case 'google_drive': return <FileText className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
+    // Determine source type from the source field or mime type
+    const source = contentSource.source?.toLowerCase() || '';
+    const mimeType = contentSource.mimeType?.toLowerCase() || '';
+    
+    if (source.startsWith('http') || source.includes('url')) {
+      return <LinkIcon className="h-4 w-4" />;
     }
+    if (mimeType.includes('text/plain') || source.includes('text')) {
+      return <Type className="h-4 w-4" />;
+    }
+    if (source.includes('google') || source.includes('drive')) {
+      return <FileText className="h-4 w-4" />;
+    }
+    // Default to file icon
+    return <FileText className="h-4 w-4" />;
   };
 
   const getStatusIcon = () => {
-    switch (contentSource.processingStatus) {
-      case 'pending': return <Clock className="h-3 w-3" />;
-      case 'processing': return <Loader2 className="h-3 w-3 animate-spin" />;
-      case 'completed': return <CheckCircle className="h-3 w-3" />;
-      case 'failed': return <XCircle className="h-3 w-3" />;
-      default: return <Clock className="h-3 w-3" />;
+    switch (contentSource.status) {
+      case ContentStatus.UPLOADING:
+      case ContentStatus.UPLOADED:
+        return <Clock className="h-3 w-3" />;
+      case ContentStatus.PROCESSING:
+        return <Loader2 className="h-3 w-3 animate-spin" />;
+      case ContentStatus.PROCESSED:
+        return <CheckCircle className="h-3 w-3" />;
+      case ContentStatus.FAILED:
+        return <XCircle className="h-3 w-3" />;
+      default:
+        return <Clock className="h-3 w-3" />;
     }
   };
 
-  const isReady = contentSource.processingStatus === ContentSourceStatus.COMPLETED;
+  const isReady = contentSource.status === ContentStatus.PROCESSED;
 
   return (
     <div
@@ -82,9 +96,9 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
           <div className="flex items-center gap-2 text-blue-600">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-xs">
-              {contentSource.processingStatus === 'pending' && 'Initializing...'}
-              {contentSource.processingStatus === 'processing' && 'Processing...'}
-              {contentSource.processingStatus === 'failed' && 'Failed'}
+              {(contentSource.status === ContentStatus.UPLOADING || contentSource.status === ContentStatus.UPLOADED) && 'Initializing...'}
+              {contentSource.status === ContentStatus.PROCESSING && 'Processing...'}
+              {contentSource.status === ContentStatus.FAILED && 'Failed'}
             </span>
           </div>
         )}
@@ -96,11 +110,11 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
       {/* Secondary row: left (file type + added date), right (status + actions) */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <span className="text-xs px-3 py-1 border rounded-md">{fileTypeLabel(contentSource.mimeType, contentSource.sourceType)}</span>
-          <div className="text-xs text-gray-500">Added {formatDate(contentSource.createdAt)}</div>
+          <span className="text-xs px-3 py-1 border rounded-md">{fileTypeLabel(contentSource.mimeType, contentSource.source)}</span>
+          <div className="text-xs text-gray-500">Added {contentSource.createdAt ? formatDate(new Date(Number(contentSource.createdAt.seconds) * 1000)) : 'Unknown'}</div>
         </div>
         <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-          {contentSource.processingStatus === 'completed' && (
+          {contentSource.status === ContentStatus.PROCESSED && (
             <div className="relative">
               <Button
                 variant="ghost"
@@ -144,7 +158,7 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
       </div>
 
       {/* Progress bar for in-flight uploads */}
-      {contentSource.processingStatus !== 'completed' && typeof progress === 'number' && (
+      {contentSource.status !== ContentStatus.PROCESSED && typeof progress === 'number' && (
         <div className="mt-2">
           <div className="h-1.5 bg-gray-200 rounded">
             <div className="h-1.5 bg-blue-500 rounded" style={{ width: `${progress}%` }} />
@@ -154,9 +168,9 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
       )}
 
       {/* Error message if failed */}
-      {contentSource.processingStatus === 'failed' && contentSource.processingError && (
+      {contentSource.status === ContentStatus.FAILED && (
         <div className="text-xs text-red-600 bg-red-50 p-2 rounded mb-3">
-          {contentSource.processingError}
+          Processing failed
         </div>
       )}
 

@@ -24,7 +24,110 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Enums
+type ViewMode int32
+
+const (
+	ViewMode_VIEW_MODE_UNSPECIFIED ViewMode = 0
+	ViewMode_GALLERY               ViewMode = 1
+	ViewMode_LIST                  ViewMode = 2
+	ViewMode_CANVAS                ViewMode = 3
+)
+
+// Enum value maps for ViewMode.
+var (
+	ViewMode_name = map[int32]string{
+		0: "VIEW_MODE_UNSPECIFIED",
+		1: "GALLERY",
+		2: "LIST",
+		3: "CANVAS",
+	}
+	ViewMode_value = map[string]int32{
+		"VIEW_MODE_UNSPECIFIED": 0,
+		"GALLERY":               1,
+		"LIST":                  2,
+		"CANVAS":                3,
+	}
+)
+
+func (x ViewMode) Enum() *ViewMode {
+	p := new(ViewMode)
+	*p = x
+	return p
+}
+
+func (x ViewMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ViewMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_v1_knowledge_proto_enumTypes[0].Descriptor()
+}
+
+func (ViewMode) Type() protoreflect.EnumType {
+	return &file_api_proto_v1_knowledge_proto_enumTypes[0]
+}
+
+func (x ViewMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ViewMode.Descriptor instead.
+func (ViewMode) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{0}
+}
+
+type GridSize int32
+
+const (
+	GridSize_GRID_SIZE_UNSPECIFIED GridSize = 0
+	GridSize_SMALL                 GridSize = 1
+	GridSize_MEDIUM                GridSize = 2
+	GridSize_LARGE                 GridSize = 3
+)
+
+// Enum value maps for GridSize.
+var (
+	GridSize_name = map[int32]string{
+		0: "GRID_SIZE_UNSPECIFIED",
+		1: "SMALL",
+		2: "MEDIUM",
+		3: "LARGE",
+	}
+	GridSize_value = map[string]int32{
+		"GRID_SIZE_UNSPECIFIED": 0,
+		"SMALL":                 1,
+		"MEDIUM":                2,
+		"LARGE":                 3,
+	}
+)
+
+func (x GridSize) Enum() *GridSize {
+	p := new(GridSize)
+	*p = x
+	return p
+}
+
+func (x GridSize) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GridSize) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_v1_knowledge_proto_enumTypes[1].Descriptor()
+}
+
+func (GridSize) Type() protoreflect.EnumType {
+	return &file_api_proto_v1_knowledge_proto_enumTypes[1]
+}
+
+func (x GridSize) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GridSize.Descriptor instead.
+func (GridSize) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{1}
+}
+
 type ContentStatus int32
 
 const (
@@ -67,11 +170,11 @@ func (x ContentStatus) String() string {
 }
 
 func (ContentStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_proto_v1_knowledge_proto_enumTypes[0].Descriptor()
+	return file_api_proto_v1_knowledge_proto_enumTypes[2].Descriptor()
 }
 
 func (ContentStatus) Type() protoreflect.EnumType {
-	return &file_api_proto_v1_knowledge_proto_enumTypes[0]
+	return &file_api_proto_v1_knowledge_proto_enumTypes[2]
 }
 
 func (x ContentStatus) Number() protoreflect.EnumNumber {
@@ -80,7 +183,112 @@ func (x ContentStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ContentStatus.Descriptor instead.
 func (ContentStatus) EnumDescriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{2}
+}
+
+type ContentSourceType int32
+
+const (
+	ContentSourceType_CONTENT_SOURCE_TYPE_UNSPECIFIED ContentSourceType = 0
+	ContentSourceType_FILE                            ContentSourceType = 1
+	ContentSourceType_URL                             ContentSourceType = 2
+	ContentSourceType_TEXT                            ContentSourceType = 3
+	ContentSourceType_GOOGLE_DRIVE                    ContentSourceType = 4
+)
+
+// Enum value maps for ContentSourceType.
+var (
+	ContentSourceType_name = map[int32]string{
+		0: "CONTENT_SOURCE_TYPE_UNSPECIFIED",
+		1: "FILE",
+		2: "URL",
+		3: "TEXT",
+		4: "GOOGLE_DRIVE",
+	}
+	ContentSourceType_value = map[string]int32{
+		"CONTENT_SOURCE_TYPE_UNSPECIFIED": 0,
+		"FILE":                            1,
+		"URL":                             2,
+		"TEXT":                            3,
+		"GOOGLE_DRIVE":                    4,
+	}
+)
+
+func (x ContentSourceType) Enum() *ContentSourceType {
+	p := new(ContentSourceType)
+	*p = x
+	return p
+}
+
+func (x ContentSourceType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ContentSourceType) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_v1_knowledge_proto_enumTypes[3].Descriptor()
+}
+
+func (ContentSourceType) Type() protoreflect.EnumType {
+	return &file_api_proto_v1_knowledge_proto_enumTypes[3]
+}
+
+func (x ContentSourceType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ContentSourceType.Descriptor instead.
+func (ContentSourceType) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{3}
+}
+
+// Specifies which object (original or processed) an operation targets
+type DownloadObjectKind int32
+
+const (
+	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_UNSPECIFIED DownloadObjectKind = 0
+	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL    DownloadObjectKind = 1 // source/original object
+	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED   DownloadObjectKind = 2 // processed object
+)
+
+// Enum value maps for DownloadObjectKind.
+var (
+	DownloadObjectKind_name = map[int32]string{
+		0: "DOWNLOAD_OBJECT_KIND_UNSPECIFIED",
+		1: "DOWNLOAD_OBJECT_KIND_ORIGINAL",
+		2: "DOWNLOAD_OBJECT_KIND_PROCESSED",
+	}
+	DownloadObjectKind_value = map[string]int32{
+		"DOWNLOAD_OBJECT_KIND_UNSPECIFIED": 0,
+		"DOWNLOAD_OBJECT_KIND_ORIGINAL":    1,
+		"DOWNLOAD_OBJECT_KIND_PROCESSED":   2,
+	}
+)
+
+func (x DownloadObjectKind) Enum() *DownloadObjectKind {
+	p := new(DownloadObjectKind)
+	*p = x
+	return p
+}
+
+func (x DownloadObjectKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DownloadObjectKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_v1_knowledge_proto_enumTypes[4].Descriptor()
+}
+
+func (DownloadObjectKind) Type() protoreflect.EnumType {
+	return &file_api_proto_v1_knowledge_proto_enumTypes[4]
+}
+
+func (x DownloadObjectKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DownloadObjectKind.Descriptor instead.
+func (DownloadObjectKind) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{4}
 }
 
 type RelationType int32
@@ -122,11 +330,11 @@ func (x RelationType) String() string {
 }
 
 func (RelationType) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_proto_v1_knowledge_proto_enumTypes[1].Descriptor()
+	return file_api_proto_v1_knowledge_proto_enumTypes[5].Descriptor()
 }
 
 func (RelationType) Type() protoreflect.EnumType {
-	return &file_api_proto_v1_knowledge_proto_enumTypes[1]
+	return &file_api_proto_v1_knowledge_proto_enumTypes[5]
 }
 
 func (x RelationType) Number() protoreflect.EnumNumber {
@@ -135,7 +343,7 @@ func (x RelationType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RelationType.Descriptor instead.
 func (RelationType) EnumDescriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{1}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{5}
 }
 
 type LinkDirection int32
@@ -174,11 +382,11 @@ func (x LinkDirection) String() string {
 }
 
 func (LinkDirection) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_proto_v1_knowledge_proto_enumTypes[2].Descriptor()
+	return file_api_proto_v1_knowledge_proto_enumTypes[6].Descriptor()
 }
 
 func (LinkDirection) Type() protoreflect.EnumType {
-	return &file_api_proto_v1_knowledge_proto_enumTypes[2]
+	return &file_api_proto_v1_knowledge_proto_enumTypes[6]
 }
 
 func (x LinkDirection) Number() protoreflect.EnumNumber {
@@ -187,60 +395,9 @@ func (x LinkDirection) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use LinkDirection.Descriptor instead.
 func (LinkDirection) EnumDescriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{2}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{6}
 }
 
-// Specifies which object (original or processed) an operation targets
-type DownloadObjectKind int32
-
-const (
-	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_UNSPECIFIED DownloadObjectKind = 0
-	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL    DownloadObjectKind = 1 // source/original object
-	DownloadObjectKind_DOWNLOAD_OBJECT_KIND_PROCESSED   DownloadObjectKind = 2 // processed object
-)
-
-// Enum value maps for DownloadObjectKind.
-var (
-	DownloadObjectKind_name = map[int32]string{
-		0: "DOWNLOAD_OBJECT_KIND_UNSPECIFIED",
-		1: "DOWNLOAD_OBJECT_KIND_ORIGINAL",
-		2: "DOWNLOAD_OBJECT_KIND_PROCESSED",
-	}
-	DownloadObjectKind_value = map[string]int32{
-		"DOWNLOAD_OBJECT_KIND_UNSPECIFIED": 0,
-		"DOWNLOAD_OBJECT_KIND_ORIGINAL":    1,
-		"DOWNLOAD_OBJECT_KIND_PROCESSED":   2,
-	}
-)
-
-func (x DownloadObjectKind) Enum() *DownloadObjectKind {
-	p := new(DownloadObjectKind)
-	*p = x
-	return p
-}
-
-func (x DownloadObjectKind) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (DownloadObjectKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_proto_v1_knowledge_proto_enumTypes[3].Descriptor()
-}
-
-func (DownloadObjectKind) Type() protoreflect.EnumType {
-	return &file_api_proto_v1_knowledge_proto_enumTypes[3]
-}
-
-func (x DownloadObjectKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use DownloadObjectKind.Descriptor instead.
-func (DownloadObjectKind) EnumDescriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{3}
-}
-
-// Common Messages
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PageSize      int32                  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
@@ -293,7 +450,6 @@ func (x *Pagination) GetPageToken() string {
 	return ""
 }
 
-// Core Entities
 type SpaceStats struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ContentCount   int64                  `protobuf:"varint,1,opt,name=content_count,json=contentCount,proto3" json:"content_count,omitempty"`
@@ -355,16 +511,22 @@ func (x *SpaceStats) GetLastActivityAt() *timestamppb.Timestamp {
 }
 
 type Space struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,4,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Stats         *SpaceStats            `protobuf:"bytes,10,opt,name=stats,proto3" json:"stats,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,98,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,99,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title          string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description    string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	OwnerId        string                 `protobuf:"bytes,4,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	Icon           string                 `protobuf:"bytes,5,opt,name=icon,proto3" json:"icon,omitempty"`
+	CoverImage     string                 `protobuf:"bytes,6,opt,name=cover_image,json=coverImage,proto3" json:"cover_image,omitempty"`
+	Keywords       []string               `protobuf:"bytes,7,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	AccessLevel    string                 `protobuf:"bytes,8,opt,name=access_level,json=accessLevel,proto3" json:"access_level,omitempty"`
+	DocumentCount  int64                  `protobuf:"varint,9,opt,name=document_count,json=documentCount,proto3" json:"document_count,omitempty"`
+	TotalSizeBytes int64                  `protobuf:"varint,10,opt,name=total_size_bytes,json=totalSizeBytes,proto3" json:"total_size_bytes,omitempty"`
+	Stats          *SpaceStats            `protobuf:"bytes,11,opt,name=stats,proto3" json:"stats,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,98,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,99,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Space) Reset() {
@@ -425,6 +587,48 @@ func (x *Space) GetOwnerId() string {
 	return ""
 }
 
+func (x *Space) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *Space) GetCoverImage() string {
+	if x != nil {
+		return x.CoverImage
+	}
+	return ""
+}
+
+func (x *Space) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *Space) GetAccessLevel() string {
+	if x != nil {
+		return x.AccessLevel
+	}
+	return ""
+}
+
+func (x *Space) GetDocumentCount() int64 {
+	if x != nil {
+		return x.DocumentCount
+	}
+	return 0
+}
+
+func (x *Space) GetTotalSizeBytes() int64 {
+	if x != nil {
+		return x.TotalSizeBytes
+	}
+	return 0
+}
+
 func (x *Space) GetStats() *SpaceStats {
 	if x != nil {
 		return x.Stats
@@ -444,6 +648,682 @@ func (x *Space) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+type CreateSpaceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Keywords      []string               `protobuf:"bytes,3,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	Icon          string                 `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSpaceRequest) Reset() {
+	*x = CreateSpaceRequest{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSpaceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSpaceRequest) ProtoMessage() {}
+
+func (x *CreateSpaceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSpaceRequest.ProtoReflect.Descriptor instead.
+func (*CreateSpaceRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateSpaceRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateSpaceRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateSpaceRequest) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *CreateSpaceRequest) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+type GetSpaceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSpaceRequest) Reset() {
+	*x = GetSpaceRequest{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSpaceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSpaceRequest) ProtoMessage() {}
+
+func (x *GetSpaceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSpaceRequest.ProtoReflect.Descriptor instead.
+func (*GetSpaceRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetSpaceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ListSpacesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Q             string                 `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	Keywords      []string               `protobuf:"bytes,3,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	AccessLevel   string                 `protobuf:"bytes,4,opt,name=access_level,json=accessLevel,proto3" json:"access_level,omitempty"`
+	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAfter  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_after,json=createdAfter,proto3" json:"created_after,omitempty"`
+	CreatedBefore *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_before,json=createdBefore,proto3" json:"created_before,omitempty"`
+	UpdatedAfter  *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_after,json=updatedAfter,proto3" json:"updated_after,omitempty"`
+	UpdatedBefore *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_before,json=updatedBefore,proto3" json:"updated_before,omitempty"`
+	Page          *Pagination            `protobuf:"bytes,10,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSpacesRequest) Reset() {
+	*x = ListSpacesRequest{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSpacesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSpacesRequest) ProtoMessage() {}
+
+func (x *ListSpacesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSpacesRequest.ProtoReflect.Descriptor instead.
+func (*ListSpacesRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListSpacesRequest) GetQ() string {
+	if x != nil {
+		return x.Q
+	}
+	return ""
+}
+
+func (x *ListSpacesRequest) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
+	}
+	return ""
+}
+
+func (x *ListSpacesRequest) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *ListSpacesRequest) GetAccessLevel() string {
+	if x != nil {
+		return x.AccessLevel
+	}
+	return ""
+}
+
+func (x *ListSpacesRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListSpacesRequest) GetCreatedAfter() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAfter
+	}
+	return nil
+}
+
+func (x *ListSpacesRequest) GetCreatedBefore() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedBefore
+	}
+	return nil
+}
+
+func (x *ListSpacesRequest) GetUpdatedAfter() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAfter
+	}
+	return nil
+}
+
+func (x *ListSpacesRequest) GetUpdatedBefore() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedBefore
+	}
+	return nil
+}
+
+func (x *ListSpacesRequest) GetPage() *Pagination {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListSpacesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*Space               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSpacesResponse) Reset() {
+	*x = ListSpacesResponse{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSpacesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSpacesResponse) ProtoMessage() {}
+
+func (x *ListSpacesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSpacesResponse.ProtoReflect.Descriptor instead.
+func (*ListSpacesResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListSpacesResponse) GetItems() []*Space {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListSpacesResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type UpdateSpaceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Keywords      []string               `protobuf:"bytes,4,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	Icon          string                 `protobuf:"bytes,5,opt,name=icon,proto3" json:"icon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSpaceRequest) Reset() {
+	*x = UpdateSpaceRequest{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSpaceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSpaceRequest) ProtoMessage() {}
+
+func (x *UpdateSpaceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSpaceRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSpaceRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateSpaceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateSpaceRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *UpdateSpaceRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateSpaceRequest) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *UpdateSpaceRequest) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+type DeleteSpaceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	HardDelete    bool                   `protobuf:"varint,2,opt,name=hard_delete,json=hardDelete,proto3" json:"hard_delete,omitempty"`
+	Force         bool                   `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSpaceRequest) Reset() {
+	*x = DeleteSpaceRequest{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSpaceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSpaceRequest) ProtoMessage() {}
+
+func (x *DeleteSpaceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSpaceRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSpaceRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeleteSpaceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteSpaceRequest) GetHardDelete() bool {
+	if x != nil {
+		return x.HardDelete
+	}
+	return false
+}
+
+func (x *DeleteSpaceRequest) GetForce() bool {
+	if x != nil {
+		return x.Force
+	}
+	return false
+}
+
+type SpaceFilters struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Q             string                 `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
+	Keywords      []string               `protobuf:"bytes,2,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	SortBy        string                 `protobuf:"bytes,3,opt,name=sort_by,json=sortBy,proto3" json:"sort_by,omitempty"`          // 'name' | 'created' | 'updated' | 'documents'
+	SortOrder     string                 `protobuf:"bytes,4,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"` // 'asc' | 'desc'
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpaceFilters) Reset() {
+	*x = SpaceFilters{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpaceFilters) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpaceFilters) ProtoMessage() {}
+
+func (x *SpaceFilters) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpaceFilters.ProtoReflect.Descriptor instead.
+func (*SpaceFilters) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SpaceFilters) GetQ() string {
+	if x != nil {
+		return x.Q
+	}
+	return ""
+}
+
+func (x *SpaceFilters) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *SpaceFilters) GetSortBy() string {
+	if x != nil {
+		return x.SortBy
+	}
+	return ""
+}
+
+func (x *SpaceFilters) GetSortOrder() string {
+	if x != nil {
+		return x.SortOrder
+	}
+	return ""
+}
+
+type SpacesUIState struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	View             ViewMode               `protobuf:"varint,1,opt,name=view,proto3,enum=knowledge.v1.ViewMode" json:"view,omitempty"`
+	SearchTerm       string                 `protobuf:"bytes,2,opt,name=search_term,json=searchTerm,proto3" json:"search_term,omitempty"`
+	SelectedKeywords []string               `protobuf:"bytes,3,rep,name=selected_keywords,json=selectedKeywords,proto3" json:"selected_keywords,omitempty"`
+	SortBy           string                 `protobuf:"bytes,4,opt,name=sort_by,json=sortBy,proto3" json:"sort_by,omitempty"`
+	SortOrder        string                 `protobuf:"bytes,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Page             int32                  `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize         int32                  `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	IsCreating       bool                   `protobuf:"varint,8,opt,name=is_creating,json=isCreating,proto3" json:"is_creating,omitempty"`
+	IsDeleting       *string                `protobuf:"bytes,9,opt,name=is_deleting,json=isDeleting,proto3,oneof" json:"is_deleting,omitempty"`
+	LastError        *string                `protobuf:"bytes,10,opt,name=last_error,json=lastError,proto3,oneof" json:"last_error,omitempty"`
+	SelectedSpaceId  *string                `protobuf:"bytes,11,opt,name=selected_space_id,json=selectedSpaceId,proto3,oneof" json:"selected_space_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SpacesUIState) Reset() {
+	*x = SpacesUIState{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpacesUIState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpacesUIState) ProtoMessage() {}
+
+func (x *SpacesUIState) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpacesUIState.ProtoReflect.Descriptor instead.
+func (*SpacesUIState) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SpacesUIState) GetView() ViewMode {
+	if x != nil {
+		return x.View
+	}
+	return ViewMode_VIEW_MODE_UNSPECIFIED
+}
+
+func (x *SpacesUIState) GetSearchTerm() string {
+	if x != nil {
+		return x.SearchTerm
+	}
+	return ""
+}
+
+func (x *SpacesUIState) GetSelectedKeywords() []string {
+	if x != nil {
+		return x.SelectedKeywords
+	}
+	return nil
+}
+
+func (x *SpacesUIState) GetSortBy() string {
+	if x != nil {
+		return x.SortBy
+	}
+	return ""
+}
+
+func (x *SpacesUIState) GetSortOrder() string {
+	if x != nil {
+		return x.SortOrder
+	}
+	return ""
+}
+
+func (x *SpacesUIState) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SpacesUIState) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SpacesUIState) GetIsCreating() bool {
+	if x != nil {
+		return x.IsCreating
+	}
+	return false
+}
+
+func (x *SpacesUIState) GetIsDeleting() string {
+	if x != nil && x.IsDeleting != nil {
+		return *x.IsDeleting
+	}
+	return ""
+}
+
+func (x *SpacesUIState) GetLastError() string {
+	if x != nil && x.LastError != nil {
+		return *x.LastError
+	}
+	return ""
+}
+
+func (x *SpacesUIState) GetSelectedSpaceId() string {
+	if x != nil && x.SelectedSpaceId != nil {
+		return *x.SelectedSpaceId
+	}
+	return ""
+}
+
+type SearchSpacesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Spaces        []*Space               `protobuf:"bytes,1,rep,name=spaces,proto3" json:"spaces,omitempty"`
+	TotalCount    int64                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchSpacesResponse) Reset() {
+	*x = SearchSpacesResponse{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchSpacesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchSpacesResponse) ProtoMessage() {}
+
+func (x *SearchSpacesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchSpacesResponse.ProtoReflect.Descriptor instead.
+func (*SearchSpacesResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SearchSpacesResponse) GetSpaces() []*Space {
+	if x != nil {
+		return x.Spaces
+	}
+	return nil
+}
+
+func (x *SearchSpacesResponse) GetTotalCount() int64 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *SearchSpacesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchSpacesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
 }
 
 type ContentSource struct {
@@ -468,7 +1348,7 @@ type ContentSource struct {
 
 func (x *ContentSource) Reset() {
 	*x = ContentSource{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[3]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +1360,7 @@ func (x *ContentSource) String() string {
 func (*ContentSource) ProtoMessage() {}
 
 func (x *ContentSource) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[3]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +1373,7 @@ func (x *ContentSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContentSource.ProtoReflect.Descriptor instead.
 func (*ContentSource) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{3}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ContentSource) GetId() string {
@@ -594,638 +1474,6 @@ func (x *ContentSource) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// Simple link (used for bulk list)
-type KnowledgeLink struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FromContentId string                 `protobuf:"bytes,2,opt,name=from_content_id,json=fromContentId,proto3" json:"from_content_id,omitempty"`
-	ToContentId   string                 `protobuf:"bytes,3,opt,name=to_content_id,json=toContentId,proto3" json:"to_content_id,omitempty"`
-	RelationType  RelationType           `protobuf:"varint,4,opt,name=relation_type,json=relationType,proto3,enum=knowledge.v1.RelationType" json:"relation_type,omitempty"`
-	Weight        float64                `protobuf:"fixed64,5,opt,name=weight,proto3" json:"weight,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,98,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,99,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *KnowledgeLink) Reset() {
-	*x = KnowledgeLink{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *KnowledgeLink) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*KnowledgeLink) ProtoMessage() {}
-
-func (x *KnowledgeLink) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use KnowledgeLink.ProtoReflect.Descriptor instead.
-func (*KnowledgeLink) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *KnowledgeLink) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *KnowledgeLink) GetFromContentId() string {
-	if x != nil {
-		return x.FromContentId
-	}
-	return ""
-}
-
-func (x *KnowledgeLink) GetToContentId() string {
-	if x != nil {
-		return x.ToContentId
-	}
-	return ""
-}
-
-func (x *KnowledgeLink) GetRelationType() RelationType {
-	if x != nil {
-		return x.RelationType
-	}
-	return RelationType_RELATION_TYPE_UNSPECIFIED
-}
-
-func (x *KnowledgeLink) GetWeight() float64 {
-	if x != nil {
-		return x.Weight
-	}
-	return 0
-}
-
-func (x *KnowledgeLink) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *KnowledgeLink) GetUpdatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return nil
-}
-
-// Enriched link view (used for focused list and single get)
-type ContentPreview struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Title          string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	ContentSummary string                 `protobuf:"bytes,3,opt,name=content_summary,json=contentSummary,proto3" json:"content_summary,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *ContentPreview) Reset() {
-	*x = ContentPreview{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ContentPreview) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ContentPreview) ProtoMessage() {}
-
-func (x *ContentPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ContentPreview.ProtoReflect.Descriptor instead.
-func (*ContentPreview) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *ContentPreview) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *ContentPreview) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *ContentPreview) GetContentSummary() string {
-	if x != nil {
-		return x.ContentSummary
-	}
-	return ""
-}
-
-type EnrichedKnowledgeLink struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	From          *ContentPreview        `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	To            *ContentPreview        `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
-	RelationType  RelationType           `protobuf:"varint,4,opt,name=relation_type,json=relationType,proto3,enum=knowledge.v1.RelationType" json:"relation_type,omitempty"`
-	Weight        float64                `protobuf:"fixed64,5,opt,name=weight,proto3" json:"weight,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,98,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,99,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EnrichedKnowledgeLink) Reset() {
-	*x = EnrichedKnowledgeLink{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EnrichedKnowledgeLink) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EnrichedKnowledgeLink) ProtoMessage() {}
-
-func (x *EnrichedKnowledgeLink) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EnrichedKnowledgeLink.ProtoReflect.Descriptor instead.
-func (*EnrichedKnowledgeLink) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *EnrichedKnowledgeLink) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *EnrichedKnowledgeLink) GetFrom() *ContentPreview {
-	if x != nil {
-		return x.From
-	}
-	return nil
-}
-
-func (x *EnrichedKnowledgeLink) GetTo() *ContentPreview {
-	if x != nil {
-		return x.To
-	}
-	return nil
-}
-
-func (x *EnrichedKnowledgeLink) GetRelationType() RelationType {
-	if x != nil {
-		return x.RelationType
-	}
-	return RelationType_RELATION_TYPE_UNSPECIFIED
-}
-
-func (x *EnrichedKnowledgeLink) GetWeight() float64 {
-	if x != nil {
-		return x.Weight
-	}
-	return 0
-}
-
-func (x *EnrichedKnowledgeLink) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *EnrichedKnowledgeLink) GetUpdatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return nil
-}
-
-// Space Request/Response Messages
-type CreateSpaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateSpaceRequest) Reset() {
-	*x = CreateSpaceRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateSpaceRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateSpaceRequest) ProtoMessage() {}
-
-func (x *CreateSpaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateSpaceRequest.ProtoReflect.Descriptor instead.
-func (*CreateSpaceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *CreateSpaceRequest) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *CreateSpaceRequest) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-type GetSpaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetSpaceRequest) Reset() {
-	*x = GetSpaceRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetSpaceRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetSpaceRequest) ProtoMessage() {}
-
-func (x *GetSpaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetSpaceRequest.ProtoReflect.Descriptor instead.
-func (*GetSpaceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetSpaceRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-type ListSpacesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Q             string                 `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Keywords      []string               `protobuf:"bytes,3,rep,name=keywords,proto3" json:"keywords,omitempty"`
-	AccessLevel   string                 `protobuf:"bytes,4,opt,name=access_level,json=accessLevel,proto3" json:"access_level,omitempty"`
-	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
-	CreatedAfter  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_after,json=createdAfter,proto3" json:"created_after,omitempty"`
-	CreatedBefore *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_before,json=createdBefore,proto3" json:"created_before,omitempty"`
-	UpdatedAfter  *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_after,json=updatedAfter,proto3" json:"updated_after,omitempty"`
-	UpdatedBefore *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_before,json=updatedBefore,proto3" json:"updated_before,omitempty"`
-	Page          *Pagination            `protobuf:"bytes,10,opt,name=page,proto3" json:"page,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListSpacesRequest) Reset() {
-	*x = ListSpacesRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListSpacesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListSpacesRequest) ProtoMessage() {}
-
-func (x *ListSpacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListSpacesRequest.ProtoReflect.Descriptor instead.
-func (*ListSpacesRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *ListSpacesRequest) GetQ() string {
-	if x != nil {
-		return x.Q
-	}
-	return ""
-}
-
-func (x *ListSpacesRequest) GetOwnerId() string {
-	if x != nil {
-		return x.OwnerId
-	}
-	return ""
-}
-
-func (x *ListSpacesRequest) GetKeywords() []string {
-	if x != nil {
-		return x.Keywords
-	}
-	return nil
-}
-
-func (x *ListSpacesRequest) GetAccessLevel() string {
-	if x != nil {
-		return x.AccessLevel
-	}
-	return ""
-}
-
-func (x *ListSpacesRequest) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *ListSpacesRequest) GetCreatedAfter() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAfter
-	}
-	return nil
-}
-
-func (x *ListSpacesRequest) GetCreatedBefore() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedBefore
-	}
-	return nil
-}
-
-func (x *ListSpacesRequest) GetUpdatedAfter() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAfter
-	}
-	return nil
-}
-
-func (x *ListSpacesRequest) GetUpdatedBefore() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedBefore
-	}
-	return nil
-}
-
-func (x *ListSpacesRequest) GetPage() *Pagination {
-	if x != nil {
-		return x.Page
-	}
-	return nil
-}
-
-type ListSpacesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*Space               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListSpacesResponse) Reset() {
-	*x = ListSpacesResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListSpacesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListSpacesResponse) ProtoMessage() {}
-
-func (x *ListSpacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListSpacesResponse.ProtoReflect.Descriptor instead.
-func (*ListSpacesResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ListSpacesResponse) GetItems() []*Space {
-	if x != nil {
-		return x.Items
-	}
-	return nil
-}
-
-func (x *ListSpacesResponse) GetNextPageToken() string {
-	if x != nil {
-		return x.NextPageToken
-	}
-	return ""
-}
-
-type UpdateSpaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Space         *Space                 `protobuf:"bytes,2,opt,name=space,proto3" json:"space,omitempty"`
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UpdateSpaceRequest) Reset() {
-	*x = UpdateSpaceRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UpdateSpaceRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdateSpaceRequest) ProtoMessage() {}
-
-func (x *UpdateSpaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpdateSpaceRequest.ProtoReflect.Descriptor instead.
-func (*UpdateSpaceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *UpdateSpaceRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *UpdateSpaceRequest) GetSpace() *Space {
-	if x != nil {
-		return x.Space
-	}
-	return nil
-}
-
-func (x *UpdateSpaceRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
-	if x != nil {
-		return x.UpdateMask
-	}
-	return nil
-}
-
-type DeleteSpaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	HardDelete    bool                   `protobuf:"varint,2,opt,name=hard_delete,json=hardDelete,proto3" json:"hard_delete,omitempty"`
-	Force         bool                   `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteSpaceRequest) Reset() {
-	*x = DeleteSpaceRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteSpaceRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteSpaceRequest) ProtoMessage() {}
-
-func (x *DeleteSpaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteSpaceRequest.ProtoReflect.Descriptor instead.
-func (*DeleteSpaceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *DeleteSpaceRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *DeleteSpaceRequest) GetHardDelete() bool {
-	if x != nil {
-		return x.HardDelete
-	}
-	return false
-}
-
-func (x *DeleteSpaceRequest) GetForce() bool {
-	if x != nil {
-		return x.Force
-	}
-	return false
-}
-
-// Content Source Request/Response Messages
 type CreateUploadURLRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SpaceId       string                 `protobuf:"bytes,1,opt,name=space_id,json=spaceId,proto3" json:"space_id,omitempty"`
@@ -1879,7 +2127,252 @@ func (x *GenerateDownloadURLResponse) GetObjectKey() string {
 	return ""
 }
 
-// Knowledge Link Request/Response Messages
+// Simple link (used for bulk list)
+type KnowledgeLink struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FromContentId string                 `protobuf:"bytes,2,opt,name=from_content_id,json=fromContentId,proto3" json:"from_content_id,omitempty"`
+	ToContentId   string                 `protobuf:"bytes,3,opt,name=to_content_id,json=toContentId,proto3" json:"to_content_id,omitempty"`
+	RelationType  RelationType           `protobuf:"varint,4,opt,name=relation_type,json=relationType,proto3,enum=knowledge.v1.RelationType" json:"relation_type,omitempty"`
+	Weight        float64                `protobuf:"fixed64,5,opt,name=weight,proto3" json:"weight,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,98,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,99,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KnowledgeLink) Reset() {
+	*x = KnowledgeLink{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KnowledgeLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KnowledgeLink) ProtoMessage() {}
+
+func (x *KnowledgeLink) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KnowledgeLink.ProtoReflect.Descriptor instead.
+func (*KnowledgeLink) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *KnowledgeLink) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *KnowledgeLink) GetFromContentId() string {
+	if x != nil {
+		return x.FromContentId
+	}
+	return ""
+}
+
+func (x *KnowledgeLink) GetToContentId() string {
+	if x != nil {
+		return x.ToContentId
+	}
+	return ""
+}
+
+func (x *KnowledgeLink) GetRelationType() RelationType {
+	if x != nil {
+		return x.RelationType
+	}
+	return RelationType_RELATION_TYPE_UNSPECIFIED
+}
+
+func (x *KnowledgeLink) GetWeight() float64 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
+}
+
+func (x *KnowledgeLink) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *KnowledgeLink) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+// Enriched link view (used for focused list and single get)
+type ContentPreview struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title          string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	ContentSummary string                 `protobuf:"bytes,3,opt,name=content_summary,json=contentSummary,proto3" json:"content_summary,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ContentPreview) Reset() {
+	*x = ContentPreview{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentPreview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentPreview) ProtoMessage() {}
+
+func (x *ContentPreview) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentPreview.ProtoReflect.Descriptor instead.
+func (*ContentPreview) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ContentPreview) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ContentPreview) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ContentPreview) GetContentSummary() string {
+	if x != nil {
+		return x.ContentSummary
+	}
+	return ""
+}
+
+type EnrichedKnowledgeLink struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	From          *ContentPreview        `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	To            *ContentPreview        `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
+	RelationType  RelationType           `protobuf:"varint,4,opt,name=relation_type,json=relationType,proto3,enum=knowledge.v1.RelationType" json:"relation_type,omitempty"`
+	Weight        float64                `protobuf:"fixed64,5,opt,name=weight,proto3" json:"weight,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,98,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,99,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnrichedKnowledgeLink) Reset() {
+	*x = EnrichedKnowledgeLink{}
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnrichedKnowledgeLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnrichedKnowledgeLink) ProtoMessage() {}
+
+func (x *EnrichedKnowledgeLink) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnrichedKnowledgeLink.ProtoReflect.Descriptor instead.
+func (*EnrichedKnowledgeLink) Descriptor() ([]byte, []int) {
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *EnrichedKnowledgeLink) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EnrichedKnowledgeLink) GetFrom() *ContentPreview {
+	if x != nil {
+		return x.From
+	}
+	return nil
+}
+
+func (x *EnrichedKnowledgeLink) GetTo() *ContentPreview {
+	if x != nil {
+		return x.To
+	}
+	return nil
+}
+
+func (x *EnrichedKnowledgeLink) GetRelationType() RelationType {
+	if x != nil {
+		return x.RelationType
+	}
+	return RelationType_RELATION_TYPE_UNSPECIFIED
+}
+
+func (x *EnrichedKnowledgeLink) GetWeight() float64 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
+}
+
+func (x *EnrichedKnowledgeLink) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *EnrichedKnowledgeLink) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
 type CreateKnowledgeLinkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FromContentId string                 `protobuf:"bytes,1,opt,name=from_content_id,json=fromContentId,proto3" json:"from_content_id,omitempty"`
@@ -1892,7 +2385,7 @@ type CreateKnowledgeLinkRequest struct {
 
 func (x *CreateKnowledgeLinkRequest) Reset() {
 	*x = CreateKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1904,7 +2397,7 @@ func (x *CreateKnowledgeLinkRequest) String() string {
 func (*CreateKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *CreateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[24]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1917,7 +2410,7 @@ func (x *CreateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*CreateKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{24}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CreateKnowledgeLinkRequest) GetFromContentId() string {
@@ -1957,7 +2450,7 @@ type GetKnowledgeLinkRequest struct {
 
 func (x *GetKnowledgeLinkRequest) Reset() {
 	*x = GetKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1969,7 +2462,7 @@ func (x *GetKnowledgeLinkRequest) String() string {
 func (*GetKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *GetKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[25]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1982,7 +2475,7 @@ func (x *GetKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*GetKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{25}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetKnowledgeLinkRequest) GetId() string {
@@ -2005,7 +2498,7 @@ type ListKnowledgeLinksRequest struct {
 
 func (x *ListKnowledgeLinksRequest) Reset() {
 	*x = ListKnowledgeLinksRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2017,7 +2510,7 @@ func (x *ListKnowledgeLinksRequest) String() string {
 func (*ListKnowledgeLinksRequest) ProtoMessage() {}
 
 func (x *ListKnowledgeLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[26]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2030,7 +2523,7 @@ func (x *ListKnowledgeLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKnowledgeLinksRequest.ProtoReflect.Descriptor instead.
 func (*ListKnowledgeLinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{26}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListKnowledgeLinksRequest) GetContentId() string {
@@ -2071,7 +2564,7 @@ type ListKnowledgeLinksResponse struct {
 
 func (x *ListKnowledgeLinksResponse) Reset() {
 	*x = ListKnowledgeLinksResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2083,7 +2576,7 @@ func (x *ListKnowledgeLinksResponse) String() string {
 func (*ListKnowledgeLinksResponse) ProtoMessage() {}
 
 func (x *ListKnowledgeLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[27]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2096,7 +2589,7 @@ func (x *ListKnowledgeLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKnowledgeLinksResponse.ProtoReflect.Descriptor instead.
 func (*ListKnowledgeLinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{27}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListKnowledgeLinksResponse) GetItems() []*EnrichedKnowledgeLink {
@@ -2125,7 +2618,7 @@ type ListAllSpaceLinksRequest struct {
 
 func (x *ListAllSpaceLinksRequest) Reset() {
 	*x = ListAllSpaceLinksRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2137,7 +2630,7 @@ func (x *ListAllSpaceLinksRequest) String() string {
 func (*ListAllSpaceLinksRequest) ProtoMessage() {}
 
 func (x *ListAllSpaceLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[28]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2150,7 +2643,7 @@ func (x *ListAllSpaceLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllSpaceLinksRequest.ProtoReflect.Descriptor instead.
 func (*ListAllSpaceLinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{28}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListAllSpaceLinksRequest) GetSpaceId() string {
@@ -2184,7 +2677,7 @@ type ListAllSpaceLinksResponse struct {
 
 func (x *ListAllSpaceLinksResponse) Reset() {
 	*x = ListAllSpaceLinksResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2196,7 +2689,7 @@ func (x *ListAllSpaceLinksResponse) String() string {
 func (*ListAllSpaceLinksResponse) ProtoMessage() {}
 
 func (x *ListAllSpaceLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[29]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2209,7 +2702,7 @@ func (x *ListAllSpaceLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllSpaceLinksResponse.ProtoReflect.Descriptor instead.
 func (*ListAllSpaceLinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{29}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ListAllSpaceLinksResponse) GetItems() []*KnowledgeLink {
@@ -2237,7 +2730,7 @@ type UpdateKnowledgeLinkRequest struct {
 
 func (x *UpdateKnowledgeLinkRequest) Reset() {
 	*x = UpdateKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2249,7 +2742,7 @@ func (x *UpdateKnowledgeLinkRequest) String() string {
 func (*UpdateKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *UpdateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[30]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2262,7 +2755,7 @@ func (x *UpdateKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{30}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *UpdateKnowledgeLinkRequest) GetId() string {
@@ -2295,7 +2788,7 @@ type DeleteKnowledgeLinkRequest struct {
 
 func (x *DeleteKnowledgeLinkRequest) Reset() {
 	*x = DeleteKnowledgeLinkRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2307,7 +2800,7 @@ func (x *DeleteKnowledgeLinkRequest) String() string {
 func (*DeleteKnowledgeLinkRequest) ProtoMessage() {}
 
 func (x *DeleteKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[31]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2320,7 +2813,7 @@ func (x *DeleteKnowledgeLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKnowledgeLinkRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKnowledgeLinkRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{31}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *DeleteKnowledgeLinkRequest) GetId() string {
@@ -2340,7 +2833,7 @@ type GetBacklinksRequest struct {
 
 func (x *GetBacklinksRequest) Reset() {
 	*x = GetBacklinksRequest{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2352,7 +2845,7 @@ func (x *GetBacklinksRequest) String() string {
 func (*GetBacklinksRequest) ProtoMessage() {}
 
 func (x *GetBacklinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[32]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2365,7 +2858,7 @@ func (x *GetBacklinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBacklinksRequest.ProtoReflect.Descriptor instead.
 func (*GetBacklinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{32}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetBacklinksRequest) GetContentId() string {
@@ -2392,7 +2885,7 @@ type GetBacklinksResponse struct {
 
 func (x *GetBacklinksResponse) Reset() {
 	*x = GetBacklinksResponse{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2404,7 +2897,7 @@ func (x *GetBacklinksResponse) String() string {
 func (*GetBacklinksResponse) ProtoMessage() {}
 
 func (x *GetBacklinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[33]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2417,7 +2910,7 @@ func (x *GetBacklinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBacklinksResponse.ProtoReflect.Descriptor instead.
 func (*GetBacklinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{33}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetBacklinksResponse) GetItems() []*KnowledgeLink {
@@ -2434,7 +2927,6 @@ func (x *GetBacklinksResponse) GetNextPageToken() string {
 	return ""
 }
 
-// Utility Messages
 type HealthStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -2445,7 +2937,7 @@ type HealthStatus struct {
 
 func (x *HealthStatus) Reset() {
 	*x = HealthStatus{}
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[34]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2457,7 +2949,7 @@ func (x *HealthStatus) String() string {
 func (*HealthStatus) ProtoMessage() {}
 
 func (x *HealthStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_v1_knowledge_proto_msgTypes[34]
+	mi := &file_api_proto_v1_knowledge_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2470,7 +2962,7 @@ func (x *HealthStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthStatus.ProtoReflect.Descriptor instead.
 func (*HealthStatus) Descriptor() ([]byte, []int) {
-	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{34}
+	return file_api_proto_v1_knowledge_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *HealthStatus) GetStatus() string {
@@ -2502,64 +2994,30 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\rcontent_count\x18\x01 \x01(\x03R\fcontentCount\x12\x1d\n" +
 	"\n" +
 	"link_count\x18\x02 \x01(\x03R\tlinkCount\x12D\n" +
-	"\x10last_activity_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastActivityAt\"\x90\x02\n" +
+	"\x10last_activity_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastActivityAt\"\xd5\x03\n" +
 	"\x05Space\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x19\n" +
-	"\bowner_id\x18\x04 \x01(\tR\aownerId\x12.\n" +
-	"\x05stats\x18\n" +
-	" \x01(\v2\x18.knowledge.v1.SpaceStatsR\x05stats\x129\n" +
+	"\bowner_id\x18\x04 \x01(\tR\aownerId\x12\x12\n" +
+	"\x04icon\x18\x05 \x01(\tR\x04icon\x12\x1f\n" +
+	"\vcover_image\x18\x06 \x01(\tR\n" +
+	"coverImage\x12\x1a\n" +
+	"\bkeywords\x18\a \x03(\tR\bkeywords\x12!\n" +
+	"\faccess_level\x18\b \x01(\tR\vaccessLevel\x12%\n" +
+	"\x0edocument_count\x18\t \x01(\x03R\rdocumentCount\x12(\n" +
+	"\x10total_size_bytes\x18\n" +
+	" \x01(\x03R\x0etotalSizeBytes\x12.\n" +
+	"\x05stats\x18\v \x01(\v2\x18.knowledge.v1.SpaceStatsR\x05stats\x129\n" +
 	"\n" +
 	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x8d\x04\n" +
-	"\rContentSource\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bspace_id\x18\x02 \x01(\tR\aspaceId\x123\n" +
-	"\x06status\x18\x03 \x01(\x0e2\x1b.knowledge.v1.ContentStatusR\x06status\x12\x19\n" +
-	"\bowner_id\x18\x04 \x01(\tR\aownerId\x12\x16\n" +
-	"\x06source\x18\x05 \x01(\tR\x06source\x12\x1b\n" +
-	"\tmime_type\x18\x06 \x01(\tR\bmimeType\x12\x1d\n" +
-	"\n" +
-	"size_bytes\x18\a \x01(\x03R\tsizeBytes\x12\x14\n" +
-	"\x05title\x18\b \x01(\tR\x05title\x12,\n" +
-	"\x12original_blob_hash\x18\t \x01(\tR\x10originalBlobHash\x12.\n" +
-	"\x13processed_blob_hash\x18\n" +
-	" \x01(\tR\x11processedBlobHash\x12'\n" +
-	"\x0fcontent_summary\x18\v \x01(\tR\x0econtentSummary\x12\x1a\n" +
-	"\bkeywords\x18\f \x03(\tR\bkeywords\x129\n" +
-	"\n" +
-	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xba\x02\n" +
-	"\rKnowledgeLink\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
-	"\x0ffrom_content_id\x18\x02 \x01(\tR\rfromContentId\x12\"\n" +
-	"\rto_content_id\x18\x03 \x01(\tR\vtoContentId\x12?\n" +
-	"\rrelation_type\x18\x04 \x01(\x0e2\x1a.knowledge.v1.RelationTypeR\frelationType\x12\x16\n" +
-	"\x06weight\x18\x05 \x01(\x01R\x06weight\x129\n" +
-	"\n" +
-	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"_\n" +
-	"\x0eContentPreview\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12'\n" +
-	"\x0fcontent_summary\x18\x03 \x01(\tR\x0econtentSummary\"\xd6\x02\n" +
-	"\x15EnrichedKnowledgeLink\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
-	"\x04from\x18\x02 \x01(\v2\x1c.knowledge.v1.ContentPreviewR\x04from\x12,\n" +
-	"\x02to\x18\x03 \x01(\v2\x1c.knowledge.v1.ContentPreviewR\x02to\x12?\n" +
-	"\rrelation_type\x18\x04 \x01(\x0e2\x1a.knowledge.v1.RelationTypeR\frelationType\x12\x16\n" +
-	"\x06weight\x18\x05 \x01(\x01R\x06weight\x129\n" +
-	"\n" +
-	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"L\n" +
+	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"|\n" +
 	"\x12CreateSpaceRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\"!\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
+	"\bkeywords\x18\x03 \x03(\tR\bkeywords\x12\x12\n" +
+	"\x04icon\x18\x04 \x01(\tR\x04icon\"!\n" +
 	"\x0fGetSpaceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\xc9\x03\n" +
 	"\x11ListSpacesRequest\x12\f\n" +
@@ -2578,15 +3036,68 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x13.knowledge.v1.SpaceR\x05items\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x8c\x01\n" +
 	"\x12UpdateSpaceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
-	"\x05space\x18\x02 \x01(\v2\x13.knowledge.v1.SpaceR\x05space\x12;\n" +
-	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\"[\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1a\n" +
+	"\bkeywords\x18\x04 \x03(\tR\bkeywords\x12\x12\n" +
+	"\x04icon\x18\x05 \x01(\tR\x04icon\"[\n" +
 	"\x12DeleteSpaceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vhard_delete\x18\x02 \x01(\bR\n" +
 	"hardDelete\x12\x14\n" +
-	"\x05force\x18\x03 \x01(\bR\x05force\"\xe4\x01\n" +
+	"\x05force\x18\x03 \x01(\bR\x05force\"p\n" +
+	"\fSpaceFilters\x12\f\n" +
+	"\x01q\x18\x01 \x01(\tR\x01q\x12\x1a\n" +
+	"\bkeywords\x18\x02 \x03(\tR\bkeywords\x12\x17\n" +
+	"\asort_by\x18\x03 \x01(\tR\x06sortBy\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x04 \x01(\tR\tsortOrder\"\xc3\x03\n" +
+	"\rSpacesUIState\x12*\n" +
+	"\x04view\x18\x01 \x01(\x0e2\x16.knowledge.v1.ViewModeR\x04view\x12\x1f\n" +
+	"\vsearch_term\x18\x02 \x01(\tR\n" +
+	"searchTerm\x12+\n" +
+	"\x11selected_keywords\x18\x03 \x03(\tR\x10selectedKeywords\x12\x17\n" +
+	"\asort_by\x18\x04 \x01(\tR\x06sortBy\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x05 \x01(\tR\tsortOrder\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x1f\n" +
+	"\vis_creating\x18\b \x01(\bR\n" +
+	"isCreating\x12$\n" +
+	"\vis_deleting\x18\t \x01(\tH\x00R\n" +
+	"isDeleting\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"last_error\x18\n" +
+	" \x01(\tH\x01R\tlastError\x88\x01\x01\x12/\n" +
+	"\x11selected_space_id\x18\v \x01(\tH\x02R\x0fselectedSpaceId\x88\x01\x01B\x0e\n" +
+	"\f_is_deletingB\r\n" +
+	"\v_last_errorB\x14\n" +
+	"\x12_selected_space_id\"\x95\x01\n" +
+	"\x14SearchSpacesResponse\x12+\n" +
+	"\x06spaces\x18\x01 \x03(\v2\x13.knowledge.v1.SpaceR\x06spaces\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x03R\n" +
+	"totalCount\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x8d\x04\n" +
+	"\rContentSource\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bspace_id\x18\x02 \x01(\tR\aspaceId\x123\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x1b.knowledge.v1.ContentStatusR\x06status\x12\x19\n" +
+	"\bowner_id\x18\x04 \x01(\tR\aownerId\x12\x16\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\x12\x1b\n" +
+	"\tmime_type\x18\x06 \x01(\tR\bmimeType\x12\x1d\n" +
+	"\n" +
+	"size_bytes\x18\a \x01(\x03R\tsizeBytes\x12\x14\n" +
+	"\x05title\x18\b \x01(\tR\x05title\x12,\n" +
+	"\x12original_blob_hash\x18\t \x01(\tR\x10originalBlobHash\x12.\n" +
+	"\x13processed_blob_hash\x18\n" +
+	" \x01(\tR\x11processedBlobHash\x12'\n" +
+	"\x0fcontent_summary\x18\v \x01(\tR\x0econtentSummary\x12\x1a\n" +
+	"\bkeywords\x18\f \x03(\tR\bkeywords\x129\n" +
+	"\n" +
+	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xe4\x01\n" +
 	"\x16CreateUploadURLRequest\x12\x19\n" +
 	"\bspace_id\x18\x01 \x01(\tR\aspaceId\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
@@ -2640,7 +3151,31 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x1d\n" +
 	"\n" +
-	"object_key\x18\x03 \x01(\tR\tobjectKey\"\xc1\x01\n" +
+	"object_key\x18\x03 \x01(\tR\tobjectKey\"\xba\x02\n" +
+	"\rKnowledgeLink\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
+	"\x0ffrom_content_id\x18\x02 \x01(\tR\rfromContentId\x12\"\n" +
+	"\rto_content_id\x18\x03 \x01(\tR\vtoContentId\x12?\n" +
+	"\rrelation_type\x18\x04 \x01(\x0e2\x1a.knowledge.v1.RelationTypeR\frelationType\x12\x16\n" +
+	"\x06weight\x18\x05 \x01(\x01R\x06weight\x129\n" +
+	"\n" +
+	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"_\n" +
+	"\x0eContentPreview\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12'\n" +
+	"\x0fcontent_summary\x18\x03 \x01(\tR\x0econtentSummary\"\xd6\x02\n" +
+	"\x15EnrichedKnowledgeLink\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
+	"\x04from\x18\x02 \x01(\v2\x1c.knowledge.v1.ContentPreviewR\x04from\x12,\n" +
+	"\x02to\x18\x03 \x01(\v2\x1c.knowledge.v1.ContentPreviewR\x02to\x12?\n" +
+	"\rrelation_type\x18\x04 \x01(\x0e2\x1a.knowledge.v1.RelationTypeR\frelationType\x12\x16\n" +
+	"\x06weight\x18\x05 \x01(\x01R\x06weight\x129\n" +
+	"\n" +
+	"created_at\x18b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18c \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc1\x01\n" +
 	"\x1aCreateKnowledgeLinkRequest\x12&\n" +
 	"\x0ffrom_content_id\x18\x01 \x01(\tR\rfromContentId\x12\"\n" +
 	"\rto_content_id\x18\x02 \x01(\tR\vtoContentId\x12?\n" +
@@ -2688,7 +3223,19 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"components\x1a=\n" +
 	"\x0fComponentsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*w\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*H\n" +
+	"\bViewMode\x12\x19\n" +
+	"\x15VIEW_MODE_UNSPECIFIED\x10\x00\x12\v\n" +
+	"\aGALLERY\x10\x01\x12\b\n" +
+	"\x04LIST\x10\x02\x12\n" +
+	"\n" +
+	"\x06CANVAS\x10\x03*G\n" +
+	"\bGridSize\x12\x19\n" +
+	"\x15GRID_SIZE_UNSPECIFIED\x10\x00\x12\t\n" +
+	"\x05SMALL\x10\x01\x12\n" +
+	"\n" +
+	"\x06MEDIUM\x10\x02\x12\t\n" +
+	"\x05LARGE\x10\x03*w\n" +
 	"\rContentStatus\x12\x1e\n" +
 	"\x1aCONTENT_STATUS_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tUPLOADING\x10\x01\x12\f\n" +
@@ -2697,7 +3244,17 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"PROCESSING\x10\x03\x12\r\n" +
 	"\tPROCESSED\x10\x04\x12\n" +
 	"\n" +
-	"\x06FAILED\x10\x05*e\n" +
+	"\x06FAILED\x10\x05*g\n" +
+	"\x11ContentSourceType\x12#\n" +
+	"\x1fCONTENT_SOURCE_TYPE_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\x04FILE\x10\x01\x12\a\n" +
+	"\x03URL\x10\x02\x12\b\n" +
+	"\x04TEXT\x10\x03\x12\x10\n" +
+	"\fGOOGLE_DRIVE\x10\x04*\x81\x01\n" +
+	"\x12DownloadObjectKind\x12$\n" +
+	" DOWNLOAD_OBJECT_KIND_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dDOWNLOAD_OBJECT_KIND_ORIGINAL\x10\x01\x12\"\n" +
+	"\x1eDOWNLOAD_OBJECT_KIND_PROCESSED\x10\x02*e\n" +
 	"\fRelationType\x12\x1d\n" +
 	"\x19RELATION_TYPE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -2709,11 +3266,7 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	"\x1aLINK_DIRECTION_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aINBOUND\x10\x01\x12\f\n" +
 	"\bOUTBOUND\x10\x02\x12\b\n" +
-	"\x04BOTH\x10\x03*\x81\x01\n" +
-	"\x12DownloadObjectKind\x12$\n" +
-	" DOWNLOAD_OBJECT_KIND_UNSPECIFIED\x10\x00\x12!\n" +
-	"\x1dDOWNLOAD_OBJECT_KIND_ORIGINAL\x10\x01\x12\"\n" +
-	"\x1eDOWNLOAD_OBJECT_KIND_PROCESSED\x10\x022\xd2\x0e\n" +
+	"\x04BOTH\x10\x032\xd2\x0e\n" +
 	"\x10KnowledgeService\x12D\n" +
 	"\vCreateSpace\x12 .knowledge.v1.CreateSpaceRequest\x1a\x13.knowledge.v1.Space\x12>\n" +
 	"\bGetSpace\x12\x1d.knowledge.v1.GetSpaceRequest\x1a\x13.knowledge.v1.Space\x12O\n" +
@@ -2750,143 +3303,149 @@ func file_api_proto_v1_knowledge_proto_rawDescGZIP() []byte {
 	return file_api_proto_v1_knowledge_proto_rawDescData
 }
 
-var file_api_proto_v1_knowledge_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_api_proto_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_api_proto_v1_knowledge_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_api_proto_v1_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_api_proto_v1_knowledge_proto_goTypes = []any{
-	(ContentStatus)(0),                       // 0: knowledge.v1.ContentStatus
-	(RelationType)(0),                        // 1: knowledge.v1.RelationType
-	(LinkDirection)(0),                       // 2: knowledge.v1.LinkDirection
-	(DownloadObjectKind)(0),                  // 3: knowledge.v1.DownloadObjectKind
-	(*Pagination)(nil),                       // 4: knowledge.v1.Pagination
-	(*SpaceStats)(nil),                       // 5: knowledge.v1.SpaceStats
-	(*Space)(nil),                            // 6: knowledge.v1.Space
-	(*ContentSource)(nil),                    // 7: knowledge.v1.ContentSource
-	(*KnowledgeLink)(nil),                    // 8: knowledge.v1.KnowledgeLink
-	(*ContentPreview)(nil),                   // 9: knowledge.v1.ContentPreview
-	(*EnrichedKnowledgeLink)(nil),            // 10: knowledge.v1.EnrichedKnowledgeLink
-	(*CreateSpaceRequest)(nil),               // 11: knowledge.v1.CreateSpaceRequest
-	(*GetSpaceRequest)(nil),                  // 12: knowledge.v1.GetSpaceRequest
-	(*ListSpacesRequest)(nil),                // 13: knowledge.v1.ListSpacesRequest
-	(*ListSpacesResponse)(nil),               // 14: knowledge.v1.ListSpacesResponse
-	(*UpdateSpaceRequest)(nil),               // 15: knowledge.v1.UpdateSpaceRequest
-	(*DeleteSpaceRequest)(nil),               // 16: knowledge.v1.DeleteSpaceRequest
-	(*CreateUploadURLRequest)(nil),           // 17: knowledge.v1.CreateUploadURLRequest
-	(*CreateUploadURLResponse)(nil),          // 18: knowledge.v1.CreateUploadURLResponse
-	(*ConfirmUploadRequest)(nil),             // 19: knowledge.v1.ConfirmUploadRequest
-	(*GetContentSourceRequest)(nil),          // 20: knowledge.v1.GetContentSourceRequest
-	(*ListContentSourcesRequest)(nil),        // 21: knowledge.v1.ListContentSourcesRequest
-	(*ListContentSourcesResponse)(nil),       // 22: knowledge.v1.ListContentSourcesResponse
-	(*UpdateContentSourceRequest)(nil),       // 23: knowledge.v1.UpdateContentSourceRequest
-	(*UpdateContentSourceStatusRequest)(nil), // 24: knowledge.v1.UpdateContentSourceStatusRequest
-	(*DeleteContentSourceRequest)(nil),       // 25: knowledge.v1.DeleteContentSourceRequest
-	(*GenerateDownloadURLRequest)(nil),       // 26: knowledge.v1.GenerateDownloadURLRequest
-	(*GenerateDownloadURLResponse)(nil),      // 27: knowledge.v1.GenerateDownloadURLResponse
-	(*CreateKnowledgeLinkRequest)(nil),       // 28: knowledge.v1.CreateKnowledgeLinkRequest
-	(*GetKnowledgeLinkRequest)(nil),          // 29: knowledge.v1.GetKnowledgeLinkRequest
-	(*ListKnowledgeLinksRequest)(nil),        // 30: knowledge.v1.ListKnowledgeLinksRequest
-	(*ListKnowledgeLinksResponse)(nil),       // 31: knowledge.v1.ListKnowledgeLinksResponse
-	(*ListAllSpaceLinksRequest)(nil),         // 32: knowledge.v1.ListAllSpaceLinksRequest
-	(*ListAllSpaceLinksResponse)(nil),        // 33: knowledge.v1.ListAllSpaceLinksResponse
-	(*UpdateKnowledgeLinkRequest)(nil),       // 34: knowledge.v1.UpdateKnowledgeLinkRequest
-	(*DeleteKnowledgeLinkRequest)(nil),       // 35: knowledge.v1.DeleteKnowledgeLinkRequest
-	(*GetBacklinksRequest)(nil),              // 36: knowledge.v1.GetBacklinksRequest
-	(*GetBacklinksResponse)(nil),             // 37: knowledge.v1.GetBacklinksResponse
-	(*HealthStatus)(nil),                     // 38: knowledge.v1.HealthStatus
-	nil,                                      // 39: knowledge.v1.HealthStatus.ComponentsEntry
-	(*timestamppb.Timestamp)(nil),            // 40: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),            // 41: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),                    // 42: google.protobuf.Empty
+	(ViewMode)(0),                            // 0: knowledge.v1.ViewMode
+	(GridSize)(0),                            // 1: knowledge.v1.GridSize
+	(ContentStatus)(0),                       // 2: knowledge.v1.ContentStatus
+	(ContentSourceType)(0),                   // 3: knowledge.v1.ContentSourceType
+	(DownloadObjectKind)(0),                  // 4: knowledge.v1.DownloadObjectKind
+	(RelationType)(0),                        // 5: knowledge.v1.RelationType
+	(LinkDirection)(0),                       // 6: knowledge.v1.LinkDirection
+	(*Pagination)(nil),                       // 7: knowledge.v1.Pagination
+	(*SpaceStats)(nil),                       // 8: knowledge.v1.SpaceStats
+	(*Space)(nil),                            // 9: knowledge.v1.Space
+	(*CreateSpaceRequest)(nil),               // 10: knowledge.v1.CreateSpaceRequest
+	(*GetSpaceRequest)(nil),                  // 11: knowledge.v1.GetSpaceRequest
+	(*ListSpacesRequest)(nil),                // 12: knowledge.v1.ListSpacesRequest
+	(*ListSpacesResponse)(nil),               // 13: knowledge.v1.ListSpacesResponse
+	(*UpdateSpaceRequest)(nil),               // 14: knowledge.v1.UpdateSpaceRequest
+	(*DeleteSpaceRequest)(nil),               // 15: knowledge.v1.DeleteSpaceRequest
+	(*SpaceFilters)(nil),                     // 16: knowledge.v1.SpaceFilters
+	(*SpacesUIState)(nil),                    // 17: knowledge.v1.SpacesUIState
+	(*SearchSpacesResponse)(nil),             // 18: knowledge.v1.SearchSpacesResponse
+	(*ContentSource)(nil),                    // 19: knowledge.v1.ContentSource
+	(*CreateUploadURLRequest)(nil),           // 20: knowledge.v1.CreateUploadURLRequest
+	(*CreateUploadURLResponse)(nil),          // 21: knowledge.v1.CreateUploadURLResponse
+	(*ConfirmUploadRequest)(nil),             // 22: knowledge.v1.ConfirmUploadRequest
+	(*GetContentSourceRequest)(nil),          // 23: knowledge.v1.GetContentSourceRequest
+	(*ListContentSourcesRequest)(nil),        // 24: knowledge.v1.ListContentSourcesRequest
+	(*ListContentSourcesResponse)(nil),       // 25: knowledge.v1.ListContentSourcesResponse
+	(*UpdateContentSourceRequest)(nil),       // 26: knowledge.v1.UpdateContentSourceRequest
+	(*UpdateContentSourceStatusRequest)(nil), // 27: knowledge.v1.UpdateContentSourceStatusRequest
+	(*DeleteContentSourceRequest)(nil),       // 28: knowledge.v1.DeleteContentSourceRequest
+	(*GenerateDownloadURLRequest)(nil),       // 29: knowledge.v1.GenerateDownloadURLRequest
+	(*GenerateDownloadURLResponse)(nil),      // 30: knowledge.v1.GenerateDownloadURLResponse
+	(*KnowledgeLink)(nil),                    // 31: knowledge.v1.KnowledgeLink
+	(*ContentPreview)(nil),                   // 32: knowledge.v1.ContentPreview
+	(*EnrichedKnowledgeLink)(nil),            // 33: knowledge.v1.EnrichedKnowledgeLink
+	(*CreateKnowledgeLinkRequest)(nil),       // 34: knowledge.v1.CreateKnowledgeLinkRequest
+	(*GetKnowledgeLinkRequest)(nil),          // 35: knowledge.v1.GetKnowledgeLinkRequest
+	(*ListKnowledgeLinksRequest)(nil),        // 36: knowledge.v1.ListKnowledgeLinksRequest
+	(*ListKnowledgeLinksResponse)(nil),       // 37: knowledge.v1.ListKnowledgeLinksResponse
+	(*ListAllSpaceLinksRequest)(nil),         // 38: knowledge.v1.ListAllSpaceLinksRequest
+	(*ListAllSpaceLinksResponse)(nil),        // 39: knowledge.v1.ListAllSpaceLinksResponse
+	(*UpdateKnowledgeLinkRequest)(nil),       // 40: knowledge.v1.UpdateKnowledgeLinkRequest
+	(*DeleteKnowledgeLinkRequest)(nil),       // 41: knowledge.v1.DeleteKnowledgeLinkRequest
+	(*GetBacklinksRequest)(nil),              // 42: knowledge.v1.GetBacklinksRequest
+	(*GetBacklinksResponse)(nil),             // 43: knowledge.v1.GetBacklinksResponse
+	(*HealthStatus)(nil),                     // 44: knowledge.v1.HealthStatus
+	nil,                                      // 45: knowledge.v1.HealthStatus.ComponentsEntry
+	(*timestamppb.Timestamp)(nil),            // 46: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),            // 47: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),                    // 48: google.protobuf.Empty
 }
 var file_api_proto_v1_knowledge_proto_depIdxs = []int32{
-	40, // 0: knowledge.v1.SpaceStats.last_activity_at:type_name -> google.protobuf.Timestamp
-	5,  // 1: knowledge.v1.Space.stats:type_name -> knowledge.v1.SpaceStats
-	40, // 2: knowledge.v1.Space.created_at:type_name -> google.protobuf.Timestamp
-	40, // 3: knowledge.v1.Space.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 4: knowledge.v1.ContentSource.status:type_name -> knowledge.v1.ContentStatus
-	40, // 5: knowledge.v1.ContentSource.created_at:type_name -> google.protobuf.Timestamp
-	40, // 6: knowledge.v1.ContentSource.updated_at:type_name -> google.protobuf.Timestamp
-	1,  // 7: knowledge.v1.KnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
-	40, // 8: knowledge.v1.KnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
-	40, // 9: knowledge.v1.KnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
-	9,  // 10: knowledge.v1.EnrichedKnowledgeLink.from:type_name -> knowledge.v1.ContentPreview
-	9,  // 11: knowledge.v1.EnrichedKnowledgeLink.to:type_name -> knowledge.v1.ContentPreview
-	1,  // 12: knowledge.v1.EnrichedKnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
-	40, // 13: knowledge.v1.EnrichedKnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
-	40, // 14: knowledge.v1.EnrichedKnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
-	40, // 15: knowledge.v1.ListSpacesRequest.created_after:type_name -> google.protobuf.Timestamp
-	40, // 16: knowledge.v1.ListSpacesRequest.created_before:type_name -> google.protobuf.Timestamp
-	40, // 17: knowledge.v1.ListSpacesRequest.updated_after:type_name -> google.protobuf.Timestamp
-	40, // 18: knowledge.v1.ListSpacesRequest.updated_before:type_name -> google.protobuf.Timestamp
-	4,  // 19: knowledge.v1.ListSpacesRequest.page:type_name -> knowledge.v1.Pagination
-	6,  // 20: knowledge.v1.ListSpacesResponse.items:type_name -> knowledge.v1.Space
-	6,  // 21: knowledge.v1.UpdateSpaceRequest.space:type_name -> knowledge.v1.Space
-	41, // 22: knowledge.v1.UpdateSpaceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 23: knowledge.v1.CreateUploadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
-	40, // 24: knowledge.v1.CreateUploadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
-	7,  // 25: knowledge.v1.CreateUploadURLResponse.content_source:type_name -> knowledge.v1.ContentSource
-	0,  // 26: knowledge.v1.ListContentSourcesRequest.status:type_name -> knowledge.v1.ContentStatus
-	4,  // 27: knowledge.v1.ListContentSourcesRequest.page:type_name -> knowledge.v1.Pagination
-	7,  // 28: knowledge.v1.ListContentSourcesResponse.items:type_name -> knowledge.v1.ContentSource
-	7,  // 29: knowledge.v1.UpdateContentSourceRequest.content:type_name -> knowledge.v1.ContentSource
-	41, // 30: knowledge.v1.UpdateContentSourceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	0,  // 31: knowledge.v1.UpdateContentSourceStatusRequest.status:type_name -> knowledge.v1.ContentStatus
-	3,  // 32: knowledge.v1.GenerateDownloadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
-	40, // 33: knowledge.v1.GenerateDownloadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
-	1,  // 34: knowledge.v1.CreateKnowledgeLinkRequest.relation_type:type_name -> knowledge.v1.RelationType
-	2,  // 35: knowledge.v1.ListKnowledgeLinksRequest.direction:type_name -> knowledge.v1.LinkDirection
-	1,  // 36: knowledge.v1.ListKnowledgeLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
-	4,  // 37: knowledge.v1.ListKnowledgeLinksRequest.page:type_name -> knowledge.v1.Pagination
-	10, // 38: knowledge.v1.ListKnowledgeLinksResponse.items:type_name -> knowledge.v1.EnrichedKnowledgeLink
-	1,  // 39: knowledge.v1.ListAllSpaceLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
-	4,  // 40: knowledge.v1.ListAllSpaceLinksRequest.page:type_name -> knowledge.v1.Pagination
-	8,  // 41: knowledge.v1.ListAllSpaceLinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
-	8,  // 42: knowledge.v1.UpdateKnowledgeLinkRequest.link:type_name -> knowledge.v1.KnowledgeLink
-	41, // 43: knowledge.v1.UpdateKnowledgeLinkRequest.update_mask:type_name -> google.protobuf.FieldMask
-	4,  // 44: knowledge.v1.GetBacklinksRequest.page:type_name -> knowledge.v1.Pagination
-	8,  // 45: knowledge.v1.GetBacklinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
-	39, // 46: knowledge.v1.HealthStatus.components:type_name -> knowledge.v1.HealthStatus.ComponentsEntry
-	11, // 47: knowledge.v1.KnowledgeService.CreateSpace:input_type -> knowledge.v1.CreateSpaceRequest
-	12, // 48: knowledge.v1.KnowledgeService.GetSpace:input_type -> knowledge.v1.GetSpaceRequest
-	13, // 49: knowledge.v1.KnowledgeService.ListSpaces:input_type -> knowledge.v1.ListSpacesRequest
-	15, // 50: knowledge.v1.KnowledgeService.UpdateSpace:input_type -> knowledge.v1.UpdateSpaceRequest
-	16, // 51: knowledge.v1.KnowledgeService.DeleteSpace:input_type -> knowledge.v1.DeleteSpaceRequest
-	17, // 52: knowledge.v1.KnowledgeService.CreateUploadURL:input_type -> knowledge.v1.CreateUploadURLRequest
-	19, // 53: knowledge.v1.KnowledgeService.ConfirmUpload:input_type -> knowledge.v1.ConfirmUploadRequest
-	20, // 54: knowledge.v1.KnowledgeService.GetContentSource:input_type -> knowledge.v1.GetContentSourceRequest
-	21, // 55: knowledge.v1.KnowledgeService.ListContentSources:input_type -> knowledge.v1.ListContentSourcesRequest
-	23, // 56: knowledge.v1.KnowledgeService.UpdateContentSource:input_type -> knowledge.v1.UpdateContentSourceRequest
-	24, // 57: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:input_type -> knowledge.v1.UpdateContentSourceStatusRequest
-	25, // 58: knowledge.v1.KnowledgeService.DeleteContentSource:input_type -> knowledge.v1.DeleteContentSourceRequest
-	26, // 59: knowledge.v1.KnowledgeService.GenerateDownloadURL:input_type -> knowledge.v1.GenerateDownloadURLRequest
-	28, // 60: knowledge.v1.KnowledgeService.CreateKnowledgeLink:input_type -> knowledge.v1.CreateKnowledgeLinkRequest
-	29, // 61: knowledge.v1.KnowledgeService.GetKnowledgeLink:input_type -> knowledge.v1.GetKnowledgeLinkRequest
-	30, // 62: knowledge.v1.KnowledgeService.ListKnowledgeLinks:input_type -> knowledge.v1.ListKnowledgeLinksRequest
-	32, // 63: knowledge.v1.KnowledgeService.ListAllSpaceLinks:input_type -> knowledge.v1.ListAllSpaceLinksRequest
-	34, // 64: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:input_type -> knowledge.v1.UpdateKnowledgeLinkRequest
-	35, // 65: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:input_type -> knowledge.v1.DeleteKnowledgeLinkRequest
-	36, // 66: knowledge.v1.KnowledgeService.GetBacklinks:input_type -> knowledge.v1.GetBacklinksRequest
-	42, // 67: knowledge.v1.KnowledgeService.Healthz:input_type -> google.protobuf.Empty
-	6,  // 68: knowledge.v1.KnowledgeService.CreateSpace:output_type -> knowledge.v1.Space
-	6,  // 69: knowledge.v1.KnowledgeService.GetSpace:output_type -> knowledge.v1.Space
-	14, // 70: knowledge.v1.KnowledgeService.ListSpaces:output_type -> knowledge.v1.ListSpacesResponse
-	6,  // 71: knowledge.v1.KnowledgeService.UpdateSpace:output_type -> knowledge.v1.Space
-	42, // 72: knowledge.v1.KnowledgeService.DeleteSpace:output_type -> google.protobuf.Empty
-	18, // 73: knowledge.v1.KnowledgeService.CreateUploadURL:output_type -> knowledge.v1.CreateUploadURLResponse
-	7,  // 74: knowledge.v1.KnowledgeService.ConfirmUpload:output_type -> knowledge.v1.ContentSource
-	7,  // 75: knowledge.v1.KnowledgeService.GetContentSource:output_type -> knowledge.v1.ContentSource
-	22, // 76: knowledge.v1.KnowledgeService.ListContentSources:output_type -> knowledge.v1.ListContentSourcesResponse
-	7,  // 77: knowledge.v1.KnowledgeService.UpdateContentSource:output_type -> knowledge.v1.ContentSource
-	7,  // 78: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:output_type -> knowledge.v1.ContentSource
-	42, // 79: knowledge.v1.KnowledgeService.DeleteContentSource:output_type -> google.protobuf.Empty
-	27, // 80: knowledge.v1.KnowledgeService.GenerateDownloadURL:output_type -> knowledge.v1.GenerateDownloadURLResponse
-	8,  // 81: knowledge.v1.KnowledgeService.CreateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
-	10, // 82: knowledge.v1.KnowledgeService.GetKnowledgeLink:output_type -> knowledge.v1.EnrichedKnowledgeLink
-	31, // 83: knowledge.v1.KnowledgeService.ListKnowledgeLinks:output_type -> knowledge.v1.ListKnowledgeLinksResponse
-	33, // 84: knowledge.v1.KnowledgeService.ListAllSpaceLinks:output_type -> knowledge.v1.ListAllSpaceLinksResponse
-	8,  // 85: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
-	42, // 86: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:output_type -> google.protobuf.Empty
-	37, // 87: knowledge.v1.KnowledgeService.GetBacklinks:output_type -> knowledge.v1.GetBacklinksResponse
-	38, // 88: knowledge.v1.KnowledgeService.Healthz:output_type -> knowledge.v1.HealthStatus
+	46, // 0: knowledge.v1.SpaceStats.last_activity_at:type_name -> google.protobuf.Timestamp
+	8,  // 1: knowledge.v1.Space.stats:type_name -> knowledge.v1.SpaceStats
+	46, // 2: knowledge.v1.Space.created_at:type_name -> google.protobuf.Timestamp
+	46, // 3: knowledge.v1.Space.updated_at:type_name -> google.protobuf.Timestamp
+	46, // 4: knowledge.v1.ListSpacesRequest.created_after:type_name -> google.protobuf.Timestamp
+	46, // 5: knowledge.v1.ListSpacesRequest.created_before:type_name -> google.protobuf.Timestamp
+	46, // 6: knowledge.v1.ListSpacesRequest.updated_after:type_name -> google.protobuf.Timestamp
+	46, // 7: knowledge.v1.ListSpacesRequest.updated_before:type_name -> google.protobuf.Timestamp
+	7,  // 8: knowledge.v1.ListSpacesRequest.page:type_name -> knowledge.v1.Pagination
+	9,  // 9: knowledge.v1.ListSpacesResponse.items:type_name -> knowledge.v1.Space
+	0,  // 10: knowledge.v1.SpacesUIState.view:type_name -> knowledge.v1.ViewMode
+	9,  // 11: knowledge.v1.SearchSpacesResponse.spaces:type_name -> knowledge.v1.Space
+	2,  // 12: knowledge.v1.ContentSource.status:type_name -> knowledge.v1.ContentStatus
+	46, // 13: knowledge.v1.ContentSource.created_at:type_name -> google.protobuf.Timestamp
+	46, // 14: knowledge.v1.ContentSource.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 15: knowledge.v1.CreateUploadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
+	46, // 16: knowledge.v1.CreateUploadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
+	19, // 17: knowledge.v1.CreateUploadURLResponse.content_source:type_name -> knowledge.v1.ContentSource
+	2,  // 18: knowledge.v1.ListContentSourcesRequest.status:type_name -> knowledge.v1.ContentStatus
+	7,  // 19: knowledge.v1.ListContentSourcesRequest.page:type_name -> knowledge.v1.Pagination
+	19, // 20: knowledge.v1.ListContentSourcesResponse.items:type_name -> knowledge.v1.ContentSource
+	19, // 21: knowledge.v1.UpdateContentSourceRequest.content:type_name -> knowledge.v1.ContentSource
+	47, // 22: knowledge.v1.UpdateContentSourceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	2,  // 23: knowledge.v1.UpdateContentSourceStatusRequest.status:type_name -> knowledge.v1.ContentStatus
+	4,  // 24: knowledge.v1.GenerateDownloadURLRequest.object_kind:type_name -> knowledge.v1.DownloadObjectKind
+	46, // 25: knowledge.v1.GenerateDownloadURLResponse.expires_at:type_name -> google.protobuf.Timestamp
+	5,  // 26: knowledge.v1.KnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
+	46, // 27: knowledge.v1.KnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
+	46, // 28: knowledge.v1.KnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
+	32, // 29: knowledge.v1.EnrichedKnowledgeLink.from:type_name -> knowledge.v1.ContentPreview
+	32, // 30: knowledge.v1.EnrichedKnowledgeLink.to:type_name -> knowledge.v1.ContentPreview
+	5,  // 31: knowledge.v1.EnrichedKnowledgeLink.relation_type:type_name -> knowledge.v1.RelationType
+	46, // 32: knowledge.v1.EnrichedKnowledgeLink.created_at:type_name -> google.protobuf.Timestamp
+	46, // 33: knowledge.v1.EnrichedKnowledgeLink.updated_at:type_name -> google.protobuf.Timestamp
+	5,  // 34: knowledge.v1.CreateKnowledgeLinkRequest.relation_type:type_name -> knowledge.v1.RelationType
+	6,  // 35: knowledge.v1.ListKnowledgeLinksRequest.direction:type_name -> knowledge.v1.LinkDirection
+	5,  // 36: knowledge.v1.ListKnowledgeLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
+	7,  // 37: knowledge.v1.ListKnowledgeLinksRequest.page:type_name -> knowledge.v1.Pagination
+	33, // 38: knowledge.v1.ListKnowledgeLinksResponse.items:type_name -> knowledge.v1.EnrichedKnowledgeLink
+	5,  // 39: knowledge.v1.ListAllSpaceLinksRequest.relation_type:type_name -> knowledge.v1.RelationType
+	7,  // 40: knowledge.v1.ListAllSpaceLinksRequest.page:type_name -> knowledge.v1.Pagination
+	31, // 41: knowledge.v1.ListAllSpaceLinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
+	31, // 42: knowledge.v1.UpdateKnowledgeLinkRequest.link:type_name -> knowledge.v1.KnowledgeLink
+	47, // 43: knowledge.v1.UpdateKnowledgeLinkRequest.update_mask:type_name -> google.protobuf.FieldMask
+	7,  // 44: knowledge.v1.GetBacklinksRequest.page:type_name -> knowledge.v1.Pagination
+	31, // 45: knowledge.v1.GetBacklinksResponse.items:type_name -> knowledge.v1.KnowledgeLink
+	45, // 46: knowledge.v1.HealthStatus.components:type_name -> knowledge.v1.HealthStatus.ComponentsEntry
+	10, // 47: knowledge.v1.KnowledgeService.CreateSpace:input_type -> knowledge.v1.CreateSpaceRequest
+	11, // 48: knowledge.v1.KnowledgeService.GetSpace:input_type -> knowledge.v1.GetSpaceRequest
+	12, // 49: knowledge.v1.KnowledgeService.ListSpaces:input_type -> knowledge.v1.ListSpacesRequest
+	14, // 50: knowledge.v1.KnowledgeService.UpdateSpace:input_type -> knowledge.v1.UpdateSpaceRequest
+	15, // 51: knowledge.v1.KnowledgeService.DeleteSpace:input_type -> knowledge.v1.DeleteSpaceRequest
+	20, // 52: knowledge.v1.KnowledgeService.CreateUploadURL:input_type -> knowledge.v1.CreateUploadURLRequest
+	22, // 53: knowledge.v1.KnowledgeService.ConfirmUpload:input_type -> knowledge.v1.ConfirmUploadRequest
+	23, // 54: knowledge.v1.KnowledgeService.GetContentSource:input_type -> knowledge.v1.GetContentSourceRequest
+	24, // 55: knowledge.v1.KnowledgeService.ListContentSources:input_type -> knowledge.v1.ListContentSourcesRequest
+	26, // 56: knowledge.v1.KnowledgeService.UpdateContentSource:input_type -> knowledge.v1.UpdateContentSourceRequest
+	27, // 57: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:input_type -> knowledge.v1.UpdateContentSourceStatusRequest
+	28, // 58: knowledge.v1.KnowledgeService.DeleteContentSource:input_type -> knowledge.v1.DeleteContentSourceRequest
+	29, // 59: knowledge.v1.KnowledgeService.GenerateDownloadURL:input_type -> knowledge.v1.GenerateDownloadURLRequest
+	34, // 60: knowledge.v1.KnowledgeService.CreateKnowledgeLink:input_type -> knowledge.v1.CreateKnowledgeLinkRequest
+	35, // 61: knowledge.v1.KnowledgeService.GetKnowledgeLink:input_type -> knowledge.v1.GetKnowledgeLinkRequest
+	36, // 62: knowledge.v1.KnowledgeService.ListKnowledgeLinks:input_type -> knowledge.v1.ListKnowledgeLinksRequest
+	38, // 63: knowledge.v1.KnowledgeService.ListAllSpaceLinks:input_type -> knowledge.v1.ListAllSpaceLinksRequest
+	40, // 64: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:input_type -> knowledge.v1.UpdateKnowledgeLinkRequest
+	41, // 65: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:input_type -> knowledge.v1.DeleteKnowledgeLinkRequest
+	42, // 66: knowledge.v1.KnowledgeService.GetBacklinks:input_type -> knowledge.v1.GetBacklinksRequest
+	48, // 67: knowledge.v1.KnowledgeService.Healthz:input_type -> google.protobuf.Empty
+	9,  // 68: knowledge.v1.KnowledgeService.CreateSpace:output_type -> knowledge.v1.Space
+	9,  // 69: knowledge.v1.KnowledgeService.GetSpace:output_type -> knowledge.v1.Space
+	13, // 70: knowledge.v1.KnowledgeService.ListSpaces:output_type -> knowledge.v1.ListSpacesResponse
+	9,  // 71: knowledge.v1.KnowledgeService.UpdateSpace:output_type -> knowledge.v1.Space
+	48, // 72: knowledge.v1.KnowledgeService.DeleteSpace:output_type -> google.protobuf.Empty
+	21, // 73: knowledge.v1.KnowledgeService.CreateUploadURL:output_type -> knowledge.v1.CreateUploadURLResponse
+	19, // 74: knowledge.v1.KnowledgeService.ConfirmUpload:output_type -> knowledge.v1.ContentSource
+	19, // 75: knowledge.v1.KnowledgeService.GetContentSource:output_type -> knowledge.v1.ContentSource
+	25, // 76: knowledge.v1.KnowledgeService.ListContentSources:output_type -> knowledge.v1.ListContentSourcesResponse
+	19, // 77: knowledge.v1.KnowledgeService.UpdateContentSource:output_type -> knowledge.v1.ContentSource
+	19, // 78: knowledge.v1.KnowledgeService.UpdateContentSourceStatus:output_type -> knowledge.v1.ContentSource
+	48, // 79: knowledge.v1.KnowledgeService.DeleteContentSource:output_type -> google.protobuf.Empty
+	30, // 80: knowledge.v1.KnowledgeService.GenerateDownloadURL:output_type -> knowledge.v1.GenerateDownloadURLResponse
+	31, // 81: knowledge.v1.KnowledgeService.CreateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
+	33, // 82: knowledge.v1.KnowledgeService.GetKnowledgeLink:output_type -> knowledge.v1.EnrichedKnowledgeLink
+	37, // 83: knowledge.v1.KnowledgeService.ListKnowledgeLinks:output_type -> knowledge.v1.ListKnowledgeLinksResponse
+	39, // 84: knowledge.v1.KnowledgeService.ListAllSpaceLinks:output_type -> knowledge.v1.ListAllSpaceLinksResponse
+	31, // 85: knowledge.v1.KnowledgeService.UpdateKnowledgeLink:output_type -> knowledge.v1.KnowledgeLink
+	48, // 86: knowledge.v1.KnowledgeService.DeleteKnowledgeLink:output_type -> google.protobuf.Empty
+	43, // 87: knowledge.v1.KnowledgeService.GetBacklinks:output_type -> knowledge.v1.GetBacklinksResponse
+	44, // 88: knowledge.v1.KnowledgeService.Healthz:output_type -> knowledge.v1.HealthStatus
 	68, // [68:89] is the sub-list for method output_type
 	47, // [47:68] is the sub-list for method input_type
 	47, // [47:47] is the sub-list for extension type_name
@@ -2899,13 +3458,14 @@ func file_api_proto_v1_knowledge_proto_init() {
 	if File_api_proto_v1_knowledge_proto != nil {
 		return
 	}
+	file_api_proto_v1_knowledge_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_v1_knowledge_proto_rawDesc), len(file_api_proto_v1_knowledge_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   36,
+			NumEnums:      7,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

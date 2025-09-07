@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSpacesStore } from '@/stores/spacesStore';
-import { Space, SpaceFilters } from './types/spaces';
+import { Space, ListSpacesRequest, ViewMode, Pagination, SpaceFilters } from '@/api/generated/v1/knowledge_pb';
 import SpaceFiltersComponent from './components/SpaceFilters';
 import GalleryView from './components/GalleryView';
 import ListView from './components/ListView';
@@ -15,7 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 interface SpacesClientPageProps {
   initialSpaces: Space[];
-  initialFilters: SpaceFilters;
+  initialFilters: Partial<ListSpacesRequest>;
   totalCount: number;
   currentPage: number;
   pageSize: number;
@@ -60,9 +60,10 @@ export default function SpacesClientPage({
   useEffect(() => {
     if (initialFilters.q) setSearchTerm(initialFilters.q);
     if (initialFilters.keywords) setSelectedKeywords(initialFilters.keywords);
-    if (initialFilters.sortBy) setSortBy(initialFilters.sortBy);
-    if (initialFilters.sortOrder) setSortOrder(initialFilters.sortOrder);
-    if (initialFilters.page) setPage(initialFilters.page);
+    // if (initialFilters.sortBy) setSortBy(initialFilters.sortBy);
+    // if (initialFilters.sortOrder) setSortOrder(initialFilters.sortOrder);
+    if (initialFilters.page?.pageToken) setPage(Number(initialFilters.page.pageToken));
+    // Don't set pageSize from URL params to avoid redirect issues
   }, []);
 
   // Update URL when filters change
@@ -73,10 +74,10 @@ export default function SpacesClientPage({
     if (filters.keywords && filters.keywords.length > 0) {
       params.set('keywords', filters.keywords.join(','));
     }
-    if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
-    if (filters.pageSize && filters.pageSize !== 20) params.set('pageSize', filters.pageSize.toString());
-    if (filters.sortBy) params.set('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
+    // Page handling is done separately in the store
+    // Don't add pageSize to URL to avoid redirect issues - keep it as default 20
+    // if (filters.sortBy) params.set('sortBy', filters.sortBy);
+    // if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
     
     router.push(`/spaces?${params.toString()}`);
   }, [router]);
@@ -88,7 +89,7 @@ export default function SpacesClientPage({
       const result = await searchSpaces(filters);
       if (result.ok && result.data) {
         setSpaces(result.data.spaces);
-        setTotal(result.data.totalCount);
+        setTotal(Number(result.data.totalCount));
       } else {
         toast({
           title: 'Error',
@@ -111,14 +112,12 @@ export default function SpacesClientPage({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchTerm !== initialFilters.q) {
-        const filters = {
+        const filters = new SpaceFilters({
           q: searchTerm,
           keywords: selectedKeywords,
-          sortBy,
-          sortOrder,
-          page,
-          pageSize,
-        };
+          sortBy: 'created',
+          sortOrder: 'desc',
+        });
         updateURL(filters);
         fetchSpaces(filters);
       }
@@ -129,14 +128,12 @@ export default function SpacesClientPage({
 
   // Handle filter changes (non-search)
   useEffect(() => {
-    const filters = {
+    const filters = new SpaceFilters({
       q: searchTerm,
       keywords: selectedKeywords,
-      sortBy,
-      sortOrder,
-      page,
-      pageSize,
-    };
+      sortBy: 'created',
+      sortOrder: 'desc',
+    });
     updateURL(filters);
     fetchSpaces(filters);
   }, [selectedKeywords, sortBy, sortOrder, page]);
@@ -180,7 +177,7 @@ export default function SpacesClientPage({
         variant: 'destructive',
       });
     } finally {
-      setIsDeleting(null);
+      setIsDeleting(undefined);
     }
   };
 
@@ -188,7 +185,12 @@ export default function SpacesClientPage({
   const handleClearFilters = () => {
     clearFilters();
     router.push('/spaces');
-    fetchSpaces({});
+    fetchSpaces(new SpaceFilters({
+      q: '',
+      keywords: [],
+      sortBy: 'created',
+      sortOrder: 'desc',
+    }));
   };
 
   // View components based on view mode
@@ -198,16 +200,16 @@ export default function SpacesClientPage({
       onSelect: handleSpaceSelect,
       onEdit: handleSpaceEdit,
       onDelete: handleSpaceDelete,
-      isDeleting,
+      isDeleting: isDeleting || null,
       loading,
     };
 
     switch (view) {
-      case 'list':
+      case ViewMode.LIST:
         return <ListView {...props} />;
-      case 'canvas':
+      case ViewMode.CANVAS:
         return <CanvasView {...props} />;
-      case 'gallery':
+      case ViewMode.GALLERY:
       default:
         return <GalleryView {...props} />;
     }
@@ -236,23 +238,23 @@ export default function SpacesClientPage({
               {/* View Switcher */}
               <div className="flex items-center bg-muted rounded-lg p-1">
                 <Button
-                  variant={view === 'gallery' ? 'default' : 'ghost'}
+                  variant={view === ViewMode.GALLERY ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setView('gallery')}
+                  onClick={() => setView(ViewMode.GALLERY)}
                 >
                   Gallery
                 </Button>
                 <Button
-                  variant={view === 'list' ? 'default' : 'ghost'}
+                  variant={view === ViewMode.LIST ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setView('list')}
+                  onClick={() => setView(ViewMode.LIST)}
                 >
                   List
                 </Button>
                 <Button
-                  variant={view === 'canvas' ? 'default' : 'ghost'}
+                  variant={view === ViewMode.CANVAS ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setView('canvas')}
+                  onClick={() => setView(ViewMode.CANVAS)}
                 >
                   Canvas
                 </Button>
@@ -332,14 +334,12 @@ export default function SpacesClientPage({
           onSuccess={(newSpace) => {
             setShowCreateDialog(false);
             // Refresh the spaces list
-            fetchSpaces({
+            fetchSpaces(new SpaceFilters({
               q: searchTerm,
               keywords: selectedKeywords,
-              sortBy,
-              sortOrder,
-              page,
-              pageSize,
-            });
+              sortBy: 'created',
+              sortOrder: 'desc',
+            }));
           }}
         />
       )}

@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { ContentSource, ContentSourceStatus } from '@/app/spaces/types/content';
+import { ContentSource, ContentStatus } from '@/api/generated/v1/knowledge_pb';
 
 export interface ProcessingPollerUpdate {
   id: string;
-  processingStatus: ContentSourceStatus;
+  status: ContentStatus;
 }
 
 interface UseProcessingPollerOptions {
@@ -27,7 +27,7 @@ export function useProcessingPoller({ spaceId, onUpdates, candidateIds, interval
   const timerRef = useRef<number | null>(null);
   const backoffRef = useRef<number>(intervalMs);
   const runningRef = useRef<boolean>(false);
-  const lastEmittedRef = useRef<Map<string, ContentSourceStatus>>(new Map());
+  const lastEmittedRef = useRef<Map<string, ContentStatus>>(new Map());
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -82,9 +82,9 @@ export function useProcessingPoller({ spaceId, onUpdates, candidateIds, interval
         await Promise.allSettled(candidateIds.map(async (id) => {
           const res = await getContentSource(id);
           if (res.ok && res.data) {
-            if (res.data.processingStatus === ContentSourceStatus.COMPLETED && !completed.find(s => s.id === id)) {
+            if (res.data.status === ContentStatus.PROCESSED && !completed.find(s => s.id === id)) {
               completed = completed.concat([res.data]);
-            } else if (res.data.processingStatus === ContentSourceStatus.FAILED && !failed.find(s => s.id === id)) {
+            } else if (res.data.status === ContentStatus.FAILED && !failed.find(s => s.id === id)) {
               failed = failed.concat([res.data]);
             }
           }
@@ -94,16 +94,16 @@ export function useProcessingPoller({ spaceId, onUpdates, candidateIds, interval
       const updates: ProcessingPollerUpdate[] = [];
       const candidateSet = candidateIds ? new Set(candidateIds) : undefined;
 
-      const maybeEmit = (id: string, status: ContentSourceStatus) => {
+      const maybeEmit = (id: string, status: ContentStatus) => {
         if (candidateSet && !candidateSet.has(id)) return;
         const prev = lastEmittedRef.current.get(id);
         if (prev === status) return;
         lastEmittedRef.current.set(id, status);
-        updates.push({ id, processingStatus: status });
+        updates.push({ id, status: status });
       };
 
-      for (const s of completed) maybeEmit(s.id, ContentSourceStatus.COMPLETED);
-      for (const s of failed) maybeEmit(s.id, ContentSourceStatus.FAILED);
+      for (const s of completed) maybeEmit(s.id, ContentStatus.PROCESSED);
+      for (const s of failed) maybeEmit(s.id, ContentStatus.FAILED);
 
       if (updates.length > 0) {
         onUpdates(updates);

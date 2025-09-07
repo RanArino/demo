@@ -17,7 +17,15 @@ import FileUploadArea from './components/FileUploadArea';
 import LinkUploadForm from './components/LinkUploadForm';
 import TextUploadForm from './components/TextUploadForm';
 import GoogleDriveUpload from './components/GoogleDriveUpload';
-import { UploadModalProps, ContentSource } from '@/app/spaces/types/content';
+import { ContentSource } from '@/api/generated/v1/knowledge_pb';
+
+export interface UploadModalProps {
+  isOpen: boolean;
+  spaceId: string;
+  onClose?: () => void;
+  onUploadComplete?: (contentSources: ContentSource[]) => void;
+  autoOpenTab?: 'file' | 'google-drive' | 'link' | 'text';
+}
 
 type UploadTab = 'file' | 'google-drive' | 'link' | 'text';
 

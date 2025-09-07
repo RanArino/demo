@@ -5,85 +5,25 @@ import { getKnowledgeServiceClient } from '../server-client';
 import {
   ListContentSourcesRequest,
   CreateUploadURLRequest,
+  CreateUploadURLResponse,
   ConfirmUploadRequest,
   GenerateDownloadURLRequest,
   DeleteContentSourceRequest,
   GetContentSourceRequest,
-  ContentSource as ProtoContentSource,
+  ContentSource,
   ContentStatus,
   DownloadObjectKind,
 } from '../generated/v1/knowledge_pb';
-import { ActionResult } from '@/app/spaces/types/shared';
-import {
-  ContentSource,
-  ContentSourceStatus,
-  ContentSourceType,
-  CreateUploadURLRequest as AppCreateUploadURLRequest,
-  CreateUploadURLResponse,
-} from '@/app/spaces/types/content';
-import { ConnectError } from '@bufbuild/connect';
+import { ActionResult, safeTimestampToDate } from '@/lib/types';
 import { Timestamp } from '@bufbuild/protobuf';
+import { createAuthHeaders, sanitizeError } from './utils';
 
-/**
- * Helper function to create headers with JWT token
- */
-async function createAuthHeaders(): Promise<Headers> {
-  const { getToken } = await auth();
-  const token = await getToken({ template: 'ms-user-auth' });
 
-  const headers = new Headers();
-  if (token) {
-    headers.append('authorization', `Bearer ${token}`);
-  }
-
-  return headers;
-}
-
-/**
- * Helper function to sanitize error messages for security
- */
-function sanitizeError(error: unknown): { code: string; message: string } {
-  if (error instanceof ConnectError) {
-    return { code: error.code.toString(), message: error.message };
-  }
-
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-
-  return {
-    code: 'INTERNAL',
-    message: isDevelopment ? message : 'An unexpected error occurred. Please try again.',
-  };
-}
 
 function protoTimestampToISOString(ts: Timestamp | undefined): string {
   if (!ts) return '';
-  return ts.toDate().toISOString();
-}
-
-function protoContentSourceToContentSource(protoSource: ProtoContentSource): ContentSource {
-  const statusMap: Record<ContentStatus, ContentSourceStatus> = {
-    [ContentStatus.CONTENT_STATUS_UNSPECIFIED]: ContentSourceStatus.PENDING,
-    [ContentStatus.UPLOADING]: ContentSourceStatus.PROCESSING,
-    [ContentStatus.UPLOADED]: ContentSourceStatus.PROCESSING,
-    [ContentStatus.PROCESSING]: ContentSourceStatus.PROCESSING,
-    [ContentStatus.PROCESSED]: ContentSourceStatus.COMPLETED,
-    [ContentStatus.FAILED]: ContentSourceStatus.FAILED,
-  };
-  const processingStatus = statusMap[protoSource.status] || ContentSourceStatus.PENDING;
-
-  return {
-    id: protoSource.id,
-    spaceId: protoSource.spaceId,
-    title: protoSource.title || undefined,
-    mimeType: protoSource.mimeType,
-    sizeBytes: Number(protoSource.sizeBytes),
-    processingStatus,
-    sourceType: ContentSourceType.FILE, // This might need to be mapped from the proto if available
-    createdAt: protoTimestampToISOString(protoSource.createdAt),
-    updatedAt: protoTimestampToISOString(protoSource.updatedAt),
-    contentSummary: protoSource.contentSummary || undefined,
-  };
+  const date = safeTimestampToDate(ts);
+  return date ? date.toISOString() : '';
 }
 
 export async function listContentSources(
@@ -112,8 +52,7 @@ export async function listContentSources(
     }
 
     const response = await client.listContentSources(request, { headers });
-    const sources = response.items.map(protoContentSourceToContentSource);
-    return { ok: true, data: sources };
+    return { ok: true, data: response.items };
   } catch (error) {
     console.error('listContentSources action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -121,7 +60,7 @@ export async function listContentSources(
 }
 
 export async function createUploadURL(
-  input: AppCreateUploadURLRequest
+  request: CreateUploadURLRequest
 ): Promise<ActionResult<CreateUploadURLResponse>> {
   try {
     const { userId } = await auth();
@@ -130,27 +69,8 @@ export async function createUploadURL(
     const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
 
-    const request = new CreateUploadURLRequest({
-      spaceId: input.spaceId,
-      filename: input.filename,
-      mimeType: input.mimeType,
-      sizeBytes: BigInt(input.sizeBytes),
-      objectKind:
-        input.objectKind === 'processed'
-          ? DownloadObjectKind.PROCESSED
-          : DownloadObjectKind.ORIGINAL,
-    });
-
     const response = await client.createUploadURL(request, { headers });
-    return {
-      ok: true,
-      data: {
-        uploadUrl: response.uploadUrl,
-        contentSourceId: response.contentSource?.id || '',
-        expiresAt: protoTimestampToISOString(response.expiresAt),
-        objectKey: response.objectKey,
-      },
-    };
+    return { ok: true, data: response };
   } catch (error) {
     console.error('createUploadURL action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -170,7 +90,7 @@ export async function confirmUpload(
     const request = new ConfirmUploadRequest({ contentSourceId, blobHash });
 
     const response = await client.confirmUpload(request, { headers });
-    return { ok: true, data: protoContentSourceToContentSource(response) };
+    return { ok: true, data: response };
   } catch (error) {
     console.error('confirmUpload action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -181,7 +101,7 @@ export async function generateDownloadURL(
   contentSourceId: string,
   kind: 'original' | 'processed' = 'original',
   expiresSeconds?: number
-): Promise<ActionResult<{ url: string; expiresAt: string }>> {
+): Promise<ActionResult<{ url: string; expiresAt: Timestamp | undefined; objectKey: string }>> {
   try {
     const { userId } = await auth();
     if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
@@ -202,7 +122,8 @@ export async function generateDownloadURL(
       ok: true,
       data: {
         url: response.url,
-        expiresAt: protoTimestampToISOString(response.expiresAt),
+        expiresAt: response.expiresAt,
+        objectKey: response.objectKey,
       },
     };
   } catch (error) {
@@ -238,7 +159,7 @@ export async function getContentSource(contentSourceId: string): Promise<ActionR
     const request = new GetContentSourceRequest({ id: contentSourceId });
 
     const response = await client.getContentSource(request, { headers });
-    return { ok: true, data: protoContentSourceToContentSource(response) };
+    return { ok: true, data: response };
   } catch (error) {
     console.error('getContentSource action error:', error);
     return { ok: false, error: sanitizeError(error) };

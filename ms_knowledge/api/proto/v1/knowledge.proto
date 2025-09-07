@@ -44,46 +44,34 @@ service KnowledgeService {
   rpc Healthz(google.protobuf.Empty) returns (HealthStatus);
 }
 
-// Enums
-enum ContentStatus {
-  CONTENT_STATUS_UNSPECIFIED = 0;
-  UPLOADING = 1;
-  UPLOADED = 2;
-  PROCESSING = 3;
-  PROCESSED = 4;
-  FAILED = 5;
-}
 
-enum RelationType {
-  RELATION_TYPE_UNSPECIFIED = 0;
-  REFERENCES = 1;
-  CONTAINS = 2;
-  RELATED = 3;
-  FOLLOWS = 4;
-}
+// =============================================================================
+// COMMON MESSAGES
+// =============================================================================
 
-enum LinkDirection {
-  LINK_DIRECTION_UNSPECIFIED = 0;
-  INBOUND = 1;
-  OUTBOUND = 2;
-  BOTH = 3;
-}
-
-// Specifies which object (original or processed) an operation targets
-enum DownloadObjectKind {
-  DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
-  DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;  // source/original object
-  DOWNLOAD_OBJECT_KIND_PROCESSED = 2; // processed object
-}
-
-// Common Messages
 message Pagination {
   int32 page_size = 1;
   string page_token = 2;
 }
 
+// =============================================================================
+// SPACE ENTITIES AND MESSAGES
+// =============================================================================
 
-// Core Entities
+enum ViewMode {
+  VIEW_MODE_UNSPECIFIED = 0;
+  GALLERY = 1;
+  LIST = 2;
+  CANVAS = 3;
+}
+
+enum GridSize {
+  GRID_SIZE_UNSPECIFIED = 0;
+  SMALL = 1;
+  MEDIUM = 2;
+  LARGE = 3;
+}
+
 message SpaceStats {
   int64 content_count = 1;
   int64 link_count = 2;
@@ -95,60 +83,24 @@ message Space {
   string title = 2;
   string description = 3;
   string owner_id = 4;
-  SpaceStats stats = 10;
+  string icon = 5;
+  string cover_image = 6;
+  repeated string keywords = 7;
+  string access_level = 8;
+  int64 document_count = 9;
+  int64 total_size_bytes = 10;
+  SpaceStats stats = 11;
   google.protobuf.Timestamp created_at = 98;
   google.protobuf.Timestamp updated_at = 99;
 }
 
-message ContentSource {
-  string id = 1;
-  string space_id = 2;
-  ContentStatus status = 3;
-  string owner_id = 4;
-  string source = 5;
-  string mime_type = 6;
-  int64 size_bytes = 7;
-  string title = 8;
-  string original_blob_hash = 9;
-  string processed_blob_hash = 10;
-  string content_summary = 11;
-  repeated string keywords = 12;
-  google.protobuf.Timestamp created_at = 98;
-  google.protobuf.Timestamp updated_at = 99;
-}
-
-// Simple link (used for bulk list)
-message KnowledgeLink {
-  string id = 1;
-  string from_content_id = 2;
-  string to_content_id = 3;
-  RelationType relation_type = 4;
-  double weight = 5;
-  google.protobuf.Timestamp created_at = 98;
-  google.protobuf.Timestamp updated_at = 99;
-}
-
-// Enriched link view (used for focused list and single get)
-message ContentPreview {
-  string id = 1;
-  string title = 2;
-  string content_summary = 3;
-}
-
-message EnrichedKnowledgeLink {
-  string id = 1;
-  ContentPreview from = 2;
-  ContentPreview to = 3;
-  RelationType relation_type = 4;
-  double weight = 5;
-  google.protobuf.Timestamp created_at = 98;
-  google.protobuf.Timestamp updated_at = 99;
-}
-
-// Space Request/Response Messages
 message CreateSpaceRequest {
   string title = 1;
   string description = 2;
+  repeated string keywords = 3;
+  string icon = 4;
+  // string cover_image = 5;
+  // string access_level = 6;
 }
 
 message GetSpaceRequest {
@@ -174,9 +126,13 @@ message ListSpacesResponse {
 }
 
 message UpdateSpaceRequest {
-  string id = 1;
-  Space space = 2;
-  google.protobuf.FieldMask update_mask = 3;
+  string id = 1; 
+  string title = 2;
+  string description = 3;
+  repeated string keywords = 4;
+  string icon = 5;
+  // string cover_image = 6;
+  // string access_level = 7;
 }
 
 message DeleteSpaceRequest {
@@ -185,9 +141,55 @@ message DeleteSpaceRequest {
   bool force = 3;
 }
 
-// SearchSpacesRequest removed; use ListSpacesRequest.q instead
+message SpaceFilters {
+  string q = 1;
+  repeated string keywords = 2;
+  string sort_by = 3; // 'name' | 'created' | 'updated' | 'documents'
+  string sort_order = 4; // 'asc' | 'desc'
+}
 
-// Content Source Request/Response Messages
+message SpacesUIState {
+  ViewMode view = 1;
+  string search_term = 2;
+  repeated string selected_keywords = 3;
+  string sort_by = 4;
+  string sort_order = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  bool is_creating = 8;
+  optional string is_deleting = 9;
+  optional string last_error = 10;
+  optional string selected_space_id = 11;
+}
+
+message SearchSpacesResponse {
+  repeated Space spaces = 1;
+  int64 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// =============================================================================
+// CONTENT SOURCE ENTITIES AND MESSAGES
+// =============================================================================
+
+message ContentSource {
+  string id = 1;
+  string space_id = 2;
+  ContentStatus status = 3;
+  string owner_id = 4;
+  string source = 5;
+  string mime_type = 6;
+  int64 size_bytes = 7;
+  string title = 8;
+  string original_blob_hash = 9;
+  string processed_blob_hash = 10;
+  string content_summary = 11;
+  repeated string keywords = 12;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
 message CreateUploadURLRequest {
   string space_id = 1;
   string filename = 2;
@@ -254,7 +256,78 @@ message GenerateDownloadURLResponse {
   string object_key = 3;
 }
 
-// Knowledge Link Request/Response Messages
+enum ContentStatus {
+  CONTENT_STATUS_UNSPECIFIED = 0;
+  UPLOADING = 1;
+  UPLOADED = 2;
+  PROCESSING = 3;
+  PROCESSED = 4;
+  FAILED = 5;
+}
+
+enum ContentSourceType {
+  CONTENT_SOURCE_TYPE_UNSPECIFIED = 0;
+  FILE = 1;
+  URL = 2;
+  TEXT = 3;
+  GOOGLE_DRIVE = 4;
+}
+
+// Specifies which object (original or processed) an operation targets
+enum DownloadObjectKind {
+  DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
+  DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;  // source/original object
+  DOWNLOAD_OBJECT_KIND_PROCESSED = 2; // processed object
+}
+
+
+// =============================================================================
+// KNOWLEDGE LINK ENTITIES AND MESSAGES
+// =============================================================================
+
+enum RelationType {
+  RELATION_TYPE_UNSPECIFIED = 0;
+  REFERENCES = 1;
+  CONTAINS = 2;
+  RELATED = 3;
+  FOLLOWS = 4;
+}
+
+enum LinkDirection {
+  LINK_DIRECTION_UNSPECIFIED = 0;
+  INBOUND = 1;
+  OUTBOUND = 2;
+  BOTH = 3;
+}
+
+// Simple link (used for bulk list)
+message KnowledgeLink {
+  string id = 1;
+  string from_content_id = 2;
+  string to_content_id = 3;
+  RelationType relation_type = 4;
+  double weight = 5;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
+// Enriched link view (used for focused list and single get)
+message ContentPreview {
+  string id = 1;
+  string title = 2;
+  string content_summary = 3;
+}
+
+message EnrichedKnowledgeLink {
+  string id = 1;
+  ContentPreview from = 2;
+  ContentPreview to = 3;
+  RelationType relation_type = 4;
+  double weight = 5;
+  google.protobuf.Timestamp created_at = 98;
+  google.protobuf.Timestamp updated_at = 99;
+}
+
 message CreateKnowledgeLinkRequest {
   string from_content_id = 1;
   string to_content_id = 2;
@@ -311,7 +384,11 @@ message GetBacklinksResponse {
   string next_page_token = 2;
 }
 
-// Utility Messages
+
+// =============================================================================
+// UTILITY MESSAGES
+// =============================================================================
+
 message HealthStatus {
   string status = 1;
   map<string, string> components = 2;

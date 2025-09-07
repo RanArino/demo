@@ -11,7 +11,8 @@ import {
   ActivateUserRequest,
   User,
 } from '../generated/v1/user_pb';
-import { ConnectError } from '@bufbuild/connect';
+import { safeTimestampToDate } from '@/lib/types';
+import { createAuthHeaders, sanitizeErrorString } from './utils';
 
 export type PlainUser = {
   id: string;
@@ -27,37 +28,6 @@ export type PlainUser = {
   updatedAt?: Date;
 };
 
-/**
- * Helper function to create headers with JWT token
- */
-async function createAuthHeaders(): Promise<Headers> {
-  const { getToken } = await auth();
-  const token = await getToken({ template: 'ms-user-auth' });
-  
-  const headers = new Headers();
-  if (token) {
-    headers.append('authorization', `Bearer ${token}`);
-  }
-  
-  return headers;
-}
-
-/**
- * Helper function to sanitize error messages for security
- */
-function sanitizeError(error: unknown): string {
-  if (error instanceof ConnectError) {
-    return error.message;
-  }
-
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  if (isDevelopment) {
-    return error instanceof Error ? error.message : 'An error occurred';
-  } else {
-    return 'An error occurred. Please try again.';
-  }
-}
 
 function toPlainUserObject(user: User): PlainUser {
   return {
@@ -70,8 +40,8 @@ function toPlainUserObject(user: User): PlainUser {
     status: user.status,
     storageUsedBytes: user.storageUsedBytes,
     storageQuotaBytes: user.storageQuotaBytes,
-    createdAt: user.createdAt?.toDate(),
-    updatedAt: user.updatedAt?.toDate(),
+    createdAt: safeTimestampToDate(user.createdAt) || undefined,
+    updatedAt: safeTimestampToDate(user.updatedAt) || undefined,
   };
 }
 
@@ -113,7 +83,7 @@ export async function createUser(userData: {
     }
   } catch (error) {
     console.error('createUser action error:', error);
-    return { success: false, error: sanitizeError(error) };
+    return { success: false, error: sanitizeErrorString(error) };
   }
 }
 
@@ -150,7 +120,7 @@ export async function activateUser(userData: {
     }
   } catch (error) {
     console.error('activateUser action error:', error);
-    return { success: false, error: sanitizeError(error) };
+    return { success: false, error: sanitizeErrorString(error) };
   }
 }
 
@@ -199,7 +169,7 @@ export async function getUser(userId?: string): Promise<{ success: boolean; user
     }
   } catch (error) {
     console.error('getUser action error:', error);
-    return { success: false, error: sanitizeError(error) };
+    return { success: false, error: sanitizeErrorString(error) };
   }
 }
 
@@ -241,7 +211,7 @@ export async function updateUser(userData: {
     }
   } catch (error) {
     console.error('updateUser action error:', error);
-    return { success: false, error: sanitizeError(error) };
+    return { success: false, error: sanitizeErrorString(error) };
   }
 }
 
@@ -277,7 +247,7 @@ export async function checkUserStatus(): Promise<{
     };
   } catch (error) {
     console.error('checkUserStatus action error:', error);
-    return { success: false, error: sanitizeError(error) };
+    return { success: false, error: sanitizeErrorString(error) };
   }
 }
 
@@ -304,6 +274,6 @@ export async function deleteUser(userId?: string): Promise<{ success: boolean; e
     return { success: true };
   } catch (error) {
     console.error('deleteUser action error:', error);
-    return { success: false, error: sanitizeError(error) };
+    return { success: false, error: sanitizeErrorString(error) };
   }
 }

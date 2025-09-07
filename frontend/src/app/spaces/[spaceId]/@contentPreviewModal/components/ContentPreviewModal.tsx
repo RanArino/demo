@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ContentSource } from '@/app/spaces/types/content';
+import { ContentSource } from '@/api/generated/v1/knowledge_pb';
 import { getFriendlyNameFromMimeType } from '@/lib/mime-types';
 
 interface ContentPreviewModalProps {

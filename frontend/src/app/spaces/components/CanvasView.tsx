@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Space } from '../types/spaces';
+import { Space } from '@/api/generated/v1/knowledge_pb';
+import { safeTimestampToDate } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -47,6 +48,11 @@ export default function CanvasView({
     const d = typeof date === 'string' ? new Date(date) : date;
     if (!(d instanceof Date) || isNaN(d.getTime())) return '—';
     return d.toLocaleDateString();
+  };
+
+  const formatTimestamp = (timestamp: any) => {
+    const date = safeTimestampToDate(timestamp);
+    return date ? date.toLocaleDateString() : '—';
   };
 
   if (loading) {
@@ -162,7 +168,7 @@ export default function CanvasView({
 
               {/* Space Icon and Title */}
               <div className="text-center mb-6">
-                <div className="text-6xl mb-4">{currentSpace.icon || '📚'}</div>
+                <div className="text-6xl mb-4">📚</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{currentSpace.title}</h3>
                 <p className="text-gray-600 leading-relaxed">{currentSpace.description}</p>
               </div>
@@ -173,11 +179,11 @@ export default function CanvasView({
                   <Eye className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 mb-2">Mind Map Preview</p>
                   <div className="flex flex-wrap gap-1 justify-center">
-                    {currentSpace.keywords.slice(0, 4).map((keyword) => (
+                    {/* {currentSpace.keywords.slice(0, 4).map((keyword) => (
                       <Badge key={keyword} variant="outline" className="text-xs">
                         {keyword}
                       </Badge>
-                    ))}
+                    ))} */}
                   </div>
                 </div>
               </div>
@@ -189,7 +195,7 @@ export default function CanvasView({
                     <Calendar className="h-4 w-4" />
                     <span>Created</span>
                   </div>
-                  <span>{formatDate(currentSpace.createdAt)}</span>
+                  <span>{formatTimestamp(currentSpace.createdAt)}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -197,7 +203,7 @@ export default function CanvasView({
                     <FileText className="h-4 w-4" />
                     <span>Documents</span>
                   </div>
-                  <span>{currentSpace.documentCount || 0}</span>
+                  <span>{currentSpace.stats?.contentCount.toString() || 0}</span>
                 </div>
               </div>
 
@@ -217,15 +223,15 @@ export default function CanvasView({
                     <div className="p-6">
                       <div className="bg-gray-50 rounded-xl p-8 min-h-[400px] flex items-center justify-center border-2 border-dashed border-gray-200">
                         <div className="text-center">
-                          <div className="text-8xl mb-4">{currentSpace.icon || '📚'}</div>
+                          <div className="text-8xl mb-4">📚</div>
                           <h3 className="text-3xl font-bold mb-4">{currentSpace.title}</h3>
                           <p className="text-gray-600 mb-6 max-w-md">{currentSpace.description}</p>
                           <div className="flex flex-wrap gap-2 justify-center mb-6">
-                            {currentSpace.keywords.map((keyword) => (
+                            {/* {currentSpace.keywords.map((keyword) => (
                               <Badge key={keyword} variant="outline">
                                 {keyword}
                               </Badge>
-                            ))}
+                            ))} */}
                           </div>
                           <Button
                             className="bg-blue-600 hover:bg-blue-700"
@@ -255,7 +261,7 @@ export default function CanvasView({
                 <div className="absolute top-8 -left-12 bg-white rounded-xl shadow-lg p-4 w-48 opacity-60 transform rotate-6 scale-90 pointer-events-none">
                   <div className="text-center">
                     <div className="text-2xl mb-2">
-                      {spaces[(currentIndex - 1 + spaces.length) % spaces.length]?.icon || '📚'}
+                      {/* {spaces[(currentIndex - 1 + spaces.length) % spaces.length]?.icon || '📚'} */}
                     </div>
                     <h4 className="font-medium text-sm truncate">
                       {spaces[(currentIndex - 1 + spaces.length) % spaces.length]?.title}
@@ -267,7 +273,7 @@ export default function CanvasView({
                 <div className="absolute top-8 -right-12 bg-white rounded-xl shadow-lg p-4 w-48 opacity-60 transform -rotate-6 scale-90 pointer-events-none">
                   <div className="text-center">
                     <div className="text-2xl mb-2">
-                      {spaces[(currentIndex + 1) % spaces.length]?.icon || '📚'}
+                      {/* {spaces[(currentIndex + 1) % spaces.length]?.icon || '📚'} */}
                     </div>
                     <h4 className="font-medium text-sm truncate">
                       {spaces[(currentIndex + 1) % spaces.length]?.title}

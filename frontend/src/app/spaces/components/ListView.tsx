@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Space } from '../types/spaces';
+import { Space } from '@/api/generated/v1/knowledge_pb';
+import { Timestamp } from '@bufbuild/protobuf';
+import { safeTimestampToDate } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,7 +31,7 @@ interface ListViewProps {
   loading?: boolean;
 }
 
-type SortKey = 'title' | 'documentCount' | 'createdAt' | 'lastUpdatedAt';
+type SortKey = 'title' | 'stats.contentCount' | 'createdAt' | 'updatedAt';
 
 export default function ListView({
   spaces: initialSpaces,
@@ -49,13 +51,36 @@ export default function ListView({
     const sortableSpaces = [...spaces];
     if (sortConfig !== null) {
       sortableSpaces.sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+        let aValue: any;
+        let bValue: any;
 
-        if (sortConfig.key === 'createdAt' || sortConfig.key === 'lastUpdatedAt') {
-          // Ensure values are parsed as dates for correct comparison
-          const aDate = new Date(aValue as string | Date);
-          const bDate = new Date(bValue as string | Date);
+        // Type-safe property access
+        switch (sortConfig.key) {
+          case 'title':
+            aValue = a.title;
+            bValue = b.title;
+            break;
+          case 'stats.contentCount':
+            aValue = a.stats?.contentCount;
+            bValue = b.stats?.contentCount;
+            break;
+          case 'createdAt':
+            aValue = a.createdAt;
+            bValue = b.createdAt;
+            break;
+          case 'updatedAt':
+            aValue = a.updatedAt;
+            bValue = b.updatedAt;
+            break;
+          default:
+            return 0;
+        }
+
+        if (sortConfig.key === 'createdAt' || sortConfig.key === 'updatedAt') {
+          // Handle Timestamp objects
+          const aDate = safeTimestampToDate(aValue);
+          const bDate = safeTimestampToDate(bValue);
+          if (!aDate || !bDate) return 0;
           return sortConfig.direction === 'ascending'
             ? aDate.getTime() - bDate.getTime()
             : bDate.getTime() - aDate.getTime();
@@ -93,11 +118,18 @@ export default function ListView({
     if (editingId && editedField && editedValue !== null) {
       // Optimistically update the UI
       setSpaces(prevSpaces =>
-        prevSpaces.map(space =>
-          space.id === spaceId
-            ? { ...space, [editedField]: editedValue, lastUpdatedAt: new Date() }
-            : space
-        )
+        prevSpaces.map(space => {
+          if (space.id === spaceId) {
+            // Create a new Space instance with updated values
+            const updatedSpace = new Space({
+              ...space,
+              [editedField]: editedValue,
+              updatedAt: Timestamp.fromDate(new Date())
+            });
+            return updatedSpace;
+          }
+          return space;
+        })
       );
 
       setEditingId(null);
@@ -124,21 +156,13 @@ export default function ListView({
   };
 
   const getAccessIcon = (level: string) => {
-    switch (level) {
-      case 'public': return <Globe className="h-4 w-4 text-green-600" />;
-      case 'shared': return <Users className="h-4 w-4 text-blue-600" />;
-      case 'private': return <Lock className="h-4 w-4 text-gray-600" />;
-      default: return <Eye className="h-4 w-4 text-gray-600" />;
-    }
+    // TODO: Implement access level logic based on new data model
+    return <Globe className="h-4 w-4 text-green-600" />;
   };
 
   const getAccessColor = (level: string) => {
-    switch (level) {
-      case 'public': return 'bg-green-100 text-green-800 border-green-200';
-      case 'shared': return 'bg-blue-100 text-blue-800 border-blue-200';  
-      case 'private': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    // TODO: Implement access level logic based on new data model
+    return 'bg-green-100 text-green-800 border-green-200';
   };
 
   const formatDate = (date: Date | string | undefined | null) => {
@@ -146,6 +170,11 @@ export default function ListView({
     const d = typeof date === 'string' ? new Date(date) : date;
     if (!(d instanceof Date) || isNaN(d.getTime())) return '—';
     return d.toLocaleDateString();
+  };
+
+  const formatTimestamp = (timestamp: any) => {
+    const date = safeTimestampToDate(timestamp);
+    return date ? date.toLocaleDateString() : '—';
   };
 
   if (loading) {
@@ -213,14 +242,14 @@ export default function ListView({
                   <TableHead>Keywords</TableHead>
                   <TableHead className="min-w-[200px]">Description</TableHead>
                   <TableHead
-                    onClick={() => requestSort('documentCount')}
+                    onClick={() => requestSort('stats.contentCount')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors text-center"
                     aria-label="Sort by Document Count"
                   >
                     <div className="flex items-center justify-center gap-2">
                       <FileText className="h-4 w-4" />
                       Documents
-                      {getSortIcon('documentCount')}
+                      {getSortIcon('stats.contentCount')}
                     </div>
                   </TableHead>
                   <TableHead
@@ -235,13 +264,13 @@ export default function ListView({
                     </div>
                   </TableHead>
                   <TableHead
-                    onClick={() => requestSort('lastUpdatedAt')}
+                    onClick={() => requestSort('updatedAt')}
                     className="cursor-pointer hover:bg-gray-100 transition-colors"
                     aria-label="Sort by Last Updated Date"
                   >
                     <div className="flex items-center gap-2">
                       Updated
-                      {getSortIcon('lastUpdatedAt')}
+                      {getSortIcon('updatedAt')}
                     </div>
                   </TableHead>
                   <TableHead>Access</TableHead>
@@ -253,7 +282,7 @@ export default function ListView({
                 {sortedSpaces.map((space) => (
                   <TableRow key={space.id} className="hover:bg-gray-50">
                     <TableCell>
-                      <span className="text-2xl">{space.icon || '📚'}</span>
+                      <span className="text-2xl">📚</span>
                     </TableCell>
 
                     <TableCell>
@@ -284,32 +313,10 @@ export default function ListView({
 
                     <TableCell>
                       <div
-                        onClick={() => handleEdit(space.id, 'keywords', space.keywords)}
                         className="cursor-pointer hover:bg-blue-50 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
                       >
-                        {editingId === space.id && editedField === 'keywords' ? (
-                          <Input
-                            value={Array.isArray(editedValue) ? editedValue.join(', ') : ''}
-                            onChange={handleChange}
-                            onBlur={() => handleSave(space.id)}
-                            className="h-8"
-                            placeholder="Enter keywords, separated by commas"
-                            autoFocus
-                          />
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {space.keywords.slice(0, 3).map((keyword) => (
-                              <Badge key={keyword} variant="outline" className="text-xs">
-                                {keyword}
-                              </Badge>
-                            ))}
-                            {space.keywords.length > 3 && (
-                              <Badge variant="outline" className="text-xs text-gray-400">
-                                +{space.keywords.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex flex-wrap gap-1">
+                        </div>
                       </div>
                     </TableCell>
 
@@ -339,7 +346,7 @@ export default function ListView({
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="ghost" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" aria-label={`View documents for ${space.title}`}>
-                            {space.documentCount || 0}
+                            {space.stats?.contentCount.toString() || 0}
                           </Button>
                         </DialogTrigger>
                         <DialogContent aria-describedby={undefined}>
@@ -358,23 +365,23 @@ export default function ListView({
 
                     <TableCell>
                       <span className="text-sm text-gray-500">
-                        {formatDate(space.createdAt)}
+                        {formatTimestamp(space.createdAt)}
                       </span>
                     </TableCell>
 
                     <TableCell>
                       <span className="text-sm text-gray-500">
-                        {formatDate(space.lastUpdatedAt)}
+                        {formatTimestamp(space.updatedAt)}
                       </span>
                     </TableCell>
 
                     <TableCell>
                       <Badge
                         variant="secondary"
-                        className={`text-xs capitalize ${getAccessColor(space.accessLevel)} flex items-center gap-1 w-fit`}
+                        className={`text-xs capitalize ${getAccessColor('')} flex items-center gap-1 w-fit`}
                       >
-                        {getAccessIcon(space.accessLevel)}
-                        {space.accessLevel}
+                        {getAccessIcon('')}
+                        {/* {space.accessLevel} */}
                       </Badge>
                     </TableCell>
 

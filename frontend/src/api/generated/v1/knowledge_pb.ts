@@ -7,8 +7,70 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { FieldMask, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
- * Enums
- *
+ * @generated from enum knowledge.v1.ViewMode
+ */
+export enum ViewMode {
+  /**
+   * @generated from enum value: VIEW_MODE_UNSPECIFIED = 0;
+   */
+  VIEW_MODE_UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: GALLERY = 1;
+   */
+  GALLERY = 1,
+
+  /**
+   * @generated from enum value: LIST = 2;
+   */
+  LIST = 2,
+
+  /**
+   * @generated from enum value: CANVAS = 3;
+   */
+  CANVAS = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ViewMode)
+proto3.util.setEnumType(ViewMode, "knowledge.v1.ViewMode", [
+  { no: 0, name: "VIEW_MODE_UNSPECIFIED" },
+  { no: 1, name: "GALLERY" },
+  { no: 2, name: "LIST" },
+  { no: 3, name: "CANVAS" },
+]);
+
+/**
+ * @generated from enum knowledge.v1.GridSize
+ */
+export enum GridSize {
+  /**
+   * @generated from enum value: GRID_SIZE_UNSPECIFIED = 0;
+   */
+  GRID_SIZE_UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: SMALL = 1;
+   */
+  SMALL = 1,
+
+  /**
+   * @generated from enum value: MEDIUM = 2;
+   */
+  MEDIUM = 2,
+
+  /**
+   * @generated from enum value: LARGE = 3;
+   */
+  LARGE = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GridSize)
+proto3.util.setEnumType(GridSize, "knowledge.v1.GridSize", [
+  { no: 0, name: "GRID_SIZE_UNSPECIFIED" },
+  { no: 1, name: "SMALL" },
+  { no: 2, name: "MEDIUM" },
+  { no: 3, name: "LARGE" },
+]);
+
+/**
  * @generated from enum knowledge.v1.ContentStatus
  */
 export enum ContentStatus {
@@ -50,6 +112,76 @@ proto3.util.setEnumType(ContentStatus, "knowledge.v1.ContentStatus", [
   { no: 3, name: "PROCESSING" },
   { no: 4, name: "PROCESSED" },
   { no: 5, name: "FAILED" },
+]);
+
+/**
+ * @generated from enum knowledge.v1.ContentSourceType
+ */
+export enum ContentSourceType {
+  /**
+   * @generated from enum value: CONTENT_SOURCE_TYPE_UNSPECIFIED = 0;
+   */
+  CONTENT_SOURCE_TYPE_UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: FILE = 1;
+   */
+  FILE = 1,
+
+  /**
+   * @generated from enum value: URL = 2;
+   */
+  URL = 2,
+
+  /**
+   * @generated from enum value: TEXT = 3;
+   */
+  TEXT = 3,
+
+  /**
+   * @generated from enum value: GOOGLE_DRIVE = 4;
+   */
+  GOOGLE_DRIVE = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ContentSourceType)
+proto3.util.setEnumType(ContentSourceType, "knowledge.v1.ContentSourceType", [
+  { no: 0, name: "CONTENT_SOURCE_TYPE_UNSPECIFIED" },
+  { no: 1, name: "FILE" },
+  { no: 2, name: "URL" },
+  { no: 3, name: "TEXT" },
+  { no: 4, name: "GOOGLE_DRIVE" },
+]);
+
+/**
+ * Specifies which object (original or processed) an operation targets
+ *
+ * @generated from enum knowledge.v1.DownloadObjectKind
+ */
+export enum DownloadObjectKind {
+  /**
+   * @generated from enum value: DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * source/original object
+   *
+   * @generated from enum value: DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;
+   */
+  ORIGINAL = 1,
+
+  /**
+   * processed object
+   *
+   * @generated from enum value: DOWNLOAD_OBJECT_KIND_PROCESSED = 2;
+   */
+  PROCESSED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(DownloadObjectKind)
+proto3.util.setEnumType(DownloadObjectKind, "knowledge.v1.DownloadObjectKind", [
+  { no: 0, name: "DOWNLOAD_OBJECT_KIND_UNSPECIFIED" },
+  { no: 1, name: "DOWNLOAD_OBJECT_KIND_ORIGINAL" },
+  { no: 2, name: "DOWNLOAD_OBJECT_KIND_PROCESSED" },
 ]);
 
 /**
@@ -123,40 +255,6 @@ proto3.util.setEnumType(LinkDirection, "knowledge.v1.LinkDirection", [
 ]);
 
 /**
- * Specifies which object (original or processed) an operation targets
- *
- * @generated from enum knowledge.v1.DownloadObjectKind
- */
-export enum DownloadObjectKind {
-  /**
-   * @generated from enum value: DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * source/original object
-   *
-   * @generated from enum value: DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;
-   */
-  ORIGINAL = 1,
-
-  /**
-   * processed object
-   *
-   * @generated from enum value: DOWNLOAD_OBJECT_KIND_PROCESSED = 2;
-   */
-  PROCESSED = 2,
-}
-// Retrieve enum metadata with: proto3.getEnumType(DownloadObjectKind)
-proto3.util.setEnumType(DownloadObjectKind, "knowledge.v1.DownloadObjectKind", [
-  { no: 0, name: "DOWNLOAD_OBJECT_KIND_UNSPECIFIED" },
-  { no: 1, name: "DOWNLOAD_OBJECT_KIND_ORIGINAL" },
-  { no: 2, name: "DOWNLOAD_OBJECT_KIND_PROCESSED" },
-]);
-
-/**
- * Common Messages
- *
  * @generated from message knowledge.v1.Pagination
  */
 export class Pagination extends Message<Pagination> {
@@ -200,8 +298,6 @@ export class Pagination extends Message<Pagination> {
 }
 
 /**
- * Core Entities
- *
  * @generated from message knowledge.v1.SpaceStats
  */
 export class SpaceStats extends Message<SpaceStats> {
@@ -275,7 +371,37 @@ export class Space extends Message<Space> {
   ownerId = "";
 
   /**
-   * @generated from field: knowledge.v1.SpaceStats stats = 10;
+   * @generated from field: string icon = 5;
+   */
+  icon = "";
+
+  /**
+   * @generated from field: string cover_image = 6;
+   */
+  coverImage = "";
+
+  /**
+   * @generated from field: repeated string keywords = 7;
+   */
+  keywords: string[] = [];
+
+  /**
+   * @generated from field: string access_level = 8;
+   */
+  accessLevel = "";
+
+  /**
+   * @generated from field: int64 document_count = 9;
+   */
+  documentCount = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 total_size_bytes = 10;
+   */
+  totalSizeBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: knowledge.v1.SpaceStats stats = 11;
    */
   stats?: SpaceStats;
 
@@ -301,7 +427,13 @@ export class Space extends Message<Space> {
     { no: 2, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "owner_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "stats", kind: "message", T: SpaceStats },
+    { no: 5, name: "icon", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "cover_image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 8, name: "access_level", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "document_count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 10, name: "total_size_bytes", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 11, name: "stats", kind: "message", T: SpaceStats },
     { no: 98, name: "created_at", kind: "message", T: Timestamp },
     { no: 99, name: "updated_at", kind: "message", T: Timestamp },
   ]);
@@ -324,322 +456,6 @@ export class Space extends Message<Space> {
 }
 
 /**
- * @generated from message knowledge.v1.ContentSource
- */
-export class ContentSource extends Message<ContentSource> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string space_id = 2;
-   */
-  spaceId = "";
-
-  /**
-   * @generated from field: knowledge.v1.ContentStatus status = 3;
-   */
-  status = ContentStatus.CONTENT_STATUS_UNSPECIFIED;
-
-  /**
-   * @generated from field: string owner_id = 4;
-   */
-  ownerId = "";
-
-  /**
-   * @generated from field: string source = 5;
-   */
-  source = "";
-
-  /**
-   * @generated from field: string mime_type = 6;
-   */
-  mimeType = "";
-
-  /**
-   * @generated from field: int64 size_bytes = 7;
-   */
-  sizeBytes = protoInt64.zero;
-
-  /**
-   * @generated from field: string title = 8;
-   */
-  title = "";
-
-  /**
-   * @generated from field: string original_blob_hash = 9;
-   */
-  originalBlobHash = "";
-
-  /**
-   * @generated from field: string processed_blob_hash = 10;
-   */
-  processedBlobHash = "";
-
-  /**
-   * @generated from field: string content_summary = 11;
-   */
-  contentSummary = "";
-
-  /**
-   * @generated from field: repeated string keywords = 12;
-   */
-  keywords: string[] = [];
-
-  /**
-   * @generated from field: google.protobuf.Timestamp created_at = 98;
-   */
-  createdAt?: Timestamp;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp updated_at = 99;
-   */
-  updatedAt?: Timestamp;
-
-  constructor(data?: PartialMessage<ContentSource>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "knowledge.v1.ContentSource";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "space_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "status", kind: "enum", T: proto3.getEnumType(ContentStatus) },
-    { no: 4, name: "owner_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "size_bytes", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "original_blob_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "processed_blob_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: "content_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 12, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 98, name: "created_at", kind: "message", T: Timestamp },
-    { no: 99, name: "updated_at", kind: "message", T: Timestamp },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ContentSource {
-    return new ContentSource().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ContentSource {
-    return new ContentSource().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ContentSource {
-    return new ContentSource().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ContentSource | PlainMessage<ContentSource> | undefined, b: ContentSource | PlainMessage<ContentSource> | undefined): boolean {
-    return proto3.util.equals(ContentSource, a, b);
-  }
-}
-
-/**
- * Simple link (used for bulk list)
- *
- * @generated from message knowledge.v1.KnowledgeLink
- */
-export class KnowledgeLink extends Message<KnowledgeLink> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string from_content_id = 2;
-   */
-  fromContentId = "";
-
-  /**
-   * @generated from field: string to_content_id = 3;
-   */
-  toContentId = "";
-
-  /**
-   * @generated from field: knowledge.v1.RelationType relation_type = 4;
-   */
-  relationType = RelationType.RELATION_TYPE_UNSPECIFIED;
-
-  /**
-   * @generated from field: double weight = 5;
-   */
-  weight = 0;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp created_at = 98;
-   */
-  createdAt?: Timestamp;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp updated_at = 99;
-   */
-  updatedAt?: Timestamp;
-
-  constructor(data?: PartialMessage<KnowledgeLink>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "knowledge.v1.KnowledgeLink";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "from_content_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "to_content_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "relation_type", kind: "enum", T: proto3.getEnumType(RelationType) },
-    { no: 5, name: "weight", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 98, name: "created_at", kind: "message", T: Timestamp },
-    { no: 99, name: "updated_at", kind: "message", T: Timestamp },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KnowledgeLink {
-    return new KnowledgeLink().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): KnowledgeLink {
-    return new KnowledgeLink().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): KnowledgeLink {
-    return new KnowledgeLink().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: KnowledgeLink | PlainMessage<KnowledgeLink> | undefined, b: KnowledgeLink | PlainMessage<KnowledgeLink> | undefined): boolean {
-    return proto3.util.equals(KnowledgeLink, a, b);
-  }
-}
-
-/**
- * Enriched link view (used for focused list and single get)
- *
- * @generated from message knowledge.v1.ContentPreview
- */
-export class ContentPreview extends Message<ContentPreview> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string title = 2;
-   */
-  title = "";
-
-  /**
-   * @generated from field: string content_summary = 3;
-   */
-  contentSummary = "";
-
-  constructor(data?: PartialMessage<ContentPreview>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "knowledge.v1.ContentPreview";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "content_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ContentPreview {
-    return new ContentPreview().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ContentPreview {
-    return new ContentPreview().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ContentPreview {
-    return new ContentPreview().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ContentPreview | PlainMessage<ContentPreview> | undefined, b: ContentPreview | PlainMessage<ContentPreview> | undefined): boolean {
-    return proto3.util.equals(ContentPreview, a, b);
-  }
-}
-
-/**
- * @generated from message knowledge.v1.EnrichedKnowledgeLink
- */
-export class EnrichedKnowledgeLink extends Message<EnrichedKnowledgeLink> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: knowledge.v1.ContentPreview from = 2;
-   */
-  from?: ContentPreview;
-
-  /**
-   * @generated from field: knowledge.v1.ContentPreview to = 3;
-   */
-  to?: ContentPreview;
-
-  /**
-   * @generated from field: knowledge.v1.RelationType relation_type = 4;
-   */
-  relationType = RelationType.RELATION_TYPE_UNSPECIFIED;
-
-  /**
-   * @generated from field: double weight = 5;
-   */
-  weight = 0;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp created_at = 98;
-   */
-  createdAt?: Timestamp;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp updated_at = 99;
-   */
-  updatedAt?: Timestamp;
-
-  constructor(data?: PartialMessage<EnrichedKnowledgeLink>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "knowledge.v1.EnrichedKnowledgeLink";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "from", kind: "message", T: ContentPreview },
-    { no: 3, name: "to", kind: "message", T: ContentPreview },
-    { no: 4, name: "relation_type", kind: "enum", T: proto3.getEnumType(RelationType) },
-    { no: 5, name: "weight", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 98, name: "created_at", kind: "message", T: Timestamp },
-    { no: 99, name: "updated_at", kind: "message", T: Timestamp },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EnrichedKnowledgeLink {
-    return new EnrichedKnowledgeLink().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EnrichedKnowledgeLink {
-    return new EnrichedKnowledgeLink().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EnrichedKnowledgeLink {
-    return new EnrichedKnowledgeLink().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: EnrichedKnowledgeLink | PlainMessage<EnrichedKnowledgeLink> | undefined, b: EnrichedKnowledgeLink | PlainMessage<EnrichedKnowledgeLink> | undefined): boolean {
-    return proto3.util.equals(EnrichedKnowledgeLink, a, b);
-  }
-}
-
-/**
- * Space Request/Response Messages
- *
  * @generated from message knowledge.v1.CreateSpaceRequest
  */
 export class CreateSpaceRequest extends Message<CreateSpaceRequest> {
@@ -653,6 +469,19 @@ export class CreateSpaceRequest extends Message<CreateSpaceRequest> {
    */
   description = "";
 
+  /**
+   * @generated from field: repeated string keywords = 3;
+   */
+  keywords: string[] = [];
+
+  /**
+   * string cover_image = 5;
+   * string access_level = 6;
+   *
+   * @generated from field: string icon = 4;
+   */
+  icon = "";
+
   constructor(data?: PartialMessage<CreateSpaceRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -663,6 +492,8 @@ export class CreateSpaceRequest extends Message<CreateSpaceRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "icon", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateSpaceRequest {
@@ -863,14 +694,27 @@ export class UpdateSpaceRequest extends Message<UpdateSpaceRequest> {
   id = "";
 
   /**
-   * @generated from field: knowledge.v1.Space space = 2;
+   * @generated from field: string title = 2;
    */
-  space?: Space;
+  title = "";
 
   /**
-   * @generated from field: google.protobuf.FieldMask update_mask = 3;
+   * @generated from field: string description = 3;
    */
-  updateMask?: FieldMask;
+  description = "";
+
+  /**
+   * @generated from field: repeated string keywords = 4;
+   */
+  keywords: string[] = [];
+
+  /**
+   * string cover_image = 6;
+   * string access_level = 7;
+   *
+   * @generated from field: string icon = 5;
+   */
+  icon = "";
 
   constructor(data?: PartialMessage<UpdateSpaceRequest>) {
     super();
@@ -881,8 +725,10 @@ export class UpdateSpaceRequest extends Message<UpdateSpaceRequest> {
   static readonly typeName = "knowledge.v1.UpdateSpaceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "space", kind: "message", T: Space },
-    { no: 3, name: "update_mask", kind: "message", T: FieldMask },
+    { no: 2, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "icon", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateSpaceRequest {
@@ -952,8 +798,332 @@ export class DeleteSpaceRequest extends Message<DeleteSpaceRequest> {
 }
 
 /**
- * Content Source Request/Response Messages
- *
+ * @generated from message knowledge.v1.SpaceFilters
+ */
+export class SpaceFilters extends Message<SpaceFilters> {
+  /**
+   * @generated from field: string q = 1;
+   */
+  q = "";
+
+  /**
+   * @generated from field: repeated string keywords = 2;
+   */
+  keywords: string[] = [];
+
+  /**
+   * 'name' | 'created' | 'updated' | 'documents'
+   *
+   * @generated from field: string sort_by = 3;
+   */
+  sortBy = "";
+
+  /**
+   * 'asc' | 'desc'
+   *
+   * @generated from field: string sort_order = 4;
+   */
+  sortOrder = "";
+
+  constructor(data?: PartialMessage<SpaceFilters>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.SpaceFilters";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "q", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 3, name: "sort_by", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "sort_order", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SpaceFilters {
+    return new SpaceFilters().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SpaceFilters {
+    return new SpaceFilters().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SpaceFilters {
+    return new SpaceFilters().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SpaceFilters | PlainMessage<SpaceFilters> | undefined, b: SpaceFilters | PlainMessage<SpaceFilters> | undefined): boolean {
+    return proto3.util.equals(SpaceFilters, a, b);
+  }
+}
+
+/**
+ * @generated from message knowledge.v1.SpacesUIState
+ */
+export class SpacesUIState extends Message<SpacesUIState> {
+  /**
+   * @generated from field: knowledge.v1.ViewMode view = 1;
+   */
+  view = ViewMode.VIEW_MODE_UNSPECIFIED;
+
+  /**
+   * @generated from field: string search_term = 2;
+   */
+  searchTerm = "";
+
+  /**
+   * @generated from field: repeated string selected_keywords = 3;
+   */
+  selectedKeywords: string[] = [];
+
+  /**
+   * @generated from field: string sort_by = 4;
+   */
+  sortBy = "";
+
+  /**
+   * @generated from field: string sort_order = 5;
+   */
+  sortOrder = "";
+
+  /**
+   * @generated from field: int32 page = 6;
+   */
+  page = 0;
+
+  /**
+   * @generated from field: int32 page_size = 7;
+   */
+  pageSize = 0;
+
+  /**
+   * @generated from field: bool is_creating = 8;
+   */
+  isCreating = false;
+
+  /**
+   * @generated from field: optional string is_deleting = 9;
+   */
+  isDeleting?: string;
+
+  /**
+   * @generated from field: optional string last_error = 10;
+   */
+  lastError?: string;
+
+  /**
+   * @generated from field: optional string selected_space_id = 11;
+   */
+  selectedSpaceId?: string;
+
+  constructor(data?: PartialMessage<SpacesUIState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.SpacesUIState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "view", kind: "enum", T: proto3.getEnumType(ViewMode) },
+    { no: 2, name: "search_term", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "selected_keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "sort_by", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "sort_order", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "page", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 7, name: "page_size", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 8, name: "is_creating", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 9, name: "is_deleting", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 10, name: "last_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 11, name: "selected_space_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SpacesUIState {
+    return new SpacesUIState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SpacesUIState {
+    return new SpacesUIState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SpacesUIState {
+    return new SpacesUIState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SpacesUIState | PlainMessage<SpacesUIState> | undefined, b: SpacesUIState | PlainMessage<SpacesUIState> | undefined): boolean {
+    return proto3.util.equals(SpacesUIState, a, b);
+  }
+}
+
+/**
+ * @generated from message knowledge.v1.SearchSpacesResponse
+ */
+export class SearchSpacesResponse extends Message<SearchSpacesResponse> {
+  /**
+   * @generated from field: repeated knowledge.v1.Space spaces = 1;
+   */
+  spaces: Space[] = [];
+
+  /**
+   * @generated from field: int64 total_count = 2;
+   */
+  totalCount = protoInt64.zero;
+
+  /**
+   * @generated from field: int32 page = 3;
+   */
+  page = 0;
+
+  /**
+   * @generated from field: int32 page_size = 4;
+   */
+  pageSize = 0;
+
+  constructor(data?: PartialMessage<SearchSpacesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.SearchSpacesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "spaces", kind: "message", T: Space, repeated: true },
+    { no: 2, name: "total_count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "page", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 4, name: "page_size", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchSpacesResponse {
+    return new SearchSpacesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SearchSpacesResponse {
+    return new SearchSpacesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SearchSpacesResponse {
+    return new SearchSpacesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SearchSpacesResponse | PlainMessage<SearchSpacesResponse> | undefined, b: SearchSpacesResponse | PlainMessage<SearchSpacesResponse> | undefined): boolean {
+    return proto3.util.equals(SearchSpacesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message knowledge.v1.ContentSource
+ */
+export class ContentSource extends Message<ContentSource> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string space_id = 2;
+   */
+  spaceId = "";
+
+  /**
+   * @generated from field: knowledge.v1.ContentStatus status = 3;
+   */
+  status = ContentStatus.CONTENT_STATUS_UNSPECIFIED;
+
+  /**
+   * @generated from field: string owner_id = 4;
+   */
+  ownerId = "";
+
+  /**
+   * @generated from field: string source = 5;
+   */
+  source = "";
+
+  /**
+   * @generated from field: string mime_type = 6;
+   */
+  mimeType = "";
+
+  /**
+   * @generated from field: int64 size_bytes = 7;
+   */
+  sizeBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: string title = 8;
+   */
+  title = "";
+
+  /**
+   * @generated from field: string original_blob_hash = 9;
+   */
+  originalBlobHash = "";
+
+  /**
+   * @generated from field: string processed_blob_hash = 10;
+   */
+  processedBlobHash = "";
+
+  /**
+   * @generated from field: string content_summary = 11;
+   */
+  contentSummary = "";
+
+  /**
+   * @generated from field: repeated string keywords = 12;
+   */
+  keywords: string[] = [];
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 98;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 99;
+   */
+  updatedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<ContentSource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.ContentSource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "space_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "status", kind: "enum", T: proto3.getEnumType(ContentStatus) },
+    { no: 4, name: "owner_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "size_bytes", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "original_blob_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "processed_blob_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "content_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 98, name: "created_at", kind: "message", T: Timestamp },
+    { no: 99, name: "updated_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ContentSource {
+    return new ContentSource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ContentSource {
+    return new ContentSource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ContentSource {
+    return new ContentSource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ContentSource | PlainMessage<ContentSource> | undefined, b: ContentSource | PlainMessage<ContentSource> | undefined): boolean {
+    return proto3.util.equals(ContentSource, a, b);
+  }
+}
+
+/**
  * @generated from message knowledge.v1.CreateUploadURLRequest
  */
 export class CreateUploadURLRequest extends Message<CreateUploadURLRequest> {
@@ -1501,8 +1671,205 @@ export class GenerateDownloadURLResponse extends Message<GenerateDownloadURLResp
 }
 
 /**
- * Knowledge Link Request/Response Messages
+ * Simple link (used for bulk list)
  *
+ * @generated from message knowledge.v1.KnowledgeLink
+ */
+export class KnowledgeLink extends Message<KnowledgeLink> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string from_content_id = 2;
+   */
+  fromContentId = "";
+
+  /**
+   * @generated from field: string to_content_id = 3;
+   */
+  toContentId = "";
+
+  /**
+   * @generated from field: knowledge.v1.RelationType relation_type = 4;
+   */
+  relationType = RelationType.RELATION_TYPE_UNSPECIFIED;
+
+  /**
+   * @generated from field: double weight = 5;
+   */
+  weight = 0;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 98;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 99;
+   */
+  updatedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<KnowledgeLink>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.KnowledgeLink";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "from_content_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "to_content_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "relation_type", kind: "enum", T: proto3.getEnumType(RelationType) },
+    { no: 5, name: "weight", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 98, name: "created_at", kind: "message", T: Timestamp },
+    { no: 99, name: "updated_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KnowledgeLink {
+    return new KnowledgeLink().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): KnowledgeLink {
+    return new KnowledgeLink().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): KnowledgeLink {
+    return new KnowledgeLink().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: KnowledgeLink | PlainMessage<KnowledgeLink> | undefined, b: KnowledgeLink | PlainMessage<KnowledgeLink> | undefined): boolean {
+    return proto3.util.equals(KnowledgeLink, a, b);
+  }
+}
+
+/**
+ * Enriched link view (used for focused list and single get)
+ *
+ * @generated from message knowledge.v1.ContentPreview
+ */
+export class ContentPreview extends Message<ContentPreview> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title = "";
+
+  /**
+   * @generated from field: string content_summary = 3;
+   */
+  contentSummary = "";
+
+  constructor(data?: PartialMessage<ContentPreview>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.ContentPreview";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "content_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ContentPreview {
+    return new ContentPreview().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ContentPreview {
+    return new ContentPreview().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ContentPreview {
+    return new ContentPreview().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ContentPreview | PlainMessage<ContentPreview> | undefined, b: ContentPreview | PlainMessage<ContentPreview> | undefined): boolean {
+    return proto3.util.equals(ContentPreview, a, b);
+  }
+}
+
+/**
+ * @generated from message knowledge.v1.EnrichedKnowledgeLink
+ */
+export class EnrichedKnowledgeLink extends Message<EnrichedKnowledgeLink> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: knowledge.v1.ContentPreview from = 2;
+   */
+  from?: ContentPreview;
+
+  /**
+   * @generated from field: knowledge.v1.ContentPreview to = 3;
+   */
+  to?: ContentPreview;
+
+  /**
+   * @generated from field: knowledge.v1.RelationType relation_type = 4;
+   */
+  relationType = RelationType.RELATION_TYPE_UNSPECIFIED;
+
+  /**
+   * @generated from field: double weight = 5;
+   */
+  weight = 0;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 98;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 99;
+   */
+  updatedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<EnrichedKnowledgeLink>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "knowledge.v1.EnrichedKnowledgeLink";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "from", kind: "message", T: ContentPreview },
+    { no: 3, name: "to", kind: "message", T: ContentPreview },
+    { no: 4, name: "relation_type", kind: "enum", T: proto3.getEnumType(RelationType) },
+    { no: 5, name: "weight", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 98, name: "created_at", kind: "message", T: Timestamp },
+    { no: 99, name: "updated_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EnrichedKnowledgeLink {
+    return new EnrichedKnowledgeLink().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EnrichedKnowledgeLink {
+    return new EnrichedKnowledgeLink().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EnrichedKnowledgeLink {
+    return new EnrichedKnowledgeLink().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EnrichedKnowledgeLink | PlainMessage<EnrichedKnowledgeLink> | undefined, b: EnrichedKnowledgeLink | PlainMessage<EnrichedKnowledgeLink> | undefined): boolean {
+    return proto3.util.equals(EnrichedKnowledgeLink, a, b);
+  }
+}
+
+/**
  * @generated from message knowledge.v1.CreateKnowledgeLinkRequest
  */
 export class CreateKnowledgeLinkRequest extends Message<CreateKnowledgeLinkRequest> {
@@ -1961,8 +2328,6 @@ export class GetBacklinksResponse extends Message<GetBacklinksResponse> {
 }
 
 /**
- * Utility Messages
- *
  * @generated from message knowledge.v1.HealthStatus
  */
 export class HealthStatus extends Message<HealthStatus> {

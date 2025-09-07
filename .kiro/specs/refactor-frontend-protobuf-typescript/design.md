@@ -22,6 +22,19 @@ The overall architecture will remain the same, but we will change the code gener
 - We will refactor these files to import from the new TypeScript files (`.../generated/v1/*_pb.ts` and `.../generated/v1/*_connectweb.ts`).
 - The refactoring will involve updating the way protobuf messages are instantiated and accessed. For example, instead of `new User()` and `user.setName()`, the new API might use `const user = { name: "test" } satisfies Partial<User>`. We need to check the generated typescript files for the exact usage.
 
+### 2.3. Schema Mapping
+
+This table outlines the primary mapping between the legacy manual types and the new generated Protobuf types.
+
+| Manual Type (`/app/spaces/types/`) | Generated Type (`/api/generated/v1/`) | Notes |
+| :--- | :--- | :--- |
+| `Space` | `knowledge.v1.Space` | `userId` -> `ownerId`, `stats` object. |
+| `ContentSource` | `knowledge.v1.ContentSource` | `processingStatus` -> `status` (enum). |
+| `ContentSourceStatus` | `knowledge.v1.ContentSourceStatus` | Enum values require mapping. |
+| `User` (Clerk) | `user.v1.User` | Requires mapping from Clerk object. |
+
+**Note:** UI-specific types (e.g., `...Props`, `...State`) and shared utility types (e.g., `ErrorState`) will be preserved.
+
 ## 3. Data Models
 
 The data models defined in the `.proto` files will not change.

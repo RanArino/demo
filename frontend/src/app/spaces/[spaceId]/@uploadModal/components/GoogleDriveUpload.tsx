@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText, Loader2, ExternalLink } from 'lucide-react';
-import { ContentSource } from '@/app/spaces/types/content';
+import { ContentSource } from '@/api/generated/v1/knowledge_pb';
 
 interface GoogleDriveUploadProps {
   spaceId: string;
