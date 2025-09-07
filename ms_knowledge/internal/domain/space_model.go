@@ -17,6 +17,8 @@ type Space struct {
 	CoverImage         string     `json:"cover_image"`
 	Keywords           []string   `json:"keywords"`
 	OwnerID            uuid.UUID  `json:"owner_id"`
+	DocumentCount      int        `json:"document_count"`
+	TotalSizeBytes     int64      `json:"total_size_bytes"`
 	CreatedAt          time.Time  `json:"created_at"`
 	CreatedBy          uuid.UUID  `json:"created_by"`
 	LastUpdatedAt      time.Time  `json:"last_updated_at"`
