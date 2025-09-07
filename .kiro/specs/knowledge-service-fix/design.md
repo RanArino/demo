@@ -349,3 +349,66 @@ We will correct and enforce the usage of existing columns in the `spaces` table,
     );
     ```
     - Need to import `PanelRightOpen` icon from `lucide-react`.
+
+### Requirement 7: Fix ContentSource Size Storage Issue
+
+**Target Files:**
+- `ms_knowledge/internal/repository/content_repository.go`
+
+**Design:**
+1. **Fix Create Method:**
+    - Add missing `SetSizeBytes(content.SizeBytes)` when creating ContentSource records.
+    ```go
+    // ms_knowledge/internal/repository/content_repository.go
+    create := r.client.ContentSource.Create().
+        SetID(content.ID).
+        SetSpaceID(content.SpaceID).
+        SetOwnerID(content.OwnerID).
+        SetTitle(content.Title).
+        SetMediaType(content.MediaType).
+        SetSource(content.Source).
+        SetStatus(string(content.Status)).
+        SetSizeBytes(content.SizeBytes). // <--- Add this line
+        SetOriginalBlobHash(content.OriginalBlobHash).
+        SetCreatedAt(content.CreatedAt).
+        SetUpdatedAt(content.UpdatedAt)
+    ```
+
+2. **Fix GetByID Method:**
+    - Add missing `SizeBytes` field mapping when converting from database entity to domain model.
+    ```go
+    return &domain.ContentSource{
+        ID:                content.ID,
+        SpaceID:           content.SpaceID,
+        OwnerID:           content.OwnerID,
+        Title:             content.Title,
+        MediaType:         content.MediaType,
+        Source:            content.Source,
+        Status:            domain.ContentStatus(content.Status),
+        SizeBytes:         content.SizeBytes, // <--- Add this line
+        OriginalBlobHash:  content.OriginalBlobHash,
+        // ... other fields
+    }
+    ```
+
+3. **Fix List Method:**
+    - Add missing `SizeBytes` field mapping in the loop that converts database entities to domain models.
+    ```go
+    result[i] = &domain.ContentSource{
+        ID:                c.ID,
+        SpaceID:           c.SpaceID,
+        OwnerID:           c.OwnerID,
+        Title:             c.Title,
+        MediaType:         c.MediaType,
+        Source:            c.Source,
+        Status:            domain.ContentStatus(c.Status),
+        SizeBytes:         c.SizeBytes, // <--- Add this line
+        OriginalBlobHash:  c.OriginalBlobHash,
+        // ... other fields
+    }
+    ```
+
+4. **Root Cause:**
+    - The repository layer was not persisting the `SizeBytes` field to the database during creation.
+    - The repository layer was not retrieving the `SizeBytes` field from the database during queries.
+    - This caused the `size_bytes` column in the `content_sources` table to remain empty (0) despite the frontend correctly sending file size data.

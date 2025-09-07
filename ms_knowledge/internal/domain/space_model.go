@@ -17,6 +17,8 @@ type Space struct {
 	CoverImage         string     `json:"cover_image"`
 	Keywords           []string   `json:"keywords"`
 	OwnerID            uuid.UUID  `json:"owner_id"`
+	DocumentCount      int        `json:"document_count"`
+	TotalSizeBytes     int64      `json:"total_size_bytes"`
 	CreatedAt          time.Time  `json:"created_at"`
 	CreatedBy          uuid.UUID  `json:"created_by"`
 	LastUpdatedAt      time.Time  `json:"last_updated_at"`
@@ -78,6 +80,7 @@ type SpaceRepository interface {
 	List(ctx context.Context, filter SpaceFilter) ([]*Space, error)
 	ListWithStats(ctx context.Context, filter SpaceFilter) ([]*SpaceWithStats, error)
 	Update(ctx context.Context, space *Space) error
+	UpdateStats(ctx context.Context, spaceID uuid.UUID, docCountChange int, sizeChange int64) error
 	Delete(ctx context.Context, id uuid.UUID, hardDelete bool) error
 	Search(ctx context.Context, query string, filter SpaceFilter) ([]*Space, error)
 	Exists(ctx context.Context, id uuid.UUID) (bool, error)

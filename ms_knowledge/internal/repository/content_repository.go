@@ -37,6 +37,7 @@ func (r *contentRepository) Create(ctx context.Context, content *domain.ContentS
 		SetMediaType(content.MediaType).
 		SetSource(content.Source).
 		SetStatus(string(content.Status)).
+		SetSizeBytes(content.SizeBytes).
 		SetOriginalBlobHash(content.OriginalBlobHash).
 		SetCreatedAt(content.CreatedAt).
 		SetUpdatedAt(content.UpdatedAt)
@@ -86,6 +87,7 @@ func (r *contentRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 		MediaType:         content.MediaType,
 		Source:            content.Source,
 		Status:            domain.ContentStatus(content.Status),
+		SizeBytes:         content.SizeBytes,
 		OriginalBlobHash:  content.OriginalBlobHash,
 		ProcessedBlobHash: content.ProcessedBlobHash,
 		ContentSummary:    content.ContentSummary,
@@ -183,6 +185,7 @@ func (r *contentRepository) List(ctx context.Context, filter domain.ContentSourc
 			MediaType:         c.MediaType,
 			Source:            c.Source,
 			Status:            domain.ContentStatus(c.Status),
+			SizeBytes:         c.SizeBytes,
 			OriginalBlobHash:  c.OriginalBlobHash,
 			ProcessedBlobHash: c.ProcessedBlobHash,
 			ContentSummary:    c.ContentSummary,

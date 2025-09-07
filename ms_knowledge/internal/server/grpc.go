@@ -606,6 +606,9 @@ func (s *GRPCServer) domainSpaceToProto(space *domain.Space) *knowledgev1.Space 
 
 func (s *GRPCServer) domainSpaceWithStatsToProto(space *domain.SpaceWithStats) *knowledgev1.Space {
 	protoSpace := s.domainSpaceToProto(&space.Space)
+	// Ensure denormalized counters are exposed to clients
+	protoSpace.DocumentCount = space.Stats.ContentCount
+	protoSpace.TotalSizeBytes = space.Stats.TotalSizeBytes
 	protoSpace.Stats = &knowledgev1.SpaceStats{
 		ContentCount:   space.Stats.ContentCount,
 		LinkCount:      space.Stats.LinkCount,
