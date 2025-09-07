@@ -4,22 +4,22 @@
 
 ## Feature 1: Modal Display for Document List (Requirement 1)
 
-- [ ] **1.1. Add state variables to `ListView.tsx`**
+- [x] **1.1. Add state variables to `ListView.tsx`**
   > Add three states (`documents`, `isLoadingDocs`, `errorDocs`) to the component.
   > **Related Requirements:** 1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.2. Implement document fetching function**
+- [x] **1.2. Implement document fetching function**
   > Implement `handleOpenDocumentDialog` function that calls the `listContentSources` server action and updates state logic.
   > **Related Requirements:** 1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.3. Modify `Dialog` trigger and content**
+- [x] **1.3. Modify `Dialog` trigger and content**
   > Add `onOpenChange` to the `Dialog` component to call `handleOpenDocumentDialog`.
   > **Related Requirements:** 1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.4. Implement modal UI**
+- [x] **1.4. Implement modal UI**
   > Implement UI within `DialogContent` that switches between loading, error, and document list displays. Create a compact card component for document display.
   > **Related Requirements:** 1
   > - `frontend/src/app/spaces/components/ListView.tsx`
