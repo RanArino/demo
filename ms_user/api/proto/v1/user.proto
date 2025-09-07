@@ -103,7 +103,9 @@ message UpdateUserResponse {
 }
 
 // Request to delete a user.
-message DeleteUserRequest {}
+message DeleteUserRequest {
+  string user_id = 1;
+}
 
 // Response after deleting a user.
 message DeleteUserResponse {}

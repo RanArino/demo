@@ -16,16 +16,16 @@ import (
 
 // UserService provides user-related business logic.
 type UserService struct {
-	repo                   domain.UserRepository
-	clerkClient            *client.Client
+	repo                     domain.UserRepository
+	clerkClient              *client.Client
 	defaultStorageQuotaBytes int64
 }
 
 // NewUserService creates a new UserService.
 func NewUserService(repo domain.UserRepository, clerkClient *client.Client, defaultStorageQuotaGB int64) *UserService {
 	return &UserService{
-		repo:                   repo,
-		clerkClient:            clerkClient,
+		repo:                     repo,
+		clerkClient:              clerkClient,
 		defaultStorageQuotaBytes: defaultStorageQuotaGB * 1024 * 1024 * 1024,
 	}
 }
@@ -38,8 +38,8 @@ func (s *UserService) CreateUser(ctx context.Context, clerkID, email string) (*d
 		ID:                uuid.New(),
 		ClerkUserID:       clerkID,
 		Email:             email,
-		Status:            "pending",              // Initial status
-		Role:              "user",                 // Default role
+		Status:            "pending",                  // Initial status
+		Role:              "user",                     // Default role
 		StorageQuotaBytes: s.defaultStorageQuotaBytes, // 5GB default quota
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
@@ -172,19 +172,14 @@ func (s *UserService) UpdateUser(ctx context.Context, email, fullName, username 
 	return s.repo.Update(ctx, userDomain.ID, updates)
 }
 
-// DeleteUser soft deletes a user.
-func (s *UserService) DeleteUser(ctx context.Context) error {
-	clerkUserID, ok := ctx.Value(middleware.UserIDKey).(string)
-	if !ok {
-		return fmt.Errorf("user_id not found in context")
-	}
-
-	user, err := s.repo.GetByClerkID(ctx, clerkUserID)
+// DeleteUser soft deletes a user by ID.
+func (s *UserService) DeleteUser(ctx context.Context, userID string) error {
+	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid user ID format: %w", err)
 	}
 
-	return s.repo.Delete(ctx, user.ID)
+	return s.repo.Delete(ctx, userUUID)
 }
 
 // UpdateUserPreferences updates a user's preferences.

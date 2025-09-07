@@ -1,0 +1,15 @@
+# (root)/buf.gen.yaml
+
+version: v1
+plugins:
+  - plugin: buf.build/bufbuild/es:v1.8.0
+    out: frontend/src/api/generated
+    opt:
+      - target=ts
+      - import_extension=none
+
+  - plugin: buf.build/bufbuild/connect-web:v0.8.6
+    out: frontend/src/api/generated
+    opt:
+      - target=ts
+      - import_extension=none

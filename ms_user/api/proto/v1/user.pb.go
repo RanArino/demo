@@ -706,6 +706,7 @@ func (x *UpdateUserResponse) GetUser() *User {
 // Request to delete a user.
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -738,6 +739,13 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
 	return file_api_proto_v1_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DeleteUserRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
 }
 
 // Response after deleting a user.
@@ -1075,8 +1083,9 @@ const file_api_proto_v1_user_proto_rawDesc = "" +
 	"\t_usernameB\a\n" +
 	"\x05_role\"7\n" +
 	"\x12UpdateUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"\x13\n" +
-	"\x11DeleteUserRequest\"\x14\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\",\n" +
+	"\x11DeleteUserRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x14\n" +
 	"\x12DeleteUserResponse\"\xd7\x03\n" +
 	"\x1cUpdateUserPreferencesRequest\x12\x19\n" +
 	"\x05theme\x18\x01 \x01(\tH\x00R\x05theme\x88\x01\x01\x12\x1f\n" +
