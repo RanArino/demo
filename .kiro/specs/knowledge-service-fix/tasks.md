@@ -24,27 +24,27 @@
   > **Related Requirements:** 1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.5. Enhance modal size and positioning**
+- [x] **1.5. Enhance modal size and positioning**
   > Modify `DialogContent` to use 80% screen width and height with center positioning.
   > **Related Requirements:** 1.1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.6. Implement table layout for documents**
+- [x] **1.6. Implement table layout for documents**
   > Replace compact card display with proper table structure using Shadcn UI Table components.
   > **Related Requirements:** 1.1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.7. Add document table columns**
+- [x] **1.7. Add document table columns**
   > Implement table columns: Title, Keywords, Content Summary, MIME Type, Size, and Preview Button.
   > **Related Requirements:** 1.1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.8. Implement file size formatting utility**
+- [x] **1.8. Implement file size formatting utility**
   > Add helper function to format file sizes in human-readable format (Bytes, KB, MB, GB).
   > **Related Requirements:** 1.1
   > - `frontend/src/app/spaces/components/ListView.tsx`
 
-- [ ] **1.9. Implement preview functionality**
+- [x] **1.9. Implement preview functionality**
   > Add preview button that opens documents in new tab/window with proper error handling.
   > **Related Requirements:** 1.1
   > - `frontend/src/app/spaces/components/ListView.tsx`
