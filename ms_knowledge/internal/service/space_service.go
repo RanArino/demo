@@ -51,11 +51,14 @@ func (s *SpaceService) CreateSpace(ctx context.Context, title, description strin
 	}
 
 	space := &domain.Space{
-		Title:       strings.TrimSpace(title),
-		Description: strings.TrimSpace(description),
-		Keywords:    keywords,
-		Icon:        strings.TrimSpace(icon),
-		OwnerID:     ownerUUID,
+		Title:         strings.TrimSpace(title),
+		Description:   strings.TrimSpace(description),
+		Keywords:      keywords,
+		Icon:          strings.TrimSpace(icon),
+		OwnerID:       ownerUUID,
+		CreatedBy:     ownerUUID,
+		LastUpdatedBy: ownerUUID,
+		AccessLevel:   "private",
 	}
 
 	err := s.spaceRepo.Create(ctx, space)
