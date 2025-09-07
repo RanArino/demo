@@ -597,6 +597,8 @@ func (s *GRPCServer) domainSpaceToProto(space *domain.Space) *knowledgev1.Space 
 		Title:       space.Title,
 		Description: space.Description,
 		OwnerId:     space.OwnerID.String(),
+		Icon:        space.Icon,
+		Keywords:    space.Keywords,
 		CreatedAt:   timestamppb.New(space.CreatedAt),
 		UpdatedAt:   timestamppb.New(space.LastUpdatedAt),
 	}
