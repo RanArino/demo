@@ -36,16 +36,13 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
     const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
 
-    const request: Partial<ListSpacesRequest> = {};
-
-    if (filters?.q) {
-      request.q = filters.q;
-    }
-    if (filters?.keywords && filters.keywords.length > 0) {
-      request.keywords = filters.keywords;
-    }
-    // Note: SpaceFilters from protobuf does not have pageSize/page properties
-    // These would need to be handled differently or the proto definition updated
+    // Create a proper ListSpacesRequest from SpaceFilters
+    const request = new ListSpacesRequest({
+      q: filters?.q || '',
+      keywords: filters?.keywords || [],
+      // Always filter by current user's spaces for security
+      ownerId: userId,
+    });
 
     const response = await client.listSpaces(request, { headers });
 

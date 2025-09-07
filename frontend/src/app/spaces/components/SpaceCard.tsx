@@ -10,6 +10,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn, formatSize } from '@/lib/utils';
 import { safeTimestampToDate } from '@/lib/types';
+import { DocumentsDialog } from './DocumentsDialog';
 
 // TODO: Move this to a shared types file
 interface SpaceWithStats extends Space {
@@ -64,7 +65,7 @@ export default function SpaceCard({
             "bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 relative group overflow-hidden hover:-translate-y-1",
             isDeleting && "opacity-50 pointer-events-none",
             className
-          )}>
+          )} onClick={() => onSelect?.(space.id)}>
             {/* Settings Button */}
             <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
               <Dialog>
@@ -98,55 +99,58 @@ export default function SpaceCard({
               </Badge>
             </div>
 
-            <div className="block cursor-pointer" onClick={() => onSelect?.(space.id)}>
-              {/* Cover Image */}
-              <div className="relative h-48 w-full">
-                <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                  <span className="text-6xl">📚</span>
+            {/* Cover Image */}
+            <div className="relative h-48 w-full">
+              <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+                <span className="text-6xl">📚</span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              {/* Title and Icon */}
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="text-2xl flex-shrink-0">📚</span>
+                  <h3 className="font-semibold text-gray-900 truncate">{space.title}</h3>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>
 
-              {/* Content */}
-              <div className="p-4">
-                {/* Title and Icon */}
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="text-2xl flex-shrink-0">📚</span>
-                    <h3 className="font-semibold text-gray-900 truncate">{space.title}</h3>
+              {/* Description */}
+              <p className="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[2.5rem]">
+                {space.description || 'No description'}
+              </p>
+
+              {/* Keywords */}
+              <div className="flex flex-wrap gap-1 mb-3 min-h-[1.5rem]">
+                {/* space.keywords.slice(0, 3).map((keyword) => (
+                  <Badge key={keyword} variant="outline" className="text-xs text-gray-600">
+                    {keyword}
+                  </Badge>
+                )) */}
+              </div>
+
+              {/* Metadata */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formatTimestamp(space.createdAt)}</span>
                   </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[2.5rem]">
-                  {space.description || 'No description'}
-                </p>
-
-                {/* Keywords */}
-                <div className="flex flex-wrap gap-1 mb-3 min-h-[1.5rem]">
-                  {/* space.keywords.slice(0, 3).map((keyword) => (
-                    <Badge key={keyword} variant="outline" className="text-xs text-gray-600">
-                      {keyword}
-                    </Badge>
-                  )) */}
-                </div>
-
-                {/* Metadata */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatTimestamp(space.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
+                  <DocumentsDialog space={space}>
+                    <div 
+                      className="flex items-center gap-1 cursor-pointer hover:text-blue-600"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <FileText className="h-3 w-3" />
                       <span>{stats?.contentCount.toString() || 0} docs</span>
                     </div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-400">
-                    Last updated: {formatTimestamp(space.updatedAt)}
-                  </div>
+                  </DocumentsDialog>
+                </div>
+                
+                <div className="text-xs text-gray-400">
+                  Last updated: {formatTimestamp(space.updatedAt)}
                 </div>
               </div>
             </div>

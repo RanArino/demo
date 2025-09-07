@@ -5,6 +5,7 @@ import { Space } from '@/api/generated/v1/knowledge_pb';
 import SpaceCard from './SpaceCard';
 import { Button } from '@/components/ui/button';
 import { Grid3X3, Grid2X2, LayoutGrid } from 'lucide-react';
+import { LoadingState } from '@/components/common/LoadingState';
 
 interface GalleryViewProps {
   spaces: Space[];
@@ -39,20 +40,12 @@ export default function GalleryView({
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        {/* Header skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          <div className="h-8 w-24 bg-muted animate-pulse rounded-lg" />
-        </div>
-        
-        {/* Grid skeleton */}
-        <div className={`grid ${sizeClasses[cardSize]} ${gapClasses[cardSize]}`}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-[380px] bg-muted animate-pulse rounded-xl" />
-          ))}
-        </div>
-      </div>
+      <LoadingState
+        layout="grid"
+        itemCount={8}
+        gridColumns={sizeClasses[cardSize]}
+        gridGap={gapClasses[cardSize]}
+      />
     );
   }
 
