@@ -108,3 +108,17 @@ THEN the left sidebar should be displayed
 WHEN the sidebar is open or pinned
 THEN that icon button should be hidden
 ```
+
+### Requirement 7: Fix ContentSource Size Storage Issue
+**User Story:**
+> As a system administrator, when documents are uploaded, I want the file size information to be correctly stored and retrieved from the database. This is because I need accurate file size data for storage management, statistics, and the document size display in the UI.
+
+**Acceptance Criteria:**
+```gherkin
+GIVEN a user uploads a document with a specific file size
+WHEN the ContentSource is created in the database
+THEN the size_bytes field should be populated with the correct file size value
+AND when the ContentSource is retrieved from the database
+THEN the size_bytes field should return the correct stored value
+AND the document list modal should display accurate file sizes
+```

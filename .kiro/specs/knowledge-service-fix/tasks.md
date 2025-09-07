@@ -79,6 +79,11 @@
   > Prepare a one-time script or admin functionality to fix statistics (`document_count`, `total_size_bytes`) and `access_level` for existing spaces.
   > **Related Requirements:** 4, 5
 
+- [ ] **2.8. Fix `content_repository.go` missing `size_bytes` field**
+  > Add missing `SetSizeBytes(content.SizeBytes)` in Create method and `SizeBytes` field mapping in GetByID and List methods.
+  > **Related Requirements:** 7
+  > - `ms_knowledge/internal/repository/content_repository.go`
+
 ## Feature 3: Frontend UI/UX Improvements (Requirements 3, 5, 6)
 
 - [ ] **3.1. Fix inline editing in `ListView.tsx`**
