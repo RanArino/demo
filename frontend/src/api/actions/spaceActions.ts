@@ -40,7 +40,7 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
     const request = new ListSpacesRequest({
       q: filters?.q || '',
       keywords: filters?.keywords || [],
-      // Set ownerId to current user to filter spaces by owner
+      // Always filter by current user's spaces for security
       ownerId: userId,
     });
 
