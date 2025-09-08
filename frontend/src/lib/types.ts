@@ -27,8 +27,8 @@ export interface ServerActionResult<T> extends ActionResult<T> {
  */
 export function safeTimestampToDate(timestamp: any): Date | null {
   if (!timestamp) return null;
-  
-  // If it's a proper Timestamp object with toDate method
+
+  // Proper Timestamp instance with toDate()
   if (typeof timestamp.toDate === 'function') {
     try {
       return timestamp.toDate();
@@ -36,19 +36,28 @@ export function safeTimestampToDate(timestamp: any): Date | null {
       console.warn('Error calling toDate() on Timestamp:', error);
     }
   }
-  
-  // If it's a serialized object with seconds and nanos
-  if (typeof timestamp.seconds !== 'undefined') {
+
+  // Serialized object with seconds and nanos (seconds may be bigint | number | string)
+  if (typeof (timestamp as any).seconds !== 'undefined') {
     try {
-      const seconds = typeof timestamp.seconds === 'bigint' 
-        ? Number(timestamp.seconds) 
-        : timestamp.seconds;
-      const nanos = timestamp.nanos || 0;
-      return new Date(seconds * 1000 + nanos / 1000000);
+      const rawSeconds = (timestamp as any).seconds as unknown;
+      const seconds =
+        typeof rawSeconds === 'bigint' ? Number(rawSeconds) :
+        typeof rawSeconds === 'string' ? Number(rawSeconds) :
+        (rawSeconds as number);
+      const nanos = (timestamp as any).nanos || 0;
+      if (!Number.isFinite(seconds)) return null;
+      return new Date(seconds * 1000 + nanos / 1_000_000);
     } catch (error) {
       console.warn('Error converting seconds/nanos to Date:', error);
     }
   }
-  
+
+  // ISO string
+  if (typeof timestamp === 'string') {
+    const d = new Date(timestamp);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   return null;
 }
