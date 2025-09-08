@@ -86,31 +86,37 @@
 
 ## Feature 3: Frontend UI/UX Improvements (Requirements 3, 5, 6)
 
-- [ ] **3.1. Fix inline editing in `ListView.tsx`**
+- [x] **3.1. Fix inline editing in `ListView.tsx`**
   > Remove the nested `button` with `onSelect` from the title cell to prevent conflicting click handlers. The `div` wrapper will handle inline editing.
   > **Related Requirements:** 3
-  > - `frontend/src/app/spaces/components/ListView/SpacesTable.tsx`
+  > - `frontend/src/app/spaces/components/SpacesTable.tsx`
 
-- [ ] **3.2. Modify Actions column in `ListView.tsx`**
-  > Replace the "Edit" (`Pencil`) icon and its `Dialog` with a navigation icon that links to `/spaces/[spaceId]`. This provides a clear way to navigate to the space details.
+- [x] **3.2. Modify Actions column in `ListView.tsx`**
+  > Replace the "Edit" (`Pencil`) icon and its `Dialog` with a navigation icon (e.g., external link or arrow icon) that links to `/spaces/[spaceId]`. This provides a clear way to navigate to the space details while maintaining inline editing functionality for other fields.
   > **Related Requirements:** 3
-  > - `frontend/src/app/spaces/components/ListView/SpacesTable.tsx`
+  > - `frontend/src/app/spaces/components/SpacesTable.tsx`
 
-- [ ] **3.3. Create new `AccessLevelModal.tsx` component**
+- [x] **3.3. Create new `AccessLevelModal.tsx` component**
   > Implement modal UI and logic for changing access level.
   > **Related Requirements:** 5
+  > - `frontend/src/app/spaces/components/AccessLevelModal.tsx`
 
-- [ ] **3.4. Create `updateSpaceAccessLevel` server action**
-  > Implement server action called from frontend that hits the backend gRPC endpoint.
+- [x] **3.4. Create `updateSpaceAccessLevel` server action**
+  > Updated existing `updateSpace` server action to handle `accessLevel` field. Uncommented `access_level` field in UpdateSpaceRequest proto.
   > **Related Requirements:** 5
+  > - `ms_knowledge/api/proto/v1/knowledge.proto`
+  > - `frontend/src/api/actions/spaceActions.ts`
 
-- [ ] **3.5. Integrate modal into `ListView.tsx` and `SpaceCard.tsx`**
-  > Modify to open `AccessLevelModal` when access level badge is clicked.
+- [x] **3.5. Integrate modal into `ListView.tsx` and `SpaceCard.tsx`**
+  > Modified to open `AccessLevelModal` when access level badge is clicked. Updated access level display with proper icons and colors.
   > **Related Requirements:** 5
+  > - `frontend/src/app/spaces/components/SpacesTable.tsx`
+  > - `frontend/src/app/spaces/components/SpaceCard.tsx`
 
-- [ ] **3.6. Add display button to `LeftSidebar.tsx`**
-  > Implement floating button that appears when sidebar is hidden and not pinned.
+- [x] **3.6. Add display button to `LeftSidebar.tsx`**
+  > Implemented floating button that appears when sidebar is hidden and not pinned. Also integrated AccessLevelModal with share button.
   > **Related Requirements:** 6
+  > - `frontend/src/app/spaces/[spaceId]/components/LeftSidebar.tsx`
 
 ## General Tasks
 

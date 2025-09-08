@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Calendar, FileText, Users, Eye, Lock, Globe } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditSpaceForm } from './EditSpaceForm';
+import { AccessLevelModal } from './AccessLevelModal';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn, formatSize } from '@/lib/utils';
@@ -35,15 +36,30 @@ export default function SpaceCard({
   isDeleting,
 }: SpaceCardProps) {
   const stats = space.stats;
+  const [accessModalOpen, setAccessModalOpen] = React.useState(false);
   
-  const getAccessIcon = () => {
-    // TODO: Implement access level logic based on new data model
-    return <Globe className="h-3 w-3" />;
+  const getAccessIcon = (level: string = 'private') => {
+    switch (level) {
+      case 'public':
+        return <Globe className="h-3 w-3" />;
+      case 'shared':
+        return <Users className="h-3 w-3" />;
+      case 'private':
+      default:
+        return <Lock className="h-3 w-3" />;
+    }
   };
 
-  const getAccessColor = () => {
-    // TODO: Implement access level logic based on new data model
-    return 'bg-green-100 text-green-800 border-green-200';
+  const getAccessColor = (level: string = 'private') => {
+    switch (level) {
+      case 'public':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'shared':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'private':
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
   };
 
   const formatDate = (date: Date | string | undefined) => {
@@ -92,10 +108,14 @@ export default function SpaceCard({
             <div className="absolute top-3 left-3 z-10">
               <Badge 
                 variant="secondary" 
-                className={`text-xs capitalize ${getAccessColor()} flex items-center gap-1`}
+                className={`text-xs capitalize ${getAccessColor(space.accessLevel || 'private')} flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAccessModalOpen(true);
+                }}
               >
-                {getAccessIcon()}
-                {/* {space.accessLevel} */}
+                {getAccessIcon(space.accessLevel || 'private')}
+                {space.accessLevel || 'private'}
               </Badge>
             </div>
 
@@ -170,6 +190,13 @@ export default function SpaceCard({
           </div>
         </TooltipContent>
       </Tooltip>
+
+      {/* Access Level Modal */}
+      <AccessLevelModal
+        space={space}
+        open={accessModalOpen}
+        onOpenChange={setAccessModalOpen}
+      />
     </TooltipProvider>
   );
 }

@@ -132,10 +132,12 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceRequest): P
     const headers = await createAuthHeaders();
 
     const request = new UpdateSpaceRequest({
+      id: spaceId,
       title: input.title,
       description: input.description,
       keywords: input.keywords || [],
       icon: input.icon || '',
+      accessLevel: input.accessLevel || '',
     });
 
     const response = await client.updateSpace(request, { headers });

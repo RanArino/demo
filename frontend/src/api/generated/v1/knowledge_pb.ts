@@ -709,12 +709,19 @@ export class UpdateSpaceRequest extends Message<UpdateSpaceRequest> {
   keywords: string[] = [];
 
   /**
-   * string cover_image = 6;
-   * string access_level = 7;
-   *
    * @generated from field: string icon = 5;
    */
   icon = "";
+
+  /**
+   * @generated from field: string cover_image = 6;
+   */
+  coverImage = "";
+
+  /**
+   * @generated from field: string access_level = 7;
+   */
+  accessLevel = "";
 
   constructor(data?: PartialMessage<UpdateSpaceRequest>) {
     super();
@@ -729,6 +736,8 @@ export class UpdateSpaceRequest extends Message<UpdateSpaceRequest> {
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 5, name: "icon", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "cover_image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "access_level", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateSpaceRequest {

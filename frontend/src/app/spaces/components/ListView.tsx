@@ -6,7 +6,6 @@ import { LoadingState } from '@/components/common/LoadingState';
 
 interface ListViewProps {
   spaces: Space[];
-  onSelect: (spaceId: string) => void;
   onEdit: (spaceId: string) => void;
   onDelete: (spaceId: string) => void;
   isDeleting: string | null;
@@ -15,7 +14,6 @@ interface ListViewProps {
 
 export default function ListView({
   spaces,
-  onSelect,
   onEdit,
   onDelete,
   isDeleting,
@@ -42,7 +40,6 @@ export default function ListView({
         ) : (
           <SpacesTable
             spaces={spaces}
-            onSelect={onSelect}
             onEdit={onEdit}
             onDelete={onDelete}
             isDeleting={isDeleting}

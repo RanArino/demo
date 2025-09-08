@@ -131,8 +131,8 @@ message UpdateSpaceRequest {
   string description = 3;
   repeated string keywords = 4;
   string icon = 5;
-  // string cover_image = 6;
-  // string access_level = 7;
+  string cover_image = 6;
+  string access_level = 7;
 }
 
 message DeleteSpaceRequest {

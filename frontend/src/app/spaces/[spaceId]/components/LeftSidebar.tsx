@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EditSpaceForm } from '@/app/spaces/components/EditSpaceForm';
+import { AccessLevelModal } from '@/app/spaces/components/AccessLevelModal';
 import ChatHistorySection from './ChatHistorySection';
-import { ArrowLeft, Globe, Users, Lock, Eye, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+import { ArrowLeft, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 import { cn, formatSize } from '@/lib/utils';
 import { safeTimestampToDate } from '@/lib/types';
@@ -24,27 +25,18 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
   const [sidebarWidthPx, setSidebarWidthPx] = useState<number>(320);
   const isResizingRef = useRef(false);
   const sidebarWidthRef = useRef<number>(320);
 
-  const getAccessIcon = () => {
-    // TODO: Implement access level logic based on new data model
-    return <Globe className="h-4 w-4" />;
-  };
-
-  const getAccessColor = () => {
-    // TODO: Implement access level logic based on new data model
-    return 'bg-green-100 text-green-800 border-green-200';
-  };
 
   const handleBack = () => {
     router.push('/spaces');
   };
 
   const handleShare = () => {
-    // TODO: Implement share functionality
-    console.log('Share space:', space.id);
+    setIsAccessModalOpen(true);
   };
 
   // Load persisted width and pin state on mount
@@ -116,6 +108,19 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
 
   return (
     <>
+      {/* Sidebar display button - only when not visible and not pinned */}
+      {!isPinned && !isVisible && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed left-4 top-4 z-50 h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:bg-white"
+          onClick={() => setIsVisible(true)}
+          aria-label="Open sidebar"
+        >
+          <PanelRightOpen className="h-4 w-4" />
+        </Button>
+      )}
+
       {/* Hover trigger zone - only when not pinned */}
       {!isPinned && (
         <div 
@@ -198,19 +203,6 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
         <div className="flex-1 overflow-y-auto">
           {/* Space Cover Image */}
           <div className="relative h-48 w-full bg-white">
-            {/* Access Badge on Image */}
-            <div className="absolute top-3 right-3">
-              <Badge 
-                variant="secondary" 
-                className={cn(
-                  "text-xs capitalize flex items-center gap-1 backdrop-blur-sm",
-                  getAccessColor()
-                )}
-              >
-                {getAccessIcon()}
-                {/* {space.accessLevel} */}
-              </Badge>
-            </div>
           </div>
           
           {/* Space Info */}
@@ -222,16 +214,6 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
                 <h1 className="text-xl font-bold text-gray-900 break-words">
                   {space.title}
                 </h1>
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "text-xs capitalize mt-2 inline-flex items-center gap-1",
-                    getAccessColor()
-                  )}
-                >
-                  {getAccessIcon()}
-                  {/* {space.accessLevel} */}
-                </Badge>
               </div>
             </div>
 
@@ -318,6 +300,13 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Access Level Modal */}
+      <AccessLevelModal
+        space={space}
+        open={isAccessModalOpen}
+        onOpenChange={setIsAccessModalOpen}
+      />
     </>
   );
 }
