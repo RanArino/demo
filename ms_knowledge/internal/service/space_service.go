@@ -117,6 +117,15 @@ func (s *SpaceService) UpdateSpace(ctx context.Context, id uuid.UUID, updates ma
 	if description, ok := updates["description"].(string); ok {
 		existing.Description = strings.TrimSpace(description)
 	}
+	if keywords, ok := updates["keywords"].([]string); ok {
+		existing.Keywords = keywords
+	}
+	if icon, ok := updates["icon"].(string); ok && strings.TrimSpace(icon) != "" {
+		existing.Icon = strings.TrimSpace(icon)
+	}
+	if accessLevel, ok := updates["access_level"].(string); ok && strings.TrimSpace(accessLevel) != "" {
+		existing.AccessLevel = strings.TrimSpace(accessLevel)
+	}
 	// Disallow changing owner_id via update
 
 	err = s.spaceRepo.Update(ctx, existing)
