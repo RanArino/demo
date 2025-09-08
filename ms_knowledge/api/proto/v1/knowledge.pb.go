@@ -937,6 +937,8 @@ type UpdateSpaceRequest struct {
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Keywords      []string               `protobuf:"bytes,4,rep,name=keywords,proto3" json:"keywords,omitempty"`
 	Icon          string                 `protobuf:"bytes,5,opt,name=icon,proto3" json:"icon,omitempty"`
+	CoverImage    string                 `protobuf:"bytes,6,opt,name=cover_image,json=coverImage,proto3" json:"cover_image,omitempty"`
+	AccessLevel   string                 `protobuf:"bytes,7,opt,name=access_level,json=accessLevel,proto3" json:"access_level,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1002,6 +1004,20 @@ func (x *UpdateSpaceRequest) GetKeywords() []string {
 func (x *UpdateSpaceRequest) GetIcon() string {
 	if x != nil {
 		return x.Icon
+	}
+	return ""
+}
+
+func (x *UpdateSpaceRequest) GetCoverImage() string {
+	if x != nil {
+		return x.CoverImage
+	}
+	return ""
+}
+
+func (x *UpdateSpaceRequest) GetAccessLevel() string {
+	if x != nil {
+		return x.AccessLevel
 	}
 	return ""
 }
@@ -3034,13 +3050,16 @@ const file_api_proto_v1_knowledge_proto_rawDesc = "" +
 	" \x01(\v2\x18.knowledge.v1.PaginationR\x04page\"g\n" +
 	"\x12ListSpacesResponse\x12)\n" +
 	"\x05items\x18\x01 \x03(\v2\x13.knowledge.v1.SpaceR\x05items\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x8c\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xd0\x01\n" +
 	"\x12UpdateSpaceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1a\n" +
 	"\bkeywords\x18\x04 \x03(\tR\bkeywords\x12\x12\n" +
-	"\x04icon\x18\x05 \x01(\tR\x04icon\"[\n" +
+	"\x04icon\x18\x05 \x01(\tR\x04icon\x12\x1f\n" +
+	"\vcover_image\x18\x06 \x01(\tR\n" +
+	"coverImage\x12!\n" +
+	"\faccess_level\x18\a \x01(\tR\vaccessLevel\"[\n" +
 	"\x12DeleteSpaceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vhard_delete\x18\x02 \x01(\bR\n" +
