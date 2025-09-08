@@ -121,6 +121,9 @@ func (s *GRPCServer) UpdateSpace(ctx context.Context, req *knowledgev1.UpdateSpa
 	if req.Icon != "" {
 		updates["icon"] = req.Icon
 	}
+	if req.AccessLevel != "" {
+		updates["access_level"] = req.AccessLevel
+	}
 	// SECURITY: Do not allow changing owner_id via this endpoint to prevent privilege escalation.
 	// If ownership transfer is needed, implement a dedicated admin-authorized flow.
 
@@ -599,6 +602,7 @@ func (s *GRPCServer) domainSpaceToProto(space *domain.Space) *knowledgev1.Space 
 		OwnerId:     space.OwnerID.String(),
 		Icon:        space.Icon,
 		Keywords:    space.Keywords,
+		AccessLevel: space.AccessLevel,
 		CreatedAt:   timestamppb.New(space.CreatedAt),
 		UpdatedAt:   timestamppb.New(space.LastUpdatedAt),
 	}
