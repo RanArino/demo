@@ -280,6 +280,10 @@ func (r *spaceRepository) Update(ctx context.Context, space *domain.Space) error
 		update = update.SetIcon(space.Icon)
 	}
 
+	if space.AccessLevel != "" {
+		update = update.SetAccessLevel(space.AccessLevel)
+	}
+
 	if space.CoverImage != "" {
 		update = update.SetCoverImage(space.CoverImage)
 	}
@@ -346,7 +350,7 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 	for _, source := range contentSources {
 		totalSizeBytes += source.SizeBytes
 		contentByStatus[source.Status]++
-		
+
 		// Update processing stats
 		switch source.Status {
 		case string(domain.ContentStatusUploading):
@@ -396,12 +400,12 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 	// }
 
 	return &domain.SpaceStats{
-		ContentCount:      int64(contentCount),
-		LinkCount:         linkCount,
-		TotalSizeBytes:    totalSizeBytes,
-		LastActivityAt:    lastActivityAt,
-		ContentByStatus:   contentByStatus,
-		ProcessingStats:   processingStats,
+		ContentCount:    int64(contentCount),
+		LinkCount:       linkCount,
+		TotalSizeBytes:  totalSizeBytes,
+		LastActivityAt:  lastActivityAt,
+		ContentByStatus: contentByStatus,
+		ProcessingStats: processingStats,
 	}, nil
 }
 
