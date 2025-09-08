@@ -105,14 +105,14 @@ export function AccessLevelModal({ space, open, onOpenChange }: AccessLevelModal
               <SelectTrigger className="w-full mt-2">
                 <SelectValue placeholder="Select access level" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-background">
                 {ACCESS_LEVELS.map((level) => {
                   const IconComponent = level.icon;
                   return (
                     <SelectItem 
                       key={level.value} 
                       value={level.value}
-                      className="bg-white hover:bg-gray-50 focus:bg-gray-50"
+                      className="bg-background hover:bg-muted focus:bg-muted"
                     >
                       <div className="flex items-center gap-2">
                         <IconComponent className="h-4 w-4" />
