@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Lock, Globe, Users } from 'lucide-react';
@@ -46,6 +47,7 @@ const ACCESS_LEVELS = [
 export function AccessLevelModal({ space, open, onOpenChange }: AccessLevelModalProps) {
   const [selectedLevel, setSelectedLevel] = useState(space.accessLevel || 'private');
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const handleSave = async () => {
     if (selectedLevel === space.accessLevel) {
@@ -67,14 +69,25 @@ export function AccessLevelModal({ space, open, onOpenChange }: AccessLevelModal
       const result = await updateSpace(space.id, updateRequest);
       if (result.ok) {
         onOpenChange(false);
-        // TODO: Show success toast/notification
+        toast({
+          title: 'Access level updated',
+          description: `Space access level changed to "${selectedLevel}"`,
+        });
       } else {
         console.error('Failed to update access level:', result.error);
-        // TODO: Show error toast/notification
+        toast({
+          title: 'Update failed',
+          description: result.error?.message || 'Unable to update access level',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Failed to update access level:', error);
-      // TODO: Show error toast/notification
+      toast({
+        title: 'Update failed',
+        description: 'An unexpected error occurred while updating access level',
+        variant: 'destructive',
+      });
     } finally {
       setIsSaving(false);
     }
