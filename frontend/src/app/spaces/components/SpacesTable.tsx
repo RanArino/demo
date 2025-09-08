@@ -1,24 +1,23 @@
 import React, { useMemo } from 'react';
+import Link from 'next/link';
 import { Space } from '@/api/generated/v1/knowledge_pb';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
-  Pencil, 
+  ExternalLink, 
   FileText, 
   Calendar
 } from 'lucide-react';
-import { EditSpaceForm } from './EditSpaceForm';
 import { DocumentsDialog } from './DocumentsDialog';
+import { AccessLevelModal } from './AccessLevelModal';
 import { useSpacesTable } from '../hooks/useSpacesTable';
 import { SortIcon } from '@/components/common/SortIcon';
 import { AccessIcon } from '@/components/common/AccessIcon';
 
 interface SpacesTableProps {
   spaces: Space[];
-  onSelect: (spaceId: string) => void;
   onEdit: (spaceId: string) => void;
   onDelete: (spaceId: string) => void;
   isDeleting: string | null;
@@ -29,7 +28,6 @@ const TABLE_HEADER_BG = 'bg-gray-50';
 
 export function SpacesTable({
   spaces,
-  onSelect,
   onEdit: _onEdit,
   onDelete: _onDelete,
   isDeleting: _isDeleting,
@@ -47,6 +45,8 @@ export function SpacesTable({
     getAccessColor,
     formatTimestamp,
   } = useSpacesTable();
+
+  const [accessModalSpace, setAccessModalSpace] = React.useState<Space | null>(null);
 
   const sortedSpaces = useMemo(() => {
     const sortableSpaces = [...spaces];
@@ -178,13 +178,8 @@ export function SpacesTable({
                       autoFocus
                     />
                   ) : (
-                    <div>
-                      <button
-                        onClick={() => onSelect(space.id)}
-                        className="font-medium text-gray-900 hover:text-blue-600 text-left"
-                      >
-                        {space.title}
-                      </button>
+                    <div className="font-medium text-gray-900">
+                      {space.title}
                     </div>
                   )}
                 </div>
@@ -239,36 +234,41 @@ export function SpacesTable({
               <TableCell>
                 <Badge
                   variant="secondary"
-                  className={`text-xs capitalize ${getAccessColor('')} flex items-center gap-1 w-fit`}
+                  className={`text-xs capitalize ${getAccessColor(space.accessLevel || 'private')} flex items-center gap-1 w-fit cursor-pointer hover:bg-gray-200 transition-colors`}
+                  onClick={() => setAccessModalSpace(space)}
                 >
-                  <AccessIcon level="" />
+                  <AccessIcon level={space.accessLevel || 'private'} />
+                  {space.accessLevel || 'private'}
                 </Badge>
               </TableCell>
 
               <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8" 
-                      aria-label={`Edit space ${space.title}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent aria-describedby={undefined}>
-                    <DialogHeader>
-                      <DialogTitle>Edit Space</DialogTitle>
-                    </DialogHeader>
-                    <EditSpaceForm space={space} />
-                  </DialogContent>
-                </Dialog>
+                <Link href={`/spaces/${space.id}`} passHref>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8" 
+                    aria-label={`Navigate to space ${space.title}`}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </Link>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {/* Access Level Modal */}
+      {accessModalSpace && (
+        <AccessLevelModal
+          space={accessModalSpace}
+          open={!!accessModalSpace}
+          onOpenChange={(open) => {
+            if (!open) setAccessModalSpace(null);
+          }}
+        />
+      )}
     </div>
   );
 }
