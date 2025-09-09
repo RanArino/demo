@@ -16,7 +16,7 @@ import {
 } from '../generated/v1/knowledge_pb';
 import { ActionResult } from '@/lib/types';
 import { Timestamp } from '@bufbuild/protobuf';
-import { createAuthHeaders, sanitizeError, sanitizeProtobufForJson } from './utils';
+import { createAuthHeaders, sanitizeError, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
 import { cache } from 'react';
 import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
 
@@ -48,7 +48,11 @@ async function listContentSourcesCore(
     const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
     return { ok: true, data: sanitizedItems };
   } catch (error) {
-    console.error('listContentSourcesCore error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listContentSourcesCore', error);
+    } else {
+      console.error('listContentSourcesCore error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -83,7 +87,11 @@ export async function listContentSources(
     const headers = await createAuthHeaders();
     return await listContentSourcesCached(userId, headers, spaceId, status);
   } catch (error) {
-    console.error('listContentSources action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listContentSources', error);
+    } else {
+      console.error('listContentSources action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -103,7 +111,11 @@ export async function createUploadURL(
     const sanitizedResponse = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitizedResponse };
   } catch (error) {
-    console.error('createUploadURL action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('createUploadURL', error);
+    } else {
+      console.error('createUploadURL action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -131,7 +143,11 @@ export async function confirmUpload(
     }
     return { ok: true, data: sanitizedResponse };
   } catch (error) {
-    console.error('confirmUpload action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('confirmUpload', error);
+    } else {
+      console.error('confirmUpload action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -166,7 +182,11 @@ export async function generateDownloadURL(
       },
     };
   } catch (error) {
-    console.error('generateDownloadURL action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('generateDownloadURL', error);
+    } else {
+      console.error('generateDownloadURL action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -187,7 +207,11 @@ export async function deleteContentSource(contentSourceId: string): Promise<Acti
     // If we had spaceId, we would call revalidateTag(`content-sources-${spaceId}`) and revalidatePath(`/spaces/${spaceId}`)
     return { ok: true };
   } catch (error) {
-    console.error('deleteContentSource action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('deleteContentSource', error);
+    } else {
+      console.error('deleteContentSource action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -206,7 +230,11 @@ export async function getContentSource(contentSourceId: string): Promise<ActionR
     const sanitizedResponse = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitizedResponse };
   } catch (error) {
-    console.error('getContentSource action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getContentSource', error);
+    } else {
+      console.error('getContentSource action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }

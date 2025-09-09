@@ -14,7 +14,7 @@ import {
   DeleteSpaceRequest,
 } from '../generated/v1/knowledge_pb';
 import { ActionResult } from '@/lib/types'; 
-import { createAuthHeaders, sanitizeError, generateSpacesListCacheKey, sanitizeProtobufForJson } from './utils';
+import { createAuthHeaders, sanitizeError, generateSpacesListCacheKey, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
 
 
 
@@ -53,7 +53,11 @@ async function searchSpacesCore(
       },
     };
   } catch (error) {
-    console.error('searchSpacesCore error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('searchSpacesCore', error);
+    } else {
+      console.error('searchSpacesCore error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -98,7 +102,11 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
     
     return await searchSpacesCached(userId, headers, filters);
   } catch (error) {
-    console.error('searchSpaces action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('searchSpaces', error);
+    } else {
+      console.error('searchSpaces action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -119,7 +127,11 @@ async function getSpaceCore(
     const sanitized = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitized };
   } catch (error) {
-    console.error('getSpaceCore error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getSpaceCore', error);
+    } else {
+      console.error('getSpaceCore error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -151,7 +163,11 @@ export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
     const headers = await createAuthHeaders();
     return await getSpaceCached(userId, headers, spaceId);
   } catch (error) {
-    console.error('getSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getSpace', error);
+    } else {
+      console.error('getSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -183,7 +199,11 @@ export async function createSpace(input: CreateSpaceRequest): Promise<ActionResu
       data: response,
     };
   } catch (error) {
-    console.error('createSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('createSpace', error);
+    } else {
+      console.error('createSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -222,7 +242,11 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceRequest): P
       data: response,
     };
   } catch (error) {
-    console.error('updateSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('updateSpace', error);
+    } else {
+      console.error('updateSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -248,7 +272,11 @@ export async function deleteSpace(spaceId: string): Promise<ActionResult<void>> 
     revalidatePath('/spaces');
     return { ok: true };
   } catch (error) {
-    console.error('deleteSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('deleteSpace', error);
+    } else {
+      console.error('deleteSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
