@@ -106,24 +106,50 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
 /**
  * Get a single space by ID
  */
+// Core fetcher for getSpace
+async function getSpaceCore(
+  _userId: string,
+  headers: Headers,
+  spaceId: string
+): Promise<ActionResult<Space>> {
+  try {
+    const client = getKnowledgeServiceClient();
+    const request = new GetSpaceRequest({ id: spaceId });
+    const response = await client.getSpace(request, { headers });
+    const sanitized = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitized };
+  } catch (error) {
+    console.error('getSpaceCore error:', error);
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
+// Per-request memoization
+const getSpaceMemoized = cache(async (_userId: string, headers: Headers, spaceId: string) => {
+  return getSpaceCore(_userId, headers, spaceId);
+});
+
+// Cross-request cache with tag
+const getSpaceCached = (_userId: string, headers: Headers, spaceId: string) => {
+  const key = [`getSpace-${spaceId}`];
+  return unstable_cache(
+    async () => getSpaceMemoized(_userId, headers, spaceId),
+    key,
+    {
+      tags: [`space-${spaceId}`],
+      revalidate: 300,
+    }
+  )();
+};
+
 export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
   try {
     const { userId } = await auth();
     if (!userId) {
       return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
     }
-
-    const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
-    const request = new GetSpaceRequest({ id: spaceId });
-
-    const response = await client.getSpace(request, { headers });
-    const sanitized = sanitizeProtobufForJson(response);
-
-    return {
-      ok: true,
-      data: sanitized,
-    };
+    return await getSpaceCached(userId, headers, spaceId);
   } catch (error) {
     console.error('getSpace action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -188,6 +214,7 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceRequest): P
 
     // Revalidate cache tags and paths
     revalidateTag(`spaces-list-${userId}`);
+    revalidateTag(`space-${spaceId}`);
     revalidatePath('/spaces');
     revalidatePath(`/spaces/${spaceId}`);
     return {

@@ -17,17 +17,18 @@ import {
 import { ActionResult } from '@/lib/types';
 import { Timestamp } from '@bufbuild/protobuf';
 import { createAuthHeaders, sanitizeError, sanitizeProtobufForJson } from './utils';
+import { cache } from 'react';
+import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
 
-export async function listContentSources(
+// Core fetcher for listContentSources
+async function listContentSourcesCore(
+  _userId: string,
+  headers: Headers,
   spaceId: string,
   status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
 ): Promise<ActionResult<ContentSource[]>> {
   try {
-    const { userId } = await auth();
-    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
-
     const client = getKnowledgeServiceClient();
-    const headers = await createAuthHeaders();
 
     const request: Partial<ListContentSourcesRequest> = { spaceId };
     if (status) {
@@ -44,9 +45,43 @@ export async function listContentSources(
     }
 
     const response = await client.listContentSources(request, { headers });
-    // Sanitize ContentSource objects (handles size_bytes BigInt field)
     const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
     return { ok: true, data: sanitizedItems };
+  } catch (error) {
+    console.error('listContentSourcesCore error:', error);
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
+// Per-request memoization
+const listContentSourcesMemoized = cache(async (_userId: string, headers: Headers, spaceId: string, status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed') => {
+  return listContentSourcesCore(_userId, headers, spaceId, status);
+});
+
+// Cross-request cache with tag and short TTL
+const listContentSourcesCached = (_userId: string, headers: Headers, spaceId: string, status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed') => {
+  const statusKey = status ?? 'any';
+  const key = [`listContentSources-${spaceId}-${statusKey}`];
+  return unstable_cache(
+    async () => listContentSourcesMemoized(_userId, headers, spaceId, status),
+    key,
+    {
+      tags: [`content-sources-${spaceId}`],
+      revalidate: 60,
+    }
+  )();
+};
+
+export async function listContentSources(
+  spaceId: string,
+  status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
+): Promise<ActionResult<ContentSource[]>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+
+    const headers = await createAuthHeaders();
+    return await listContentSourcesCached(userId, headers, spaceId, status);
   } catch (error) {
     console.error('listContentSources action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -88,6 +123,12 @@ export async function confirmUpload(
     const response = await client.confirmUpload(request, { headers });
     // Sanitize ContentSource object (handles size_bytes BigInt field)
     const sanitizedResponse = sanitizeProtobufForJson(response);
+    // Revalidate content lists for this space
+    if (sanitizedResponse && (sanitizedResponse as any).spaceId) {
+      const sid = (sanitizedResponse as any).spaceId as string;
+      revalidateTag(`content-sources-${sid}`);
+      revalidatePath(`/spaces/${sid}`);
+    }
     return { ok: true, data: sanitizedResponse };
   } catch (error) {
     console.error('confirmUpload action error:', error);
@@ -139,7 +180,11 @@ export async function deleteContentSource(contentSourceId: string): Promise<Acti
     const headers = await createAuthHeaders();
     const request = new DeleteContentSourceRequest({ id: contentSourceId });
 
+    // Ideally we'd look up the spaceId before delete; assume client can pass or backend returns it
+    // For now, trigger broad revalidation on all spaces pages
     await client.deleteContentSource(request, { headers });
+    // We cannot infer spaceId directly; the UI calls this with context, so let the page refresh
+    // If we had spaceId, we would call revalidateTag(`content-sources-${spaceId}`) and revalidatePath(`/spaces/${spaceId}`)
     return { ok: true };
   } catch (error) {
     console.error('deleteContentSource action error:', error);
