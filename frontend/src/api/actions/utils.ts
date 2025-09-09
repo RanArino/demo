@@ -201,3 +201,267 @@ export function generateSpacesListCacheKey(userId: string, filters?: SpaceFilter
   const normalizedFilters = normalizeFilters(filters);
   return generateCacheKey('spaces-list', userId, normalizedFilters);
 }
+
+// Cache metrics tracking
+interface CacheMetrics {
+  hits: number;
+  misses: number;
+  errors: number;
+  totalRequests: number;
+  avgResponseTime: number;
+  lastUpdated: number;
+}
+
+// In-memory cache metrics storage (use Redis/external storage in production)
+const cacheMetrics = new Map<string, CacheMetrics>();
+
+/**
+ * Initialize cache metrics for a given operation
+ */
+function initializeCacheMetrics(_operation: string): CacheMetrics {
+  return {
+    hits: 0,
+    misses: 0,
+    errors: 0,
+    totalRequests: 0,
+    avgResponseTime: 0,
+    lastUpdated: Date.now(),
+  };
+}
+
+/**
+ * Record cache hit for monitoring
+ */
+export function recordCacheHit(operation: string, responseTime: number = 0): void {
+  try {
+    const metrics = cacheMetrics.get(operation) || initializeCacheMetrics(operation);
+    
+    metrics.hits++;
+    metrics.totalRequests++;
+    
+    // Update average response time (exponential moving average)
+    metrics.avgResponseTime = metrics.avgResponseTime === 0 
+      ? responseTime 
+      : (metrics.avgResponseTime * 0.8) + (responseTime * 0.2);
+    
+    metrics.lastUpdated = Date.now();
+    cacheMetrics.set(operation, metrics);
+    
+    // Log significant cache events in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[cache-hit] ${operation}: ${responseTime.toFixed(2)}ms`);
+    }
+  } catch (error) {
+    console.warn('[cache-metrics] Failed to record cache hit:', error);
+  }
+}
+
+/**
+ * Record cache miss for monitoring
+ */
+export function recordCacheMiss(operation: string, responseTime: number = 0): void {
+  try {
+    const metrics = cacheMetrics.get(operation) || initializeCacheMetrics(operation);
+    
+    metrics.misses++;
+    metrics.totalRequests++;
+    
+    // Update average response time
+    metrics.avgResponseTime = metrics.avgResponseTime === 0 
+      ? responseTime 
+      : (metrics.avgResponseTime * 0.8) + (responseTime * 0.2);
+    
+    metrics.lastUpdated = Date.now();
+    cacheMetrics.set(operation, metrics);
+    
+    // Log cache misses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[cache-miss] ${operation}: ${responseTime.toFixed(2)}ms`);
+    }
+  } catch (error) {
+    console.warn('[cache-metrics] Failed to record cache miss:', error);
+  }
+}
+
+/**
+ * Record cache error for monitoring
+ */
+export function recordCacheError(operation: string, error: unknown): void {
+  try {
+    const metrics = cacheMetrics.get(operation) || initializeCacheMetrics(operation);
+    
+    metrics.errors++;
+    metrics.totalRequests++;
+    metrics.lastUpdated = Date.now();
+    cacheMetrics.set(operation, metrics);
+    
+    // Log cache errors
+    const errorMessage = error instanceof Error ? error.message : 'Unknown cache error';
+    console.error(`[cache-error] ${operation}: ${errorMessage}`);
+  } catch (logError) {
+    console.warn('[cache-metrics] Failed to record cache error:', logError);
+  }
+}
+
+/**
+ * Get cache metrics for a specific operation
+ */
+export function getCacheMetrics(operation: string): CacheMetrics | null {
+  return cacheMetrics.get(operation) || null;
+}
+
+/**
+ * Get all cache metrics
+ */
+export function getAllCacheMetrics(): Record<string, CacheMetrics> {
+  const result: Record<string, CacheMetrics> = {};
+  for (const [operation, metrics] of cacheMetrics.entries()) {
+    result[operation] = { ...metrics };
+  }
+  return result;
+}
+
+/**
+ * Calculate cache hit rate for an operation
+ */
+export function getCacheHitRate(operation: string): number {
+  const metrics = cacheMetrics.get(operation);
+  if (!metrics || metrics.totalRequests === 0) {
+    return 0;
+  }
+  return (metrics.hits / metrics.totalRequests) * 100;
+}
+
+/**
+ * Reset cache metrics (useful for testing or periodic resets)
+ */
+export function resetCacheMetrics(operation?: string): void {
+  if (operation) {
+    cacheMetrics.delete(operation);
+  } else {
+    cacheMetrics.clear();
+  }
+}
+
+/**
+ * Log cache performance summary
+ */
+export function logCachePerformanceSummary(): void {
+  try {
+    const allMetrics = getAllCacheMetrics();
+    const operations = Object.keys(allMetrics);
+    
+    if (operations.length === 0) {
+      console.log('[cache-summary] No cache metrics available');
+      return;
+    }
+    
+    console.log('[cache-summary] Cache Performance Summary:');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    for (const operation of operations) {
+      const metrics = allMetrics[operation];
+      const hitRate = getCacheHitRate(operation);
+      const avgTime = metrics.avgResponseTime.toFixed(2);
+      
+      console.log(`${operation}:`);
+      console.log(`  Hit Rate: ${hitRate.toFixed(1)}% (${metrics.hits}/${metrics.totalRequests})`);
+      console.log(`  Avg Response: ${avgTime}ms`);
+      console.log(`  Errors: ${metrics.errors}`);
+      console.log(`  Last Updated: ${new Date(metrics.lastUpdated).toLocaleString()}`);
+      console.log('');
+    }
+    
+    // Calculate overall statistics
+    const totalRequests = operations.reduce((sum, op) => sum + allMetrics[op].totalRequests, 0);
+    const totalHits = operations.reduce((sum, op) => sum + allMetrics[op].hits, 0);
+    const totalErrors = operations.reduce((sum, op) => sum + allMetrics[op].errors, 0);
+    const overallHitRate = totalRequests > 0 ? (totalHits / totalRequests) * 100 : 0;
+    
+    console.log('Overall Statistics:');
+    console.log(`  Total Requests: ${totalRequests}`);
+    console.log(`  Overall Hit Rate: ${overallHitRate.toFixed(1)}%`);
+    console.log(`  Total Errors: ${totalErrors}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  } catch (error) {
+    console.warn('[cache-summary] Failed to log performance summary:', error);
+  }
+}
+
+/**
+ * Monitor cache performance and log alerts
+ */
+export function monitorCachePerformance(): void {
+  try {
+    const allMetrics = getAllCacheMetrics();
+    const now = Date.now();
+    
+    for (const [operation, metrics] of Object.entries(allMetrics)) {
+      const hitRate = getCacheHitRate(operation);
+      const errorRate = metrics.totalRequests > 0 ? (metrics.errors / metrics.totalRequests) * 100 : 0;
+      const minutesSinceUpdate = (now - metrics.lastUpdated) / (1000 * 60);
+      
+      // Alert on low hit rate
+      if (metrics.totalRequests >= 10 && hitRate < 50) {
+        console.warn(`[cache-alert] Low hit rate for ${operation}: ${hitRate.toFixed(1)}%`);
+      }
+      
+      // Alert on high error rate
+      if (metrics.totalRequests >= 5 && errorRate > 10) {
+        console.warn(`[cache-alert] High error rate for ${operation}: ${errorRate.toFixed(1)}%`);
+      }
+      
+      // Alert on slow response times
+      if (metrics.avgResponseTime > 1000) {
+        console.warn(`[cache-alert] Slow responses for ${operation}: ${metrics.avgResponseTime.toFixed(2)}ms avg`);
+      }
+      
+      // Alert on stale metrics (no updates in 30 minutes)
+      if (minutesSinceUpdate > 30) {
+        console.warn(`[cache-alert] Stale metrics for ${operation}: ${minutesSinceUpdate.toFixed(1)} minutes since last update`);
+      }
+    }
+  } catch (error) {
+    console.warn('[cache-monitor] Failed to monitor cache performance:', error);
+  }
+}
+
+/**
+ * Export cache metrics for external monitoring systems
+ */
+export function exportCacheMetricsForMonitoring(): string {
+  try {
+    const allMetrics = getAllCacheMetrics();
+    const timestamp = new Date().toISOString();
+    
+    const exportData = {
+      timestamp,
+      metrics: allMetrics,
+      summary: {
+        totalOperations: Object.keys(allMetrics).length,
+        totalRequests: Object.values(allMetrics).reduce((sum, m) => sum + m.totalRequests, 0),
+        overallHitRate: Object.values(allMetrics).reduce((sum, m) => sum + m.hits, 0) / 
+                       Math.max(1, Object.values(allMetrics).reduce((sum, m) => sum + m.totalRequests, 0)) * 100,
+        totalErrors: Object.values(allMetrics).reduce((sum, m) => sum + m.errors, 0),
+      },
+    };
+    
+    return JSON.stringify(exportData, null, 2);
+  } catch (error) {
+    console.warn('[cache-export] Failed to export metrics:', error);
+    return JSON.stringify({ error: 'Failed to export metrics', timestamp: new Date().toISOString() });
+  }
+}
+
+// Set up periodic monitoring in non-test environments
+if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
+  // Log summary every 5 minutes
+  setInterval(() => {
+    logCachePerformanceSummary();
+  }, 5 * 60 * 1000);
+  
+  // Monitor performance every minute
+  setInterval(() => {
+    monitorCachePerformance();
+  }, 60 * 1000);
+}
