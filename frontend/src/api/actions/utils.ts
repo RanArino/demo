@@ -52,6 +52,35 @@ export function sanitizeErrorString(error: unknown): string {
 }
 
 /**
+ * Utility: detect likely unauthorized/auth-related errors
+ */
+export function isUnauthorizedError(error: unknown): boolean {
+  try {
+    if (error instanceof ConnectError) {
+      const codeStr = error.code?.toString?.().toUpperCase?.() || '';
+      const msg = (error.message || '').toUpperCase();
+      return (
+        codeStr.includes('UNAUTH') ||
+        codeStr.includes('PERMISSION') ||
+        msg.includes('UNAUTH') ||
+        msg.includes('PERMISSION')
+      );
+    }
+  } catch {}
+  return false;
+}
+
+/**
+ * Utility: log auth failures with minimal, non-sensitive info
+ */
+export function logAuthFailure(context: string, error: unknown): void {
+  try {
+    const message = sanitizeErrorString(error);
+    console.warn(`[auth-failure] ${context}: ${message}`);
+  } catch {}
+}
+
+/**
  * Normalize SpaceFilters to handle undefined/null values consistently
  * This ensures stable cache key generation regardless of input variations
  */
