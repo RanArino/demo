@@ -99,7 +99,7 @@
 
 ### 3. Clerk token propagation and error hygiene
 
-- [ ] **3.1. Audit auth headers across all cached actions**
+- [x] **3.1. Audit auth headers across all cached actions**
   > Verify `createAuthHeaders()` is called in all server actions
   > Ensure consistent UNAUTHORIZED error responses across cached and non-cached paths
   > Validate that cached actions don't bypass authentication
@@ -107,7 +107,7 @@
   > **Related Requirements:** 3.1
   > **Files:** `frontend/src/api/actions/spaceActions.ts`, `frontend/src/api/actions/contentActions.ts`
 
-- [ ] **3.2. Enhance error sanitization for cached responses**
+- [x] **3.2. Enhance error sanitization for cached responses**
   > Apply `sanitizeError`/`sanitizeErrorString` consistently
   > Ensure cached error scenarios don't leak sensitive information
   > Add error logging for cache-related authentication failures
