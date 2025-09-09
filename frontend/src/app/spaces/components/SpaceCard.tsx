@@ -164,7 +164,7 @@ export default function SpaceCard({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <FileText className="h-3 w-3" />
-                      <span>{stats?.contentCount.toString() || 0} docs</span>
+                      <span>{String(stats?.contentCount ?? 0)} docs</span>
                     </div>
                   </DocumentsDialog>
                 </div>

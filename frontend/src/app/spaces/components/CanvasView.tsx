@@ -203,7 +203,7 @@ export default function CanvasView({
                     <FileText className="h-4 w-4" />
                     <span>Documents</span>
                   </div>
-                  <span>{currentSpace.stats?.contentCount.toString() || 0}</span>
+                  <span>{String(currentSpace.stats?.contentCount ?? 0)}</span>
                 </div>
               </div>
 

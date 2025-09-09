@@ -74,7 +74,7 @@ export function DocumentsDialog({ space, children }: DocumentsDialogProps) {
       className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" 
       aria-label={`View documents for ${space.title}`}
     >
-      {space.stats?.contentCount.toString() || 0}
+      {String(space.stats?.contentCount ?? 0)}
     </Button>
   );
 
