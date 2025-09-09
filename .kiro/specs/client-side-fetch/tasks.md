@@ -7,63 +7,148 @@
 ### 1. Server action caching for Spaces
 > Add layered caching to `searchSpaces` to avoid duplicate upstream calls and speed up first paint.
 
-- [ ] **1.1. Wrap `searchSpaces` in React `cache` and Next.js `unstable_cache`**
-  > Key by `spaces-list-{userId}` and filter signature; set revalidate window; consider `revalidateTag`.
+- [ ] **1.1. Create cache utility functions**
+  > Create `normalizeFilters` function to handle undefined/null values consistently in SpaceFilters.
+  > Create cache key generation helper: `generateSpacesListCacheKey(userId: string, filters: SpaceFilters)`
   >
   > **Related Requirements:** 1.1, 4.1
+  > **Files:** `frontend/src/api/actions/utils.ts`
 
-- [ ] **1.2. Revalidation on mutations**
-  > Ensure `createSpace`, `updateSpace`, `deleteSpace` revalidate `'/spaces'` and/or relevant tags.
+- [ ] **1.2. Wrap `searchSpaces` in dual-layer caching**
+  > Wrap in `React.cache` for per-request memoization
+  > Wrap in `unstable_cache` with key: `spaces-list-${userId}-${JSON.stringify(normalizedFilters)}`
+  > Set 5-minute TTL and tag: `spaces-list-${userId}`
+  >
+  > **Related Requirements:** 1.1, 4.1
+  > **Files:** `frontend/src/api/actions/spaceActions.ts`
+
+- [ ] **1.3. Add revalidation to space mutations**
+  > Update `createSpace`, `updateSpace`, `deleteSpace` to call `revalidateTag('spaces-list-{userId}')`
+  > Keep existing `revalidatePath('/spaces')` calls
   >
   > **Related Requirements:** 1.1
+  > **Files:** `frontend/src/api/actions/spaceActions.ts`
 
-- [ ] **1.3. Ensure initial render uses server-fetched data**
-  > `/spaces/page.tsx` already calls `searchSpaces`; confirm client has no initial loading spinner for first paint.
+- [ ] **1.4. Verify server-side data rendering**
+  > Confirm `/spaces/page.tsx` renders initial data without client loading spinners
+  > Ensure Suspense boundaries work correctly with cached data
   >
   > **Related Requirements:** 1.1
+  > **Files:** `frontend/src/app/spaces/page.tsx`
 
 ## Feature B: Server-first Space detail and Content Sources
 
 ### 2. Server action caching for Space detail and Content Sources
 > Add layered caching to `getSpace` and `listContentSources(spaceId, 'processed')` to avoid duplicate calls and improve load.
 
-- [ ] **2.1. Wrap `getSpace` in React `cache` and `unstable_cache`**
-  > Tag as `space-{spaceId}` with reasonable revalidate.
+- [ ] **2.1. Wrap `getSpace` in dual-layer caching**
+  > Wrap in `React.cache` for per-request memoization
+  > Wrap in `unstable_cache` with tag: `space-${spaceId}` and 5-minute TTL
+  > Handle cache errors gracefully with stale-while-revalidate strategy
   >
   > **Related Requirements:** 2.1, 4.1
+  > **Files:** `frontend/src/api/actions/spaceActions.ts`
 
-- [ ] **2.2. Wrap `listContentSources` similarly**
-  > Tag as `content-sources-{spaceId}`; revalidate on upload/confirm/delete.
+- [ ] **2.2. Wrap `listContentSources` in dual-layer caching**
+  > Wrap in `React.cache` for per-request memoization
+  > Wrap in `unstable_cache` with tag: `content-sources-${spaceId}` and 60-second TTL
+  > Include status parameter in cache key generation
   >
   > **Related Requirements:** 2.1, 4.1
+  > **Files:** `frontend/src/api/actions/contentActions.ts`
 
-- [ ] **2.3. Verify `/spaces/[spaceId]/page.tsx` renders without initial spinner**
-  > Ensure server data is passed to client components with no blocking client fetch.
+- [ ] **2.3. Add revalidation to content mutations**
+  > Update `confirmUpload`, `deleteContentSource` to call `revalidateTag('content-sources-{spaceId}')`
+  > Add `revalidatePath('/spaces/[spaceId]')` where appropriate
   >
   > **Related Requirements:** 2.1
+  > **Files:** `frontend/src/api/actions/contentActions.ts`
+
+- [ ] **2.4. Remove dynamic rendering from space detail page**
+  > Remove `dynamic = 'force-dynamic'` and `revalidate = 0` from `/spaces/[spaceId]/page.tsx`
+  > Ensure proper error handling for both space and content loading failures
+  >
+  > **Related Requirements:** 2.1
+  > **Files:** `frontend/src/app/spaces/[spaceId]/page.tsx`
+
+- [ ] **2.5. Update space mutations to revalidate space cache**
+  > Add `revalidateTag('space-{spaceId}')` to `updateSpace`
+  > Keep existing path revalidation for broader updates
+  >
+  > **Related Requirements:** 2.1
+  > **Files:** `frontend/src/api/actions/spaceActions.ts`
 
 ## Feature C: Security and Auth Consistency
 
 ### 3. Clerk token propagation and error hygiene
 
-- [ ] **3.1. Confirm `createAuthHeaders` used across actions**
-  > Validate presence of Bearer token; unify unauthorized responses.
+- [ ] **3.1. Audit auth headers across all cached actions**
+  > Verify `createAuthHeaders()` is called in all server actions
+  > Ensure consistent UNAUTHORIZED error responses across cached and non-cached paths
+  > Validate that cached actions don't bypass authentication
   >
   > **Related Requirements:** 3.1
+  > **Files:** `frontend/src/api/actions/spaceActions.ts`, `frontend/src/api/actions/contentActions.ts`
 
-- [ ] **3.2. Sanitize errors consistently**
-  > Use `sanitizeError`/`sanitizeErrorString` where applicable.
+- [ ] **3.2. Enhance error sanitization for cached responses**
+  > Apply `sanitizeError`/`sanitizeErrorString` consistently
+  > Ensure cached error scenarios don't leak sensitive information
+  > Add error logging for cache-related authentication failures
   >
   > **Related Requirements:** 3.1
+  > **Files:** `frontend/src/api/actions/utils.ts`
 
 ## General Tasks
 
 ### 4. Testing and Quality Assurance
 
-- [ ] **4.1. Add unit tests for cached server actions**
-- [ ] **4.2. Add integration tests for list/detail initial render**
+- [ ] **4.1. Create unit tests for cache utility functions**
+  > Test `normalizeFilters` function with various input scenarios
+  > Test cache key generation for consistent results
+  > Mock `unstable_cache` and `React.cache` for isolation testing
+  >
+  > **Files:** `frontend/src/api/actions/__tests__/utils.test.ts`
 
-### 5. Infrastructure Setup and Deployment
+- [ ] **4.2. Add unit tests for cached server actions**
+  > Test cache hit/miss scenarios for `searchSpaces`, `getSpace`, `listContentSources`
+  > Verify revalidation calls are triggered on mutations
+  > Test error handling with stale-while-revalidate behavior
+  >
+  > **Files:** `frontend/src/api/actions/__tests__/spaceActions.test.ts`, `frontend/src/api/actions/__tests__/contentActions.test.ts`
 
-- [ ] **5.1. Verify env vars for gRPC transports**
-- [ ] **5.2. Confirm Next.js config for server external packages remains valid**
+- [ ] **4.3. Add integration tests for server-side rendering**
+  > Test `/spaces` page renders with initial data (no loading spinner)
+  > Test `/spaces/[spaceId]` page renders space and content data
+  > Test cache invalidation after mutations
+  >
+  > **Files:** `frontend/src/app/spaces/__tests__/integration.test.ts`
+
+- [ ] **4.4. Performance testing**
+  > Measure cache hit rates and response times
+  > Test with various filter combinations for cache key effectiveness
+  > Load test to verify cache doesn't cause memory issues
+  >
+  > **Files:** `frontend/src/api/actions/__tests__/performance.test.ts`
+
+### 5. Infrastructure and Monitoring
+
+- [ ] **5.1. Verify environment configuration**
+  > Ensure `MS_KNOWLEDGE_GRPC_URL_INTERNAL` and `MS_USER_GRPC_URL_INTERNAL` are set correctly
+  > Confirm Next.js `serverExternalPackages` configuration remains valid
+  > Test in all environments (dev/staging/prod)
+  >
+  > **Files:** Check deployment configurations
+
+- [ ] **5.2. Add cache monitoring and metrics**
+  > Log cache hit/miss rates for performance analysis
+  > Add monitoring for cache invalidation frequency
+  > Set up alerts for authentication failures in cached actions
+  >
+  > **Files:** `frontend/src/api/actions/utils.ts` (logging utilities)
+
+- [ ] **5.3. Documentation and runbook updates**
+  > Update deployment documentation with caching considerations
+  > Create troubleshooting guide for cache-related issues
+  > Document TTL tuning recommendations per environment
+  >
+  > **Files:** Documentation updates
