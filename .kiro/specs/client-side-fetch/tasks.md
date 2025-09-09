@@ -42,7 +42,7 @@
 ### 2. Server action caching for Space detail and Content Sources
 > Add layered caching to `getSpace` and `listContentSources(spaceId, 'processed')` to avoid duplicate calls and improve load.
 
-- [ ] **2.1. Wrap `getSpace` in dual-layer caching**
+- [x] **2.1. Wrap `getSpace` in dual-layer caching**
   > Wrap in `React.cache` for per-request memoization
   > Wrap in `unstable_cache` with tag: `space-${spaceId}` and 5-minute TTL
   > Handle cache errors gracefully with stale-while-revalidate strategy
@@ -50,7 +50,7 @@
   > **Related Requirements:** 2.1, 4.1
   > **Files:** `frontend/src/api/actions/spaceActions.ts`
 
-- [ ] **2.2. Wrap `listContentSources` in dual-layer caching**
+- [x] **2.2. Wrap `listContentSources` in dual-layer caching**
   > Wrap in `React.cache` for per-request memoization
   > Wrap in `unstable_cache` with tag: `content-sources-${spaceId}` and 60-second TTL
   > Include status parameter in cache key generation
@@ -58,26 +58,42 @@
   > **Related Requirements:** 2.1, 4.1
   > **Files:** `frontend/src/api/actions/contentActions.ts`
 
-- [ ] **2.3. Add revalidation to content mutations**
+- [x] **2.3. Add revalidation to content mutations**
   > Update `confirmUpload`, `deleteContentSource` to call `revalidateTag('content-sources-{spaceId}')`
   > Add `revalidatePath('/spaces/[spaceId]')` where appropriate
   >
   > **Related Requirements:** 2.1
   > **Files:** `frontend/src/api/actions/contentActions.ts`
 
-- [ ] **2.4. Remove dynamic rendering from space detail page**
+- [x] **2.4. Remove dynamic rendering from space detail page**
   > Remove `dynamic = 'force-dynamic'` and `revalidate = 0` from `/spaces/[spaceId]/page.tsx`
   > Ensure proper error handling for both space and content loading failures
   >
   > **Related Requirements:** 2.1
   > **Files:** `frontend/src/app/spaces/[spaceId]/page.tsx`
 
-- [ ] **2.5. Update space mutations to revalidate space cache**
+- [x] **2.5. Update space mutations to revalidate space cache**
   > Add `revalidateTag('space-{spaceId}')` to `updateSpace`
   > Keep existing path revalidation for broader updates
   >
   > **Related Requirements:** 2.1
   > **Files:** `frontend/src/api/actions/spaceActions.ts`
+
+- [x] **2.6. Prevent duplicate loaders on /spaces initial render**
+  > Hydrate with server-fetched data and skip client refetch on first mount
+  > Guard initial effects in `SpacesClientPage` to avoid immediate refetch
+  > Ensure initial UI uses provided props without setting `loading`
+  >
+  > **Related Requirements:** 1.1, 4.1
+  > **Files:** `frontend/src/app/spaces/SpacesClientPage.tsx`
+
+- [x] **2.7. Rely on route loading.tsx; remove redundant Suspense fallback**
+  > Remove extra `<Suspense fallback>` from `/spaces/page.tsx`
+  > Let `frontend/src/app/spaces/loading.tsx` handle route-level skeleton
+  > Verify there is no double-loading UX during navigation
+  >
+  > **Related Requirements:** 1.1, 4.1
+  > **Files:** `frontend/src/app/spaces/page.tsx`, `frontend/src/app/spaces/loading.tsx`
 
 ## Feature C: Security and Auth Consistency
 
