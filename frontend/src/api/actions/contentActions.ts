@@ -14,17 +14,9 @@ import {
   ContentStatus,
   DownloadObjectKind,
 } from '../generated/v1/knowledge_pb';
-import { ActionResult, safeTimestampToDate } from '@/lib/types';
+import { ActionResult } from '@/lib/types';
 import { Timestamp } from '@bufbuild/protobuf';
-import { createAuthHeaders, sanitizeError } from './utils';
-
-
-
-function protoTimestampToISOString(ts: Timestamp | undefined): string {
-  if (!ts) return '';
-  const date = safeTimestampToDate(ts);
-  return date ? date.toISOString() : '';
-}
+import { createAuthHeaders, sanitizeError, sanitizeProtobufForJson } from './utils';
 
 export async function listContentSources(
   spaceId: string,
@@ -52,7 +44,9 @@ export async function listContentSources(
     }
 
     const response = await client.listContentSources(request, { headers });
-    return { ok: true, data: response.items };
+    // Sanitize ContentSource objects (handles size_bytes BigInt field)
+    const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
+    return { ok: true, data: sanitizedItems };
   } catch (error) {
     console.error('listContentSources action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -70,7 +64,9 @@ export async function createUploadURL(
     const headers = await createAuthHeaders();
 
     const response = await client.createUploadURL(request, { headers });
-    return { ok: true, data: response };
+    // Sanitize response (contains ContentSource with size_bytes BigInt field)
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitizedResponse };
   } catch (error) {
     console.error('createUploadURL action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -90,7 +86,9 @@ export async function confirmUpload(
     const request = new ConfirmUploadRequest({ contentSourceId, blobHash });
 
     const response = await client.confirmUpload(request, { headers });
-    return { ok: true, data: response };
+    // Sanitize ContentSource object (handles size_bytes BigInt field)
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitizedResponse };
   } catch (error) {
     console.error('confirmUpload action error:', error);
     return { ok: false, error: sanitizeError(error) };
@@ -159,7 +157,9 @@ export async function getContentSource(contentSourceId: string): Promise<ActionR
     const request = new GetContentSourceRequest({ id: contentSourceId });
 
     const response = await client.getContentSource(request, { headers });
-    return { ok: true, data: response };
+    // Sanitize ContentSource object (handles size_bytes BigInt field)
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitizedResponse };
   } catch (error) {
     console.error('getContentSource action error:', error);
     return { ok: false, error: sanitizeError(error) };
