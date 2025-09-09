@@ -6,9 +6,6 @@ import ContentSourcesSection from './components/ContentSourcesSection';
 import ChatSection from './components/ChatSection';
 import LeftSidebar from './components/LeftSidebar';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 interface SpaceDetailPageProps {
   params: {
     spaceId: string;
