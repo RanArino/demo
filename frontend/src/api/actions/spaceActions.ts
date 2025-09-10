@@ -1,7 +1,8 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import { getKnowledgeServiceClient } from '../server-client';
 import {
   Space,
@@ -12,29 +13,23 @@ import {
   UpdateSpaceRequest,
   DeleteSpaceRequest,
 } from '../generated/v1/knowledge_pb';
-import { ActionResult, safeTimestampToDate } from '@/lib/types'; 
-import { Timestamp } from '@bufbuild/protobuf';
-import { createAuthHeaders, sanitizeError } from './utils';
+import { ActionResult } from '@/lib/types'; 
+import { createAuthHeaders, sanitizeError, generateSpacesListCacheKey, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
 
 
-function protoTimestampToISOString(ts: Timestamp | undefined): string {
-  if (!ts) return '';
-  const date = safeTimestampToDate(ts);
-  return date ? date.toISOString() : '';
-}
 
 /**
- * Search/list spaces with filters
+ * Core implementation for searching spaces (without caching)
+ * This is the actual gRPC call that will be cached
+ * Auth headers must be passed in to avoid dynamic data access inside cache
  */
-export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult<{spaces: Space[], totalCount: bigint, page: number, pageSize: number}>> {
+async function searchSpacesCore(
+  userId: string, 
+  headers: Headers, 
+  filters?: SpaceFilters
+): Promise<ActionResult<{spaces: Space[], totalCount: number, page: number, pageSize: number}>> {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
-    }
-
     const client = getKnowledgeServiceClient();
-    const headers = await createAuthHeaders();
 
     // Create a proper ListSpacesRequest from SpaceFilters
     const request = new ListSpacesRequest({
@@ -46,18 +41,72 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
 
     const response = await client.listSpaces(request, { headers });
 
-    const spaces = response.items;
+    // Ensure JSON-serializable response: convert any BigInt fields within Space to numbers
+    const spaces = response.items.map((space) => sanitizeProtobufForJson(space));
     return {
       ok: true,
       data: {
         spaces,
-        totalCount: BigInt(spaces.length),
+        totalCount: spaces.length,
         page: 1, // Default page since SpaceFilters doesn't have page property
         pageSize: spaces.length, // Default pageSize since SpaceFilters doesn't have pageSize property
       },
     };
   } catch (error) {
-    console.error('searchSpaces action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('searchSpacesCore', error);
+    } else {
+      console.error('searchSpacesCore error:', error);
+    }
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
+/**
+ * Per-request memoized version using React.cache
+ * Prevents duplicate calls within a single render
+ */
+const searchSpacesMemoized = cache(async (userId: string, headers: Headers, filters?: SpaceFilters) => {
+  return searchSpacesCore(userId, headers, filters);
+});
+
+/**
+ * Cross-request cached version using unstable_cache
+ * Persists data across requests with tag-based revalidation
+ */
+const searchSpacesCached = (userId: string, headers: Headers, filters?: SpaceFilters) => {
+  const cacheKey = generateSpacesListCacheKey(userId, filters);
+  
+  return unstable_cache(
+    async () => searchSpacesMemoized(userId, headers, filters),
+    [cacheKey],
+    {
+      tags: [`spaces-list-${userId}`],
+      revalidate: 300, // 5 minutes TTL as per design.md
+    }
+  )();
+};
+
+/**
+ * Search/list spaces with filters (with dual-layer caching)
+ */
+export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult<{spaces: Space[], totalCount: number, page: number, pageSize: number}>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+    }
+
+    // Create auth headers outside the cached function
+    const headers = await createAuthHeaders();
+    
+    return await searchSpacesCached(userId, headers, filters);
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('searchSpaces', error);
+    } else {
+      console.error('searchSpaces action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -65,25 +114,60 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
 /**
  * Get a single space by ID
  */
+// Core fetcher for getSpace
+async function getSpaceCore(
+  _userId: string,
+  headers: Headers,
+  spaceId: string
+): Promise<ActionResult<Space>> {
+  try {
+    const client = getKnowledgeServiceClient();
+    const request = new GetSpaceRequest({ id: spaceId });
+    const response = await client.getSpace(request, { headers });
+    const sanitized = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitized };
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getSpaceCore', error);
+    } else {
+      console.error('getSpaceCore error:', error);
+    }
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
+// Per-request memoization
+const getSpaceMemoized = cache(async (_userId: string, headers: Headers, spaceId: string) => {
+  return getSpaceCore(_userId, headers, spaceId);
+});
+
+// Cross-request cache with tag
+const getSpaceCached = (_userId: string, headers: Headers, spaceId: string) => {
+  const key = [`getSpace-${spaceId}`];
+  return unstable_cache(
+    async () => getSpaceMemoized(_userId, headers, spaceId),
+    key,
+    {
+      tags: [`space-${spaceId}`],
+      revalidate: 300,
+    }
+  )();
+};
+
 export async function getSpace(spaceId: string): Promise<ActionResult<Space>> {
   try {
     const { userId } = await auth();
     if (!userId) {
       return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
     }
-
-    const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
-    const request = new GetSpaceRequest({ id: spaceId });
-
-    const response = await client.getSpace(request, { headers });
-
-    return {
-      ok: true,
-      data: response,
-    };
+    return await getSpaceCached(userId, headers, spaceId);
   } catch (error) {
-    console.error('getSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getSpace', error);
+    } else {
+      console.error('getSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -107,13 +191,19 @@ export async function createSpace(input: CreateSpaceRequest): Promise<ActionResu
 
     const response = await client.createSpace(request, { headers });
 
+    // Revalidate cache tags and paths
+    revalidateTag(`spaces-list-${userId}`);
     revalidatePath('/spaces');
     return {
       ok: true,
       data: response,
     };
   } catch (error) {
-    console.error('createSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('createSpace', error);
+    } else {
+      console.error('createSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -142,6 +232,9 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceRequest): P
 
     const response = await client.updateSpace(request, { headers });
 
+    // Revalidate cache tags and paths
+    revalidateTag(`spaces-list-${userId}`);
+    revalidateTag(`space-${spaceId}`);
     revalidatePath('/spaces');
     revalidatePath(`/spaces/${spaceId}`);
     return {
@@ -149,7 +242,11 @@ export async function updateSpace(spaceId: string, input: UpdateSpaceRequest): P
       data: response,
     };
   } catch (error) {
-    console.error('updateSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('updateSpace', error);
+    } else {
+      console.error('updateSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -170,10 +267,16 @@ export async function deleteSpace(spaceId: string): Promise<ActionResult<void>> 
 
     await client.deleteSpace(request, { headers });
 
+    // Revalidate cache tags and paths
+    revalidateTag(`spaces-list-${userId}`);
     revalidatePath('/spaces');
     return { ok: true };
   } catch (error) {
-    console.error('deleteSpace action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('deleteSpace', error);
+    } else {
+      console.error('deleteSpace action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }

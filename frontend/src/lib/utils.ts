@@ -12,3 +12,8 @@ export function formatSize(bytes: number) {
   const size = bytes / Math.pow(k, i)
   return `${parseFloat(size.toFixed(1))} ${units[i]}`
 }
+
+export function formatCount(value: bigint | number | undefined): string {
+  if (value === undefined || value === null) return "0"
+  return String(value)
+}

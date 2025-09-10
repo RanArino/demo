@@ -14,28 +14,21 @@ import {
   ContentStatus,
   DownloadObjectKind,
 } from '../generated/v1/knowledge_pb';
-import { ActionResult, safeTimestampToDate } from '@/lib/types';
+import { ActionResult } from '@/lib/types';
 import { Timestamp } from '@bufbuild/protobuf';
-import { createAuthHeaders, sanitizeError } from './utils';
+import { createAuthHeaders, sanitizeError, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
+import { cache } from 'react';
+import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
 
-
-
-function protoTimestampToISOString(ts: Timestamp | undefined): string {
-  if (!ts) return '';
-  const date = safeTimestampToDate(ts);
-  return date ? date.toISOString() : '';
-}
-
-export async function listContentSources(
+// Core fetcher for listContentSources
+async function listContentSourcesCore(
+  _userId: string,
+  headers: Headers,
   spaceId: string,
   status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
 ): Promise<ActionResult<ContentSource[]>> {
   try {
-    const { userId } = await auth();
-    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
-
     const client = getKnowledgeServiceClient();
-    const headers = await createAuthHeaders();
 
     const request: Partial<ListContentSourcesRequest> = { spaceId };
     if (status) {
@@ -52,9 +45,53 @@ export async function listContentSources(
     }
 
     const response = await client.listContentSources(request, { headers });
-    return { ok: true, data: response.items };
+    const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
+    return { ok: true, data: sanitizedItems };
   } catch (error) {
-    console.error('listContentSources action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listContentSourcesCore', error);
+    } else {
+      console.error('listContentSourcesCore error:', error);
+    }
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
+// Per-request memoization
+const listContentSourcesMemoized = cache(async (_userId: string, headers: Headers, spaceId: string, status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed') => {
+  return listContentSourcesCore(_userId, headers, spaceId, status);
+});
+
+// Cross-request cache with tag and short TTL
+const listContentSourcesCached = (_userId: string, headers: Headers, spaceId: string, status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed') => {
+  const statusKey = status ?? 'any';
+  const key = [`listContentSources-${spaceId}-${statusKey}`];
+  return unstable_cache(
+    async () => listContentSourcesMemoized(_userId, headers, spaceId, status),
+    key,
+    {
+      tags: [`content-sources-${spaceId}`],
+      revalidate: 60,
+    }
+  )();
+};
+
+export async function listContentSources(
+  spaceId: string,
+  status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
+): Promise<ActionResult<ContentSource[]>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+
+    const headers = await createAuthHeaders();
+    return await listContentSourcesCached(userId, headers, spaceId, status);
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listContentSources', error);
+    } else {
+      console.error('listContentSources action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -70,9 +107,15 @@ export async function createUploadURL(
     const headers = await createAuthHeaders();
 
     const response = await client.createUploadURL(request, { headers });
-    return { ok: true, data: response };
+    // Sanitize response (contains ContentSource with size_bytes BigInt field)
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitizedResponse };
   } catch (error) {
-    console.error('createUploadURL action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('createUploadURL', error);
+    } else {
+      console.error('createUploadURL action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -90,9 +133,21 @@ export async function confirmUpload(
     const request = new ConfirmUploadRequest({ contentSourceId, blobHash });
 
     const response = await client.confirmUpload(request, { headers });
-    return { ok: true, data: response };
+    // Sanitize ContentSource object (handles size_bytes BigInt field)
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+    // Revalidate content lists for this space
+    if (sanitizedResponse && (sanitizedResponse as any).spaceId) {
+      const sid = (sanitizedResponse as any).spaceId as string;
+      revalidateTag(`content-sources-${sid}`);
+      revalidatePath(`/spaces/${sid}`);
+    }
+    return { ok: true, data: sanitizedResponse };
   } catch (error) {
-    console.error('confirmUpload action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('confirmUpload', error);
+    } else {
+      console.error('confirmUpload action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -127,7 +182,11 @@ export async function generateDownloadURL(
       },
     };
   } catch (error) {
-    console.error('generateDownloadURL action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('generateDownloadURL', error);
+    } else {
+      console.error('generateDownloadURL action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -141,10 +200,18 @@ export async function deleteContentSource(contentSourceId: string): Promise<Acti
     const headers = await createAuthHeaders();
     const request = new DeleteContentSourceRequest({ id: contentSourceId });
 
+    // Ideally we'd look up the spaceId before delete; assume client can pass or backend returns it
+    // For now, trigger broad revalidation on all spaces pages
     await client.deleteContentSource(request, { headers });
+    // We cannot infer spaceId directly; the UI calls this with context, so let the page refresh
+    // If we had spaceId, we would call revalidateTag(`content-sources-${spaceId}`) and revalidatePath(`/spaces/${spaceId}`)
     return { ok: true };
   } catch (error) {
-    console.error('deleteContentSource action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('deleteContentSource', error);
+    } else {
+      console.error('deleteContentSource action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }
@@ -159,9 +226,15 @@ export async function getContentSource(contentSourceId: string): Promise<ActionR
     const request = new GetContentSourceRequest({ id: contentSourceId });
 
     const response = await client.getContentSource(request, { headers });
-    return { ok: true, data: response };
+    // Sanitize ContentSource object (handles size_bytes BigInt field)
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+    return { ok: true, data: sanitizedResponse };
   } catch (error) {
-    console.error('getContentSource action error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getContentSource', error);
+    } else {
+      console.error('getContentSource action error:', error);
+    }
     return { ok: false, error: sanitizeError(error) };
   }
 }

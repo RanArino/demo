@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSpacesStore } from '@/stores/spacesStore';
 import { Space, ListSpacesRequest, ViewMode, Pagination, SpaceFilters } from '@/api/generated/v1/knowledge_pb';
@@ -36,6 +36,9 @@ export default function SpacesClientPage({
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(totalCount);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const didRunFilterEffectRef = useRef(false);
+  const lastAppliedFiltersRef = useRef<{ q: string; keywords: string[] }>({ q: initialFilters.q ?? '', keywords: (initialFilters.keywords as string[] | undefined) ?? [] });
 
   // Zustand store
   const {
@@ -59,28 +62,42 @@ export default function SpacesClientPage({
   // Initialize store from URL params
   useEffect(() => {
     if (initialFilters.q) setSearchTerm(initialFilters.q);
-    if (initialFilters.keywords) setSelectedKeywords(initialFilters.keywords);
+    if (initialFilters.keywords) setSelectedKeywords(initialFilters.keywords as string[]);
     // if (initialFilters.sortBy) setSortBy(initialFilters.sortBy);
     // if (initialFilters.sortOrder) setSortOrder(initialFilters.sortOrder);
     if (initialFilters.page?.pageToken) setPage(Number(initialFilters.page.pageToken));
     // Don't set pageSize from URL params to avoid redirect issues
+    setIsReady(true);
   }, []);
 
-  // Update URL when filters change
-  const updateURL = useCallback((filters: SpaceFilters) => {
+  const buildParamsFromFilters = (filters: SpaceFilters) => {
     const params = new URLSearchParams();
-    
     if (filters.q) params.set('q', filters.q);
     if (filters.keywords && filters.keywords.length > 0) {
       params.set('keywords', filters.keywords.join(','));
     }
-    // Page handling is done separately in the store
-    // Don't add pageSize to URL to avoid redirect issues - keep it as default 20
-    // if (filters.sortBy) params.set('sortBy', filters.sortBy);
-    // if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
-    
-    router.push(`/spaces?${params.toString()}`);
-  }, [router]);
+    return params.toString();
+  };
+
+  const areFiltersSame = (a: { q: string; keywords: string[] }, b: { q: string; keywords: string[] }) => {
+    if (a.q !== b.q) return false;
+    if (a.keywords.length !== b.keywords.length) return false;
+    for (let i = 0; i < a.keywords.length; i++) {
+      if (a.keywords[i] !== b.keywords[i]) return false;
+    }
+    return true;
+  };
+
+  // Memoize current search params string to prevent unnecessary re-renders
+  const currentSearchParamsString = useMemo(() => searchParams.toString(), [searchParams]);
+  
+  // Update URL when filters change (no-op if unchanged; avoid trailing '?')
+  const updateURL = useCallback((filters: SpaceFilters) => {
+    const next = buildParamsFromFilters(filters);
+    if (currentSearchParamsString === next) return;
+    const url = next ? `/spaces?${next}` : '/spaces';
+    router.replace(url);
+  }, [router, currentSearchParamsString]);
 
   // Fetch spaces with filters
   const fetchSpaces = useCallback(async (filters: SpaceFilters) => {
@@ -90,6 +107,10 @@ export default function SpacesClientPage({
       if (result.ok && result.data) {
         setSpaces(result.data.spaces);
         setTotal(Number(result.data.totalCount));
+        lastAppliedFiltersRef.current = {
+          q: filters.q ?? '',
+          keywords: filters.keywords ?? [],
+        };
       } else {
         toast({
           title: 'Error',
@@ -108,35 +129,43 @@ export default function SpacesClientPage({
     }
   }, [toast]);
 
-  // Debounced search
+  // Debounced search (skip until ready; skip if unchanged vs initial/applied)
   useEffect(() => {
+    if (!isReady) return;
     const timer = setTimeout(() => {
-      if (searchTerm !== initialFilters.q) {
-        const filters = new SpaceFilters({
-          q: searchTerm,
-          keywords: selectedKeywords,
-          sortBy: 'created',
-          sortOrder: 'desc',
-        });
-        updateURL(filters);
-        fetchSpaces(filters);
-      }
+      const filters = new SpaceFilters({
+        q: searchTerm,
+        keywords: selectedKeywords,
+        sortBy: 'created',
+        sortOrder: 'desc',
+      });
+      const next = { q: filters.q ?? '', keywords: filters.keywords ?? [] };
+      if (areFiltersSame(lastAppliedFiltersRef.current, next)) return;
+      updateURL(filters);
+      fetchSpaces(filters);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [isReady, searchTerm, selectedKeywords, updateURL, fetchSpaces]);
 
-  // Handle filter changes (non-search)
+  // Handle filter changes (non-search). Skip the very first run after hydration. Also skip if unchanged.
   useEffect(() => {
+    if (!isReady) return;
+    if (!didRunFilterEffectRef.current) {
+      didRunFilterEffectRef.current = true;
+      return;
+    }
     const filters = new SpaceFilters({
       q: searchTerm,
       keywords: selectedKeywords,
       sortBy: 'created',
       sortOrder: 'desc',
     });
+    const next = { q: filters.q ?? '', keywords: filters.keywords ?? [] };
+    if (areFiltersSame(lastAppliedFiltersRef.current, next)) return;
     updateURL(filters);
     fetchSpaces(filters);
-  }, [selectedKeywords, sortBy, sortOrder, page]);
+  }, [isReady, selectedKeywords, sortBy, sortOrder, page]);
 
   // Handle space selection
   const handleSpaceSelect = (spaceId: string) => {
@@ -184,7 +213,8 @@ export default function SpacesClientPage({
   // Handle clear filters
   const handleClearFilters = () => {
     clearFilters();
-    router.push('/spaces');
+    lastAppliedFiltersRef.current = { q: '', keywords: [] };
+    router.replace('/spaces');
     fetchSpaces(new SpaceFilters({
       q: '',
       keywords: [],

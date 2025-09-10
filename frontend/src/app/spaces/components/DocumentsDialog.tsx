@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { FileText, Loader2, ExternalLink } from 'lucide-react';
 import { listContentSources, generateDownloadURL } from '@/api/actions/contentActions';
+import { formatCount } from '@/lib/utils';
 
 interface DocumentsDialogProps {
   space: Space;
@@ -74,7 +75,7 @@ export function DocumentsDialog({ space, children }: DocumentsDialogProps) {
       className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" 
       aria-label={`View documents for ${space.title}`}
     >
-      {space.stats?.contentCount.toString() || 0}
+      {formatCount(space.stats?.contentCount)}
     </Button>
   );
 

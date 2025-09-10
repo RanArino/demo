@@ -11,7 +11,7 @@ import { AccessLevelModal } from '@/app/spaces/components/AccessLevelModal';
 import ChatHistorySection from './ChatHistorySection';
 import { ArrowLeft, Settings, Share2, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
-import { cn, formatSize } from '@/lib/utils';
+import { cn, formatSize, formatCount } from '@/lib/utils';
 import { safeTimestampToDate } from '@/lib/types';
 import Image from 'next/image';
 
@@ -240,7 +240,7 @@ export default function LeftSidebar({ space, className }: LeftSidebarProps) {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-xl font-bold text-gray-900">
-                  {space.stats?.contentCount.toString() || 0}
+                  {formatCount(space.stats?.contentCount)}
                 </div>
                 <div className="text-xs text-gray-600">Documents</div>
               </div>

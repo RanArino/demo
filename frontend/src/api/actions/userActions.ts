@@ -11,39 +11,13 @@ import {
   ActivateUserRequest,
   User,
 } from '../generated/v1/user_pb';
-import { safeTimestampToDate } from '@/lib/types';
-import { createAuthHeaders, sanitizeErrorString } from './utils';
+import { createAuthHeaders, sanitizeErrorString, sanitizeProtobufForJson } from './utils';
 
-export type PlainUser = {
-  id: string;
-  clerkUserId: string;
-  email: string;
-  fullName: string;
-  username: string;
-  role: string;
-  status: string;
-  storageUsedBytes: bigint;
-  storageQuotaBytes: bigint;
-  createdAt?: Date;
-  updatedAt?: Date;
+// Sanitized User type with BigInt fields converted to numbers
+export type SanitizedUser = Omit<User, 'storageUsedBytes' | 'storageQuotaBytes'> & {
+  storageUsedBytes: number;
+  storageQuotaBytes: number;
 };
-
-
-function toPlainUserObject(user: User): PlainUser {
-  return {
-    id: user.id,
-    clerkUserId: user.clerkUserId,
-    email: user.email,
-    fullName: user.fullName,
-    username: user.username,
-    role: user.role,
-    status: user.status,
-    storageUsedBytes: user.storageUsedBytes,
-    storageQuotaBytes: user.storageQuotaBytes,
-    createdAt: safeTimestampToDate(user.createdAt) || undefined,
-    updatedAt: safeTimestampToDate(user.updatedAt) || undefined,
-  };
-}
 
 /**
  * Server action to create a new user
@@ -53,7 +27,7 @@ export async function createUser(userData: {
   fullName: string;
   username: string;
   role?: string;
-}): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
+}): Promise<{ success: boolean; user?: SanitizedUser; error?: string }> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -76,7 +50,7 @@ export async function createUser(userData: {
     if (response.user) {
       return {
         success: true,
-        user: toPlainUserObject(response.user),
+        user: sanitizeProtobufForJson(response.user) as unknown as SanitizedUser,
       };
     } else {
       return { success: false, error: 'No user returned' };
@@ -93,7 +67,7 @@ export async function createUser(userData: {
 export async function activateUser(userData: {
   fullName: string;
   username: string;
-}): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
+}): Promise<{ success: boolean; user?: SanitizedUser; error?: string }> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -113,7 +87,7 @@ export async function activateUser(userData: {
     if (response.user) {
       return {
         success: true,
-        user: toPlainUserObject(response.user),
+        user: sanitizeProtobufForJson(response.user) as unknown as SanitizedUser,
       };
     } else {
       return { success: false, error: 'No user returned' };
@@ -128,7 +102,7 @@ export async function activateUser(userData: {
 /**
  * Server action to get user details
  */
-export async function getUser(userId?: string): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
+export async function getUser(userId?: string): Promise<{ success: boolean; user?: SanitizedUser; error?: string }> {
   try {
     const { userId: authUserId } = await auth();
     if (!authUserId) {
@@ -162,7 +136,7 @@ export async function getUser(userId?: string): Promise<{ success: boolean; user
     if (response.user) {
       return {
         success: true,
-        user: toPlainUserObject(response.user),
+        user: sanitizeProtobufForJson(response.user) as unknown as SanitizedUser,
       };
     } else {
       return { success: false, error: 'User not found' };
@@ -182,7 +156,7 @@ export async function updateUser(userData: {
   fullName?: string;
   username?: string;
   role?: string;
-}): Promise<{ success: boolean; user?: PlainUser; error?: string }> {
+}): Promise<{ success: boolean; user?: SanitizedUser; error?: string }> {
   try {
     const { userId: authUserId } = await auth();
     if (!authUserId) {
@@ -204,7 +178,7 @@ export async function updateUser(userData: {
     if (response.user) {
       return {
         success: true,
-        user: toPlainUserObject(response.user),
+        user: sanitizeProtobufForJson(response.user) as unknown as SanitizedUser,
       };
     } else {
       return { success: false, error: 'No user returned' };
@@ -223,7 +197,7 @@ export async function checkUserStatus(): Promise<{
   profileCompleted?: boolean; 
   needsRedirect?: boolean; 
   redirectUrl?: string; 
-  user?: PlainUser; 
+  user?: SanitizedUser; 
   error?: string; 
 }> {
   try {
@@ -243,7 +217,7 @@ export async function checkUserStatus(): Promise<{
       profileCompleted: response.profileCompleted,
       needsRedirect: response.needsRedirect,
       redirectUrl: response.redirectUrl,
-      user: response.user ? toPlainUserObject(response.user) : undefined,
+      user: response.user ? (sanitizeProtobufForJson(response.user) as unknown as SanitizedUser) : undefined,
     };
   } catch (error) {
     console.error('checkUserStatus action error:', error);

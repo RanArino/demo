@@ -1,8 +1,6 @@
-import { Suspense } from 'react';
 import { searchSpaces } from '@/api/actions/spaceActions';
 import { SpaceFilters, ListSpacesRequest } from '@/api/generated/v1/knowledge_pb';
 import SpacesClientPage from './SpacesClientPage';
-import SpacesLoading from './loading';
 
 interface SearchParams {
   q?: string;
@@ -62,14 +60,12 @@ export default async function SpacesPage({
   };
 
   return (
-    <Suspense fallback={<SpacesLoading />}>
-      <SpacesClientPage
-        initialSpaces={spaces}
-        initialFilters={initialFilters}
-        totalCount={Number(totalCount)}
-        currentPage={resultPage}
-        pageSize={resultPageSize}
-      />
-    </Suspense>
+    <SpacesClientPage
+      initialSpaces={spaces}
+      initialFilters={initialFilters}
+      totalCount={Number(totalCount)}
+      currentPage={resultPage}
+      pageSize={resultPageSize}
+    />
   );
 }
