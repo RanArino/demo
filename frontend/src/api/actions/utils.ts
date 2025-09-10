@@ -103,9 +103,10 @@ export function sanitizeProtobufForJson<T>(obj: T): T {
 
   // Handle BigInt with precision safety
   if (typeof obj === 'bigint') {
-    const n = Number(obj);
     // Use string if value exceeds safe integer range to preserve exactness
-    return (Math.abs(n) <= Number.MAX_SAFE_INTEGER ? n : obj.toString()) as unknown as T;
+    const maxSafe = BigInt(Number.MAX_SAFE_INTEGER);
+    const minSafe = BigInt(Number.MIN_SAFE_INTEGER);
+    return (obj <= maxSafe && obj >= minSafe ? Number(obj) : obj.toString()) as unknown as T;
   }
 
   if (typeof obj !== 'object') {
@@ -186,8 +187,8 @@ export function generateCacheKey(prefix: string, userId: string, filters?: any):
   
   const sanitizedFilters = sanitizeProtobufForJson(filters);
   // Use JSON from protobuf message if available, otherwise use direct JSON.stringify
-  const filtersAsJson = typeof sanitizedFilters?.toJson === 'function'
-    ? (sanitizedFilters as any).toJson()
+  const filtersAsJson = sanitizedFilters && typeof sanitizedFilters === 'object' && 'toJson' in sanitizedFilters && typeof sanitizedFilters.toJson === 'function'
+    ? (sanitizedFilters as { toJson(): unknown }).toJson()
     : sanitizedFilters;
     
   return `${prefix}-${userId}-${JSON.stringify(filtersAsJson)}`;
@@ -453,15 +454,29 @@ export function exportCacheMetricsForMonitoring(): string {
   }
 }
 
-// Set up periodic monitoring in non-test environments
-if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
+/**
+ * Start periodic cache monitoring. Returns a cleanup function to clear intervals.
+ * Call this from your server entrypoint or initialization code.
+ */
+export function startCacheMonitoring(): () => void {
+  if (typeof window !== 'undefined' || process.env.NODE_ENV === 'test') {
+    // Do not start monitoring in browser or test environments
+    return () => {};
+  }
+  
   // Log summary every 5 minutes
-  setInterval(() => {
+  const summaryInterval = setInterval(() => {
     logCachePerformanceSummary();
   }, 5 * 60 * 1000);
   
   // Monitor performance every minute
-  setInterval(() => {
+  const monitorInterval = setInterval(() => {
     monitorCachePerformance();
   }, 60 * 1000);
+  
+  // Return cleanup function
+  return () => {
+    clearInterval(summaryInterval);
+    clearInterval(monitorInterval);
+  };
 }
