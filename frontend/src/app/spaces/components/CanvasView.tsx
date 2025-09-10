@@ -15,6 +15,7 @@ import {
   Eye
 } from 'lucide-react';
 import { EditSpaceForm } from './EditSpaceForm';
+import { formatCount } from '@/lib/utils';
 
 interface CanvasViewProps {
   spaces: Space[];
@@ -203,7 +204,7 @@ export default function CanvasView({
                     <FileText className="h-4 w-4" />
                     <span>Documents</span>
                   </div>
-                  <span>{String(currentSpace.stats?.contentCount ?? 0)}</span>
+                  <span>{formatCount(currentSpace.stats?.contentCount)}</span>
                 </div>
               </div>
 

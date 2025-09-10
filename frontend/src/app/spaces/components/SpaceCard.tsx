@@ -9,7 +9,7 @@ import { EditSpaceForm } from './EditSpaceForm';
 import { AccessLevelModal } from './AccessLevelModal';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cn, formatSize } from '@/lib/utils';
+import { cn, formatSize, formatCount } from '@/lib/utils';
 import { safeTimestampToDate } from '@/lib/types';
 import { DocumentsDialog } from './DocumentsDialog';
 
@@ -164,7 +164,7 @@ export default function SpaceCard({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <FileText className="h-3 w-3" />
-                      <span>{String(stats?.contentCount ?? 0)} docs</span>
+                      <span>{formatCount(stats?.contentCount)} docs</span>
                     </div>
                   </DocumentsDialog>
                 </div>
