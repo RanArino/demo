@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSpacesStore } from '@/stores/spacesStore';
 import { Space, ListSpacesRequest, ViewMode, Pagination, SpaceFilters } from '@/api/generated/v1/knowledge_pb';
@@ -88,14 +88,16 @@ export default function SpacesClientPage({
     return true;
   };
 
+  // Memoize current search params string to prevent unnecessary re-renders
+  const currentSearchParamsString = useMemo(() => searchParams.toString(), [searchParams]);
+  
   // Update URL when filters change (no-op if unchanged; avoid trailing '?')
   const updateURL = useCallback((filters: SpaceFilters) => {
     const next = buildParamsFromFilters(filters);
-    const current = searchParams.toString();
-    if (current === next) return;
+    if (currentSearchParamsString === next) return;
     const url = next ? `/spaces?${next}` : '/spaces';
     router.replace(url);
-  }, [router, searchParams]);
+  }, [router, currentSearchParamsString]);
 
   // Fetch spaces with filters
   const fetchSpaces = useCallback(async (filters: SpaceFilters) => {
