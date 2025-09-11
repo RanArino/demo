@@ -33,13 +33,6 @@ const (
 	KnowledgeService_UpdateContentSourceStatus_FullMethodName = "/knowledge.v1.KnowledgeService/UpdateContentSourceStatus"
 	KnowledgeService_DeleteContentSource_FullMethodName       = "/knowledge.v1.KnowledgeService/DeleteContentSource"
 	KnowledgeService_GenerateDownloadURL_FullMethodName       = "/knowledge.v1.KnowledgeService/GenerateDownloadURL"
-	KnowledgeService_CreateKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/CreateKnowledgeLink"
-	KnowledgeService_GetKnowledgeLink_FullMethodName          = "/knowledge.v1.KnowledgeService/GetKnowledgeLink"
-	KnowledgeService_ListKnowledgeLinks_FullMethodName        = "/knowledge.v1.KnowledgeService/ListKnowledgeLinks"
-	KnowledgeService_ListAllSpaceLinks_FullMethodName         = "/knowledge.v1.KnowledgeService/ListAllSpaceLinks"
-	KnowledgeService_UpdateKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/UpdateKnowledgeLink"
-	KnowledgeService_DeleteKnowledgeLink_FullMethodName       = "/knowledge.v1.KnowledgeService/DeleteKnowledgeLink"
-	KnowledgeService_GetBacklinks_FullMethodName              = "/knowledge.v1.KnowledgeService/GetBacklinks"
 	KnowledgeService_Healthz_FullMethodName                   = "/knowledge.v1.KnowledgeService/Healthz"
 )
 
@@ -65,17 +58,6 @@ type KnowledgeServiceClient interface {
 	DeleteContentSource(ctx context.Context, in *DeleteContentSourceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Download URL Generation
 	GenerateDownloadURL(ctx context.Context, in *GenerateDownloadURLRequest, opts ...grpc.CallOption) (*GenerateDownloadURLResponse, error)
-	// Knowledge Graph Management
-	CreateKnowledgeLink(ctx context.Context, in *CreateKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error)
-	// Single enriched link by id
-	GetKnowledgeLink(ctx context.Context, in *GetKnowledgeLinkRequest, opts ...grpc.CallOption) (*EnrichedKnowledgeLink, error)
-	// Focused enriched list by content
-	ListKnowledgeLinks(ctx context.Context, in *ListKnowledgeLinksRequest, opts ...grpc.CallOption) (*ListKnowledgeLinksResponse, error)
-	// Bulk simple list by space
-	ListAllSpaceLinks(ctx context.Context, in *ListAllSpaceLinksRequest, opts ...grpc.CallOption) (*ListAllSpaceLinksResponse, error)
-	UpdateKnowledgeLink(ctx context.Context, in *UpdateKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error)
-	DeleteKnowledgeLink(ctx context.Context, in *DeleteKnowledgeLinkRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetBacklinks(ctx context.Context, in *GetBacklinksRequest, opts ...grpc.CallOption) (*GetBacklinksResponse, error)
 	// Utilities
 	Healthz(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthStatus, error)
 }
@@ -218,76 +200,6 @@ func (c *knowledgeServiceClient) GenerateDownloadURL(ctx context.Context, in *Ge
 	return out, nil
 }
 
-func (c *knowledgeServiceClient) CreateKnowledgeLink(ctx context.Context, in *CreateKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(KnowledgeLink)
-	err := c.cc.Invoke(ctx, KnowledgeService_CreateKnowledgeLink_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) GetKnowledgeLink(ctx context.Context, in *GetKnowledgeLinkRequest, opts ...grpc.CallOption) (*EnrichedKnowledgeLink, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnrichedKnowledgeLink)
-	err := c.cc.Invoke(ctx, KnowledgeService_GetKnowledgeLink_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) ListKnowledgeLinks(ctx context.Context, in *ListKnowledgeLinksRequest, opts ...grpc.CallOption) (*ListKnowledgeLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListKnowledgeLinksResponse)
-	err := c.cc.Invoke(ctx, KnowledgeService_ListKnowledgeLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) ListAllSpaceLinks(ctx context.Context, in *ListAllSpaceLinksRequest, opts ...grpc.CallOption) (*ListAllSpaceLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListAllSpaceLinksResponse)
-	err := c.cc.Invoke(ctx, KnowledgeService_ListAllSpaceLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) UpdateKnowledgeLink(ctx context.Context, in *UpdateKnowledgeLinkRequest, opts ...grpc.CallOption) (*KnowledgeLink, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(KnowledgeLink)
-	err := c.cc.Invoke(ctx, KnowledgeService_UpdateKnowledgeLink_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) DeleteKnowledgeLink(ctx context.Context, in *DeleteKnowledgeLinkRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, KnowledgeService_DeleteKnowledgeLink_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeServiceClient) GetBacklinks(ctx context.Context, in *GetBacklinksRequest, opts ...grpc.CallOption) (*GetBacklinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetBacklinksResponse)
-	err := c.cc.Invoke(ctx, KnowledgeService_GetBacklinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *knowledgeServiceClient) Healthz(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthStatus, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HealthStatus)
@@ -320,17 +232,6 @@ type KnowledgeServiceServer interface {
 	DeleteContentSource(context.Context, *DeleteContentSourceRequest) (*emptypb.Empty, error)
 	// Download URL Generation
 	GenerateDownloadURL(context.Context, *GenerateDownloadURLRequest) (*GenerateDownloadURLResponse, error)
-	// Knowledge Graph Management
-	CreateKnowledgeLink(context.Context, *CreateKnowledgeLinkRequest) (*KnowledgeLink, error)
-	// Single enriched link by id
-	GetKnowledgeLink(context.Context, *GetKnowledgeLinkRequest) (*EnrichedKnowledgeLink, error)
-	// Focused enriched list by content
-	ListKnowledgeLinks(context.Context, *ListKnowledgeLinksRequest) (*ListKnowledgeLinksResponse, error)
-	// Bulk simple list by space
-	ListAllSpaceLinks(context.Context, *ListAllSpaceLinksRequest) (*ListAllSpaceLinksResponse, error)
-	UpdateKnowledgeLink(context.Context, *UpdateKnowledgeLinkRequest) (*KnowledgeLink, error)
-	DeleteKnowledgeLink(context.Context, *DeleteKnowledgeLinkRequest) (*emptypb.Empty, error)
-	GetBacklinks(context.Context, *GetBacklinksRequest) (*GetBacklinksResponse, error)
 	// Utilities
 	Healthz(context.Context, *emptypb.Empty) (*HealthStatus, error)
 	mustEmbedUnimplementedKnowledgeServiceServer()
@@ -381,27 +282,6 @@ func (UnimplementedKnowledgeServiceServer) DeleteContentSource(context.Context, 
 }
 func (UnimplementedKnowledgeServiceServer) GenerateDownloadURL(context.Context, *GenerateDownloadURLRequest) (*GenerateDownloadURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateDownloadURL not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) CreateKnowledgeLink(context.Context, *CreateKnowledgeLinkRequest) (*KnowledgeLink, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateKnowledgeLink not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) GetKnowledgeLink(context.Context, *GetKnowledgeLinkRequest) (*EnrichedKnowledgeLink, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetKnowledgeLink not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) ListKnowledgeLinks(context.Context, *ListKnowledgeLinksRequest) (*ListKnowledgeLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListKnowledgeLinks not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) ListAllSpaceLinks(context.Context, *ListAllSpaceLinksRequest) (*ListAllSpaceLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListAllSpaceLinks not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) UpdateKnowledgeLink(context.Context, *UpdateKnowledgeLinkRequest) (*KnowledgeLink, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateKnowledgeLink not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) DeleteKnowledgeLink(context.Context, *DeleteKnowledgeLinkRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteKnowledgeLink not implemented")
-}
-func (UnimplementedKnowledgeServiceServer) GetBacklinks(context.Context, *GetBacklinksRequest) (*GetBacklinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBacklinks not implemented")
 }
 func (UnimplementedKnowledgeServiceServer) Healthz(context.Context, *emptypb.Empty) (*HealthStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Healthz not implemented")
@@ -661,132 +541,6 @@ func _KnowledgeService_GenerateDownloadURL_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _KnowledgeService_CreateKnowledgeLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateKnowledgeLinkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).CreateKnowledgeLink(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_CreateKnowledgeLink_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).CreateKnowledgeLink(ctx, req.(*CreateKnowledgeLinkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_GetKnowledgeLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetKnowledgeLinkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).GetKnowledgeLink(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_GetKnowledgeLink_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).GetKnowledgeLink(ctx, req.(*GetKnowledgeLinkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_ListKnowledgeLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListKnowledgeLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).ListKnowledgeLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_ListKnowledgeLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).ListKnowledgeLinks(ctx, req.(*ListKnowledgeLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_ListAllSpaceLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListAllSpaceLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).ListAllSpaceLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_ListAllSpaceLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).ListAllSpaceLinks(ctx, req.(*ListAllSpaceLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_UpdateKnowledgeLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateKnowledgeLinkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).UpdateKnowledgeLink(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_UpdateKnowledgeLink_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).UpdateKnowledgeLink(ctx, req.(*UpdateKnowledgeLinkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_DeleteKnowledgeLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteKnowledgeLinkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).DeleteKnowledgeLink(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_DeleteKnowledgeLink_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).DeleteKnowledgeLink(ctx, req.(*DeleteKnowledgeLinkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeService_GetBacklinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBacklinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeServiceServer).GetBacklinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeService_GetBacklinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeServiceServer).GetBacklinks(ctx, req.(*GetBacklinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _KnowledgeService_Healthz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -863,34 +617,6 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateDownloadURL",
 			Handler:    _KnowledgeService_GenerateDownloadURL_Handler,
-		},
-		{
-			MethodName: "CreateKnowledgeLink",
-			Handler:    _KnowledgeService_CreateKnowledgeLink_Handler,
-		},
-		{
-			MethodName: "GetKnowledgeLink",
-			Handler:    _KnowledgeService_GetKnowledgeLink_Handler,
-		},
-		{
-			MethodName: "ListKnowledgeLinks",
-			Handler:    _KnowledgeService_ListKnowledgeLinks_Handler,
-		},
-		{
-			MethodName: "ListAllSpaceLinks",
-			Handler:    _KnowledgeService_ListAllSpaceLinks_Handler,
-		},
-		{
-			MethodName: "UpdateKnowledgeLink",
-			Handler:    _KnowledgeService_UpdateKnowledgeLink_Handler,
-		},
-		{
-			MethodName: "DeleteKnowledgeLink",
-			Handler:    _KnowledgeService_DeleteKnowledgeLink_Handler,
-		},
-		{
-			MethodName: "GetBacklinks",
-			Handler:    _KnowledgeService_GetBacklinks_Handler,
 		},
 		{
 			MethodName: "Healthz",

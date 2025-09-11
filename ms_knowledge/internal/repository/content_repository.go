@@ -12,15 +12,13 @@ import (
 )
 
 type contentRepository struct {
-	client    *ent.Client
-	graphRepo domain.GraphRepository
+	client *ent.Client
 }
 
 // NewContentRepository creates a new content repository
-func NewContentRepository(client *ent.Client, graphRepo domain.GraphRepository) domain.ContentRepository {
+func NewContentRepository(client *ent.Client) domain.ContentRepository {
 	return &contentRepository{
-		client:    client,
-		graphRepo: graphRepo,
+		client: client,
 	}
 }
 
@@ -60,13 +58,13 @@ func (r *contentRepository) Create(ctx context.Context, content *domain.ContentS
 		return err
 	}
 
-	// NOTE: Graph repo is temporarily disabled
-	// // Create corresponding Neo4j node right after content source is created
+	// NOTE: Graph repo is disabled (Neo4j removed)
+	// Create corresponding graph node right after content source is created
 	// if r.graphRepo != nil {
 	// 	err = r.graphRepo.CreateContentNode(ctx, content.ID, content.SpaceID, content.Title, content.ContentSummary)
 	// 	if err != nil {
 	// 		// Log error but don't fail the operation
-	// 		slog.Error("Failed to create content node in Neo4j", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
+	// 		slog.Error("Failed to create content node in graph", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
 	// 	}
 	// }
 
@@ -269,13 +267,13 @@ func (r *contentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	// NOTE: Graph repo is temporarily disabled
-	// // Clean up the corresponding Neo4j node
+	// NOTE: Graph repo is disabled (Neo4j removed)
+	// Clean up the corresponding graph node
 	// if r.graphRepo != nil {
 	// 	err = r.graphRepo.DeleteContentNode(ctx, content.ID, content.SpaceID)
 	// 	if err != nil {
 	// 		// Log error but don't fail the operation
-	// 		slog.Error("Failed to delete content node in Neo4j", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
+	// 		slog.Error("Failed to delete content node in graph", "ContentID", content.ID, "SpaceID", content.SpaceID, "error", err)
 	// 	}
 	// }
 

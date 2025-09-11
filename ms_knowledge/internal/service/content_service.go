@@ -24,7 +24,6 @@ type EventProducer interface {
 type ContentService struct {
 	contentRepo domain.ContentRepository
 	spaceRepo   domain.SpaceRepository
-	graphRepo   domain.GraphRepository
 	storage     StorageService
 	producer    EventProducer
 	cfg         *config.Config
@@ -39,11 +38,10 @@ type StorageService interface {
 }
 
 // NewContentService constructs the service. Pass nil producer if events are not needed (e.g., tests).
-func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, graphRepo domain.GraphRepository, storage StorageService, producer EventProducer, cfg *config.Config, logger *log.Logger) *ContentService {
+func NewContentService(contentRepo domain.ContentRepository, spaceRepo domain.SpaceRepository, storage StorageService, producer EventProducer, cfg *config.Config, logger *log.Logger) *ContentService {
 	return &ContentService{
 		contentRepo: contentRepo,
 		spaceRepo:   spaceRepo,
-		graphRepo:   graphRepo,
 		storage:     storage,
 		producer:    producer,
 		cfg:         cfg,

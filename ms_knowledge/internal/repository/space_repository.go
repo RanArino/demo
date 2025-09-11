@@ -13,15 +13,13 @@ import (
 )
 
 type spaceRepository struct {
-	client    *ent.Client
-	graphRepo domain.GraphRepository
+	client *ent.Client
 }
 
 // NewSpaceRepository creates a new space repository
-func NewSpaceRepository(client *ent.Client, graphRepo domain.GraphRepository) domain.SpaceRepository {
+func NewSpaceRepository(client *ent.Client) domain.SpaceRepository {
 	return &spaceRepository{
-		client:    client,
-		graphRepo: graphRepo,
+		client: client,
 	}
 }
 
@@ -100,8 +98,8 @@ func (r *spaceRepository) GetWithStats(ctx context.Context, id uuid.UUID) (*doma
 		return nil, err
 	}
 
-	// NOTE: Graph repo is temporarily disabled
-	// // Get link count from Neo4j using the graph repository
+	// NOTE: Graph repo is disabled (Neo4j removed)
+	// Get link count from graph repository
 	var linkCount int64
 	// if r.graphRepo != nil {
 	// 	linkCount, err = r.graphRepo.CountLinksBySpace(ctx, id)
@@ -386,8 +384,8 @@ func (r *spaceRepository) getSpaceStats(ctx context.Context, spaceID uuid.UUID) 
 		lastActivityAt = space.CreatedAt
 	}
 
-	// NOTE: Graph repo is temporarily disabled
-	// // Get link count from Neo4j using the graph repository
+	// NOTE: Graph repo is disabled (Neo4j removed)
+	// Get link count from graph repository
 	var linkCount int64
 	// if r.graphRepo != nil {
 	// 	linkCount, err = r.graphRepo.CountLinksBySpace(ctx, spaceID)

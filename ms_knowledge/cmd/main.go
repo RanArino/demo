@@ -17,7 +17,6 @@ import (
 	"demo/ms_knowledge/internal/events"
 	kmw "demo/ms_knowledge/internal/middleware"
 	"demo/ms_knowledge/internal/repository"
-	"demo/ms_knowledge/internal/repository/graph"
 	"demo/ms_knowledge/internal/server"
 	"demo/ms_knowledge/internal/service"
 	storager2 "demo/ms_knowledge/internal/storage/r2"
@@ -25,7 +24,6 @@ import (
 	userv1 "demo/ms_user/api/proto/v1"
 
 	_ "github.com/lib/pq"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -62,39 +60,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize Neo4j connection (skipped if DISABLE_NEO4J is set)
-	var neo4jDriver neo4j.DriverWithContext
-	neo4jDisabled := os.Getenv("DISABLE_NEO4J")
-	if neo4jDisabled == "1" || neo4jDisabled == "true" || neo4jDisabled == "TRUE" {
-		slog.Info("Neo4j disabled via DISABLE_NEO4J flag; graph features are no-op")
-	} else {
-		if drv, err := neo4j.NewDriverWithContext(
-			cfg.Neo4j.URI,
-			neo4j.BasicAuth(cfg.Neo4j.Username, cfg.Neo4j.Password, ""),
-		); err != nil {
-			slog.Warn("Neo4j unavailable; continuing without graph features", "error", err)
-		} else {
-			neo4jDriver = drv
-			if err := neo4jDriver.VerifyConnectivity(ctx); err != nil {
-				slog.Warn("Neo4j connectivity check failed; continuing without graph features", "error", err)
-			}
-			defer neo4jDriver.Close(ctx)
-		}
-	}
-
 	// Initialize repositories
-	var graphRepo domain.GraphRepository
-	if neo4jDriver != nil {
-		graphRepo = graph.NewNeo4jRepository(neo4jDriver)
-	} else {
-		graphRepo = graph.NewNoopRepository()
-	}
-	spaceRepo := repository.NewSpaceRepository(client, graphRepo)
-	contentRepo := repository.NewContentRepository(client, graphRepo)
+	spaceRepo := repository.NewSpaceRepository(client)
+	contentRepo := repository.NewContentRepository(client)
 
 	// Initialize services
 	contentLogger := slog.NewLogLogger(handler, slog.LevelInfo)
-	spaceService := service.NewSpaceService(spaceRepo, contentRepo, graphRepo)
+	spaceService := service.NewSpaceService(spaceRepo, contentRepo)
 
 	// Initialize R2 storage client
 	r2Client, err := storager2.NewClient(ctx, storager2.Config{
@@ -118,11 +90,9 @@ func main() {
 	defer producer.Close()
 
 	r2Storage := storager2.NewAdapter(r2Client)
-	contentService := service.NewContentService(contentRepo, spaceRepo, graphRepo, r2Storage, producer, cfg, contentLogger)
-	knowledgeLinkService := service.NewKnowledgeLinkService(graphRepo, contentRepo)
-
-	// Initialize gRPC server
-	grpcServer := server.NewGRPCServer(spaceService, contentService, knowledgeLinkService)
+	contentService := service.NewContentService(contentRepo, spaceRepo, r2Storage, producer, cfg, contentLogger)
+	// Initialize gRPC server  
+	grpcServer := server.NewGRPCServer(spaceService, contentService)
 
 	// Initialize User service client for authentication
 	var userClient userv1.UserServiceClient

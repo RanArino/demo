@@ -13,14 +13,12 @@ import (
 type SpaceService struct {
 	spaceRepo   domain.SpaceRepository
 	contentRepo domain.ContentRepository
-	graphRepo   domain.GraphRepository
 }
 
-func NewSpaceService(spaceRepo domain.SpaceRepository, contentRepo domain.ContentRepository, graphRepo domain.GraphRepository) *SpaceService {
+func NewSpaceService(spaceRepo domain.SpaceRepository, contentRepo domain.ContentRepository) *SpaceService {
 	return &SpaceService{
 		spaceRepo:   spaceRepo,
 		contentRepo: contentRepo,
-		graphRepo:   graphRepo,
 	}
 }
 
@@ -192,7 +190,7 @@ func (s *SpaceService) SearchSpaces(ctx context.Context, query string, filter do
 
 		stats := &domain.SpaceStats{
 			ContentCount:   contentCount,
-			LinkCount:      0,               // Will be implemented with Neo4j integration
+			LinkCount:      0,               // Graph features disabled
 			LastActivityAt: space.CreatedAt, // Default to creation time
 		}
 

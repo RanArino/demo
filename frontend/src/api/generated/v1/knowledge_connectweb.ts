@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ConfirmUploadRequest, ContentSource, CreateKnowledgeLinkRequest, CreateSpaceRequest, CreateUploadURLRequest, CreateUploadURLResponse, DeleteContentSourceRequest, DeleteKnowledgeLinkRequest, DeleteSpaceRequest, EnrichedKnowledgeLink, GenerateDownloadURLRequest, GenerateDownloadURLResponse, GetBacklinksRequest, GetBacklinksResponse, GetContentSourceRequest, GetKnowledgeLinkRequest, GetSpaceRequest, HealthStatus, KnowledgeLink, ListAllSpaceLinksRequest, ListAllSpaceLinksResponse, ListContentSourcesRequest, ListContentSourcesResponse, ListKnowledgeLinksRequest, ListKnowledgeLinksResponse, ListSpacesRequest, ListSpacesResponse, Space, UpdateContentSourceRequest, UpdateContentSourceStatusRequest, UpdateKnowledgeLinkRequest, UpdateSpaceRequest } from "./knowledge_pb";
+import { ConfirmUploadRequest, ContentSource, CreateSpaceRequest, CreateUploadURLRequest, CreateUploadURLResponse, DeleteContentSourceRequest, DeleteSpaceRequest, GenerateDownloadURLRequest, GenerateDownloadURLResponse, GetContentSourceRequest, GetSpaceRequest, HealthStatus, ListContentSourcesRequest, ListContentSourcesResponse, ListSpacesRequest, ListSpacesResponse, Space, UpdateContentSourceRequest, UpdateContentSourceStatusRequest, UpdateSpaceRequest } from "./knowledge_pb";
 import { Empty, MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -135,77 +135,6 @@ export const KnowledgeService = {
       name: "GenerateDownloadURL",
       I: GenerateDownloadURLRequest,
       O: GenerateDownloadURLResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Knowledge Graph Management
-     *
-     * @generated from rpc knowledge.v1.KnowledgeService.CreateKnowledgeLink
-     */
-    createKnowledgeLink: {
-      name: "CreateKnowledgeLink",
-      I: CreateKnowledgeLinkRequest,
-      O: KnowledgeLink,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Single enriched link by id
-     *
-     * @generated from rpc knowledge.v1.KnowledgeService.GetKnowledgeLink
-     */
-    getKnowledgeLink: {
-      name: "GetKnowledgeLink",
-      I: GetKnowledgeLinkRequest,
-      O: EnrichedKnowledgeLink,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Focused enriched list by content
-     *
-     * @generated from rpc knowledge.v1.KnowledgeService.ListKnowledgeLinks
-     */
-    listKnowledgeLinks: {
-      name: "ListKnowledgeLinks",
-      I: ListKnowledgeLinksRequest,
-      O: ListKnowledgeLinksResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Bulk simple list by space
-     *
-     * @generated from rpc knowledge.v1.KnowledgeService.ListAllSpaceLinks
-     */
-    listAllSpaceLinks: {
-      name: "ListAllSpaceLinks",
-      I: ListAllSpaceLinksRequest,
-      O: ListAllSpaceLinksResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc knowledge.v1.KnowledgeService.UpdateKnowledgeLink
-     */
-    updateKnowledgeLink: {
-      name: "UpdateKnowledgeLink",
-      I: UpdateKnowledgeLinkRequest,
-      O: KnowledgeLink,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc knowledge.v1.KnowledgeService.DeleteKnowledgeLink
-     */
-    deleteKnowledgeLink: {
-      name: "DeleteKnowledgeLink",
-      I: DeleteKnowledgeLinkRequest,
-      O: Empty,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc knowledge.v1.KnowledgeService.GetBacklinks
-     */
-    getBacklinks: {
-      name: "GetBacklinks",
-      I: GetBacklinksRequest,
-      O: GetBacklinksResponse,
       kind: MethodKind.Unary,
     },
     /**
