@@ -45,7 +45,10 @@ async function listContentSourcesCore(
     }
 
     const response = await client.listContentSources(request, { headers });
-    const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
+    const { normalizeContentSourceForClient } = await import('./utils');
+    const sanitizedItems = response.items
+      .map(item => sanitizeProtobufForJson(item))
+      .map(item => normalizeContentSourceForClient(item));
     return { ok: true, data: sanitizedItems };
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -96,6 +99,48 @@ export async function listContentSources(
   }
 }
 
+// Uncached variant for short-interval polling to avoid 60s cache staleness
+export async function listContentSourcesUncached(
+  spaceId: string,
+  status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
+): Promise<ActionResult<ContentSource[]>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+
+    const headers = await createAuthHeaders();
+    const client = getKnowledgeServiceClient();
+
+    const request: Partial<ListContentSourcesRequest> = { spaceId };
+    if (status) {
+      const statusMap = {
+        uploading: ContentStatus.UPLOADING,
+        uploaded: ContentStatus.UPLOADED,
+        processing: ContentStatus.PROCESSING,
+        processed: ContentStatus.PROCESSED,
+        failed: ContentStatus.FAILED,
+      };
+      if (status in statusMap) {
+        request.status = statusMap[status as keyof typeof statusMap];
+      }
+    }
+
+    const response = await client.listContentSources(request as ListContentSourcesRequest, { headers });
+    const { normalizeContentSourceForClient } = await import('./utils');
+    const sanitizedItems = response.items
+      .map(item => sanitizeProtobufForJson(item))
+      .map(item => normalizeContentSourceForClient(item));
+    return { ok: true, data: sanitizedItems };
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listContentSourcesUncached', error);
+    } else {
+      console.error('listContentSourcesUncached error:', error);
+    }
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
 export async function createUploadURL(
   request: CreateUploadURLRequest
 ): Promise<ActionResult<CreateUploadURLResponse>> {
@@ -106,7 +151,10 @@ export async function createUploadURL(
     const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
 
-    const response = await client.createUploadURL(request, { headers });
+    // Use utility to rebuild/normalize request types (sizeBytes, enum fields)
+    const { rebuildCreateUploadURLRequest } = await import('./utils');
+    const rebuilt = rebuildCreateUploadURLRequest(request as CreateUploadURLRequest);
+    const response = await client.createUploadURL(rebuilt, { headers });
     // Sanitize response (contains ContentSource with size_bytes BigInt field)
     const sanitizedResponse = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitizedResponse };
@@ -138,8 +186,17 @@ export async function confirmUpload(
     // Revalidate content lists for this space
     if (sanitizedResponse && (sanitizedResponse as any).spaceId) {
       const sid = (sanitizedResponse as any).spaceId as string;
+      // Refresh content lists within the space (documents panel)
       revalidateTag(`content-sources-${sid}`);
+      // Refresh the specific space cache (e.g., stats/counts used in detail views)
+      revalidateTag(`space-${sid}`);
+      // Refresh the spaces list (gallery/list page shows docs count in cards)
+      if (userId) {
+        revalidateTag(`spaces-list-${userId}`);
+      }
+      // Trigger page-level revalidation for both the detail and list pages
       revalidatePath(`/spaces/${sid}`);
+      revalidatePath('/spaces');
     }
     return { ok: true, data: sanitizedResponse };
   } catch (error) {

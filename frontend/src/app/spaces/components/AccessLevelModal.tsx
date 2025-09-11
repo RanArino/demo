@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Space, UpdateSpaceRequest } from '@/api/generated/v1/knowledge_pb';
+import { Space } from '@/api/generated/v1/knowledge_pb';
 import { updateSpace } from '@/api/actions/spaceActions';
 import {
   Dialog,
@@ -57,16 +57,14 @@ export function AccessLevelModal({ space, open, onOpenChange }: AccessLevelModal
 
     setIsSaving(true);
     try {
-      const updateRequest = new UpdateSpaceRequest({
+      const result = await updateSpace(space.id, {
         id: space.id,
         title: space.title,
         description: space.description,
         keywords: space.keywords || [],
         icon: space.icon || '',
         accessLevel: selectedLevel,
-      });
-
-      const result = await updateSpace(space.id, updateRequest);
+      } as any);
       if (result.ok) {
         onOpenChange(false);
         toast({

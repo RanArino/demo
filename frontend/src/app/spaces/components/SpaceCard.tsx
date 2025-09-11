@@ -62,15 +62,16 @@ export default function SpaceCard({
     }
   };
 
-  const formatDate = (date: Date | string | undefined) => {
-    if (!date) return '';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString();
-  };
-
   const formatTimestamp = (timestamp: any) => {
     const date = safeTimestampToDate(timestamp);
-    return date ? date.toLocaleDateString() : '';
+    return date
+      ? new Intl.DateTimeFormat('en-US', {
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+        }).format(date)
+      : '';
   };
 
   return (

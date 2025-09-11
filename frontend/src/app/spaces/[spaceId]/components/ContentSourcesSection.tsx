@@ -27,6 +27,31 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
   const [progressById, setProgressById] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    // When the component mounts or window regains focus, fetch the latest sources
+    // uncached to avoid stale UI after closing the upload modal.
+    const refreshLatest = async () => {
+      try {
+        const { listContentSourcesUncached } = await import('@/api/actions/contentActions');
+        const res = await listContentSourcesUncached(spaceId, 'processed');
+        if (res.ok && res.data) {
+          setSources((prev) => {
+            // Merge: keep any non-processed placeholders, replace processed list
+            const placeholders = prev.filter((s) => s.status !== ContentStatus.PROCESSED);
+            const processed = res.data ?? [];
+            const next = [...processed, ...placeholders];
+            return next;
+          });
+        }
+      } catch {}
+    };
+
+    const onFocus = () => { void refreshLatest(); };
+    void refreshLatest();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [spaceId]);
+
+  useEffect(() => {
     const onCreated = (e: CustomEvent<ContentSource>) => {
       const detail = e.detail;
       setSources((prev) => {

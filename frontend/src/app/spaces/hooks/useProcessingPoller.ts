@@ -54,8 +54,8 @@ export function useProcessingPoller({ spaceId, onUpdates, candidateIds, interval
         return;
       }
 
-      const { listContentSources } = await import('@/api/actions/contentActions');
-      const result = await listContentSources(spaceId, 'processing');
+      const { listContentSourcesUncached } = await import('@/api/actions/contentActions');
+      const result = await listContentSourcesUncached(spaceId, 'processing');
       if (!result.ok || !result.data) {
         // Retry later with backoff
         backoffRef.current = Math.min(backoffRef.current * 1.5, 15000);
@@ -70,8 +70,8 @@ export function useProcessingPoller({ spaceId, onUpdates, candidateIds, interval
       // to processed/failed. Do not return early; continue to check terminal sets.
 
       // Also fetch any recently completed in case we missed the transition
-      const completedRes = await listContentSources(spaceId, 'processed');
-      const failedRes = await listContentSources(spaceId, 'failed');
+      const completedRes = await listContentSourcesUncached(spaceId, 'processed');
+      const failedRes = await listContentSourcesUncached(spaceId, 'failed');
       let completed = completedRes.ok && completedRes.data ? completedRes.data : [];
       let failed = failedRes.ok && failedRes.data ? failedRes.data : [];
 
