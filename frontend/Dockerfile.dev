@@ -1,0 +1,15 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# Copy source code (will be mounted as volume in dev)
+COPY . .
+
+EXPOSE 3002
+
+# Use development server with hot reloading (skip proto generation)
+CMD ["npx", "next", "dev", "--turbopack", "--port", "3002", "--hostname", "0.0.0.0"]

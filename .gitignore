@@ -75,3 +75,10 @@ venv.bak/
 *.test
 # Output of go build
 *.out
+# Air hot reload build cache
+tmp/
+*.tmp
+# Microservice binaries
+ms_*/app
+ms_*/server
+ms_*/test_app
