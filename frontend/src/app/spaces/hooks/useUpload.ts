@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 // Server actions are dynamically imported at call time to avoid stale action IDs during HMR
-import { ContentSource, ContentStatus, DownloadObjectKind, CreateUploadURLRequest } from '@/api/generated/v1/knowledge_pb';
+import { ContentSource, ContentStatus, DownloadObjectKind } from '@/api/generated/v1/knowledge_pb';
 import { Timestamp, protoInt64 } from '@bufbuild/protobuf';
 
 interface UploadOptions {
@@ -44,15 +44,14 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
       // Step 1: Get upload URL from server action (dynamic import to avoid stale action id)
       const { createUploadURL } = await import('@/api/actions/contentActions');
       
-      const parsedSizeBytes = protoInt64.parse(file.size);
-      
-      const uploadUrlResult = await createUploadURL(new CreateUploadURLRequest({
+      const uploadUrlResult = await createUploadURL({
         spaceId,
         filename: file.name,
         mimeType: file.type,
-        sizeBytes: parsedSizeBytes,
-        objectKind: DownloadObjectKind.ORIGINAL
-      }));
+        sizeBytes: file.size,
+        objectKind: DownloadObjectKind.ORIGINAL,
+        title: file.name,
+      } as any);
 
       if (!uploadUrlResult.ok || !uploadUrlResult.data) {
         throw new Error(uploadUrlResult.error?.message || 'Failed to create upload URL');
