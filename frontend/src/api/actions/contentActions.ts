@@ -45,7 +45,10 @@ async function listContentSourcesCore(
     }
 
     const response = await client.listContentSources(request, { headers });
-    const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
+    const { normalizeContentSourceForClient } = await import('./utils');
+    const sanitizedItems = response.items
+      .map(item => sanitizeProtobufForJson(item))
+      .map(item => normalizeContentSourceForClient(item));
     return { ok: true, data: sanitizedItems };
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -123,7 +126,10 @@ export async function listContentSourcesUncached(
     }
 
     const response = await client.listContentSources(request as ListContentSourcesRequest, { headers });
-    const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
+    const { normalizeContentSourceForClient } = await import('./utils');
+    const sanitizedItems = response.items
+      .map(item => sanitizeProtobufForJson(item))
+      .map(item => normalizeContentSourceForClient(item));
     return { ok: true, data: sanitizedItems };
   } catch (error) {
     if (isUnauthorizedError(error)) {

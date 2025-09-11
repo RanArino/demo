@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { ConnectError } from '@bufbuild/connect';
-import { SpaceFilters, CreateUploadURLRequest, DownloadObjectKind } from '../generated/v1/knowledge_pb';
+import { SpaceFilters, CreateUploadURLRequest, DownloadObjectKind, ContentStatus } from '../generated/v1/knowledge_pb';
 import { protoInt64 } from '@bufbuild/protobuf';
 
 /**
@@ -214,6 +214,23 @@ export function rebuildCreateUploadURLRequest(input: CreateUploadURLRequest): Cr
   }
 
   return rebuilt;
+}
+
+/**
+ * Normalize a content source-like object for client use:
+ * - Ensures enum `status` is a number (not a string from toJson)
+ */
+export function normalizeContentSourceForClient<T extends { status?: unknown }>(obj: T): T {
+  try {
+    const status = (obj as any).status;
+    if (typeof status === 'string') {
+      const numeric = (ContentStatus as any)[status];
+      if (typeof numeric === 'number') {
+        (obj as any).status = numeric;
+      }
+    }
+  } catch {}
+  return obj;
 }
 
 /**
