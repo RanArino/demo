@@ -96,6 +96,45 @@ export async function listContentSources(
   }
 }
 
+// Uncached variant for short-interval polling to avoid 60s cache staleness
+export async function listContentSourcesUncached(
+  spaceId: string,
+  status?: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
+): Promise<ActionResult<ContentSource[]>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+
+    const headers = await createAuthHeaders();
+    const client = getKnowledgeServiceClient();
+
+    const request: Partial<ListContentSourcesRequest> = { spaceId };
+    if (status) {
+      const statusMap = {
+        uploading: ContentStatus.UPLOADING,
+        uploaded: ContentStatus.UPLOADED,
+        processing: ContentStatus.PROCESSING,
+        processed: ContentStatus.PROCESSED,
+        failed: ContentStatus.FAILED,
+      };
+      if (status in statusMap) {
+        request.status = statusMap[status as keyof typeof statusMap];
+      }
+    }
+
+    const response = await client.listContentSources(request as ListContentSourcesRequest, { headers });
+    const sanitizedItems = response.items.map(item => sanitizeProtobufForJson(item));
+    return { ok: true, data: sanitizedItems };
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listContentSourcesUncached', error);
+    } else {
+      console.error('listContentSourcesUncached error:', error);
+    }
+    return { ok: false, error: sanitizeError(error) };
+  }
+}
+
 export async function createUploadURL(
   request: CreateUploadURLRequest
 ): Promise<ActionResult<CreateUploadURLResponse>> {
