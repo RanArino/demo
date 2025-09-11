@@ -186,8 +186,17 @@ export async function confirmUpload(
     // Revalidate content lists for this space
     if (sanitizedResponse && (sanitizedResponse as any).spaceId) {
       const sid = (sanitizedResponse as any).spaceId as string;
+      // Refresh content lists within the space (documents panel)
       revalidateTag(`content-sources-${sid}`);
+      // Refresh the specific space cache (e.g., stats/counts used in detail views)
+      revalidateTag(`space-${sid}`);
+      // Refresh the spaces list (gallery/list page shows docs count in cards)
+      if (userId) {
+        revalidateTag(`spaces-list-${userId}`);
+      }
+      // Trigger page-level revalidation for both the detail and list pages
       revalidatePath(`/spaces/${sid}`);
+      revalidatePath('/spaces');
     }
     return { ok: true, data: sanitizedResponse };
   } catch (error) {
