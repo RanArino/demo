@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 // Server actions are dynamically imported at call time to avoid stale action IDs during HMR
 import { ContentSource, ContentStatus, DownloadObjectKind, CreateUploadURLRequest } from '@/api/generated/v1/knowledge_pb';
-import { Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, protoInt64 } from '@bufbuild/protobuf';
 
 interface UploadOptions {
   spaceId: string;
@@ -43,11 +43,14 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
     try {
       // Step 1: Get upload URL from server action (dynamic import to avoid stale action id)
       const { createUploadURL } = await import('@/api/actions/contentActions');
+      
+      const parsedSizeBytes = protoInt64.parse(file.size);
+      
       const uploadUrlResult = await createUploadURL(new CreateUploadURLRequest({
         spaceId,
         filename: file.name,
         mimeType: file.type,
-        sizeBytes: BigInt(file.size),
+        sizeBytes: parsedSizeBytes,
         objectKind: DownloadObjectKind.ORIGINAL
       }));
 
@@ -69,7 +72,7 @@ export function useUpload({ spaceId, onUploadComplete, onUploadError }: UploadOp
           spaceId,
           title: file.name,
           mimeType: file.type || 'application/octet-stream',
-          sizeBytes: BigInt(file.size),
+          sizeBytes: protoInt64.parse(file.size),
           status: ContentStatus.UPLOADING,
           createdAt: Timestamp.fromDate(new Date()),
           updatedAt: Timestamp.fromDate(new Date()),
