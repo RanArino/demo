@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { ConnectError } from '@bufbuild/connect';
-import { SpaceFilters } from '../generated/v1/knowledge_pb';
+import { SpaceFilters, CreateUploadURLRequest, DownloadObjectKind } from '../generated/v1/knowledge_pb';
+import { protoInt64 } from '@bufbuild/protobuf';
 
 /**
  * Helper function to create headers with JWT token
@@ -174,6 +175,45 @@ export function sanitizeProtobufForJson<T>(obj: T): T {
   }
 
   return result;
+}
+
+/**
+ * Rebuilds a CreateUploadURLRequest to ensure numeric and enum fields are properly typed
+ * before binary serialization. Accepts a typed message that may have been de-serialized
+ * across server action boundaries and returns a normalized instance.
+ */
+export function rebuildCreateUploadURLRequest(input: CreateUploadURLRequest): CreateUploadURLRequest {
+  const rebuilt = new CreateUploadURLRequest({
+    spaceId: String((input as any).spaceId ?? input.spaceId ?? ''),
+    filename: String((input as any).filename ?? input.filename ?? ''),
+    mimeType: String((input as any).mimeType ?? input.mimeType ?? ''),
+    title: String((input as any).title ?? input.title ?? ''),
+  });
+
+  // Normalize size_bytes (int64)
+  try {
+    const rawSize = (input as any).sizeBytes ?? 0;
+    rebuilt.sizeBytes = protoInt64.parse(rawSize);
+  } catch (e) {
+    rebuilt.sizeBytes = (CreateUploadURLRequest as any).prototype.sizeBytes ?? 0;
+    console.warn('rebuildCreateUploadURLRequest: failed to normalize sizeBytes', e);
+  }
+
+  // Normalize object_kind (enum)
+  const rawKind = (input as any).objectKind ?? (input as any).object_kind ?? input.objectKind;
+  if (typeof rawKind === 'number') {
+    rebuilt.objectKind = rawKind as any;
+  } else if (typeof rawKind === 'string') {
+    const exact = (DownloadObjectKind as any)[rawKind];
+    const prefixed = (DownloadObjectKind as any)[`DOWNLOAD_OBJECT_KIND_${rawKind}`];
+    if (typeof exact === 'number') rebuilt.objectKind = exact;
+    else if (typeof prefixed === 'number') rebuilt.objectKind = prefixed;
+    else rebuilt.objectKind = DownloadObjectKind.ORIGINAL;
+  } else {
+    rebuilt.objectKind = input.objectKind ?? DownloadObjectKind.ORIGINAL;
+  }
+
+  return rebuilt;
 }
 
 /**
