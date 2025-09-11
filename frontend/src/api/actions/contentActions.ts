@@ -106,7 +106,10 @@ export async function createUploadURL(
     const client = getKnowledgeServiceClient();
     const headers = await createAuthHeaders();
 
-    const response = await client.createUploadURL(request, { headers });
+    // Use utility to rebuild/normalize request types (sizeBytes, enum fields)
+    const { rebuildCreateUploadURLRequest } = await import('./utils');
+    const rebuilt = rebuildCreateUploadURLRequest(request as CreateUploadURLRequest);
+    const response = await client.createUploadURL(rebuilt, { headers });
     // Sanitize response (contains ContentSource with size_bytes BigInt field)
     const sanitizedResponse = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitizedResponse };
