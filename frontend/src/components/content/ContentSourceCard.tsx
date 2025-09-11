@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ContentSource, ContentStatus } from '@/api/generated/v1/knowledge_pb';
 import { formatDate, fileTypeLabel } from '@/lib/contentSource';
+import { safeTimestampToDate } from '@/lib/types';
 
 export interface ContentSourceCardProps {
   contentSource: ContentSource;
@@ -111,7 +112,12 @@ export default function ContentSourceCard({ contentSource, onView, onDownload, o
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <span className="text-xs px-3 py-1 border rounded-md">{fileTypeLabel(contentSource.mimeType, contentSource.source)}</span>
-          <div className="text-xs text-gray-500">Added {contentSource.createdAt ? formatDate(new Date(Number(contentSource.createdAt.seconds) * 1000)) : 'Unknown'}</div>
+          <div className="text-xs text-gray-500">
+            {(() => {
+              const created = safeTimestampToDate(contentSource.createdAt as any);
+              return `Added ${created ? formatDate(created) : 'Unknown'}`;
+            })()}
+          </div>
         </div>
         <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
           {contentSource.status === ContentStatus.PROCESSED && (
