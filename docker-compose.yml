@@ -28,12 +28,8 @@ services:
       - ./ms_knowledge/.env.local
     environment:
       - GRPC_PORT=50052
-      - DISABLE_NEO4J=1
       - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
       - DATABASE_URL=${DATABASE_URL}
-      - NEO4J_URI=${NEO4J_URI}
-      - NEO4J_USER=${NEO4J_USER}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
       - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
