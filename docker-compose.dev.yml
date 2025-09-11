@@ -1,0 +1,60 @@
+# Development Docker Compose Override
+# This file enables hot reloading for all services during development
+# 
+# Usage:
+#   Development mode:  docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Production mode:   docker-compose up
+#
+# After code changes, simply restart the specific service:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart frontend
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart ms_user
+
+services:
+  # Frontend with hot reloading
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3002:3002"
+    command: ["npx", "next", "dev", "--turbopack", "--port", "3002", "--hostname", "0.0.0.0"]
+
+  # Go microservices with hot reloading using Air
+  ms_user:
+    build:
+      context: ./ms_user
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./ms_user:/app
+      - /app/tmp
+    environment:
+      - GO_ENV=development
+
+  ms_knowledge:
+    build:
+      context: .
+      dockerfile: ms_knowledge/Dockerfile.dev
+    volumes:
+      - ./ms_knowledge:/app/ms_knowledge
+      - ./ms_user:/app/ms_user
+      - /app/ms_knowledge/tmp
+    environment:
+      - GO_ENV=development
+
+  # Python microservices with hot reloading using watchdog
+  ms_document_process:
+    build:
+      context: ./ms_document_process
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./ms_document_process:/app
+      - /app/__pycache__
+    environment:
+      - PYTHON_ENV=development
+      - PYTHONPATH=/app
