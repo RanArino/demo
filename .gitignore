@@ -78,3 +78,7 @@ venv.bak/
 # Air hot reload build cache
 tmp/
 *.tmp
+# Microservice binaries
+ms_*/app
+ms_*/server
+ms_*/test_app
