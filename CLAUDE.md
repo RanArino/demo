@@ -72,15 +72,36 @@ pip install -r requirements.txt
 python app/main.py
 ```
 
-### Full Stack Development
+### Development Modes
+
+#### Development Mode (Hot Reloading)
+For development with automatic code reloading when files change:
+```bash
+# Start development environment with hot reloading
+./scripts/dev-up.sh
+# OR manually:
+# docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# After making code changes, restart specific service:
+./scripts/dev-restart.sh frontend
+./scripts/dev-restart.sh ms_user
+# OR manually:
+# docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart <service_name>
+
+# View logs for a specific service
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f [service-name]
+
+# Stop all services
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+```
+
+#### Production Mode
+For production builds without hot reloading:
 ```bash
 # Start all services with Docker Compose
 docker-compose up -d
 
-# Start specific services
-docker-compose up backend-go frontend
-
-# Rebuild containers after changes
+# Rebuild containers after changes (slower)
 docker-compose build
 docker-compose up --build
 
@@ -91,35 +112,25 @@ docker-compose logs -f [service-name]
 docker-compose down
 ```
 
-### Frontend Development
+### Local Development (without Docker)
+
+#### Frontend Development
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### Go Microservice Development
+#### Go Microservice Development
 ```bash
 cd ms_user # (or other Go microservice)
 go mod download
 go run ./cmd/server/main.go
 ```
 
-### Python Microservice Development
+#### Python Microservice Development
 ```bash
 cd ms_ml # (or other Python microservice)
 pip install -r requirements.txt
 python app/main.py
-```
-
-### Full Stack Development
-```bash
-# Start all services with Docker Compose
-docker-compose up -d
-
-# View logs for a specific service
-docker-compose logs -f [service-name]
-
-# Stop all services
-docker-compose down
 ```
