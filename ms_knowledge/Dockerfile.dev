@@ -1,0 +1,30 @@
+FROM golang:1.24
+
+# Install build dependencies for CGO
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy go.mod files for both ms_knowledge and ms_user
+COPY ms_knowledge/go.mod ms_knowledge/go.sum ./ms_knowledge/
+COPY ms_user /app/ms_user
+
+# Download dependencies
+WORKDIR /app/ms_knowledge
+RUN go mod download
+
+# Install air for hot reloading (after go mod setup)
+RUN go install github.com/air-verse/air@latest
+
+WORKDIR /app
+
+# Copy source code (will be mounted as volume)
+COPY ms_knowledge/ ./ms_knowledge/
+
+EXPOSE 50052
+
+# Use air for hot reloading
+WORKDIR /app/ms_knowledge
+CMD ["air", "-c", ".air.toml"]
