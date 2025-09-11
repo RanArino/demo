@@ -19,11 +19,6 @@ type Config struct {
 	Server struct {
 		Port int
 	}
-	Neo4j struct {
-		URI      string
-		Username string
-		Password string
-	}
 	Kafka struct {
 		Brokers          string
 		SaslUsername     string
@@ -50,9 +45,6 @@ type Config struct {
 // SecretKeys defines the keys needed from the secret manager
 var SecretKeys = []string{
 	"DATABASE_URL",
-	"NEO4J_URI",
-	"NEO4J_USER",
-	"NEO4J_PASSWORD",
 	"KAFKA_BROKERS",
 	"KAFKA_SASL_USERNAME",
 	"KAFKA_SASL_PASSWORD",
@@ -79,10 +71,6 @@ func Load() (*Config, error) {
 	// Server configuration
 	cfg.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
 
-	// Neo4j configuration
-	cfg.Neo4j.URI = getEnvOrDefault("NEO4J_URI", "neo4j://localhost:7687")
-	cfg.Neo4j.Username = getEnvOrDefault("NEO4J_USER", "neo4j")
-	cfg.Neo4j.Password = getEnvOrDefault("NEO4J_PASSWORD", "password")
 
 	// Kafka configuration
 	cfg.Kafka.Brokers = getEnvOrDefault("KAFKA_BROKERS", "localhost:9092")
@@ -142,10 +130,6 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	// Server configuration
 	config.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
 
-	// Neo4j configuration
-	config.Neo4j.URI = secretValues["NEO4J_URI"]
-	config.Neo4j.Username = secretValues["NEO4J_USER"]
-	config.Neo4j.Password = secretValues["NEO4J_PASSWORD"]
 
 	// Kafka configuration
 	config.Kafka.Brokers = secretValues["KAFKA_BROKERS"]
@@ -182,10 +166,6 @@ func loadFromEnv() (*Config, error) {
 	// Server configuration
 	config.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
 
-	// Neo4j configuration
-	config.Neo4j.URI = os.Getenv("NEO4J_URI")
-	config.Neo4j.Username = os.Getenv("NEO4J_USER")
-	config.Neo4j.Password = os.Getenv("NEO4J_PASSWORD")
 
 	// Kafka configuration
 	config.Kafka.Brokers = os.Getenv("KAFKA_BROKERS")
