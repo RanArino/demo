@@ -20,17 +20,15 @@ import (
 type GRPCServer struct {
 	knowledgev1.UnimplementedKnowledgeServiceServer
 
-	spaceService         *service.SpaceService
-	contentService       *service.ContentService
-	knowledgeLinkService *service.KnowledgeLinkService
-	userClient           userv1.UserServiceClient
+	spaceService   *service.SpaceService
+	contentService *service.ContentService
+	userClient     userv1.UserServiceClient
 }
 
-func NewGRPCServer(spaceService *service.SpaceService, contentService *service.ContentService, knowledgeLinkService *service.KnowledgeLinkService) *GRPCServer {
+func NewGRPCServer(spaceService *service.SpaceService, contentService *service.ContentService) *GRPCServer {
 	return &GRPCServer{
-		spaceService:         spaceService,
-		contentService:       contentService,
-		knowledgeLinkService: knowledgeLinkService,
+		spaceService:   spaceService,
+		contentService: contentService,
 	}
 }
 
@@ -354,181 +352,6 @@ func (s *GRPCServer) GenerateDownloadURL(ctx context.Context, req *knowledgev1.G
 	}, nil
 }
 
-// Knowledge Link Management
-func (s *GRPCServer) CreateKnowledgeLink(ctx context.Context, req *knowledgev1.CreateKnowledgeLinkRequest) (*knowledgev1.KnowledgeLink, error) {
-	fromID, err := uuid.Parse(req.FromContentId)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid from content id: %v", err)
-	}
-
-	toID, err := uuid.Parse(req.ToContentId)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid to content id: %v", err)
-	}
-
-	link, err := s.knowledgeLinkService.CreateKnowledgeLink(ctx, fromID, toID, domain.RelationType(req.RelationType.String()), req.Weight)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to create knowledge link: %v", err)
-	}
-
-	return s.domainKnowledgeLinkToProto(link), nil
-}
-
-// Get a single enriched link (includes previews)
-func (s *GRPCServer) GetKnowledgeLink(ctx context.Context, req *knowledgev1.GetKnowledgeLinkRequest) (*knowledgev1.EnrichedKnowledgeLink, error) {
-	id, err := uuid.Parse(req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid link id: %v", err)
-	}
-
-	el, err := s.knowledgeLinkService.GetKnowledgeLink(ctx, id)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get knowledge link: %v", err)
-	}
-
-	return &knowledgev1.EnrichedKnowledgeLink{
-		Id:           el.ID.String(),
-		From:         &knowledgev1.ContentPreview{Id: el.From.ID.String(), Title: el.From.Title, ContentSummary: stringOrEmpty(el.From.ContentSummary)},
-		To:           &knowledgev1.ContentPreview{Id: el.To.ID.String(), Title: el.To.Title, ContentSummary: stringOrEmpty(el.To.ContentSummary)},
-		RelationType: knowledgev1.RelationType(knowledgev1.RelationType_value[string(el.RelationType)]),
-		Weight:       derefOrZero(el.Weight),
-		CreatedAt:    timestamppb.New(el.CreatedAt),
-		UpdatedAt:    timestamppb.New(el.UpdatedAt),
-	}, nil
-}
-
-func (s *GRPCServer) ListKnowledgeLinks(ctx context.Context, req *knowledgev1.ListKnowledgeLinksRequest) (*knowledgev1.ListKnowledgeLinksResponse, error) {
-	contentID, err := uuid.Parse(req.ContentId)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid content id: %v", err)
-	}
-
-	pageSize := 0
-	if req.Page != nil && req.Page.PageSize > 0 {
-		pageSize = int(req.Page.PageSize)
-	}
-
-	filter := domain.LinkFilter{
-		ContentID:    contentID,
-		Direction:    domain.LinkDirection(req.Direction.String()),
-		RelationType: domain.RelationType(req.RelationType.String()),
-		Limit:        pageSize,
-		Offset:       0, // TODO: Implement pagination with page token
-	}
-
-	els, err := s.knowledgeLinkService.ListKnowledgeLinks(ctx, filter)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list knowledge links: %v", err)
-	}
-
-	out := make([]*knowledgev1.EnrichedKnowledgeLink, len(els))
-	for i, el := range els {
-		out[i] = &knowledgev1.EnrichedKnowledgeLink{
-			Id:           el.ID.String(),
-			From:         &knowledgev1.ContentPreview{Id: el.From.ID.String(), Title: el.From.Title, ContentSummary: stringOrEmpty(el.From.ContentSummary)},
-			To:           &knowledgev1.ContentPreview{Id: el.To.ID.String(), Title: el.To.Title, ContentSummary: stringOrEmpty(el.To.ContentSummary)},
-			RelationType: knowledgev1.RelationType(knowledgev1.RelationType_value[string(el.RelationType)]),
-			Weight:       derefOrZero(el.Weight),
-			CreatedAt:    timestamppb.New(el.CreatedAt),
-			UpdatedAt:    timestamppb.New(el.UpdatedAt),
-		}
-	}
-
-	return &knowledgev1.ListKnowledgeLinksResponse{Items: out}, nil
-}
-
-func (s *GRPCServer) ListAllSpaceLinks(ctx context.Context, req *knowledgev1.ListAllSpaceLinksRequest) (*knowledgev1.ListAllSpaceLinksResponse, error) {
-	spaceID, err := uuid.Parse(req.SpaceId)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid space id: %v", err)
-	}
-
-	pageSize := 0
-	if req.Page != nil && req.Page.PageSize > 0 {
-		pageSize = int(req.Page.PageSize)
-	}
-
-	links, err := s.knowledgeLinkService.ListKnowledgeLinksBySpace(ctx, spaceID, domain.RelationType(req.RelationType.String()), pageSize, 0)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list space links: %v", err)
-	}
-
-	protoLinks := make([]*knowledgev1.KnowledgeLink, len(links))
-	for i, link := range links {
-		protoLinks[i] = s.domainKnowledgeLinkToProto(link)
-	}
-
-	return &knowledgev1.ListAllSpaceLinksResponse{Items: protoLinks}, nil
-}
-
-func (s *GRPCServer) UpdateKnowledgeLink(ctx context.Context, req *knowledgev1.UpdateKnowledgeLinkRequest) (*knowledgev1.KnowledgeLink, error) {
-	id, err := uuid.Parse(req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid link id: %v", err)
-	}
-
-	var relationType domain.RelationType
-	var weight float64
-
-	// Check which fields to update based on field mask
-	if req.UpdateMask != nil {
-		for _, path := range req.UpdateMask.Paths {
-			switch path {
-			case "relation_type":
-				relationType = domain.RelationType(req.Link.RelationType.String())
-			case "weight":
-				weight = req.Link.Weight
-			}
-		}
-	} else {
-		// If no field mask, update all fields
-		relationType = domain.RelationType(req.Link.RelationType.String())
-		weight = req.Link.Weight
-	}
-
-	link, err := s.knowledgeLinkService.UpdateKnowledgeLink(ctx, id, relationType, weight)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update knowledge link: %v", err)
-	}
-
-	return s.domainKnowledgeLinkToProto(link), nil
-}
-
-func (s *GRPCServer) DeleteKnowledgeLink(ctx context.Context, req *knowledgev1.DeleteKnowledgeLinkRequest) (*emptypb.Empty, error) {
-	id, err := uuid.Parse(req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid link id: %v", err)
-	}
-
-	err = s.knowledgeLinkService.DeleteKnowledgeLink(ctx, id)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to delete knowledge link: %v", err)
-	}
-
-	return &emptypb.Empty{}, nil
-}
-
-func (s *GRPCServer) GetBacklinks(ctx context.Context, req *knowledgev1.GetBacklinksRequest) (*knowledgev1.GetBacklinksResponse, error) {
-	contentID, err := uuid.Parse(req.ContentId)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid content id: %v", err)
-	}
-
-	links, err := s.knowledgeLinkService.GetBacklinks(ctx, contentID)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get backlinks: %v", err)
-	}
-
-	protoLinks := make([]*knowledgev1.KnowledgeLink, len(links))
-	for i, link := range links {
-		protoLinks[i] = s.domainKnowledgeLinkToProto(link)
-	}
-
-	return &knowledgev1.GetBacklinksResponse{
-		Items: protoLinks,
-	}, nil
-}
-
 // Utilities
 func (s *GRPCServer) Healthz(ctx context.Context, req *emptypb.Empty) (*knowledgev1.HealthStatus, error) {
 	components := make(map[string]string)
@@ -539,13 +362,6 @@ func (s *GRPCServer) Healthz(ctx context.Context, req *emptypb.Empty) (*knowledg
 		overallStatus = "FAIL"
 	} else {
 		components["database"] = "OK"
-	}
-	// Check Neo4j health
-	if err := s.checkNeo4j(ctx); err != nil {
-		components["neo4j"] = "FAIL: " + err.Error()
-		overallStatus = "FAIL"
-	} else {
-		components["neo4j"] = "OK"
 	}
 	// Check storage health
 	if err := s.checkStorage(ctx); err != nil {
@@ -568,19 +384,6 @@ func (s *GRPCServer) checkDatabase(ctx context.Context) error {
 	}
 	_, err := s.spaceService.ListSpaces(ctx, filter)
 	return err
-}
-
-// checkNeo4j performs a simple health check for Neo4j.
-func (s *GRPCServer) checkNeo4j(ctx context.Context) error {
-	// Try a simple operation, e.g., get backlinks for a random UUID
-	// This is a dummy check; in production, use a proper ping or status API
-	dummyID := uuid.New()
-	_, err := s.knowledgeLinkService.GetBacklinks(ctx, dummyID)
-	// If the error is not a connection error, ignore "not found" errors
-	if err != nil && err.Error() != "not found" {
-		return err
-	}
-	return nil
 }
 
 // checkStorage performs a simple health check for the storage service.
@@ -641,30 +444,4 @@ func (s *GRPCServer) domainContentSourceToProto(content *domain.ContentSource) *
 		CreatedAt:         timestamppb.New(content.CreatedAt),
 		UpdatedAt:         timestamppb.New(content.UpdatedAt),
 	}
-}
-
-func (s *GRPCServer) domainKnowledgeLinkToProto(link *domain.KnowledgeLink) *knowledgev1.KnowledgeLink {
-	return &knowledgev1.KnowledgeLink{
-		Id:            link.ID.String(),
-		FromContentId: link.FromContentID.String(),
-		ToContentId:   link.ToContentID.String(),
-		RelationType:  knowledgev1.RelationType(knowledgev1.RelationType_value[string(link.RelationType)]),
-		Weight:        derefOrZero(link.Weight),
-		CreatedAt:     timestamppb.New(link.CreatedAt),
-		UpdatedAt:     timestamppb.New(link.UpdatedAt),
-	}
-}
-
-func stringOrEmpty(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return *p
-}
-
-func derefOrZero(p *float64) float64 {
-	if p == nil {
-		return 0
-	}
-	return *p
 }
