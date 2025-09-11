@@ -28,18 +28,6 @@ service KnowledgeService {
   // Download URL Generation
   rpc GenerateDownloadURL(GenerateDownloadURLRequest) returns (GenerateDownloadURLResponse);
 
-  // Knowledge Graph Management
-  rpc CreateKnowledgeLink(CreateKnowledgeLinkRequest) returns (KnowledgeLink);
-  // Single enriched link by id
-  rpc GetKnowledgeLink(GetKnowledgeLinkRequest) returns (EnrichedKnowledgeLink);
-  // Focused enriched list by content
-  rpc ListKnowledgeLinks(ListKnowledgeLinksRequest) returns (ListKnowledgeLinksResponse);
-  // Bulk simple list by space
-  rpc ListAllSpaceLinks(ListAllSpaceLinksRequest) returns (ListAllSpaceLinksResponse);
-  rpc UpdateKnowledgeLink(UpdateKnowledgeLinkRequest) returns (KnowledgeLink);
-  rpc DeleteKnowledgeLink(DeleteKnowledgeLinkRequest) returns (google.protobuf.Empty);
-  rpc GetBacklinks(GetBacklinksRequest) returns (GetBacklinksResponse);
-
   // Utilities
   rpc Healthz(google.protobuf.Empty) returns (HealthStatus);
 }
@@ -278,110 +266,6 @@ enum DownloadObjectKind {
   DOWNLOAD_OBJECT_KIND_UNSPECIFIED = 0;
   DOWNLOAD_OBJECT_KIND_ORIGINAL = 1;  // source/original object
   DOWNLOAD_OBJECT_KIND_PROCESSED = 2; // processed object
-}
-
-
-// =============================================================================
-// KNOWLEDGE LINK ENTITIES AND MESSAGES
-// =============================================================================
-
-enum RelationType {
-  RELATION_TYPE_UNSPECIFIED = 0;
-  REFERENCES = 1;
-  CONTAINS = 2;
-  RELATED = 3;
-  FOLLOWS = 4;
-}
-
-enum LinkDirection {
-  LINK_DIRECTION_UNSPECIFIED = 0;
-  INBOUND = 1;
-  OUTBOUND = 2;
-  BOTH = 3;
-}
-
-// Simple link (used for bulk list)
-message KnowledgeLink {
-  string id = 1;
-  string from_content_id = 2;
-  string to_content_id = 3;
-  RelationType relation_type = 4;
-  double weight = 5;
-  google.protobuf.Timestamp created_at = 98;
-  google.protobuf.Timestamp updated_at = 99;
-}
-
-// Enriched link view (used for focused list and single get)
-message ContentPreview {
-  string id = 1;
-  string title = 2;
-  string content_summary = 3;
-}
-
-message EnrichedKnowledgeLink {
-  string id = 1;
-  ContentPreview from = 2;
-  ContentPreview to = 3;
-  RelationType relation_type = 4;
-  double weight = 5;
-  google.protobuf.Timestamp created_at = 98;
-  google.protobuf.Timestamp updated_at = 99;
-}
-
-message CreateKnowledgeLinkRequest {
-  string from_content_id = 1;
-  string to_content_id = 2;
-  RelationType relation_type = 3;
-  double weight = 4;
-}
-
-message GetKnowledgeLinkRequest {
-  string id = 1;
-}
-
-// Focused, enriched list by content
-message ListKnowledgeLinksRequest {
-  string content_id = 1;
-  LinkDirection direction = 2;
-  RelationType relation_type = 3;
-  Pagination page = 10;
-}
-
-message ListKnowledgeLinksResponse {
-  repeated EnrichedKnowledgeLink items = 1;
-  string next_page_token = 2;
-}
-
-// Bulk, simple list by space
-message ListAllSpaceLinksRequest {
-  string space_id = 1;
-  RelationType relation_type = 2;
-  Pagination page = 10;
-}
-
-message ListAllSpaceLinksResponse {
-  repeated KnowledgeLink items = 1;
-  string next_page_token = 2;
-}
-
-message UpdateKnowledgeLinkRequest {
-  string id = 1;
-  KnowledgeLink link = 2;
-  google.protobuf.FieldMask update_mask = 3;
-}
-
-message DeleteKnowledgeLinkRequest {
-  string id = 1;
-}
-
-message GetBacklinksRequest {
-  string content_id = 1;
-  Pagination page = 10;
-}
-
-message GetBacklinksResponse {
-  repeated KnowledgeLink items = 1;
-  string next_page_token = 2;
 }
 
 
