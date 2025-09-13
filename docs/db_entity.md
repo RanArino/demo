@@ -47,7 +47,7 @@ erDiagram
         string s3_key
     }
 
-    %% --- Canvas Service ---
+    %% --- Canvas Service (Finalized: Neo4j unified graph + vectors) ---
     NODES {
         UUID id PK
         UUID space_id FK
@@ -126,16 +126,6 @@ erDiagram
         UUID node_id FK
     }
 
-    %% --- Vector Service (Qdrant) ---
-    USER_VECTORS {
-        string collection_name "USER_VECTORS_{user_id}"
-        string description "Per-user private content"
-    }
-    WEB_VECTORS {
-        string collection_name "public_web_vectors"
-        string description "Shared public web content"
-    }
-
     %% --- Relationships ---
     USERS ||--|{ USER_PREFERENCES : "has"
     USERS ||--o{ SPACES : "owns"
@@ -153,11 +143,6 @@ erDiagram
     CONTENT_SOURCES ||--o{ NODES : "is_represented_by"
     CONTENT_SOURCES }|--|| KNOWLEDGE_CONTENT_BLOBS : "has_original_blob"
     CONTENT_SOURCES }|--|| KNOWLEDGE_CONTENT_BLOBS : "has_processed_blob"
-
-    %% Conceptual link to Vector DB
-    USERS }o..o{ USER_VECTORS : "identifies collection"
-    CONTENT_SOURCES }o..o{ USER_VECTORS : "is stored in"
-    CONTENT_SOURCES }o..o{ WEB_VECTORS : "is stored in"
 
     NODES ||--o{ EDGES : "is_start_of"
     NODES ||--o{ EDGES : "is_end_of"
@@ -190,9 +175,9 @@ erDiagram
 
 This architecture demonstrates the clear separation of concerns across six distinct services:
 - **User Service**: User management and preferences
-- **Knowledge Service**: Content sources and blob storage
-- **Canvas Service**: Interactive node visualization (DynamoDB)
-- **Vector Service**: Embeddings and semantic search (Qdrant)
+- **Knowledge Service**: Content sources and blob storage (Postgres + object storage)
+- **Canvas Service**: Unified graph + vector store (Neo4j) for interactive node visualization and hybrid semantic-structural retrieval; stores nodes, relationships, and embeddings as the canonical canvas representation
+- **Vector Service**: Embeddings generation and specialized vector stores (Qdrant) for legacy or external collections and per-user private vectors
 - **ML Service**: Machine learning models and versioning
 - **Chat Service**: Conversational AI and agent orchestration
 
@@ -291,159 +276,357 @@ Acts as a content-addressable storage registry for all large file objects relate
 
 ---
 
-## Canvas Service
+## Canvas Service - Consolidated Neo4j Architecture
 
-### `NODES`: Node Views (DynamoDB)
-- `position_2d` and `position_3d` can be editable by drag and drop on the canvas by users.
-- `display_props` can be editable by clicking on the node (not for user-driven actions, but for style and layout info).
-- `action_data` is a flexible, data-centric payload to support frontend interactions.
-- `engagement_score` is computed by the Activity Service.
-- `context_metadata` is user-added context for this space (should be scalable).
-- `media_type` enables dynamic UI rendering based on content type (e.g., document icons, audio players, video thumbnails).
+The Canvas Service consolidates vector search capabilities with graph-based canvas management using Neo4j as the unified database. This eliminates inter-service communication overhead and data duplication while supporting the P1 document's two-stage exploration workflow (semantic similarity → structural traversal).
 
-| Field Name                  | Data Type | Description                                                                    |
-|-----------------------------|-----------|--------------------------------------------------------------------------------|
-| `id`                        | UUID      | Primary Key. Unique ID for this node representation.                          |
-| `space_id`                  | UUID      | FK to `SPACES.id`. The space this node representation belongs to.              |
-| `content_source_id`         | UUID      | FK to `CONTENT_SOURCES.id`. The content source this node representation belongs to. |
-| `parent_node_id`            | UUID      | FK to `NODES.id` (self-referential, scoped to `space_id`). Defines hierarchy. |
-| `content_entity_type`       | String    | Type of content (content_chunk, chunk_cluster, content_source, source_cluster); determines which standardized actions to use. |
-| `media_type`                | String    | Type of media content (document, audio, video, web, text); determines UI rendering and interaction patterns. |
-| `depth_level`               | Integer   | Depth in the space-specific hierarchy tree.                                   |
-| `position_2d`               | POINT     | Position within this specific space.                                           |
-| `position_3d`               | POINTZ    | Position within this specific space.                                           |
-| `is_position_locked`        | Boolean   | Whether user has manually locked this position.                               |
-| `visibility`                | Boolean   | Whether this node is currently visible in this space's layout.                |
-| `display_props`             | JSONB     | Space-specific visual properties (size, opacity, shape, color, etc.).                     |
-| `clustering_model_version_id` | UUID    | FK to `ml_service.ML_MODEL_VERSIONS.id`. The model that determined this node's cluster parentage. NULL if manually assigned. |
-| `dr_model_version_id`       | UUID    | FK to `ml_service.ML_MODEL_VERSIONS.id`. The model that determined this node's `position_3d`. NULL if manually assigned. |
-| `engagement_score`          | Map       | Computed engagement scores from the Activity Service (e.g., `{"canvas_score": 0.85, "chat_score": 0.65, ... "overall_score": ...}`). |
-| `action_data`               | JSONB     | Flexible, purpose-driven JSONB object containing data payloads to support frontend interactions. Its structure is determined by the `content_entity_type` and is interpreted by the application layer to enable actions. It contains the data *for* an action, not the action itself. See frontend requirements for examples. |
-| `created_at`                | Timestamp | When this node was included in this space.                                     |
-| `updated_at`                | Timestamp | Last update to space-specific properties.                                      |
+### Core Design Principles
+- **Unified Storage**: Single Neo4j database stores both vector embeddings and graph structure
+- **Hybrid Queries**: Native Cypher queries combining vector similarity with graph traversal
+- **Exploration Workflow**: Supports creativity/depth-controlled exploration parameters
+- **Hierarchical Vector Search**: Linear 3-step vector search optimization across abstraction levels
+- **Specialized Node Architecture**: Three distinct node types for optimal performance and scalability
 
-### `EDGES`: Node Edges Entity (DynamoDB)
-| Attribute Name | Data Type | Description |
-| :--- | :--- | :--- |
-| `id` | `String` | **(Partition Key)** A unique UUID for the edge. Essential for linking comments directly to an edge. |
-| `start_node_id` | `String` | FK to `NODES.id`. The ID of the node where the edge originates. |
-| `end_node_id` | `String` | FK to `NODES.id`. The ID of the node where the edge terminates. This provides directionality. |
-| `description` | `String` | Optional short text describing the relationship (e.g., "Related To", "Supports"). |
-| `style_metadata` | `Map` | An object containing visual styling properties, similar to Miro or Lucidchart. |
-| `created_by` | `String` | ID of the user or system that created the edge. |
-| `updated_by` | `String` | ID of the user or system that last updated the edge. |
-| `created_at` | `String` | ISO 8601 timestamp of creation. |
-| `updated_at` | `String` | ISO 8601 timestamp of the last update. |
-| `deleted_at` | `String` | ISO 8601 timestamp of soft deletion (NULL if not deleted). |
+### Neo4j Database Schema
 
-#### `style_metadata` Object Example
-```json
-"style_metadata": {
-  "line_type": "dashed",
-  "line_weight": 2,
-  "color": "#8A2BE2",
-  "arrow_head_start": "none",
-  "arrow_head_end": "filled_arrow"
-}
+#### Node Type Architecture
+
+The Canvas Service employs a **three-node decomposition strategy** for hierarchical vector search optimization:
+
+**Abstraction Level Distribution:**
+- **ClusterNode** (abstraction_level > 0): Space-level conceptual clusters
+- **ContentNode** (abstraction_level = 0): Content source summaries (base reference level)  
+- **ChunkNode** (abstraction_level < 0): Content chunks and chunk clusters
+
+This decomposition enables **linear 3-step hierarchical vector search** where each node type can be independently optimized and scaled while maintaining semantic relationships across the hierarchy.
+
+##### `ClusterNode` - Space-Level Conceptual Clusters
+Represents high-level conceptual groupings at positive abstraction levels for space-wide organization.
+
+```cypher
+CREATE (n:ClusterNode {
+  // Primary identification
+  id: "uuid",                           // Primary Key
+  space_id: "uuid",                     // FK to SPACES.id
+  
+  // Hierarchy and abstraction
+  abstraction_level: 1,                 // Positive integers (1, 2, 3, 4...)
+  <!-- cluster_type: "content_source_cluster",       // content_source_cluster|concept_cluster|theme_cluster -> This one cannot be assigned due to scalable abstraction levels -->
+  cluster_scope: "space",               // space|domain|topic
+  
+  // Vector search properties
+  embedding: [0.123, 0.456, ...],       //  vector array generated from texts in "chat_content" field.
+  semantic_cluster_id: "uuid",          // FK to ClusterNode.id (abstraction_level + 1) - immediate parent cluster
+  keywords: ["research", "analysis"],   // For similarity matching
+  semantic_density: 0.85,  // Exploration parameters
+  
+  // Cluster metadata
+  title: "Research Methodology Cluster",
+  chat_content: "Content for AI context and source of vector embedding",
+  display_content: "Brief summary for UI",
+  member_count: 15,                     // Number of child nodes
+  coverage_score: 0.85,                 // How well this cluster represents its children
+  
+  // Canvas display properties
+  position_3d: point({x: 100, y: 200, z: 50}),
+  is_position_locked: false,
+  visibility: true,
+  display_props: {
+    size: 20,                          // Larger for cluster visualization
+    opacity: 0.7,
+    shape: "hexagon",                  // Distinct shape for clusters
+    color: "#4A90E2"
+  },
+  
+  // ML model tracking
+  clustering_model_version_id: "uuid",
+  dr_model_version_id: "uuid",
+  
+  // Engagement and activity
+  engagement_score: {
+    canvas_score: 0.85,
+    chat_score: 0.65,
+    overall_score: 0.75
+  },
+  
+  // Timestamps
+  created_at: datetime(),
+  updated_at: datetime()
+})
 ```
 
-### `COMMENTS`: Node Comments Entity
-| Field Name            | Data Type      | Description                                                  |
-|-----------------------|----------------|--------------------------------------------------------------|
-| `id`                  | UUID           | Primary Key. Unique ID for the comment.                      |
-| `node_id`             | UUID           | FK to `NODES.id`. The node this comment is attached to.      |
-| `content_comment`     | Text           | The comment text content.                                    |
-| `created_by`          | UUID           | FK to User ID. The user who created the comment.             |
-| `updated_by`          | UUID           | FK to User ID. The user who last updated the comment.        |
-| `created_at`          | Timestamp      | When this comment was created.                               |
-| `updated_at`          | Timestamp      | Last update to this comment.                                 |
-| `deleted_at`          | Timestamp      | Soft delete timestamp (NULL if not deleted).                  |
+##### `ContentNode` - Content Source Summaries
+Represents individual content sources at the base reference level (abstraction_level = 0).
 
----
-
-## Vector Service (Qdrant)
-
-### Collection Strategy
-**Multi-tenant approach with shared public content:**
-- **`USER_VECTORS_{user_id}`** - Per-user private collections for uploaded/personal content
-- **`public_web_vectors`** - Shared collection for public web content accessible to all users
-
-### `USER_VECTORS_{user_id}` Collections (Private Content)
-**Purpose**: User-specific vector storage for private content (uploads, personal documents, etc.)
-
-| Field Name | Data Type | Description |
-|------------|-----------|-------------|
-| `id` | String | Unique identifier for the vector point (matches entity UUID from PostgreSQL) |
-| `vector` | Array[Float] | Embedding vector array (typically 1536 dimensions for OpenAI embeddings) |
-| `payload` | Object | User-specific metadata object |
-
-**Payload Structure:**
-```json
-{
-  "id": "uuid",
-  "vector": [0.123, 0.456, 0.789, ..., 0.999],
-  "payload": {
-    "content_entity_id": "content_entity_uuid",
-    "content_entity_type": "content_source|content_chunk|source_cluster|chunk_cluster",
-    "depth_level": 0,
-    "title": "My Private Document",
-    "keywords": ["personal", "research", "notes"],
-    "contents": "Private content that was embedded for vector search...",
-    "media_type": "document, audio, video, web, text, etc",
-    "source": "upload|gdrive|onedrive|notion|paste",
-    "chunk_type": "paragraph, section, table, code_block, list, etc",
-    "chunk_index": 5,
-    "token_count": 256,
-    "parent_id": "parent_entity_uuid",
-    "created_at": "2024-05-20T10:00:00Z",
-    "updated_at": "2024-05-20T15:30:00Z",
-    "created_by": "user_uuid",
-    "updated_by": "user_uuid"
-  }
-}
+```cypher
+CREATE (n:ContentNode {
+  // Primary identification
+  id: "uuid",                           // Primary Key
+  space_id: "uuid",                     // FK to SPACES.id
+  content_source_id: "uuid",            // FK to CONTENT_SOURCES.id
+  
+  // Hierarchy and abstraction
+  abstraction_level: 0,                 // Always 0 for content sources
+  context_type: "content_source",       // Always content_source; can be removed if it does not have to keep consistency among three node labels.
+  
+  // Vector search properties
+  embedding: [0.123, 0.456, ...],       // vector array generated from texts in"chat_content" field.
+  semantic_cluster_id: "uuid",          // FK to ClusterNode.id (abstraction_level + 1) - immediate parent cluster
+  keywords: ["research", "analysis"],   // For similarity matching
+  semantic_density: 0.85,  // Exploration parameters
+  
+  // Content metadata
+  title: "Document Title",
+  chat_content: "Content for AI context and source of vector embedding",
+  display_content: "Brief summary for UI",
+  media_type: "document",               // document|text|web|audio|video|image; make sure to be indexed for faster traversability.
+  source: "upload",                     // upload|gdrive|web|onedrive|paste; make sure to be indexed for faster traversability.
+  token_count: 2048,                    // Total token count for content source
+  
+  // Canvas display properties
+  position_3d: point({x: 100, y: 200, z: 50}),
+  is_position_locked: false,
+  visibility: true,
+  display_props: {
+    size: 15,                          // Medium size for content sources
+    opacity: 0.8,
+    shape: "circle",                   // Standard shape for content
+    color: "#FF6B6B"
+  },
+  
+  // ML model tracking
+  clustering_model_version_id: "uuid",
+  dr_model_version_id: "uuid",
+  
+  // Engagement and activity
+  engagement_score: {
+    canvas_score: 0.85,
+    chat_score: 0.65,
+    overall_score: 0.75
+  },
+  
+  // Action data for frontend interactions
+  action_data: {
+    // Structure determined by content source type
+  },
+  
+  // Timestamps
+  created_at: datetime(),
+  updated_at: datetime()
+})
 ```
 
-### `WEB_VECTORS` Collection (Shared Web Content)
-**Purpose**: Shared vector storage for public web content accessible to all users
+##### `ChunkNode` - Granular Content Units
+Represents content chunks and chunk clusters at negative abstraction levels for detailed exploration.
 
-| Field Name | Data Type | Description |
-|------------|-----------|-------------|
-| `id` | String | Unique identifier for the vector point (matches entity UUID from PostgreSQL) |
-| `vector` | Array[Float] | Embedding vector array (typically 1536 dimensions for OpenAI embeddings) |
-| `payload` | Object | Web content metadata with user access tracking |
-
-**Payload Structure:**
-```json
-{
-  "id": "web_content_entity_uuid",
-  "vector": [0.123, 0.456, 0.789, ..., 0.999],
-  "payload": {
-    "content_entity_id": "web_content_entity_uuid",
-    "content_entity_type": "content_source|content_chunk|source_cluster|chunk_cluster",
-    "depth_level": 0,
-    "title": "Public Web Article Title",
-    "keywords": ["public", "web", "article", "shared"],
-    "contents": "Public web content that was embedded for vector search...",
-    "url": "https://example.com/article",
-    "domain": "example.com",
-    "content_hash": "sha256_hash_of_content",
-    "media_type": "web",
-    "chunk_type": "paragraph|section|table|code_block|list",
-    "chunk_index": 5,
-    "token_count": 256,
-    "parent_id": "parent_web_entity_uuid",
-    "status": "processed",
-    "processing_status": "completed",
-    "is_public": true,
-    "access_count": 15,
-    "created_at": "2024-05-20T10:00:00Z",
-    "last_accessed_at": "2024-05-20T16:00:00Z"
-  }
-}
+```cypher
+CREATE (n:ChunkNode {
+  // Primary identification
+  id: "uuid",                           // Primary Key
+  space_id: "uuid",                     // FK to SPACES.id
+  content_source_id: "uuid",            // FK to CONTENT_SOURCES.id
+  
+  // Hierarchy and abstraction
+  abstraction_level: -2,                // Negative integers (-1, -2,...) the minimum level is always the chunk of the content source, without any abstraction and AI summary.
+  context_type: "content_chunk",        // chunk_cluster|content_chunk
+  chunk_type: "paragraph",              // paragraph|section|table|code_block|list
+  chunk_index: 5,                       // Sequential order within content source
+  
+  // Vector search properties
+  embedding: [0.123, 0.456, ...],       // vector array generated from texts in "chat_content" field.
+  semantic_cluster_id: "uuid",          // FK to parent node.id (abstraction_level + 1) - immediate parent cluster  
+  keywords: ["specific", "detail"],     // For similarity matching
+  semantic_density: 0.85,  // Exploration parameters
+  
+  // Chunk metadata
+  title: "Chunk Title or First Line",
+  chat_content: "Full chunk text for AI context",
+  display_content: "Brief excerpt for UI",
+  token_count: 512,                     // Token count for this chunk
+  start_position: 1250,                 // Character position in source
+  end_position: 1750,                   // Character position in source
+  
+  // Canvas display properties
+  position_3d: point({x: 100, y: 200, z: 50}),
+  is_position_locked: false,
+  visibility: true,
+  display_props: {
+    size: 8,                           // Smaller size for chunks
+    opacity: 0.6,
+    shape: "square",                   // Distinct shape for chunks
+    color: "#95D5B2"
+  },
+  
+  // ML model tracking
+  clustering_model_version_id: "uuid",
+  dr_model_version_id: "uuid",
+  
+  // Engagement and activity managed by Activity Service
+  engagement_score: {
+    canvas_score: 0.85,
+    chat_score: 0.65,
+    overall_score: 0.75
+  },
+  
+  // Timestamps
+  created_at: datetime(),
+  updated_at: datetime()
+})
 ```
 
+#### Vector Indexes and Performance Optimization
 
----
+```cypher
+// Specialized vector indexes for each node type
+CREATE VECTOR INDEX cluster_embeddings FOR (n:ClusterNode) ON (n.embedding)
+OPTIONS {indexConfig: {
+  `vector.dimensions`: 1536,
+  `vector.similarity_function`: 'cosine'
+}}
+
+CREATE VECTOR INDEX content_embeddings FOR (n:ContentNode) ON (n.embedding)
+OPTIONS {indexConfig: {
+  `vector.dimensions`: 1536,
+  `vector.similarity_function`: 'cosine'
+}}
+
+CREATE VECTOR INDEX chunk_embeddings FOR (n:ChunkNode) ON (n.embedding)
+OPTIONS {indexConfig: {
+  `vector.dimensions`: 1536,
+  `vector.similarity_function`: 'cosine'
+}}
+
+// Performance indexes for each node type
+CREATE INDEX cluster_space_idx FOR (n:ClusterNode) ON (n.space_id)
+CREATE INDEX cluster_abstraction_idx FOR (n:ClusterNode) ON (n.abstraction_level)
+CREATE INDEX cluster_semantic_idx FOR (n:ClusterNode) ON (n.semantic_cluster_id)
+
+CREATE INDEX content_space_idx FOR (n:ContentNode) ON (n.space_id)
+CREATE INDEX content_source_idx FOR (n:ContentNode) ON (n.content_source_id)
+CREATE INDEX content_semantic_idx FOR (n:ContentNode) ON (n.semantic_cluster_id)
+CREATE INDEX content_media_type_idx FOR (n:ContentNode) ON (n.media_type)
+CREATE INDEX content_source_type_idx FOR (n:ContentNode) ON (n.source)
+
+CREATE INDEX chunk_space_idx FOR (n:ChunkNode) ON (n.space_id)
+CREATE INDEX chunk_source_idx FOR (n:ChunkNode) ON (n.content_source_id)
+CREATE INDEX chunk_abstraction_idx FOR (n:ChunkNode) ON (n.abstraction_level)
+CREATE INDEX chunk_semantic_idx FOR (n:ChunkNode) ON (n.semantic_cluster_id)
+```
+
+#### Relationship Types
+
+##### `:HIERARCHICAL_PARENT` - Content Hierarchy
+Defines parent-child relationships in the content abstraction hierarchy.
+
+```cypher
+CREATE (child:ContentNode)-[:HIERARCHICAL_PARENT {
+  connection_type: "abstraction",        // abstraction|spatial|temporal
+  hierarchy_depth: 1,                   // Depth difference
+  created_at: datetime()
+}]->(parent:ContentNode)
+```
+
+##### `:SEMANTIC_LINK` - Semantic Connections
+Represents semantic similarity connections discovered through vector analysis.
+
+```cypher
+CREATE (source:ContentNode)-[:SEMANTIC_LINK {
+  connection_type: "intra_level_intra_parent",  // intra_level_intra_parent|cross_level_intra_parent|intra_level_inter_parent|cross_level_inter_parent
+  strength_score: 0.85,                 // Connection strength (0.0-1.0)
+  similarity_score: 0.92,               // Vector similarity score
+  abstraction_bridge: false,            // Spans abstraction levels (cross-level: true, intra-level: false)
+  hierarchical_bridge: false,           // Spans different hierarchical parents (inter-parent: true, intra-parent: false)
+  exploration_metadata: {               // P1 exploration support
+    creativity_factor: 0.8,
+    depth_factor: 0.6,
+    traversal_count: 15
+  },
+  semantic_tags: ["causation", "similarity"], // Relationship semantics
+  
+  // Visual styling (from original EDGES)
+  style_metadata: {
+    line_type: "solid",
+    line_weight: 2,
+    color: "#8A2BE2",
+    arrow_head_start: "none",
+    arrow_head_end: "filled_arrow"
+  },
+  
+  description: "Related concepts",       // Optional description
+  created_at: datetime(),
+  updated_at: datetime(),
+  deleted_at: null                      // Soft delete support
+}]->(target:ContentNode)
+```
+
+**Semantic Connection Types:**
+1. **`intra_level_intra_parent`**: Semantic connections between nodes at the same abstraction level within the same hierarchical parent
+2. **`cross_level_intra_parent`**: Semantic connections between nodes at different abstraction levels within the same hierarchical parent
+3. **`intra_level_inter_parent`**: Semantic connections between nodes at the same abstraction level across different hierarchical parents
+4. **`cross_level_inter_parent`**: Semantic connections between nodes at different abstraction levels across different hierarchical parents
+
+##### `:STRUCTURAL_LINK` - Explicit Structural Connections
+Represents explicit structural relationships between content nodes.
+
+```cypher
+CREATE (source:ContentNode)-[:STRUCTURAL_LINK {
+  connection_type: "evidence_based",    // evidence_based|citation|user_drawn
+  confidence_score: 0.95,               // Confidence in the relationship (0.0-1.0)
+  description: "Table data shows correlation between X and Y", // Supporting evidence for the connection
+  
+  // Same exploration and styling metadata as SEMANTIC_LINK
+  exploration_metadata: {
+    creativity_factor: 0.6,
+    depth_factor: 0.9
+  },
+  style_metadata: {
+    line_type: "dashed",
+    line_weight: 3,
+    color: "#FF6B6B"
+  },
+  
+  created_by: "user_uuid",              // null for system-created
+  created_at: datetime(),
+  updated_at: datetime(),
+  deleted_at: null                      // Soft delete support
+}]->(target:ContentNode)
+```
+
+#### Comments and Annotations
+
+##### `Comment` - Multi-Entity Comments
+User comments that can reference multiple nodes and relationships.
+
+```cypher
+CREATE (c:Comment {
+  id: "uuid",                           // Primary Key
+  content_comment: "User comment text",
+  created_by: "user_uuid",
+  updated_by: "user_uuid",
+  created_at: datetime(),
+  updated_at: datetime(),
+  deleted_at: null                      // Soft delete support
+})
+
+// Comments can reference multiple nodes
+CREATE (c:Comment)-[:REFERENCES_NODE]->(n1:ContentNode)
+CREATE (c:Comment)-[:REFERENCES_NODE]->(n2:ChunkNode)
+CREATE (c:Comment)-[:REFERENCES_NODE]->(n3:ClusterNode)
+
+// Comments can reference multiple relationships
+CREATE (c:Comment)-[:REFERENCES_RELATIONSHIP]->(r1:SEMANTIC_LINK)
+CREATE (c:Comment)-[:REFERENCES_RELATIONSHIP]->(r2:STRUCTURAL_LINK)
+
+CREATE (c:Comment)-[:CREATED_BY]->(u:User)
+```
+### Performance Considerations
+
+- **Vector Indexing**: Neo4j HNSW index provides sub-100ms similarity search
+- **Graph Traversal**: Native Cypher optimizations for relationship traversal
+- **Hybrid Queries**: Single database eliminates cross-service latency
+- **Caching**: Neo4j's built-in caching reduces repeated query overhead
+- **Scalability**: Horizontal scaling through Neo4j clustering if needed
+
 
 ## ML Service
 This service is responsible for creating, managing, versioning, and serving machine learning models for content organization and visualization (e.g., clustering, dimensionality reduction). It provides a central registry of models and their versions, which can be referenced by other microservices.
