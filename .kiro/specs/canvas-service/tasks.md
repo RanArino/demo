@@ -38,20 +38,20 @@
 ## Feature B: Text Chunking (Python via internal gRPC)
 
 ### 2. Chunking pipeline using neo4j-graphrag (Python)
-> Use `neo4j_graphrag` SimpleKGPipeline components for text splitting while keeping schema guidance optional.
+> Use `neo4j_graphrag` SimpleKGPipeline components for text splitting while keeping schema guidance optional. For this phase, implement sentence-based chunking with spaCy and token estimation via tiktoken.
 
 - [ ] **2.1. Implement `python_app/app/services/chunking.py`**
-  > Provide function to accept plain text and return chunk boundaries/content using configured size/overlap/type.
+  > Provide function to accept input via oneof: inline text or blob storage URL; fetch when URL provided from R2 bucket; normalize content; perform sentence-based splitting using spaCy; estimate tokens via tiktoken using configurable tokenizer; enforce target_size≈tokens (default 300) and overlap% (default 10%); return chunks with `content`, `position`, and character `start_position`/`end_position` relative to original content.
   >
-  > **Related Requirements:** 2.1 (Req 2: Text Chunking)
+  > **Related Requirements:** 2.1 (Req 2: Text Chunking), 6.x (Performance, Observability, Security)
 
 - [ ] **2.2. Expose gRPC `ChunkText` in `python_app/app/server.py`**
-  > Define request/response per `canvas_internal.proto`; validate inputs and return chunks.
+  > Define request/response per `canvas.proto` (proto-first); request includes oneof `text | blob_url`, chunking config (type=sentence, target_tokens, overlap_percent), and provenance fields. Configure unary gRPC with increased `max_receive_message_length`.
   >
   > **Related Requirements:** 2.1
 
-- [ ] **2.3. Integrate `neo4j_graphrag` text splitter configuration**
-  > Leverage `FixedSizeSplitter` or equivalent via SimpleKGPipeline; ensure `from_pdf=False`.
+- [ ] **2.3. Integrate `neo4j_graphrag` text splitter configuration (optional)**
+  > Do NOT use `neo4j_graphrag` for sentence splitting. The Python chunking service must implement sentence-based splitting using spaCy. `neo4j_graphrag` may be used only for downstream KG-building stages (entity extraction, Neo4j writes) if needed; wire any such integrations behind feature flags and configuration.
   >
   > **Related Requirements:** 2.1, 6.6 (Configurability)
 
@@ -66,7 +66,7 @@
   > **Related Requirements:** 3.1 (Req 3: Embedding Pipeline)
 
 - [ ] **3.2. Expose gRPC `EmbedChunks` in `python_app/app/server.py`**
-  > Per `canvas_internal.proto` definitions; support provider/model selection.
+  > Per `canvas.proto` definitions; support provider/model selection.
   >
   > **Related Requirements:** 3.1, 6.6
 
@@ -81,7 +81,7 @@
 > Persist chunks, embeddings; link relationships; create vector index.
 
 - [ ] **4.1. Implement repositories in `internal/infrastructure/repository`**
-  > Upserts for ContentNode/ChunkNode; store embeddings and model metadata; soft delete support.
+  > Upserts for ContentNode/ChunkNode; store embeddings and model metadata; soft delete support; persist `start_position`/`end_position` character offsets and normalized content; index usage.
   >
   > **Related Requirements:** 2.1, 3.1, 4.1, 6.3 (Data Management)
 
@@ -131,7 +131,7 @@
 > Coordinate ingestion → chunking → embedding → graph build.
 
 - [ ] **6.1. Implement application services in `internal/application`**
-  > Orchestrate calls to Python RPCs and Neo4j repositories; emit events/metrics.
+  > Orchestrate calls to Python RPCs and Neo4j repositories; emit events/metrics. Emit `chunking.completed` only after chunks are persisted.
   >
   > **Related Requirements:** 1–5, 6.4 (Observability)
 
@@ -144,8 +144,8 @@
 
 ### 7. Protobuf definitions (internal)
 
-- [ ] **7.1. Define `proto/canvas_internal.proto`**
-  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with text/chunks, model fields, and metadata.
+- [ ] **7.1. Define `proto/canvas.proto`**
+  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata.
   >
   > **Related Requirements:** 2.1, 3.1, 5.1
 
@@ -159,7 +159,7 @@
   > **Related Requirements:** 6.2–6.4
 
 - [ ] **8.2. Python unit tests for chunking/embedding services**
-  > Include splitter/embedding configs; error handling; performance bounds.
+  > Include splitter/embedding configs; error handling; performance bounds; canonical test case for 200,000-character input; validate multilingual sentence segmentation; verify `start_position`/`end_position` correctness.
   >
   > **Related Requirements:** 2.1, 3.1
 
@@ -180,19 +180,19 @@
   > **Related Requirements:** 6.6, 6.4 (Observability via health checks)
 
 - [ ] **9.2. Configuration and secrets**
-  > Env-based config for Kafka/Neo4j/models; secrets via manager; secure internal gRPC (localhost).
+  > Env-based config for Kafka/Neo4j/models; Python reads chunking/tokenizer/grpc-size env vars; secrets via manager; secure internal gRPC (localhost).
   >
   > **Related Requirements:** 6.5–6.6
 
 - [ ] **9.3. Metrics, logs, traces**
-  > OpenTelemetry across Go/Python; structured logs; consumer lag metrics.
+  > OpenTelemetry across Go/Python; structured logs with PII scrubbing; consumer lag metrics; Python processing P99.
   >
   > **Related Requirements:** 6.4
 
 ### 10. Security & Reliability
 
 - [ ] **10.1. AuthN/Z and message validation**
-  > Signed/mTLS Kafka; validate event provenance; least-privilege Neo4j.
+  > Signed/mTLS Kafka; validate event provenance; least-privilege Neo4j; internal gRPC request validation.
   >
   > **Related Requirements:** 6.5
 
