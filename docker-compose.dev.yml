@@ -58,3 +58,24 @@ services:
     environment:
       - PYTHON_ENV=development
       - PYTHONPATH=/app
+
+  ms_canvas:
+    build:
+      context: ./ms_canvas
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./ms_canvas:/app
+      - /app/tmp
+    environment:
+      - GO_ENV=development
+      - GRPC_PORT=50054
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
+      - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
+      - KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=${NEO4J_DATABASE}
+    depends_on:
+      - ms_knowledge
