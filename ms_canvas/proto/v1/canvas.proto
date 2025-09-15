@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package canvas.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "demo/ms_canvas/proto/v1;canvasv1";
+
+// Internal service for chunking and embeddings.
+service CanvasInternal {
+  rpc ChunkText(ChunkTextRequest) returns (ChunkTextResponse);
+  rpc EmbedChunks(EmbedChunksRequest) returns (EmbedChunksResponse);
+  rpc EmbedQuery(EmbedQueryRequest) returns (EmbedQueryResponse);
+  rpc Healthz(google.protobuf.Empty) returns (HealthStatus);
+}
+
+message HealthStatus {
+  string status = 1;
+  map<string, string> components = 2;
+}
+
+// ===== Chunking =====
+message ChunkingConfig {
+  // fixed to "sentence" for this phase
+  string type = 1; // "sentence"
+  int32 target_tokens = 2; // default 300
+  int32 overlap_percent = 3; // default 10
+  string tokenizer = 4; // e.g., "tiktoken:cl100k_base"
+}
+
+message ChunkTextRequest {
+  string space_id = 1;
+  string content_source_id = 2; // FK CONTENT_SOURCE.id (Postgres)
+  string content_node_id = 3;   // FK ContentNode.id (Neo4j)
+
+  oneof source {
+    string text = 10;       // inline text
+    string blob_url = 11;   // URL to fetch processed text (e.g., R2)
+  }
+
+  ChunkingConfig config = 20;
+}
+
+message Chunk {
+  string id = 1; // optional client-generated id or empty
+  // `position` is the ordinal sequence of the chunk within the document (0-based).
+  int32 position = 2;
+  int64 start_position = 3; // character offset in original content
+  int64 end_position = 4;   // character offset in original content (exclusive)
+  string content = 5; // normalized chunk text
+}
+
+message ChunkTextResponse {
+  repeated Chunk chunks = 1;
+}
+
+// ===== Embedding =====
+message EmbeddingConfig {
+  string provider = 1; // e.g., openai, local
+  string model_id = 2;
+  string model_version = 3;
+}
+
+message EmbedChunksRequest {
+  repeated string chunk_ids = 1; // positions or ids corresponding to previously returned chunks
+  repeated string contents = 2;  // optional, can embed by content directly
+  EmbeddingConfig config = 10;
+}
+
+message EmbedChunksResponse {
+  repeated float flat_vectors = 1; // concatenated floats; use dims to reshape
+  int32 dims = 2;
+  string model_id = 3;
+  string model_version = 4;
+}
+
+message EmbedQueryRequest {
+  string text = 1;
+  EmbeddingConfig config = 10;
+}
+
+message EmbedQueryResponse {
+  repeated float vector = 1;
+  int32 dims = 2;
+  string model_id = 3;
+  string model_version = 4;
+}
+
+
