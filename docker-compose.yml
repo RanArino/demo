@@ -44,7 +44,6 @@ services:
     restart: unless-stopped
     networks:
       - app-network
-
   ms_document_process:
     build:
       context: ./ms_document_process
@@ -70,6 +69,32 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+
+  ms_canvas:
+    build:
+      context: ./ms_canvas
+      dockerfile: Dockerfile.dev
+    ports:
+      - "50054:50051"
+      - "8082:8080"
+    env_file:
+      - ./ms_canvas/.env.local
+    environment:
+      - GRPC_PORT=50054
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
+      - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
+      - KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=${NEO4J_DATABASE}
+    depends_on:
+      - ms_knowledge
+    restart: unless-stopped
+    networks:
+      - app-network
+
 
   frontend:
     build:
