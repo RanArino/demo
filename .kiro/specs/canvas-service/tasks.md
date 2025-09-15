@@ -7,22 +7,30 @@
 ### 1. Kafka consumer and ingestion orchestration (Go)
 > Implement secure, idempotent consumption of `document.processed` events and bootstrap orchestration.
 
-- [ ] **1.1. Create Kafka consumer setup in `internal/infrastructure/consumer/kafka`**
+- [x] **1.1. Create Kafka consumer setup in `internal/infrastructure/consumer/kafka`**
   > Initialize consumer group, topic subscription, offset management, and graceful shutdown.
   >
   > **Related Requirements:** 1.1 (Req 1: Event-Driven Document Ingestion)
 
-- [ ] **1.2. Implement `handler.go` to validate, normalize, and deduplicate events**
+  > Initialize consumer group, topic subscription, offset management, and graceful shutdown.
+  >
+  > **Related Requirements:** 1.1 (Req 1: Event-Driven Document Ingestion)
+
+- [x] **1.2. Implement `handler.go` to validate, normalize, and deduplicate events**
   > Verify auth/signature, schema validation, normalize metadata (space_id, content_source_id), enforce idempotency keys.
   >
   > **Related Requirements:** 1.1 (authN/Z, idempotency, normalization)
 
-- [ ] **1.3. Create `ContentNode` in Neo4j with provenance**
+- [x] **1.3. Create `ContentNode` in Neo4j with provenance**
   > Add repository method and transaction; capture created_at/updated_at.
   >
   > **Related Requirements:** 1.1 (create ContentNode)
 
-- [ ] **1.4. Enqueue chunking pipeline trigger**
+- [x] **1.4. Enqueue chunking pipeline trigger**
+  > Call application service to start chunking workflow after content creation.
+  >
+  > **Related Requirements:** 1.1, 2.1
+
   > Call application service to start chunking workflow after content creation.
   >
   > **Related Requirements:** 1.1, 2.1
@@ -162,7 +170,11 @@
 
 ### 9. Infrastructure and Deployment
 
-- [ ] **9.1. Dockerfile and multi-process runtime**
+- [x] **9.1. Dockerfile and multi-process runtime**
+  > Build Go binary; install Python deps; add `supervisord.conf` or `scripts/start.sh`.
+  >
+  > **Related Requirements:** 6.6, 6.4 (Observability via health checks)
+
   > Build Go binary; install Python deps; add `supervisord.conf` or `scripts/start.sh`.
   >
   > **Related Requirements:** 6.6, 6.4 (Observability via health checks)
