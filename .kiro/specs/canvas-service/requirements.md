@@ -4,7 +4,9 @@
 
 This document outlines the functional and non-functional requirements for the Canvas Service. The service's primary purpose to consolidate vector embeddings and graph-structured content in a unified Neo4j-backed store. It will process documents from `ms_document_process`, chunk them, generate embeddings, construct a knowledge graph, and provide APIs for querying this graph.
 
-Input data: plain text (the `ms_document_process` service sends text payloads to the Canvas service for processing).
+Input data: plain text provided inline or via blob storage URL (the `ms_document_process` service sends either text payloads or references for processing).
+
+Communication contracts are defined in `proto/canvas.proto`, which is the source of truth for all internal Go↔Python communication in this phase. External/public proto is out of scope for now.
 
 ## 2. Requirements List
 
@@ -33,9 +35,15 @@ AND the event handler must be idempotent to prevent duplicate processing.
 ```gherkin
 GIVEN a document has been validated and enqueued for chunking
 WHEN the chunking process is triggered
-THEN the content must be split into chunks based on configurable parameters (size, overlap, type).
-AND `ChunkNode` objects must be created with required properties (id, content_source_id, position, content, etc.).
-AND a `chunking-complete` event must be emitted once all chunks for the document are generated.
+THEN the system must obtain the source text either from an inline request field or by fetching from a provided blob storage URL.
+AND the content must be split into chunks using sentence-based chunking only (for this phase) with configurable parameters: target_size≈tokens (default 300) and overlap percentage (default 10%).
+AND token estimation/counting must use a configurable tokenizer (default: tiktoken `cl100k_base`).
+AND the implementation must use spaCy for sentence segmentation; model selection is configurable for future phases.
+AND multi-language inputs (e.g., English, Spanish, Chinese, Japanese) must be supported.
+AND chunk content should be normalized prior to splitting, but each chunk must include `start_position` and `end_position` character offsets referring to the original (pre-normalized) source content.
+AND `ChunkNode` objects must be created with required properties (id, content_source_id, position, start_position, end_position, content, etc.).
+AND unary gRPC must be used for internal RPCs with an increased `max_receive_message_length`; streaming is not required.
+AND a `chunking.completed` metric/event must be emitted by the Go orchestrator after chunks are persisted.
 ```
 
 ### Requirement 3: Embedding Pipeline
@@ -85,10 +93,13 @@ THEN the API must return a list of nodes that are semantically similar to the qu
 ### Requirement 6: Non-functional Requirements
 
 **Requirements:**
-- **Performance:** Vector search operations should complete in under 100ms for small to medium workspaces. Indexes must be created on `space_id` and `content_source_id` for fast lookups.
+- **Performance:**
+  - Vector search operations should complete in under 100ms for small to medium workspaces. Indexes must be created on `space_id` and `content_source_id` for fast lookups.
+  - Python chunking and embedding processing must achieve P99 latency under 5 seconds for a 200,000-character input (on target deployment hardware).
 - **Reliability:** All event handlers must be idempotent and support retries.
 - **Data Management:** The system must support soft deletes for nodes and relationships.
-- **Observability:** The service must emit events/metrics for key stages (e.g., `document.received`, `chunking.completed`, `embedding.completed`). It must also produce structured logs for failures.
-- **Security:** Incoming events must be validated for authentication and authorization. Sensitive data should be encrypted at rest.
-- **Configurability:** Chunking parameters, embedding models, and similarity thresholds must be configurable.
+- **Observability:** The service must emit events/metrics for key stages (e.g., `document.received`, `chunking.completed`, `embedding.completed`). It must also produce structured logs for failures, and include OpenTelemetry traces/metrics across Go and Python components.
+- **Security:** Incoming events must be validated for authentication and authorization. Sensitive data should be encrypted at rest. Logs must scrub/redact PII by default.
+- **Configurability:** Chunking parameters (type=sentence only for now, target_size≈tokens, overlap%), embedding models, tokenizer, and similarity thresholds must be configurable via environment variables.
 - **Tooling:** The service must include data migration scripts for setting up indexes and sample data.
+ - **Communication:** Internal Go↔Python interactions use unary gRPC with increased message size limits; input text may be provided inline or by blob storage URL.
