@@ -1,0 +1,34 @@
+FROM golang:1.25
+
+WORKDIR /app
+
+# Install Python for the local Python worker and pip
+RUN apt-get update && apt-get install -y python3 python3-venv python3-pip && rm -rf /var/lib/apt/lists/*
+
+# Copy go.mod first to download dependencies for go_app
+COPY go_app/go.mod go_app/go.sum ./go_app/
+RUN cd go_app && go mod download
+
+# Install air for hot reloading during development
+RUN go install github.com/air-verse/air@latest
+
+# Copy source code (in dev this directory is expected to be mounted)
+COPY . .
+
+# Optionally install Python deps if python_app is present
+RUN if [ -f python_app/requirements.txt ]; then pip3 install -r python_app/requirements.txt; fi
+
+EXPOSE 50051 8080
+
+# Install supervisord
+RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/*
+
+# Add supervisord config and start script
+COPY supervisord.conf /app/supervisord.conf
+COPY scripts/start.sh /app/scripts/start.sh
+RUN chmod +x /app/scripts/start.sh
+
+CMD ["/app/scripts/start.sh"]
+
+# Use air for hot reloading of the Go service in development
+CMD ["air", "-c", ".air.toml"]
