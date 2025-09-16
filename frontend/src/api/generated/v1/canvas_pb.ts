@@ -210,7 +210,7 @@ export class Chunk extends Message<Chunk> {
   id = "";
 
   /**
-   * 0-based ordinal
+   * `position` is the ordinal sequence of the chunk within the document (0-based).
    *
    * @generated from field: int32 position = 2;
    */

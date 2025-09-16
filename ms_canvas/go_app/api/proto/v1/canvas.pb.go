@@ -260,12 +260,13 @@ func (*ChunkTextRequest_Text) isChunkTextRequest_Source() {}
 func (*ChunkTextRequest_BlobUrl) isChunkTextRequest_Source() {}
 
 type Chunk struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                             // optional client-generated id or empty
-	Position      int32                  `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`                                // 0-based ordinal
-	StartPosition int64                  `protobuf:"varint,3,opt,name=start_position,json=startPosition,proto3" json:"start_position,omitempty"` // character offset in original content
-	EndPosition   int64                  `protobuf:"varint,4,opt,name=end_position,json=endPosition,proto3" json:"end_position,omitempty"`       // character offset in original content (exclusive)
-	Content       string                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`                                   // normalized chunk text
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // optional client-generated id or empty
+	// `position` is the ordinal sequence of the chunk within the document (0-based).
+	Position      int32  `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`
+	StartPosition int64  `protobuf:"varint,3,opt,name=start_position,json=startPosition,proto3" json:"start_position,omitempty"` // character offset in original content
+	EndPosition   int64  `protobuf:"varint,4,opt,name=end_position,json=endPosition,proto3" json:"end_position,omitempty"`       // character offset in original content (exclusive)
+	Content       string `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`                                   // normalized chunk text
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
