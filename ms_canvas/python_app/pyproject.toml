@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ms-canvas-python-app"
+version = "0.1.0"
+description = "Python sidecar for ms_canvas (chunking, embedding)"
+requires-python = ">=3.10"
+dependencies = [
+  "grpcio>=1.62.0",
+  "grpcio-tools>=1.62.0",
+  "protobuf>=4.25.0",
+  "spacy>=3.7.0",
+  "tiktoken>=0.7.0",
+  "requests>=2.31.0",
+  "opentelemetry-api>=1.24.0",
+  "opentelemetry-sdk>=1.24.0",
+  "opentelemetry-instrumentation-grpc>=0.45b0",
+  "opentelemetry-exporter-otlp>=1.24.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=7.0.0",
+  "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+canvas-python-server = "app.server:main"
+
+
