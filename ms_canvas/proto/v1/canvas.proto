@@ -5,7 +5,7 @@ package canvas.v1;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "demo/ms_canvas/proto/v1;canvasv1";
+option go_package = "demo/ms_canvas/go_app/api/proto/v1;canvasv1";
 
 // Internal service for chunking and embeddings.
 service CanvasInternal {
