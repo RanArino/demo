@@ -136,7 +136,7 @@ def main():
     _setup_tracing()
 
     host = os.getenv("CANVAS_PY_HOST", "0.0.0.0")
-    port = int(os.getenv("CANVAS_PY_PORT", "50051"))
+    port = int(os.getenv("CANVAS_PY_PORT", "50054"))
     max_msg = int(os.getenv("CANVAS_MAX_GRPC_MSG_BYTES", str(64 * 1024 * 1024)))
 
     server = grpc.server(

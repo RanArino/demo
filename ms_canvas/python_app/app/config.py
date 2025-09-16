@@ -5,7 +5,7 @@ from typing import Optional
 class Settings(BaseSettings):
     # Server
     CANVAS_PY_HOST: str = "0.0.0.0"
-    CANVAS_PY_PORT: int = 50051
+    CANVAS_PY_PORT: int = 50054
     CANVAS_MAX_GRPC_MSG_BYTES: int = 64 * 1024 * 1024
 
     # Embeddings / LLM
