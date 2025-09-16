@@ -1,3 +1,0 @@
-"""
-Embedding service tests package.
-"""
