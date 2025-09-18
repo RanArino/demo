@@ -20,10 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CanvasInternal_ChunkText_FullMethodName   = "/canvas.v1.CanvasInternal/ChunkText"
-	CanvasInternal_EmbedChunks_FullMethodName = "/canvas.v1.CanvasInternal/EmbedChunks"
-	CanvasInternal_EmbedQuery_FullMethodName  = "/canvas.v1.CanvasInternal/EmbedQuery"
-	CanvasInternal_Healthz_FullMethodName     = "/canvas.v1.CanvasInternal/Healthz"
+	CanvasInternal_ChunkEmbed_FullMethodName = "/canvas.v1.CanvasInternal/ChunkEmbed"
+	CanvasInternal_EmbedQuery_FullMethodName = "/canvas.v1.CanvasInternal/EmbedQuery"
+	CanvasInternal_Healthz_FullMethodName    = "/canvas.v1.CanvasInternal/Healthz"
 )
 
 // CanvasInternalClient is the client API for CanvasInternal service.
@@ -32,8 +31,7 @@ const (
 //
 // Internal service for chunking and embeddings.
 type CanvasInternalClient interface {
-	ChunkText(ctx context.Context, in *ChunkTextRequest, opts ...grpc.CallOption) (*ChunkTextResponse, error)
-	EmbedChunks(ctx context.Context, in *EmbedChunksRequest, opts ...grpc.CallOption) (*EmbedChunksResponse, error)
+	ChunkEmbed(ctx context.Context, in *ChunkEmbedRequest, opts ...grpc.CallOption) (*ChunkEmbedResponse, error)
 	EmbedQuery(ctx context.Context, in *EmbedQueryRequest, opts ...grpc.CallOption) (*EmbedQueryResponse, error)
 	Healthz(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthStatus, error)
 }
@@ -46,20 +44,10 @@ func NewCanvasInternalClient(cc grpc.ClientConnInterface) CanvasInternalClient {
 	return &canvasInternalClient{cc}
 }
 
-func (c *canvasInternalClient) ChunkText(ctx context.Context, in *ChunkTextRequest, opts ...grpc.CallOption) (*ChunkTextResponse, error) {
+func (c *canvasInternalClient) ChunkEmbed(ctx context.Context, in *ChunkEmbedRequest, opts ...grpc.CallOption) (*ChunkEmbedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChunkTextResponse)
-	err := c.cc.Invoke(ctx, CanvasInternal_ChunkText_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasInternalClient) EmbedChunks(ctx context.Context, in *EmbedChunksRequest, opts ...grpc.CallOption) (*EmbedChunksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmbedChunksResponse)
-	err := c.cc.Invoke(ctx, CanvasInternal_EmbedChunks_FullMethodName, in, out, cOpts...)
+	out := new(ChunkEmbedResponse)
+	err := c.cc.Invoke(ctx, CanvasInternal_ChunkEmbed_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,8 +80,7 @@ func (c *canvasInternalClient) Healthz(ctx context.Context, in *emptypb.Empty, o
 //
 // Internal service for chunking and embeddings.
 type CanvasInternalServer interface {
-	ChunkText(context.Context, *ChunkTextRequest) (*ChunkTextResponse, error)
-	EmbedChunks(context.Context, *EmbedChunksRequest) (*EmbedChunksResponse, error)
+	ChunkEmbed(context.Context, *ChunkEmbedRequest) (*ChunkEmbedResponse, error)
 	EmbedQuery(context.Context, *EmbedQueryRequest) (*EmbedQueryResponse, error)
 	Healthz(context.Context, *emptypb.Empty) (*HealthStatus, error)
 	mustEmbedUnimplementedCanvasInternalServer()
@@ -106,11 +93,8 @@ type CanvasInternalServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCanvasInternalServer struct{}
 
-func (UnimplementedCanvasInternalServer) ChunkText(context.Context, *ChunkTextRequest) (*ChunkTextResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChunkText not implemented")
-}
-func (UnimplementedCanvasInternalServer) EmbedChunks(context.Context, *EmbedChunksRequest) (*EmbedChunksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method EmbedChunks not implemented")
+func (UnimplementedCanvasInternalServer) ChunkEmbed(context.Context, *ChunkEmbedRequest) (*ChunkEmbedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChunkEmbed not implemented")
 }
 func (UnimplementedCanvasInternalServer) EmbedQuery(context.Context, *EmbedQueryRequest) (*EmbedQueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmbedQuery not implemented")
@@ -139,38 +123,20 @@ func RegisterCanvasInternalServer(s grpc.ServiceRegistrar, srv CanvasInternalSer
 	s.RegisterService(&CanvasInternal_ServiceDesc, srv)
 }
 
-func _CanvasInternal_ChunkText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChunkTextRequest)
+func _CanvasInternal_ChunkEmbed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChunkEmbedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CanvasInternalServer).ChunkText(ctx, in)
+		return srv.(CanvasInternalServer).ChunkEmbed(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CanvasInternal_ChunkText_FullMethodName,
+		FullMethod: CanvasInternal_ChunkEmbed_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasInternalServer).ChunkText(ctx, req.(*ChunkTextRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CanvasInternal_EmbedChunks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmbedChunksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasInternalServer).EmbedChunks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CanvasInternal_EmbedChunks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasInternalServer).EmbedChunks(ctx, req.(*EmbedChunksRequest))
+		return srv.(CanvasInternalServer).ChunkEmbed(ctx, req.(*ChunkEmbedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -219,12 +185,8 @@ var CanvasInternal_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CanvasInternalServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ChunkText",
-			Handler:    _CanvasInternal_ChunkText_Handler,
-		},
-		{
-			MethodName: "EmbedChunks",
-			Handler:    _CanvasInternal_EmbedChunks_Handler,
+			MethodName: "ChunkEmbed",
+			Handler:    _CanvasInternal_ChunkEmbed_Handler,
 		},
 		{
 			MethodName: "EmbedQuery",
