@@ -4,7 +4,7 @@
 
 This document translates the approved requirements in `requirements.md` into a concrete technical design for the unified `ms_canvas` service. The service uses a hybrid-process model: a Go primary process for API, orchestration, event consumption, and Neo4j persistence; and a co-located Python process for chunking, embedding, and ML/NLP tasks. Both processes run in a single container (demo phase) and communicate via local gRPC. Only the Go process communicates with external microservices; the Python process is internal-only.
 
-Proto-first: `proto/canvas.proto` is the source of truth for all internal Go↔Python RPC contracts in this phase. Public API proto is deferred.
+Proto-first: `proto/v1/canvas_internal.proto` is the source of truth for all internal Go↔Python RPC contracts in this phase. Public API proto is deferred.
 
 ## 2. Architecture Overview
 
@@ -43,18 +43,15 @@ ms_canvas/
 │   ├── cmd/
 │   │   └── main.go
 │   ├── internal/
-│   │   ├── workflows/
-│   │   │   ├── document.go
-│   │   │   └── adapter.go
+│   │   ├── service/
+│   │   │   ├── vector_service.go
+│   │   │   └── search_service.go
 │   │   ├── gateway/
 │   │   │   └── python/
 │   │   │       ├── factory.go
 │   │   │       └── chunking_and_embedding.go
 │   │   ├── server/
 │   │   │   └── grpc.go
-│   │   ├── service/
-│   │   │   ├── vector_service.go
-│   │   │   └── search_service.go
 │   │   ├── domain/
 │   │   │   ├── node_models.go
 │   │   │   └── link_models.go
@@ -87,6 +84,7 @@ ms_canvas/
 │   └── pyproject.toml
 ├── proto/
 │   └── v1/
+│       ├── canvas_internal.proto
 │       └── canvas.proto
 ├── scripts/
 │   └── start.sh
@@ -109,9 +107,9 @@ ms_canvas/
 ### 4.2 Python Application
 - `app/services/chunking.py`: sentence-based text chunking with configurable target_size≈tokens (default 300) and overlap% (default 10%), using spaCy for sentence segmentation and tiktoken for token estimation.
 - `app/services/embedding.py`: embedding generation with configurable provider/model.
-- `app/pipelines/chunk_and_embed.py`: coarse-grained orchestration that composes `services/chunking` and `services/embedding` into a single function for the `ChunkAndEmbed` RPC. Handles batching and basic error propagation. (New)
+- `app/pipelines/chunk_and_embed.py`: coarse-grained orchestration that composes `services/chunking` and `services/embedding` into a single function for the `ChunkEmbed` RPC. Handles batching and basic error propagation. (New)
 - Future services: summarization and clustering (placeholders to be added, callable via internal gRPC).
-- `app/server.py`: gRPC definitions implementation for internal API; delegates `ChunkAndEmbed` to `app/pipelines/chunk_and_embed.py`.
+- `app/server.py`: gRPC definitions implementation for internal API; delegates `ChunkEmbed` to `app/pipelines/chunk_and_embed.py`.
 - `app/main.py`: boots the Python gRPC server.
 
 #### 4.2.1 Neo4j KG Builder (neo4j_graphrag) — optional
@@ -120,8 +118,8 @@ The `neo4j_graphrag` (Neo4j GraphRAG / KG Builder) Python package may be used op
 Follow the library's configuration options for KG-building (schema guidance, entity resolution, batch sizing) if and when it is used. See the Neo4j documentation for details: `https://neo4j.com/docs/neo4j-graphrag-python/current/user_guide_kg_builder.html`.
 
 ### 4.3 Proto Contracts
-- `proto/v1/canvas.proto`: internal RPCs for chunking/embedding and the combined `ChunkAndEmbed`; messages include oneof input for inline text vs blob URL.
-- Combined RPC: introduce `ChunkAndEmbed` to reduce round trips; keep existing `ChunkText` and `EmbedChunks` for modularity.
+- `proto/v1/canvas_internal.proto`: internal RPCs for chunking/embedding and the combined `ChunkEmbed`; messages include oneof input for inline text vs blob URL.
+- Combined RPC: introduce `ChunkEmbed` to reduce round trips; keep existing `ChunkText` and `EmbedChunks` for modularity.
 
 Public/external API (planned):
 - `proto/public/canvas_public.proto` (planned): external/public gRPC API definitions (e.g., create/read/query endpoints like `CreateContentNodes`).
@@ -164,12 +162,12 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 3. Emit `embedding.completed` metric.
 
 ### 6.3b Combined Chunking + Embedding
-1. Go calls `ChunkAndEmbed` with chunking and embedding configs plus oneof `text | blob_url` via `internal/gateway/python`.
+1. Go calls `ChunkEmbed` with chunking and embedding configs plus oneof `text | blob_url` via `internal/gateway/python`.
 2. Python `server.py` delegates to `app/pipelines/chunk_and_embed.py`, which performs sentence chunking and computes embeddings for each returned chunk by calling `services/chunking` and `services/embedding`.
 3. Response returns batches (or full list for demo) of chunks with vectors and model metadata.
 4. Go persists `ChunkNode`s and embeddings via `internal/infrastructure/repository/neo4j`, and emits both `chunking.completed` and `embedding.completed` metrics after successful writes.
 5. Idempotency: upsert by `(content_source_id, sequence_index)` for chunks and overwrite/update embedding vectors for existing chunk nodes to avoid duplicates on reprocessing.
-6. Gateway integration: the orchestrator uses `internal/gateway/python/chunking_and_embedding.go` client to invoke `ChunkAndEmbed` with increased `max_receive_message_length`; for demo, unary responses are used, but responses may be processed in optional batches.
+6. Gateway integration: the orchestrator uses `internal/gateway/python/chunking_and_embedding.go` client to invoke `ChunkEmbed` with increased `max_receive_message_length`; for demo, unary responses are used, but responses may be processed in optional batches.
 7. Error handling: if Neo4j persistence fails, do not emit metrics; return an error to the caller and allow retry. Partial successes should be retried safely due to idempotent upsert semantics.
 
 ### 6.4 Graph Construction
@@ -189,11 +187,11 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 - `rpc SemanticSearch(SemanticSearchRequest) returns (SemanticSearchResponse)`
 - `rpc CreateStructuralLink(CreateStructuralLinkRequest) returns (CreateStructuralLinkResponse)`
 
-### 7.2 Internal API (`canvas.proto`)
+### 7.2 Internal API (`canvas_internal.proto`)
 - `rpc ChunkText(ChunkTextRequest) returns (ChunkTextResponse)`
 - `rpc EmbedChunks(EmbedChunksRequest) returns (EmbedChunksResponse)`
 - `rpc EmbedQuery(EmbedQueryRequest) returns (EmbedQueryResponse)`
-- `rpc ChunkAndEmbed(ChunkAndEmbedRequest) returns (ChunkAndEmbedResponse)` (new; response may be updated to streaming in a later phase)
+- `rpc ChunkEmbed(ChunkEmbedRequest) returns (ChunkEmbedResponse)` (new; response may be updated to streaming in a later phase)
 
 Note: Exact message fields will map to `requirements.md` metadata (space_id, content_source_id, etc.).
 
