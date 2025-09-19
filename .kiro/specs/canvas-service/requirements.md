@@ -8,7 +8,7 @@ Input data: plain text provided inline or via blob storage URL (the `ms_document
 
 Runtime/deployment (demo phase): `ms_canvas/go_app` and `ms_canvas/python_app` run together in a single container using `supervisord`. The Go app is the only component that communicates with other microservices; the Python app is internal-only and reachable via localhost gRPC. Within `ms_canvas`, only gRPC is used for distributed operations; Kafka is used solely to receive the upstream `document.processed` event from `ms_document_process`.
 
-Communication contracts are defined in `ms_canvas/proto/v1/canvas_internal.proto`, which is the source of truth for all internal Go↔Python communication in this phase. External/public proto is out of scope for now.
+Communication contracts are defined in `ms_canvas/proto/private/v1/canvas_private.proto`, which is the source of truth for all internal Go↔Python communication in this phase. External/public proto is out of scope for now.
 
 ## 2. Requirements List
 

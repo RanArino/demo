@@ -4,7 +4,7 @@
 
 This document translates the approved requirements in `requirements.md` into a concrete technical design for the unified `ms_canvas` service. The service uses a hybrid-process model: a Go primary process for API, orchestration, event consumption, and Neo4j persistence; and a co-located Python process for chunking, embedding, and ML/NLP tasks. Both processes run in a single container (demo phase) and communicate via local gRPC. Only the Go process communicates with external microservices; the Python process is internal-only.
 
-Proto-first: `proto/v1/canvas_internal.proto` is the source of truth for all internal Go↔Python RPC contracts in this phase. Public API proto is deferred.
+Proto-first: `proto/private/v1/canvas_private.proto` is the source of truth for all internal Go↔Python RPC contracts in this phase. Public API proto is deferred.
 
 ## 2. Architecture Overview
 
@@ -83,9 +83,12 @@ ms_canvas/
 │   │   └── main.py
 │   └── pyproject.toml
 ├── proto/
-│   └── v1/
-│       ├── canvas_internal.proto
-│       └── canvas.proto
+│   ├── private/
+│   │   └── v1/
+│   │       └── canvas_private.proto
+│   └── public/
+│       └── v1/
+│           └── canvas.proto
 ├── scripts/
 │   └── start.sh
 ├── supervisord.conf
@@ -118,13 +121,13 @@ The `neo4j_graphrag` (Neo4j GraphRAG / KG Builder) Python package may be used op
 Follow the library's configuration options for KG-building (schema guidance, entity resolution, batch sizing) if and when it is used. See the Neo4j documentation for details: `https://neo4j.com/docs/neo4j-graphrag-python/current/user_guide_kg_builder.html`.
 
 ### 4.3 Proto Contracts
-- `proto/v1/canvas_internal.proto`: internal RPCs for chunking/embedding and the combined `ChunkEmbed`; messages include oneof input for inline text vs blob URL.
+- `proto/private/v1/canvas_private.proto`: internal RPCs for chunking/embedding and the combined `ChunkEmbed`; messages include oneof input for inline text vs blob URL.
 - Combined RPC: introduce `ChunkEmbed` to reduce round trips; keep existing `ChunkText` and `EmbedChunks` for modularity.
 
 Public/external API (planned):
-- `proto/public/canvas_public.proto` (planned): external/public gRPC API definitions (e.g., create/read/query endpoints like `CreateContentNodes`).
+- `proto/public/v1/canvas.proto` (planned): external/public gRPC API definitions (e.g., create/read/query endpoints like `CreateContentNodes`).
 - `go_app/api/proto/public/v1` (planned): generated Go stubs for public API.
-- Handlers for public API live in `internal/infrastructure/handler` and delegate to `internal/workflows`.
+- Handlers for public API live in `internal/server` and delegate to `internal/service`.
 
 ## 5. Data Model (Neo4j)
 
@@ -187,7 +190,7 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 - `rpc SemanticSearch(SemanticSearchRequest) returns (SemanticSearchResponse)`
 - `rpc CreateStructuralLink(CreateStructuralLinkRequest) returns (CreateStructuralLinkResponse)`
 
-### 7.2 Internal API (`canvas_internal.proto`)
+### 7.2 Internal API (`proto/private/v1/canvas_private.proto`)
 - `rpc ChunkText(ChunkTextRequest) returns (ChunkTextResponse)`
 - `rpc EmbedChunks(EmbedChunksRequest) returns (EmbedChunksResponse)`
 - `rpc EmbedQuery(EmbedQueryRequest) returns (EmbedQueryResponse)`
