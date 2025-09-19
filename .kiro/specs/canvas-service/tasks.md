@@ -176,7 +176,7 @@
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
 
-- [ ] **5.1. Rename the current `canvas.proto` to `canvas_internal.proto`, then define `proto/public/v1/canvas.proto` messages and services as public API**
+- [ ] **5.1. Move internal proto to `proto/private/v1/canvas_private.proto`, and define public proto at `proto/public/v1/canvas.proto`**
   > `GetNode`, `UpdateNode`, `GetNeighbors`, `SemanticSearch`, `CreateStructuralLink`.
   >
   > **Related Requirements:** 5.1
@@ -213,8 +213,8 @@
 
 ### 7. Protobuf definitions (internal)
 
- - [ ] **7.1. Define `proto/canvas_internal.proto`**
-  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. (Implemented at `ms_canvas/proto/v1/canvas_internal.proto`)
+ - [ ] **7.1. Define `proto/private/v1/canvas_private.proto`**
+  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. (Implemented at `ms_canvas/proto/private/v1/canvas_private.proto`)
   >
   > **Related Requirements:** 2.1, 3.1, 5.1
 
