@@ -83,27 +83,27 @@
 ### 3b. Single-call pipeline to reduce round-trips
 > Add combined RPC to chunk and embed in one call; persist in Go.
 
-- [ ] **3b.1. Extend proto with `ChunkAndEmbed` messages/services**
-  > Define request to include chunking and embedding configs, and oneof `text | blob_url`. Response includes chunk metadata plus vectors and model metadata.
+ - [x] **3b.1. Extend proto with `ChunkEmbed` messages/services**
+  > Define request to include chunking and embedding configs, and oneof `text | blob_url`. Response includes chunk metadata plus vectors and model metadata. EmbedQuery retained.
   >
   > **Related Requirements:** 3b (Combined RPC), 2.1, 3.1
 
-- [ ] **3b.2. Implement Python pipeline in `python_app/app/pipelines/chunk_and_embed.py`**
+ - [x] **3b.2. Implement Python pipeline in `python_app/app/pipelines/chunk_and_embed.py`**
   > Compose `services/chunking` + `services/embedding` into one function; support optional `batch_size`; propagate errors; keep response shaping consistent with proto.
   >
   > **Related Requirements:** 3b
 
-- [ ] **3b.3. Expose handler in `python_app/app/server.py`**
-  > Add `ChunkAndEmbed` RPC that delegates to the pipeline; for demo, unary response is acceptable.
+ - [x] **3b.3. Expose handler in `python_app/app/server.py`**
+  > Add `ChunkEmbed` RPC that delegates to the pipeline; for demo, unary response is acceptable.
   >
   > **Related Requirements:** 3b
 
-- [ ] **3b.4. Update Go orchestrator to call combined RPC**
+- [x] **3b.4. Update Go orchestrator to call combined RPC**
   > Use `internal/gateway/python/chunking_and_embedding.go` to call `ChunkAndEmbed`; persist `ChunkNode`s (content + offsets) and embeddings in Neo4j; emit `chunking.completed` and `embedding.completed` metrics.
   >
   > **Related Requirements:** 3b, 4.1
 
-- [ ] **3b.5. Add configurable `batch_size` support (optional)**
+- [x] **3b.5. Add configurable `batch_size` support (optional)**
   > Allow Python to return results in batches; Go writes per-batch. Keep unary for demo; streaming later.
   >
   > **Related Requirements:** 6.6 (Configurability)
@@ -142,9 +142,6 @@
   > Replace `ChunkRepository` with `NodeRepository` (nodes) and `LinkRepository` (relationships). Rename files to `node_repository.go` and `link_repository.go`; update orchestrator wiring.
   >
   > **Related Requirements:** 4.1 (SRP), 6.3 (Maintainability)
-
-
-## Feature E: Public API (Go)
 
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
