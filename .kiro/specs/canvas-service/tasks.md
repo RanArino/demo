@@ -113,35 +113,65 @@
 ### 4. Neo4j repositories and graph linking
 > Persist chunks, embeddings; link relationships; create vector index.
 
- - [x] **4.1. Implement repositories in `internal/infrastructure/repository`**
-  > Upserts for ContentNode/ChunkNode; store embeddings and model metadata; soft delete support; persist `start_position`/`end_position` character offsets and normalized content; index usage.
+ - [ ] **4.1. Implement repositories in `internal/repository`**
+  > Upserts for ContentNode/ChunkNode; store embeddings and model metadata; soft delete support; persist `start_position`/`end_position` character offsets and normalized content; index usage. **COMPLETED**: Full repository implementation with comprehensive CRUD operations for all node types and relationships.
   >
   > **Related Requirements:** 2.1, 3.1, 4.1, 6.3 (Data Management)
+  > **Files:** `internal/repository/neo4j/node_repository.go`, `internal/repository/neo4j/link_repository.go`
 
- - [x] **4.2. Create `:HIERARCHICAL_PARENT` links**
-  > Link chunks to their parent content.
+ - [ ] **4.2. Create `:HIERARCHICAL_PARENT` links**
+  > Link chunks to their parent content. **COMPLETED**: Implemented via `CreateHierarchicalLinks` method in LinkRepository.
   >
   > **Related Requirements:** 4.1
+  > **Files:** `internal/repository/neo4j/link_repository.go`
 
- - [x] **4.3. Create `:SEMANTIC_LINK` edges above threshold**
-  > Similarity computation and edge creation with `score` property.
+ - [ ] **4.3. Create `:SEMANTIC_LINK` edges above threshold**
+  > Similarity computation and edge creation with `score` property. **COMPLETED**: Full semantic link CRUD operations implemented.
   >
   > **Related Requirements:** 4.1, 6.6 (threshold configurable)
+  > **Files:** `internal/repository/neo4j/link_repository.go`
 
- - [x] **4.4. Support explicit `:STRUCTURAL_LINK` writes**
-  > Expose in public API and repo methods.
+ - [ ] **4.4. Support explicit `:STRUCTURAL_LINK` writes**
+  > Expose in public API and repo methods. **COMPLETED**: Full structural link CRUD operations implemented.
   >
   > **Related Requirements:** 4.1
+  > **Files:** `internal/repository/neo4j/link_repository.go`
 
- - [x] **4.5. Add indexes (BTREE + vector) and migrations**
-  > Space/content_source indexes; vector index on `ChunkNode.embedding`.
+ - [ ] **4.5. Add indexes (BTREE + vector) and migrations**
+  > Space/content_source indexes; vector index on `ChunkNode.embedding`. **COMPLETED**: BTREE indexes for space_id and content_source_id lookups, plus vector index for embeddings with cosine similarity.
   >
   > **Related Requirements:** 6.1 (Performance), 6.6
+  > **Files:** `internal/repository/neo4j/driver.go:46-65`
 
-- [x] **4.6. Refactor repositories split (NodeRepository, LinkRepository)**
-  > Replace `ChunkRepository` with `NodeRepository` (nodes) and `LinkRepository` (relationships). Rename files to `node_repository.go` and `link_repository.go`; update orchestrator wiring.
+- [ ]  **4.6. Refactor repositories split (NodeRepository, LinkRepository)**
+  > Replace `ChunkRepository` with `NodeRepository` (nodes) and `LinkRepository` (relationships). Rename files to `node_repository.go` and `link_repository.go`; update orchestrator wiring. **COMPLETED**: Proper repository split with separate node and link repositories.
   >
   > **Related Requirements:** 4.1 (SRP), 6.3 (Maintainability)
+  > **Files:** `internal/repository/neo4j/node_repository.go`, `internal/repository/neo4j/link_repository.go`
+
+- [ ] **4.7. Create `internal/domain/node_models.go` and `link_models.go`**
+  > Split current models.go into node_models.go (ContentNode, ChunkNode with embeddings, character offsets) and link_models.go (HierarchicalLink, SemanticLink, StructuralLink). Add repository interfaces per design.md structure. **COMPLETED**: Comprehensive domain models with BaseNode, ContentNode, ChunkNode, ClusterNode, SemanticLink, StructuralLink, and repository interfaces.
+  >
+  > **Related Requirements:** 4.1, 6.3 (Data Management)
+  > **Files:** `internal/domain/node_models.go`, `internal/domain/link_models.go`
+
+- [ ] **4.8. Implement `node_repository.go` with full CRUD operations**
+  > Create NodeRepository interface with methods: CreateContentNode, CreateChunkNode, GetNode, UpdateNode, SoftDeleteNode. Support embedding storage and character offset persistence. Include proper transaction handling and error management. **COMPLETED**: Full CRUD operations for all node types with comprehensive update patterns.
+  >
+  > **Related Requirements:** 4.1, 6.3
+  > **Files:** `internal/repository/neo4j/node_repository.go`
+
+- [ ] **4.9. Implement `link_repository.go` for relationship management**
+  > Create LinkRepository interface with methods: CreateHierarchicalLink, CreateSemanticLink, CreateStructuralLink, GetNeighbors. Support similarity threshold configuration for semantic links. Include relationship scoring and metadata. **COMPLETED**: Comprehensive relationship management with CRUD operations for all link types.
+  >
+  > **Related Requirements:** 4.1, 4.2, 4.3, 4.4
+  > **Files:** `internal/repository/neo4j/link_repository.go`
+
+- [ ] **4.10. Enhance driver.go with vector indexes and constraints**
+  > Add vector index creation for ChunkNode.embedding. Add BTREE indexes for space_id, content_source_id lookups. Include proper constraint and index migration logic with existence checks. **COMPLETED**: Enhanced driver with constraints and comprehensive indexing.
+  >
+  > **Related Requirements:** 4.5, 6.1 (Performance)
+  > **Files:** `internal/repository/neo4j/driver.go`
 
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
@@ -151,8 +181,8 @@
   >
   > **Related Requirements:** 5.1
 
-- [ ] **5.2. Implement handlers in `internal/handler`**
-  > Wire to workflows and repositories; add validation.
+- [ ] **5.2. Implement gRPC services in `internal/server/grpc.go`**
+  > Wire to service layer and repositories; add validation; implement GetNode, GetNeighbors, SemanticSearch, CreateStructuralLink RPCs.
   >
   > **Related Requirements:** 5.1
 
@@ -163,13 +193,14 @@
 
 ## Feature F: Application Orchestration (Go)
 
-### 6. Workflow coordination (non-event request structs)
-> Coordinate ingestion → chunking/embedding → graph build. Workflows accept non-event request structs (e.g., `ProcessInput`).
+### 6. Service layer coordination (business logic)
+> Coordinate ingestion → chunking/embedding → graph build. Services orchestrate between gateway, repository, and event processing layers.
 
-- [ ] **6.1. Implement workflows in `internal/workflows`**
-  > Orchestrate calls to Python RPCs and Neo4j repositories; emit metrics (not Kafka events). Emit `chunking.completed` only after chunks are persisted.
+- [ ] **6.1. Implement business logic in `internal/service/`**
+  > Create vector_service.go and search_service.go to orchestrate calls to Python gateway and Neo4j repositories; emit metrics (not Kafka events). Emit `chunking.completed` only after chunks are persisted. Services coordinate between gateway, repository, and event processing.
   >
   > **Related Requirements:** 1–5, 6.4 (Observability)
+  > **STATUS**: NOT IMPLEMENTED - No service layer implementations exist
 
 - [ ] **6.2. Wire `cmd/main.go`**
   > Load config, start servers and consumers, health checks, graceful shutdown.
