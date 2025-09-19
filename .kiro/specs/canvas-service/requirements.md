@@ -76,6 +76,9 @@ THEN the Python service may fetch text via `blob_url`, perform sentence-based ch
 AND the response must include chunk metadata (sequence_index, start_position, end_position, content) and embedding vectors with model metadata
 AND the Go app must persist `ChunkNode`s and embeddings in Neo4j, linking them to the parent `ContentNode`.
 AND no internal Kafka message is emitted or consumed between chunking and embedding.
+AND the Go orchestrator must invoke the combined RPC via the internal Python gateway and, upon success, emit `chunking.completed` and `embedding.completed` metrics only after successful Neo4j persistence.
+AND the combined pipeline must be idempotent at the chunk level: repeated processing for the same `content_source_id` and `sequence_index` must not create duplicate `ChunkNode`s and should upsert embeddings in place.
+AND the RPC must operate within increased gRPC message size limits and may optionally return batched results; unary responses are acceptable for the demo phase.
 ```
 
 ### Requirement 4: Knowledge Graph Construction
