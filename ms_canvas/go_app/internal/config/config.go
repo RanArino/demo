@@ -55,7 +55,7 @@ func Load() Config {
 		KafkaSaslUsername:     getEnv("KAFKA_SASL_USERNAME", ""),
 		KafkaSaslPassword:     getEnv("KAFKA_SASL_PASSWORD", ""),
 		KafkaGroupID:          getEnv("KAFKA_GROUP_ID", "ms_canvas-consumer-group"),
-		GRPCPort:              getEnvInt("GRPC_PORT", 50054), // Different from Python port
+		GRPCPort:              getEnvInt("GRPC_PORT", 50055), // Different from Python port
 		ClerkSecretKey:        getEnv("CLERK_SECRET_KEY", ""),
 		Neo4jURI:              getEnv("NEO4J_URI", "bolt://localhost:7687"),
 		Neo4jUsername:         getEnv("NEO4J_USERNAME", "neo4j"),
