@@ -2,6 +2,7 @@ package python
 
 import (
 	"context"
+	privpb "demo/ms_canvas/go_app/api/proto/private/v1"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	pb "demo/ms_canvas/go_app/api/proto/v1"
 )
 
 // TestPythonServiceIntegration tests real communication with the Python service
@@ -86,7 +85,7 @@ func testHealthzIntegration(t *testing.T, ctx context.Context, gateway *Gateway)
 
 func testEmbedQueryIntegration(t *testing.T, ctx context.Context, gateway *Gateway) {
 	text := "This is a test query for embedding"
-	config := &pb.EmbeddingConfig{
+	config := &privpb.EmbeddingConfig{
 		Provider:     "huggingface",
 		ModelId:      "all-MiniLM-L6-v2",
 		ModelVersion: "",
@@ -110,20 +109,20 @@ func testEmbedQueryIntegration(t *testing.T, ctx context.Context, gateway *Gatew
 func testChunkEmbedIntegration(t *testing.T, ctx context.Context, gateway *Gateway) {
 	testText := `This is the first sentence for testing chunking. This is the second sentence that should be in a different chunk. Here is a third sentence to test the chunking algorithm. And finally, this is the fourth sentence to ensure we have enough content for multiple chunks.`
 
-	req := &pb.ChunkEmbedRequest{
+	req := &privpb.ChunkEmbedRequest{
 		SpaceId:         "test-space-123",
 		ContentSourceId: "test-content-456",
 		ContentNodeId:   "test-node-789",
-		Source: &pb.ChunkEmbedRequest_Text{
+		Source: &privpb.ChunkEmbedRequest_Text{
 			Text: testText,
 		},
-		Chunking: &pb.ChunkingConfig{
+		Chunking: &privpb.ChunkingConfig{
 			Type:           "sentence",
 			TargetTokens:   50, // Small target to ensure multiple chunks
 			OverlapPercent: 10,
 			Tokenizer:      "tiktoken:cl100k_base",
 		},
-		Embedding: &pb.EmbeddingConfig{
+		Embedding: &privpb.EmbeddingConfig{
 			Provider:     "huggingface",
 			ModelId:      "all-MiniLM-L6-v2",
 			ModelVersion: "",
@@ -179,7 +178,6 @@ func testChunkEmbedIntegration(t *testing.T, ctx context.Context, gateway *Gatew
 		}
 	}
 }
-
 
 // startPythonService starts the Python service for testing
 func startPythonService(t *testing.T) (*exec.Cmd, func()) {
