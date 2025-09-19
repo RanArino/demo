@@ -35,6 +35,7 @@ ms_canvas/
 │   │   │   └── adapter.go
 │   │   ├── gateway/
 │   │   │   └── python/
+│   │   │       ├── factory.go
 │   │   │       └── chunking_and_embedding.go
 │   │   ├── handler/
 │   │   │   └── canvas_public.go
