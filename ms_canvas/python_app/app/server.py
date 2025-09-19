@@ -9,9 +9,10 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
+from .config import settings
 from .services.chunking import ChunkingConfig
 from .services.embedding import embed_query, EmbeddingConfig
-from .pipelines.chunk_and_embed import chunk_and_embed
+from .pipelines.chunk_and_embed import chunk_and_embed, chunk_and_embed_batched
 from .proto.v1 import canvas_pb2, canvas_pb2_grpc
 
 
@@ -61,9 +62,9 @@ class CanvasInternalServicer(canvas_pb2_grpc.CanvasInternalServicer):
     def ChunkEmbed(self, request, context):
         try:
             chunk_cfg = ChunkingConfig(
-                target_tokens=request.chunking.target_tokens or 300,
-                overlap_percent=request.chunking.overlap_percent or 10,
-                tokenizer=request.chunking.tokenizer or "tiktoken:cl100k_base",
+                target_tokens=request.chunking.target_tokens or settings.CANVAS_CHUNK_TARGET_TOKENS,
+                overlap_percent=request.chunking.overlap_percent or settings.CANVAS_CHUNK_OVERLAP_PERCENT,
+                tokenizer=request.chunking.tokenizer or settings.CANVAS_TOKENIZER,
             )
             embed_cfg = EmbeddingConfig(
                 provider=request.embedding.provider or "huggingface",
@@ -78,19 +79,54 @@ class CanvasInternalServicer(canvas_pb2_grpc.CanvasInternalServicer):
             elif request.WhichOneof('source') == 'blob_url':
                 blob_url = request.blob_url
 
-            result = chunk_and_embed(text=text, blob_url=blob_url, chunk_cfg=chunk_cfg, embed_cfg=embed_cfg)
+            # Check if batch_size is provided in request
+            batch_size = request.batch_size if request.batch_size > 0 else settings.CANVAS_BATCH_SIZE
 
-            response = canvas_pb2.ChunkEmbedResponse()
-            response.dims = result.dims
-            response.model_id = result.model_id
-            response.model_version = result.model_version
-            for item in result.results:
-                res = response.results.add()
-                res.chunk.sequence_index = item.chunk.position
-                res.chunk.start_position = item.chunk.start_position
-                res.chunk.end_position = item.chunk.end_position
-                res.chunk.content = item.chunk.content
-                res.vector.extend(item.vector)
+            # For demo phase, use regular unary response but structure for future batching
+            if batch_size and batch_size < 1000:  # Use batching for reasonable batch sizes
+                # For now, collect all batches into single response (demo phase)
+                all_results = []
+                dims = 0
+                model_id = ""
+                model_version = ""
+
+                for batch_result in chunk_and_embed_batched(
+                    text=text, blob_url=blob_url,
+                    chunk_cfg=chunk_cfg, embed_cfg=embed_cfg,
+                    batch_size=batch_size
+                ):
+                    all_results.extend(batch_result.results)
+                    dims = batch_result.dims
+                    model_id = batch_result.model_id
+                    model_version = batch_result.model_version
+
+                response = canvas_pb2.ChunkEmbedResponse()
+                response.dims = dims
+                response.model_id = model_id
+                response.model_version = model_version
+                for item in all_results:
+                    res = response.results.add()
+                    res.chunk.sequence_index = item.chunk.position
+                    res.chunk.start_position = item.chunk.start_position
+                    res.chunk.end_position = item.chunk.end_position
+                    res.chunk.content = item.chunk.content
+                    res.vector.extend(item.vector)
+            else:
+                # Use original non-batched approach for large batch sizes or when not specified
+                result = chunk_and_embed(text=text, blob_url=blob_url, chunk_cfg=chunk_cfg, embed_cfg=embed_cfg)
+
+                response = canvas_pb2.ChunkEmbedResponse()
+                response.dims = result.dims
+                response.model_id = result.model_id
+                response.model_version = result.model_version
+                for item in result.results:
+                    res = response.results.add()
+                    res.chunk.sequence_index = item.chunk.position
+                    res.chunk.start_position = item.chunk.start_position
+                    res.chunk.end_position = item.chunk.end_position
+                    res.chunk.content = item.chunk.content
+                    res.vector.extend(item.vector)
+
             return response
         except Exception as e:
             logging.error(f"ChunkEmbed failed: {e}")
