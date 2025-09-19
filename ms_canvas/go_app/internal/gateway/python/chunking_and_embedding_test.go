@@ -373,7 +373,7 @@ func TestGateway_ChunkEmbed_WithDifferentSources(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			expectedResponse := &pb.ChunkEmbedResponse{
 				Results:      []*pb.ChunkEmbedding{},
-				Dims:         384,
+				Dims:         1536,
 				ModelId:      "all-MiniLM-L6-v2",
 				ModelVersion: "v1.0",
 			}

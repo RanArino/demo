@@ -22,7 +22,7 @@ class TestEmbeddingPerformance:
         """Test performance of batch embedding operations."""
         # Mock fast embedding response
         mock_embedder = Mock()
-        embeddings = [[0.1] * 384 for _ in range(100)]  # 100 embeddings of 384 dimensions
+        embeddings = [[0.1] * 1536 for _ in range(100)]  # 100 embeddings of 1536 dimensions
         mock_embedder.embed_documents.return_value = embeddings
         mock_get_embedder.return_value = mock_embedder
         
@@ -37,8 +37,8 @@ class TestEmbeddingPerformance:
         
         # Performance assertions
         assert duration < 1.0  # Should complete within 1 second (mocked)
-        assert result.vectors.shape == (100, 384)
-        assert result.dims == 384
+        assert result.vectors.shape == (100, 1536)
+        assert result.dims == 1536
         
         # Verify batch processing
         mock_embedder.embed_documents.assert_called_once_with(contents)
@@ -48,7 +48,7 @@ class TestEmbeddingPerformance:
     def test_single_query_performance(self, mock_get_embedder):
         """Test performance of single query embedding."""
         mock_embedder = Mock()
-        mock_embedder.embed_query.return_value = [0.1] * 384
+        mock_embedder.embed_query.return_value = [0.1] * 1536
         mock_get_embedder.return_value = mock_embedder
         
         config = EmbeddingConfig()
@@ -62,15 +62,15 @@ class TestEmbeddingPerformance:
         
         # Performance assertions
         assert duration < 0.1  # Should be very fast for single query (mocked)
-        assert result.vectors.shape == (1, 384)
-        assert result.dims == 384
+        assert result.vectors.shape == (1, 1536)
+        assert result.dims == 1536
 
     @pytest.mark.performance
     @patch('app.services.embedding._get_neo4j_embedder')
     def test_large_text_embedding(self, mock_get_embedder):
         """Test embedding of large text content."""
         mock_embedder = Mock()
-        mock_embedder.embed_documents.return_value = [[0.1] * 384]
+        mock_embedder.embed_documents.return_value = [[0.1] * 1536]
         mock_get_embedder.return_value = mock_embedder
         
         config = EmbeddingConfig()
@@ -87,14 +87,14 @@ class TestEmbeddingPerformance:
         
         # Performance assertions
         assert duration < 2.0  # Should handle large text efficiently
-        assert result.vectors.shape == (1, 384)
+        assert result.vectors.shape == (1, 1536)
 
     @pytest.mark.performance
     @patch('app.services.embedding._get_neo4j_embedder')
     def test_concurrent_embedding_simulation(self, mock_get_embedder):
         """Simulate concurrent embedding requests."""
         mock_embedder = Mock()
-        mock_embedder.embed_documents.return_value = [[0.1] * 384]
+        mock_embedder.embed_documents.return_value = [[0.1] * 1536]
         mock_get_embedder.return_value = mock_embedder
         
         config = EmbeddingConfig()
@@ -114,7 +114,7 @@ class TestEmbeddingPerformance:
         # Performance assertions
         assert duration < 1.0  # Should handle multiple requests efficiently
         assert len(results) == 10
-        assert all(r.vectors.shape == (1, 384) for r in results)
+        assert all(r.vectors.shape == (1, 1536) for r in results)
 
     @pytest.mark.performance
     def test_memory_efficient_embedding(self):
@@ -158,7 +158,7 @@ class TestScalabilityMetrics:
         def mock_embed_documents(contents):
             # Simulate processing time proportional to batch size
             time.sleep(0.001 * len(contents))
-            return [[0.1] * 384 for _ in contents]
+            return [[0.1] * 1536 for _ in contents]
         
         mock_embedder.embed_documents.side_effect = mock_embed_documents
         mock_get_embedder.return_value = mock_embedder
@@ -194,7 +194,7 @@ class TestScalabilityMetrics:
             total_chars = sum(len(content) for content in contents)
             # Simulate slight delay based on text length
             time.sleep(0.000001 * total_chars)
-            return [[0.1] * 384 for _ in contents]
+            return [[0.1] * 1536 for _ in contents]
         
         mock_embedder.embed_documents.side_effect = mock_embed_based_on_length
         mock_get_embedder.return_value = mock_embedder
@@ -215,7 +215,7 @@ class TestScalabilityMetrics:
             end_time = time.time()
             
             durations.append(end_time - start_time)
-            assert result.vectors.shape == (1, 384)
+            assert result.vectors.shape == (1, 1536)
         
         # Verify that longer texts take more time (but not excessively)
         assert durations[1] >= durations[0]  # Medium >= Short
@@ -231,8 +231,8 @@ class TestResourceUsage:
     def test_embedder_reuse(self, mock_get_embedder):
         """Test that embedder instances are created efficiently."""
         mock_embedder = Mock()
-        mock_embedder.embed_documents.return_value = [[0.1] * 384]
-        mock_embedder.embed_query.return_value = [0.1] * 384
+        mock_embedder.embed_documents.return_value = [[0.1] * 1536]
+        mock_embedder.embed_query.return_value = [0.1] * 1536
         mock_get_embedder.return_value = mock_embedder
         
         config = EmbeddingConfig()
@@ -298,7 +298,7 @@ class TestBenchmarkSuite:
     def test_embedding_throughput_benchmark(self, mock_get_embedder):
         """Benchmark embedding throughput."""
         mock_embedder = Mock()
-        embeddings = [[0.1] * 384 for _ in range(1000)]
+        embeddings = [[0.1] * 1536 for _ in range(1000)]
         mock_embedder.embed_documents.return_value = embeddings
         mock_get_embedder.return_value = mock_embedder
         
@@ -314,7 +314,7 @@ class TestBenchmarkSuite:
         
         # Performance benchmark assertions
         assert throughput > 500  # Should process at least 500 texts/second (mocked)
-        assert result.vectors.shape == (1000, 384)
+        assert result.vectors.shape == (1000, 1536)
         
         print(f"Embedding throughput: {throughput:.2f} texts/second")
 
@@ -323,7 +323,7 @@ class TestBenchmarkSuite:
     def test_query_latency_benchmark(self, mock_get_embedder):
         """Benchmark single query embedding latency."""
         mock_embedder = Mock()
-        mock_embedder.embed_query.return_value = [0.1] * 384
+        mock_embedder.embed_query.return_value = [0.1] * 1536
         mock_get_embedder.return_value = mock_embedder
         
         config = EmbeddingConfig()
@@ -344,6 +344,6 @@ class TestBenchmarkSuite:
         
         # Latency benchmark assertions
         assert avg_duration < 0.01  # Should be under 10ms average (mocked)
-        assert result.vectors.shape == (1, 384)
+        assert result.vectors.shape == (1, 1536)
         
         print(f"Average query embedding latency: {avg_duration*1000:.2f}ms")
