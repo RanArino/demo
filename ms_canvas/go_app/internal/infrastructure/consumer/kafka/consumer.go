@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"demo/ms_canvas/go_app/internal/application/ingestion"
 	"demo/ms_canvas/go_app/internal/config"
 	"demo/ms_canvas/go_app/internal/events"
+	"demo/ms_canvas/go_app/internal/workflows"
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
@@ -17,12 +17,12 @@ type Consumer struct {
 	handler *Handler
 }
 
-func NewConsumer(cfg config.Config, svc *ingestion.Service) (*Consumer, error) {
+func NewConsumer(cfg config.Config, eventHandler workflows.EventHandler) (*Consumer, error) {
 	conf := &ckafka.ConfigMap{
-		"bootstrap.servers":  cfg.KafkaBrokers,
-		"group.id":           cfg.KafkaGroupID,
-		"auto.offset.reset":  "earliest",
-		"security.protocol":  cfg.KafkaSecurityProtocol,
+		"bootstrap.servers": cfg.KafkaBrokers,
+		"group.id":          cfg.KafkaGroupID,
+		"auto.offset.reset": "earliest",
+		"security.protocol": cfg.KafkaSecurityProtocol,
 	}
 	if cfg.KafkaSecurityProtocol == "SASL_SSL" {
 		_ = conf.SetKey("sasl.mechanisms", "PLAIN")
@@ -34,7 +34,7 @@ func NewConsumer(cfg config.Config, svc *ingestion.Service) (*Consumer, error) {
 	if err != nil {
 		return nil, err
 	}
-	h := NewHandler(cfg, svc)
+	h := NewHandler(cfg, eventHandler)
 	return &Consumer{inner: c, topic: cfg.Topics.DocumentProcessed, handler: h}, nil
 }
 

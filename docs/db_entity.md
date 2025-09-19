@@ -531,7 +531,7 @@ Represents semantic similarity connections discovered through vector analysis.
 
 ```cypher
 CREATE (source:ContentNode)-[:SEMANTIC_LINK {
-  connection_type: "intra_level_intra_parent",  // intra_level_intra_parent|cross_level_intra_parent|intra_level_inter_parent|cross_level_inter_parent
+  connection_type: "intra_level_intra_parent",  // intra_level_intra_parent|cross_level_intra_parent|intra_level_inter_parent|cross_level_inter_parent|content_cluster
   strength_score: 0.85,                 // Connection strength (0.0-1.0)
   similarity_score: 0.92,               // Vector similarity score
   abstraction_bridge: false,            // Spans abstraction levels (cross-level: true, intra-level: false)
@@ -564,6 +564,7 @@ CREATE (source:ContentNode)-[:SEMANTIC_LINK {
 2. **`cross_level_intra_parent`**: Semantic connections between nodes at different abstraction levels within the same hierarchical parent
 3. **`intra_level_inter_parent`**: Semantic connections between nodes at the same abstraction level across different hierarchical parents
 4. **`cross_level_inter_parent`**: Semantic connections between nodes at different abstraction levels across different hierarchical parents
+5. **`content_cluster`**: Semantic link representing explicit assignment/membership between a `ClusterNode` and a `ContentNode` (used to mark content belonging to a cluster)
 
 ##### `:STRUCTURAL_LINK` - Explicit Structural Connections
 Represents explicit structural relationships between content nodes.

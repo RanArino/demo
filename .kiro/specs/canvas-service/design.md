@@ -156,9 +156,12 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 2. Python `server.py` delegates to `app/pipelines/chunk_and_embed.py`, which performs sentence chunking and computes embeddings for each returned chunk by calling `services/chunking` and `services/embedding`.
 3. Response returns batches (or full list for demo) of chunks with vectors and model metadata.
 4. Go persists `ChunkNode`s and embeddings via `internal/infrastructure/repository/neo4j`, and emits both `chunking.completed` and `embedding.completed` metrics after successful writes.
+<<<<<<< Updated upstream
 5. Idempotency: upsert by `(content_source_id, sequence_index)` for chunks and overwrite/update embedding vectors for existing chunk nodes to avoid duplicates on reprocessing.
 6. Gateway integration: the orchestrator uses `internal/gateway/python/chunking_and_embedding.go` client to invoke `ChunkAndEmbed` with increased `max_receive_message_length`; for demo, unary responses are used, but responses may be processed in optional batches.
 7. Error handling: if Neo4j persistence fails, do not emit metrics; return an error to the caller and allow retry. Partial successes should be retried safely due to idempotent upsert semantics.
+=======
+>>>>>>> Stashed changes
 
 ### 6.4 Graph Construction
 1. Link chunks to content via `:HIERARCHICAL_PARENT`.

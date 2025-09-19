@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	ingestion "demo/ms_canvas/go_app/internal/application/ingestion"
 	"demo/ms_canvas/go_app/internal/config"
+	python "demo/ms_canvas/go_app/internal/gateway/python"
 	kafka "demo/ms_canvas/go_app/internal/infrastructure/consumer/kafka"
-	chunking "demo/ms_canvas/go_app/internal/infrastructure/orchestrator/chunking"
 	neo "demo/ms_canvas/go_app/internal/infrastructure/repository/neo4j"
+	"demo/ms_canvas/go_app/internal/workflows"
 )
 
 func main() {
@@ -26,11 +26,16 @@ func main() {
 	}
 	defer drv.Close(context.Background())
 	_ = drv.EnsureConstraints(context.Background())
-	repo := neo.NewContentRepo(drv)
-	orch := chunking.NewNoopOrchestrator()
-	svc := ingestion.NewService(repo, orch)
+	_ = drv.EnsureIndexes(context.Background())
 
-	consumer, err := kafka.NewConsumer(cfg, svc)
+	nodeRepo := neo.NewNodeRepo(drv)
+	linkRepo := neo.NewLinkRepo(drv)
+
+	chunkingClient := python.NewChunkingClient(cfg, nodeRepo, linkRepo)
+	documentWorkflow := workflows.NewDocumentWorkflow(nodeRepo, chunkingClient)
+	eventHandler := workflows.NewEventHandler(documentWorkflow)
+
+	consumer, err := kafka.NewConsumer(cfg, eventHandler)
 	if err != nil {
 		log.Fatalf("failed to create kafka consumer: %v", err)
 	}

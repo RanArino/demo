@@ -5,18 +5,18 @@ import (
 	"log"
 	"strings"
 
-	ingestion "demo/ms_canvas/go_app/internal/application/ingestion"
 	"demo/ms_canvas/go_app/internal/config"
 	"demo/ms_canvas/go_app/internal/events"
+	"demo/ms_canvas/go_app/internal/workflows"
 )
 
 type Handler struct {
-	cfg config.Config
-	svc *ingestion.Service
+	cfg          config.Config
+	eventHandler workflows.EventHandler
 }
 
-func NewHandler(cfg config.Config, svc *ingestion.Service) *Handler {
-	return &Handler{cfg: cfg, svc: svc}
+func NewHandler(cfg config.Config, eventHandler workflows.EventHandler) *Handler {
+	return &Handler{cfg: cfg, eventHandler: eventHandler}
 }
 
 func (h *Handler) ValidateAndNormalize(evt events.DocumentProcessedEvent, headers map[string]string) (events.DocumentProcessedEvent, error) {
@@ -38,5 +38,5 @@ func (h *Handler) Handle(evt events.DocumentProcessedEvent, headers map[string]s
 	if strings.ToUpper(norm.Status) != "PROCESSED" {
 		return nil
 	}
-	return h.svc.HandleDocumentProcessed(norm)
+	return h.eventHandler.HandleDocumentProcessed(norm)
 }

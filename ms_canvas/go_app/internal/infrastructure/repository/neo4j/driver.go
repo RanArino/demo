@@ -8,8 +8,8 @@ import (
 )
 
 type Driver struct {
-	driver  neo.DriverWithContext
-	dbName  string
+	driver neo.DriverWithContext
+	dbName string
 }
 
 func NewDriver(uri, user, pass, db string) (*Driver, error) {
@@ -24,6 +24,11 @@ func (d *Driver) Close(ctx context.Context) error {
 	return d.driver.Close(ctx)
 }
 
+// NewSession delegates session creation to the underlying Neo4j driver.
+func (d *Driver) NewSession(ctx context.Context, config neo.SessionConfig) neo.SessionWithContext {
+	return d.driver.NewSession(ctx, config)
+}
+
 func (d *Driver) EnsureConstraints(ctx context.Context) error {
 	sess := d.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: d.dbName})
 	defer sess.Close(ctx)
@@ -34,5 +39,27 @@ func (d *Driver) EnsureConstraints(ctx context.Context) error {
 	if err != nil {
 		log.Printf("[Neo4j] ensure constraints error: %v", err)
 	}
+	return err
+}
+
+// EnsureIndexes creates helpful BTREE and, if supported, vector indexes.
+func (d *Driver) EnsureIndexes(ctx context.Context) error {
+	sess := d.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: d.dbName})
+	defer sess.Close(ctx)
+	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (any, error) {
+		// BTREE indexes for common lookups
+		if _, e := tx.Run(ctx, "CREATE INDEX contentnode_space IF NOT EXISTS FOR (n:ContentNode) ON (n.space_id)", nil); e != nil {
+			log.Printf("[Neo4j] create index contentnode_space: %v", e)
+		}
+		if _, e := tx.Run(ctx, "CREATE INDEX chunknode_csid IF NOT EXISTS FOR (n:ChunkNode) ON (n.content_source_id)", nil); e != nil {
+			log.Printf("[Neo4j] create index chunknode_csid: %v", e)
+		}
+
+		// Vector index (Neo4j 5.11+). This may fail on older versions; log and continue.
+		if _, e := tx.Run(ctx, "CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}}", nil); e != nil {
+			log.Printf("[Neo4j] create vector index (embedding): %v", e)
+		}
+		return nil, nil
+	})
 	return err
 }

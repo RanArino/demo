@@ -142,6 +142,12 @@
   > Replace `ChunkRepository` with `NodeRepository` (nodes) and `LinkRepository` (relationships). Rename files to `node_repository.go` and `link_repository.go`; update orchestrator wiring.
   >
   > **Related Requirements:** 4.1 (SRP), 6.3 (Maintainability)
+<<<<<<< Updated upstream
+=======
+
+
+## Feature E: Public API (Go)
+>>>>>>> Stashed changes
 
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
