@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strconv"
 
-	"google.golang.org/protobuf/types/known/emptypb"
+	privpb "demo/ms_canvas/go_app/api/proto/private/v1"
 
-	pb "demo/ms_canvas/go_app/api/proto/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // ChunkEmbed performs combined chunking and embedding via the Python service
-func (g *Gateway) ChunkEmbed(ctx context.Context, req *pb.ChunkEmbedRequest) (*pb.ChunkEmbedResponse, error) {
+func (g *Gateway) ChunkEmbed(ctx context.Context, req *privpb.ChunkEmbedRequest) (*privpb.ChunkEmbedResponse, error) {
 	// Call the Python service directly with protobuf types
 	pbResp, err := g.client.ChunkEmbed(ctx, req)
 	if err != nil {
@@ -22,8 +22,8 @@ func (g *Gateway) ChunkEmbed(ctx context.Context, req *pb.ChunkEmbedRequest) (*p
 }
 
 // EmbedQuery embeds a single query text
-func (g *Gateway) EmbedQuery(ctx context.Context, text string, config *pb.EmbeddingConfig) (*pb.EmbedQueryResponse, error) {
-	req := &pb.EmbedQueryRequest{
+func (g *Gateway) EmbedQuery(ctx context.Context, text string, config *privpb.EmbeddingConfig) (*privpb.EmbedQueryResponse, error) {
+	req := &privpb.EmbedQueryRequest{
 		Text:   text,
 		Config: config,
 	}
@@ -32,13 +32,13 @@ func (g *Gateway) EmbedQuery(ctx context.Context, text string, config *pb.Embedd
 }
 
 // Healthz checks the health of the Python service
-func (g *Gateway) Healthz(ctx context.Context) (*pb.HealthStatus, error) {
+func (g *Gateway) Healthz(ctx context.Context) (*privpb.HealthStatus, error) {
 	return g.client.Healthz(ctx, &emptypb.Empty{})
 }
 
 // DefaultChunkingConfig returns default chunking configuration
-func DefaultChunkingConfig() *pb.ChunkingConfig {
-	return &pb.ChunkingConfig{
+func DefaultChunkingConfig() *privpb.ChunkingConfig {
+	return &privpb.ChunkingConfig{
 		Type:           "sentence",
 		TargetTokens:   300,
 		OverlapPercent: 10,
@@ -47,8 +47,8 @@ func DefaultChunkingConfig() *pb.ChunkingConfig {
 }
 
 // DefaultEmbeddingConfig returns default embedding configuration
-func DefaultEmbeddingConfig() *pb.EmbeddingConfig {
-	return &pb.EmbeddingConfig{
+func DefaultEmbeddingConfig() *privpb.EmbeddingConfig {
+	return &privpb.EmbeddingConfig{
 		Provider:     "huggingface",
 		ModelId:      "all-MiniLM-L6-v2",
 		ModelVersion: "",
