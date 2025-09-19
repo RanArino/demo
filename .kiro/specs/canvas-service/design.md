@@ -14,13 +14,26 @@ Proto-first: `proto/canvas.proto` is the source of truth for all internal Go↔P
 - Storage: Neo4j for graph (nodes: ContentNode, ChunkNode; rels: HIERARCHICAL_PARENT, SEMANTIC_LINK, STRUCTURAL_LINK).
 - Messaging: Kafka is used only to receive the upstream `document.processed` event from `ms_document_process`. No internal Kafka topics are used within `ms_canvas`.
 
-### High-level Diagram
+### Architectural Flow
 
 ```
-[Kafka] -> [Go Consumer] -> [Go Orchestrator] -> [Python gRPC] -> [Go Neo4j Repo] -> [Neo4j]
-                                   ^                                               |
-                                   |---------------- Public API (gRPC/HTTP) -------|
+External Events:          Public API:
+[Kafka] ----+             [gRPC Clients] ----+
+            |                                |
+            v                                v
+      [events/kafka] ---------> [server/grpc]
+            |                                |
+            +---> [service/*] <--------------+
+                  (business logic)
+                        |
+                        +---> [gateway/python] -> [Python gRPC]
+                        +---> [repository/neo4j] -> [Neo4j]
 ```
+
+**Simple, Conventional Structure** (aligned with `ms_knowledge`):
+- **Transport layers** (`events`, `server`): Handle Kafka/gRPC protocol concerns
+- **Business logic** (`service`): Domain workflows and coordination
+- **Infrastructure** (`repository`, `gateway`): External system integrations
 
 ## 3. Directory Layout
 
@@ -37,23 +50,24 @@ ms_canvas/
 │   │   │   └── python/
 │   │   │       ├── factory.go
 │   │   │       └── chunking_and_embedding.go
-│   │   ├── handler/
-│   │   │   └── canvas_public.go
+│   │   ├── server/
+│   │   │   └── grpc.go
+│   │   ├── service/
+│   │   │   ├── vector_service.go
+│   │   │   └── search_service.go
 │   │   ├── domain/
 │   │   │   ├── node_models.go
 │   │   │   └── link_models.go
-│   │   ├── infrastructure/
-│   │   │   ├── repository/
-│   │   │   │   └── neo4j/
-│   │   │   │       ├── driver.go
-│   │   │   │       ├── node_repository.go
-│   │   │   │       └── link_repository.go
-│   │   │   └── consumer/
-│   │   │       └── kafka/
-│   │   │           ├── consumer.go
-│   │   │           └── handler.go
+│   │   ├── repository/
+│   │   │   └── neo4j/
+│   │   │       ├── driver.go
+│   │   │       ├── node_repository.go
+│   │   │       └── link_repository.go
 │   │   ├── events/
-│   │   │   └── types.go
+│   │   │   ├── types.go
+│   │   │   └── kafka/
+│   │   │       ├── consumer.go
+│   │   │       └── handler.go
 │   │   └── config/
 │   │       └── config.go
 │   ├── api/
@@ -83,15 +97,13 @@ ms_canvas/
 ## 4. Components
 
 ### 4.1 Go Application
-- `cmd/main.go`: wires dependencies; starts public API server and the Kafka consumer; manages lifecycle.
+- `cmd/main.go`: wires dependencies; starts gRPC public API server, HTTP gateway (optional), and the Kafka consumer; manages lifecycle.
 - `internal/domain`: domain models (`ContentNode`, `ChunkNode`, `Embedding`, relationship types), repository interfaces.
-- `internal/workflows`: orchestration for business use-cases (e.g., `ProcessDocument` coordinating Python pipeline + Neo4j persistence + metrics/idempotency). Invoked by Kafka handlers and/or public API handlers.
- - `internal/workflows`: orchestration for business use-cases (e.g., `ProcessDocument` coordinating Python pipeline + Neo4j persistence + metrics/idempotency). Invoked by Kafka handlers and/or public API handlers. Inside `ms_canvas`, do not use "Event" types; workflows accept non-event request structs (e.g., `ProcessInput`). Kafka is only an inbound boundary from `ms_document_process`.
-- `internal/infrastructure/repository`: Neo4j repositories split into `NodeRepository` (nodes: upserts, embeddings, soft delete) and `LinkRepository` (relationships: hierarchical, semantic, structural); index creation helpers.
-- `internal/infrastructure/consumer/kafka`: consumer and `handler.go` for inbound `document.processed` events (calls `internal/workflows`).
-- `internal/gateway/python`: gRPC client to Python internal service (e.g., `chunking_and_embedding.go`).
-- `internal/handler`: public API handlers (gRPC and optional HTTP gateway). Handlers map external/public protobuf services to workflow calls.
-- `internal/port`: server setup (gRPC server, HTTP gateway, health endpoints).
+- `internal/server`: gRPC server setup, service registration, health checks, graceful shutdown (follows `ms_knowledge` pattern).
+- `internal/service`: Business logic layer containing workflows and domain services (e.g., `document_workflow.go` for ingestion orchestration, `search_service.go` for semantic search). Services coordinate gateway calls and repository operations.
+- `internal/repository`: Data access layer with Neo4j repositories (`NodeRepository`, `LinkRepository`) and driver setup.
+- `internal/events`: Event-related code including event types (`types.go`) and Kafka consumer implementation that delegates to `internal/service`.
+- `internal/gateway/python`: gRPC client to Python internal service for chunking/embedding operations.
 - `api/proto/v1`: generated Go code for internal protobufs.
 
 ### 4.2 Python Application

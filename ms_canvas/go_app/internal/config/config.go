@@ -21,6 +21,7 @@ type Config struct {
 	Neo4jUsername         string
 	Neo4jPassword         string
 	Neo4jDatabase         string
+	Neo4jVectorDimensions int
 	Topics                Topics
 	PythonService         PythonServiceConfig
 }
@@ -55,12 +56,13 @@ func Load() Config {
 		KafkaSaslUsername:     getEnv("KAFKA_SASL_USERNAME", ""),
 		KafkaSaslPassword:     getEnv("KAFKA_SASL_PASSWORD", ""),
 		KafkaGroupID:          getEnv("KAFKA_GROUP_ID", "ms_canvas-consumer-group"),
-		GRPCPort:              getEnvInt("GRPC_PORT", 50054), // Different from Python port
+		GRPCPort:              getEnvInt("GRPC_PORT", 50055), // Different from Python port
 		ClerkSecretKey:        getEnv("CLERK_SECRET_KEY", ""),
 		Neo4jURI:              getEnv("NEO4J_URI", "bolt://localhost:7687"),
 		Neo4jUsername:         getEnv("NEO4J_USERNAME", "neo4j"),
 		Neo4jPassword:         getEnv("NEO4J_PASSWORD", "password"),
 		Neo4jDatabase:         getEnv("NEO4J_DATABASE", "neo4j"),
+		Neo4jVectorDimensions: getEnvInt("NEO4J_VECTOR_DIMENSIONS", 1536),
 		Topics: Topics{
 			DocumentProcessed: getEnv("TOPIC_DOCUMENT_PROCESSED", "document.processed"),
 		},
