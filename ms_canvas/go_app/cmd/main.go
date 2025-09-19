@@ -20,7 +20,7 @@ import (
 func main() {
 	cfg := config.Load()
 
-	drv, err := neo.NewDriver(cfg.Neo4jURI, cfg.Neo4jUsername, cfg.Neo4jPassword, cfg.Neo4jDatabase)
+	drv, err := neo.NewDriver(cfg.Neo4jURI, cfg.Neo4jUsername, cfg.Neo4jPassword, cfg.Neo4jDatabase, &neo.DriverOptions{VectorDimensions: cfg.Neo4jVectorDimensions})
 	if err != nil {
 		log.Fatalf("failed to create neo4j driver: %v", err)
 	}
