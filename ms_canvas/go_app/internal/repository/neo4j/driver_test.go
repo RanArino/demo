@@ -2,42 +2,45 @@ package neo4j
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+const defaultVectorDim = 1536
+
 func TestNewDriver(t *testing.T) {
 	tests := []struct {
-		name     string
-		uri      string
-		user     string
-		pass     string
-		db       string
+		name        string
+		uri         string
+		user        string
+		pass        string
+		db          string
 		expectError bool
 	}{
 		{
-			name:     "valid connection parameters",
-			uri:      "bolt://localhost:7687",
-			user:     "neo4j",
-			pass:     "password",
-			db:       "neo4j",
+			name:        "valid connection parameters",
+			uri:         "bolt://localhost:7687",
+			user:        "neo4j",
+			pass:        "password",
+			db:          "neo4j",
 			expectError: false,
 		},
 		{
-			name:     "empty database name should be handled",
-			uri:      "bolt://localhost:7687",
-			user:     "neo4j",
-			pass:     "password",
-			db:       "",
+			name:        "empty database name should be handled",
+			uri:         "bolt://localhost:7687",
+			user:        "neo4j",
+			pass:        "password",
+			db:          "",
 			expectError: false,
 		},
 		{
-			name:     "invalid URI format should be detected",
-			uri:      "invalid://uri",
-			user:     "neo4j",
-			pass:     "password",
-			db:       "neo4j",
+			name:        "invalid URI format should be detected",
+			uri:         "invalid://uri",
+			user:        "neo4j",
+			pass:        "password",
+			db:          "neo4j",
 			expectError: true,
 		},
 	}
@@ -61,12 +64,12 @@ func TestNewDriver(t *testing.T) {
 
 func TestDriver_EnsureConstraints_Logic(t *testing.T) {
 	tests := []struct {
-		name             string
+		name                   string
 		expectedCypherFragment string
-		validateQuery    func(t *testing.T, cypher string)
+		validateQuery          func(t *testing.T, cypher string)
 	}{
 		{
-			name:             "content source unique constraint should be created",
+			name:                   "content source unique constraint should be created",
 			expectedCypherFragment: "CREATE CONSTRAINT content_source_unique",
 			validateQuery: func(t *testing.T, cypher string) {
 				assert.Contains(t, cypher, "CREATE CONSTRAINT content_source_unique IF NOT EXISTS")
@@ -112,13 +115,13 @@ func TestDriver_EnsureIndexes_Logic(t *testing.T) {
 		},
 		{
 			name:          "vector index should be created with proper configuration",
-			expectedQuery: "CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}}",
+			expectedQuery: fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", defaultVectorDim),
 			validateQuery: func(t *testing.T, cypher string) {
 				assert.Contains(t, cypher, "CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS")
 				assert.Contains(t, cypher, "FOR (n:ChunkNode)")
 				assert.Contains(t, cypher, "ON (n.embedding)")
 				assert.Contains(t, cypher, "vector.dimensions")
-				assert.Contains(t, cypher, "384")
+				assert.Contains(t, cypher, fmt.Sprintf("%d", defaultVectorDim))
 				assert.Contains(t, cypher, "vector.similarity_function")
 				assert.Contains(t, cypher, "cosine")
 			},
@@ -198,23 +201,23 @@ func TestDriver_ErrorHandling(t *testing.T) {
 // TestDriver_VectorIndexConfiguration tests vector index configuration
 func TestDriver_VectorIndexConfiguration(t *testing.T) {
 	tests := []struct {
-		name            string
-		dimensions      int
-		similarityFunc  string
-		validateConfig  func(t *testing.T, dimensions int, similarityFunc string)
+		name           string
+		dimensions     int
+		similarityFunc string
+		validateConfig func(t *testing.T, dimensions int, similarityFunc string)
 	}{
 		{
-			name:           "default vector configuration should use 384 dimensions",
-			dimensions:     384,
+			name:           fmt.Sprintf("default vector configuration should use %d dimensions", defaultVectorDim),
+			dimensions:     defaultVectorDim,
 			similarityFunc: "cosine",
 			validateConfig: func(t *testing.T, dimensions int, similarityFunc string) {
-				assert.Equal(t, 384, dimensions)
+				assert.Equal(t, 1536, dimensions)
 				assert.Equal(t, "cosine", similarityFunc)
 			},
 		},
 		{
 			name:           "cosine similarity should be the default function",
-			dimensions:     384,
+			dimensions:     defaultVectorDim,
 			similarityFunc: "cosine",
 			validateConfig: func(t *testing.T, dimensions int, similarityFunc string) {
 				assert.Equal(t, "cosine", similarityFunc)
@@ -283,7 +286,7 @@ func TestDriver_PerformanceConsiderations(t *testing.T) {
 	})
 
 	t.Run("vector index should handle high-dimensional embeddings", func(t *testing.T) {
-		dimensions := 384
+		dimensions := defaultVectorDim
 		assert.Greater(t, dimensions, 100, "Should support high-dimensional embeddings")
 		assert.LessOrEqual(t, dimensions, 1536, "Should be within reasonable bounds for modern embeddings")
 	})

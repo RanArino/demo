@@ -2,22 +2,37 @@ package neo4j
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 type Driver struct {
-	driver neo.DriverWithContext
-	dbName string
+	driver    neo.DriverWithContext
+	dbName    string
+	vectorDim int
 }
 
-func NewDriver(uri, user, pass, db string) (*Driver, error) {
+// DriverOptions contains optional settings for the Neo4j driver
+type DriverOptions struct {
+	VectorDimensions int
+}
+
+// NewDriver creates a new Driver. Pass nil for opts to use defaults.
+func NewDriver(uri, user, pass, db string, opts *DriverOptions) (*Driver, error) {
 	drv, err := neo.NewDriverWithContext(uri, neo.BasicAuth(user, pass, ""))
 	if err != nil {
 		return nil, err
 	}
-	return &Driver{driver: drv, dbName: db}, nil
+
+	// Default values
+	vectorDim := 1536
+	if opts != nil && opts.VectorDimensions > 0 {
+		vectorDim = opts.VectorDimensions
+	}
+
+	return &Driver{driver: drv, dbName: db, vectorDim: vectorDim}, nil
 }
 
 func (d *Driver) Close(ctx context.Context) error {
@@ -56,7 +71,8 @@ func (d *Driver) EnsureIndexes(ctx context.Context) error {
 		}
 
 		// Vector index (Neo4j 5.11+). This may fail on older versions; log and continue.
-		if _, e := tx.Run(ctx, "CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}}", nil); e != nil {
+		query := fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim)
+		if _, e := tx.Run(ctx, query, nil); e != nil {
 			log.Printf("[Neo4j] create vector index (embedding): %v", e)
 		}
 		return nil, nil
