@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/v1/canvas.proto
+// source: proto/private/v1/canvas_private.proto
 
 package canvasv1
 
@@ -198,5 +198,5 @@ var CanvasInternal_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/v1/canvas.proto",
+	Metadata: "proto/private/v1/canvas_private.proto",
 }
