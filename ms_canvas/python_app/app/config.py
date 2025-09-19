@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     CANVAS_PY_PORT: int = 50054
     CANVAS_MAX_GRPC_MSG_BYTES: int = 64 * 1024 * 1024
 
+    # Chunking and Embedding
+    CANVAS_CHUNK_TARGET_TOKENS: int = 300
+    CANVAS_CHUNK_OVERLAP_PERCENT: int = 10
+    CANVAS_TOKENIZER: str = "tiktoken:cl100k_base"
+    CANVAS_BATCH_SIZE: int = 50  # Default batch size for chunk processing
+
     # Embeddings / LLM
     OPENAI_API_KEY: Optional[str] = None
     AZURE_OPENAI_API_KEY: Optional[str] = None

@@ -2,10 +2,10 @@
 
 > This document identifies and manages the development tasks derived from the approved requirements and design. Tasks are grouped by features and clearly trace back to requirements items.
 
-## Feature A: Event-Driven Document Ingestion
+## Feature A: Inbound Document Ingestion (Kafka → Orchestrator)
 
 ### 1. Kafka consumer and ingestion orchestration (Go)
-> Implement secure, idempotent consumption of `document.processed` events and bootstrap orchestration.
+> Implement secure, idempotent consumption of upstream `document.processed` and trigger orchestration directly (no internal Kafka).
 
 - [x] **1.1. Create Kafka consumer setup in `internal/infrastructure/consumer/kafka`**
   > Initialize consumer group, topic subscription, offset management, and graceful shutdown.
@@ -26,10 +26,10 @@
   >
   > **Related Requirements:** 1.1 (create ContentNode)
 
-- [x] **1.4. Enqueue chunking pipeline trigger**
-  > Call application service to start chunking workflow after content creation.
+- [x] **1.4. Trigger chunking/embedding orchestration directly**
+  > Call workflow to run chunking (or combined chunk+embed) after content creation; no internal Kafka topic.
   >
-  > **Related Requirements:** 1.1, 2.1
+  > **Related Requirements:** 1.1, 2.1, 3, 3b
 
   > Call application service to start chunking workflow after content creation.
   >
@@ -78,48 +78,81 @@
   > **Related Requirements:** 5.1 (Req 5: Querying and Search)
   > **Files Modified:** `python_app/app/server.py`
 
+## Feature C2: Combined Chunking + Embedding (Internal gRPC)
+
+### 3b. Single-call pipeline to reduce round-trips
+> Add combined RPC to chunk and embed in one call; persist in Go.
+
+ - [x] **3b.1. Extend proto with `ChunkEmbed` messages/services**
+  > Define request to include chunking and embedding configs, and oneof `text | blob_url`. Response includes chunk metadata plus vectors and model metadata. EmbedQuery retained.
+  >
+  > **Related Requirements:** 3b (Combined RPC), 2.1, 3.1
+
+ - [x] **3b.2. Implement Python pipeline in `python_app/app/pipelines/chunk_and_embed.py`**
+  > Compose `services/chunking` + `services/embedding` into one function; support optional `batch_size`; propagate errors; keep response shaping consistent with proto.
+  >
+  > **Related Requirements:** 3b
+
+ - [x] **3b.3. Expose handler in `python_app/app/server.py`**
+  > Add `ChunkEmbed` RPC that delegates to the pipeline; for demo, unary response is acceptable.
+  >
+  > **Related Requirements:** 3b
+
+- [x] **3b.4. Update Go orchestrator to call combined RPC**
+  > Use `internal/gateway/python/chunking_and_embedding.go` to call `ChunkAndEmbed`; persist `ChunkNode`s (content + offsets) and embeddings in Neo4j; emit `chunking.completed` and `embedding.completed` metrics.
+  >
+  > **Related Requirements:** 3b, 4.1
+
+- [x] **3b.5. Add configurable `batch_size` support (optional)**
+  > Allow Python to return results in batches; Go writes per-batch. Keep unary for demo; streaming later.
+  >
+  > **Related Requirements:** 6.6 (Configurability)
+
 ## Feature D: Graph Construction and Persistence (Go)
 
 ### 4. Neo4j repositories and graph linking
 > Persist chunks, embeddings; link relationships; create vector index.
 
-- [ ] **4.1. Implement repositories in `internal/infrastructure/repository`**
+ - [x] **4.1. Implement repositories in `internal/infrastructure/repository`**
   > Upserts for ContentNode/ChunkNode; store embeddings and model metadata; soft delete support; persist `start_position`/`end_position` character offsets and normalized content; index usage.
   >
   > **Related Requirements:** 2.1, 3.1, 4.1, 6.3 (Data Management)
 
-- [ ] **4.2. Create `:HIERARCHICAL_PARENT` links**
+ - [x] **4.2. Create `:HIERARCHICAL_PARENT` links**
   > Link chunks to their parent content.
   >
   > **Related Requirements:** 4.1
 
-- [ ] **4.3. Create `:SEMANTIC_LINK` edges above threshold**
+ - [x] **4.3. Create `:SEMANTIC_LINK` edges above threshold**
   > Similarity computation and edge creation with `score` property.
   >
   > **Related Requirements:** 4.1, 6.6 (threshold configurable)
 
-- [ ] **4.4. Support explicit `:STRUCTURAL_LINK` writes**
+ - [x] **4.4. Support explicit `:STRUCTURAL_LINK` writes**
   > Expose in public API and repo methods.
   >
   > **Related Requirements:** 4.1
 
-- [ ] **4.5. Add indexes (BTREE + vector) and migrations**
+ - [x] **4.5. Add indexes (BTREE + vector) and migrations**
   > Space/content_source indexes; vector index on `ChunkNode.embedding`.
   >
   > **Related Requirements:** 6.1 (Performance), 6.6
 
-## Feature E: Public API (Go)
+- [x] **4.6. Refactor repositories split (NodeRepository, LinkRepository)**
+  > Replace `ChunkRepository` with `NodeRepository` (nodes) and `LinkRepository` (relationships). Rename files to `node_repository.go` and `link_repository.go`; update orchestrator wiring.
+  >
+  > **Related Requirements:** 4.1 (SRP), 6.3 (Maintainability)
 
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
 
-- [ ] **5.1. Define `proto/canvas_public.proto` messages and services**
+- [ ] **5.1. Define `proto/public/canvas_public.proto` messages and services**
   > `GetNode`, `GetNeighbors`, `SemanticSearch`, `CreateStructuralLink`.
   >
   > **Related Requirements:** 5.1
 
-- [ ] **5.2. Implement handlers in `internal/infrastructure/handler`**
-  > Wire to application services and repositories; add validation.
+- [ ] **5.2. Implement handlers in `internal/handler`**
+  > Wire to workflows and repositories; add validation.
   >
   > **Related Requirements:** 5.1
 
@@ -130,11 +163,11 @@
 
 ## Feature F: Application Orchestration (Go)
 
-### 6. Use cases and workflow coordination
-> Coordinate ingestion → chunking → embedding → graph build.
+### 6. Workflow coordination (non-event request structs)
+> Coordinate ingestion → chunking/embedding → graph build. Workflows accept non-event request structs (e.g., `ProcessInput`).
 
-- [ ] **6.1. Implement application services in `internal/application`**
-  > Orchestrate calls to Python RPCs and Neo4j repositories; emit events/metrics. Emit `chunking.completed` only after chunks are persisted.
+- [ ] **6.1. Implement workflows in `internal/workflows`**
+  > Orchestrate calls to Python RPCs and Neo4j repositories; emit metrics (not Kafka events). Emit `chunking.completed` only after chunks are persisted.
   >
   > **Related Requirements:** 1–5, 6.4 (Observability)
 
@@ -151,6 +184,34 @@
   > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. (Implemented at `ms_canvas/proto/v1/canvas.proto`)
   >
   > **Related Requirements:** 2.1, 3.1, 5.1
+
+## Feature H: Future ML Workloads (Python via internal gRPC)
+
+### 11. Summarization scaffolding
+> Prepare internal APIs and placeholders; can be disabled by config in demo.
+
+- [ ] **11.1. Define proto messages/services for Summarize**
+  > Request: target node or set; model/provider config. Response: summary text + metadata.
+  >
+  > **Related Requirements:** 5b (Summarization)
+
+- [ ] **11.2. Add stub handler in Python**
+  > Implement minimal validation and a placeholder response; wire config flags.
+  >
+  > **Related Requirements:** 5b
+
+### 12. Clustering scaffolding
+> Prepare internal APIs and placeholders; can be disabled by config in demo.
+
+- [ ] **12.1. Define proto messages/services for ClusterWorkspace**
+  > Request: space_id, params; Response: cluster assignments, optional centroids/labels.
+  >
+  > **Related Requirements:** 4b (Clustering)
+
+- [ ] **12.2. Add stub handler in Python**
+  > Implement minimal validation and placeholder; no-op behind feature flag.
+  >
+  > **Related Requirements:** 4b
 
 ## General Tasks
 
@@ -184,7 +245,7 @@
   > **Related Requirements:** 6.6, 6.4 (Observability via health checks)
 
 - [ ] **9.2. Configuration and secrets**
-  > Env-based config for Kafka/Neo4j/models; Python reads chunking/tokenizer/grpc-size env vars; secrets via manager; secure internal gRPC (localhost).
+  > Env-based config for Kafka/Neo4j/models; Python reads chunking/tokenizer/grpc-size env vars; add `CANVAS_BATCH_SIZE` and feature flags for summarization/clustering; secrets via manager; secure internal gRPC (localhost).
   >
   > **Related Requirements:** 6.5–6.6
 

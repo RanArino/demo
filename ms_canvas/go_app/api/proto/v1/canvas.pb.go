@@ -10,7 +10,6 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -75,7 +74,6 @@ func (x *HealthStatus) GetComponents() map[string]string {
 	return nil
 }
 
-// ===== Chunking =====
 type ChunkingConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// fixed to "sentence" for this phase
@@ -145,35 +143,29 @@ func (x *ChunkingConfig) GetTokenizer() string {
 	return ""
 }
 
-type ChunkTextRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	SpaceId         string                 `protobuf:"bytes,1,opt,name=space_id,json=spaceId,proto3" json:"space_id,omitempty"`
-	ContentSourceId string                 `protobuf:"bytes,2,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"` // FK CONTENT_SOURCE.id (Postgres)
-	ContentNodeId   string                 `protobuf:"bytes,3,opt,name=content_node_id,json=contentNodeId,proto3" json:"content_node_id,omitempty"`       // FK ContentNode.id (Neo4j)
-	// Types that are valid to be assigned to Source:
-	//
-	//	*ChunkTextRequest_Text
-	//	*ChunkTextRequest_BlobUrl
-	Source        isChunkTextRequest_Source `protobuf_oneof:"source"`
-	Config        *ChunkingConfig           `protobuf:"bytes,20,opt,name=config,proto3" json:"config,omitempty"`
+type SpatialCoordinates struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	X             int32                  `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y             int32                  `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
+	Z             int32                  `protobuf:"varint,3,opt,name=z,proto3" json:"z,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ChunkTextRequest) Reset() {
-	*x = ChunkTextRequest{}
+func (x *SpatialCoordinates) Reset() {
+	*x = SpatialCoordinates{}
 	mi := &file_proto_v1_canvas_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ChunkTextRequest) String() string {
+func (x *SpatialCoordinates) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ChunkTextRequest) ProtoMessage() {}
+func (*SpatialCoordinates) ProtoMessage() {}
 
-func (x *ChunkTextRequest) ProtoReflect() protoreflect.Message {
+func (x *SpatialCoordinates) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_v1_canvas_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -185,88 +177,40 @@ func (x *ChunkTextRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ChunkTextRequest.ProtoReflect.Descriptor instead.
-func (*ChunkTextRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SpatialCoordinates.ProtoReflect.Descriptor instead.
+func (*SpatialCoordinates) Descriptor() ([]byte, []int) {
 	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ChunkTextRequest) GetSpaceId() string {
+func (x *SpatialCoordinates) GetX() int32 {
 	if x != nil {
-		return x.SpaceId
+		return x.X
 	}
-	return ""
+	return 0
 }
 
-func (x *ChunkTextRequest) GetContentSourceId() string {
+func (x *SpatialCoordinates) GetY() int32 {
 	if x != nil {
-		return x.ContentSourceId
+		return x.Y
 	}
-	return ""
+	return 0
 }
 
-func (x *ChunkTextRequest) GetContentNodeId() string {
+func (x *SpatialCoordinates) GetZ() int32 {
 	if x != nil {
-		return x.ContentNodeId
+		return x.Z
 	}
-	return ""
+	return 0
 }
-
-func (x *ChunkTextRequest) GetSource() isChunkTextRequest_Source {
-	if x != nil {
-		return x.Source
-	}
-	return nil
-}
-
-func (x *ChunkTextRequest) GetText() string {
-	if x != nil {
-		if x, ok := x.Source.(*ChunkTextRequest_Text); ok {
-			return x.Text
-		}
-	}
-	return ""
-}
-
-func (x *ChunkTextRequest) GetBlobUrl() string {
-	if x != nil {
-		if x, ok := x.Source.(*ChunkTextRequest_BlobUrl); ok {
-			return x.BlobUrl
-		}
-	}
-	return ""
-}
-
-func (x *ChunkTextRequest) GetConfig() *ChunkingConfig {
-	if x != nil {
-		return x.Config
-	}
-	return nil
-}
-
-type isChunkTextRequest_Source interface {
-	isChunkTextRequest_Source()
-}
-
-type ChunkTextRequest_Text struct {
-	Text string `protobuf:"bytes,10,opt,name=text,proto3,oneof"` // inline text
-}
-
-type ChunkTextRequest_BlobUrl struct {
-	BlobUrl string `protobuf:"bytes,11,opt,name=blob_url,json=blobUrl,proto3,oneof"` // URL to fetch processed text (e.g., R2)
-}
-
-func (*ChunkTextRequest_Text) isChunkTextRequest_Source() {}
-
-func (*ChunkTextRequest_BlobUrl) isChunkTextRequest_Source() {}
 
 type Chunk struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // optional client-generated id or empty
-	// `position` is the ordinal sequence of the chunk within the document (0-based).
-	Position      int32  `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`
-	StartPosition int64  `protobuf:"varint,3,opt,name=start_position,json=startPosition,proto3" json:"start_position,omitempty"` // character offset in original content
-	EndPosition   int64  `protobuf:"varint,4,opt,name=end_position,json=endPosition,proto3" json:"end_position,omitempty"`       // character offset in original content (exclusive)
-	Content       string `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`                                   // normalized chunk text
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                             // optional client-generated id or empty.
+	SequenceIndex int32                  `protobuf:"varint,2,opt,name=sequence_index,json=sequenceIndex,proto3" json:"sequence_index,omitempty"` // the ordinal sequence of the chunk within the document
+	StartPosition int64                  `protobuf:"varint,3,opt,name=start_position,json=startPosition,proto3" json:"start_position,omitempty"` // character offset in original content
+	EndPosition   int64                  `protobuf:"varint,4,opt,name=end_position,json=endPosition,proto3" json:"end_position,omitempty"`       // character offset in original content (exclusive)
+	Content       string                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`                                   // normalized chunk text
+	Location      *SpatialCoordinates    `protobuf:"bytes,10,opt,name=location,proto3" json:"location,omitempty"`                                // optional 3D spatial coordinates for the chunk
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -308,9 +252,9 @@ func (x *Chunk) GetId() string {
 	return ""
 }
 
-func (x *Chunk) GetPosition() int32 {
+func (x *Chunk) GetSequenceIndex() int32 {
 	if x != nil {
-		return x.Position
+		return x.SequenceIndex
 	}
 	return 0
 }
@@ -336,51 +280,13 @@ func (x *Chunk) GetContent() string {
 	return ""
 }
 
-type ChunkTextResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Chunks        []*Chunk               `protobuf:"bytes,1,rep,name=chunks,proto3" json:"chunks,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ChunkTextResponse) Reset() {
-	*x = ChunkTextResponse{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ChunkTextResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChunkTextResponse) ProtoMessage() {}
-
-func (x *ChunkTextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[4]
+func (x *Chunk) GetLocation() *SpatialCoordinates {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChunkTextResponse.ProtoReflect.Descriptor instead.
-func (*ChunkTextResponse) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *ChunkTextResponse) GetChunks() []*Chunk {
-	if x != nil {
-		return x.Chunks
+		return x.Location
 	}
 	return nil
 }
 
-// ===== Embedding =====
 type EmbeddingConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"` // e.g., openai, local
@@ -392,7 +298,7 @@ type EmbeddingConfig struct {
 
 func (x *EmbeddingConfig) Reset() {
 	*x = EmbeddingConfig{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[5]
+	mi := &file_proto_v1_canvas_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -404,7 +310,7 @@ func (x *EmbeddingConfig) String() string {
 func (*EmbeddingConfig) ProtoMessage() {}
 
 func (x *EmbeddingConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[5]
+	mi := &file_proto_v1_canvas_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -417,7 +323,7 @@ func (x *EmbeddingConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmbeddingConfig.ProtoReflect.Descriptor instead.
 func (*EmbeddingConfig) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{5}
+	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EmbeddingConfig) GetProvider() string {
@@ -441,134 +347,6 @@ func (x *EmbeddingConfig) GetModelVersion() string {
 	return ""
 }
 
-type EmbedChunksRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ChunkIds      []string               `protobuf:"bytes,1,rep,name=chunk_ids,json=chunkIds,proto3" json:"chunk_ids,omitempty"` // positions or ids corresponding to previously returned chunks
-	Contents      []string               `protobuf:"bytes,2,rep,name=contents,proto3" json:"contents,omitempty"`                 // optional, can embed by content directly
-	Config        *EmbeddingConfig       `protobuf:"bytes,10,opt,name=config,proto3" json:"config,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EmbedChunksRequest) Reset() {
-	*x = EmbedChunksRequest{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EmbedChunksRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EmbedChunksRequest) ProtoMessage() {}
-
-func (x *EmbedChunksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EmbedChunksRequest.ProtoReflect.Descriptor instead.
-func (*EmbedChunksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *EmbedChunksRequest) GetChunkIds() []string {
-	if x != nil {
-		return x.ChunkIds
-	}
-	return nil
-}
-
-func (x *EmbedChunksRequest) GetContents() []string {
-	if x != nil {
-		return x.Contents
-	}
-	return nil
-}
-
-func (x *EmbedChunksRequest) GetConfig() *EmbeddingConfig {
-	if x != nil {
-		return x.Config
-	}
-	return nil
-}
-
-type EmbedChunksResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FlatVectors   []float32              `protobuf:"fixed32,1,rep,packed,name=flat_vectors,json=flatVectors,proto3" json:"flat_vectors,omitempty"` // concatenated floats; use dims to reshape
-	Dims          int32                  `protobuf:"varint,2,opt,name=dims,proto3" json:"dims,omitempty"`
-	ModelId       string                 `protobuf:"bytes,3,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
-	ModelVersion  string                 `protobuf:"bytes,4,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EmbedChunksResponse) Reset() {
-	*x = EmbedChunksResponse{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EmbedChunksResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EmbedChunksResponse) ProtoMessage() {}
-
-func (x *EmbedChunksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EmbedChunksResponse.ProtoReflect.Descriptor instead.
-func (*EmbedChunksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *EmbedChunksResponse) GetFlatVectors() []float32 {
-	if x != nil {
-		return x.FlatVectors
-	}
-	return nil
-}
-
-func (x *EmbedChunksResponse) GetDims() int32 {
-	if x != nil {
-		return x.Dims
-	}
-	return 0
-}
-
-func (x *EmbedChunksResponse) GetModelId() string {
-	if x != nil {
-		return x.ModelId
-	}
-	return ""
-}
-
-func (x *EmbedChunksResponse) GetModelVersion() string {
-	if x != nil {
-		return x.ModelVersion
-	}
-	return ""
-}
-
 type EmbedQueryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
@@ -579,7 +357,7 @@ type EmbedQueryRequest struct {
 
 func (x *EmbedQueryRequest) Reset() {
 	*x = EmbedQueryRequest{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[8]
+	mi := &file_proto_v1_canvas_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -591,7 +369,7 @@ func (x *EmbedQueryRequest) String() string {
 func (*EmbedQueryRequest) ProtoMessage() {}
 
 func (x *EmbedQueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[8]
+	mi := &file_proto_v1_canvas_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -604,7 +382,7 @@ func (x *EmbedQueryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmbedQueryRequest.ProtoReflect.Descriptor instead.
 func (*EmbedQueryRequest) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{8}
+	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EmbedQueryRequest) GetText() string {
@@ -633,7 +411,7 @@ type EmbedQueryResponse struct {
 
 func (x *EmbedQueryResponse) Reset() {
 	*x = EmbedQueryResponse{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[9]
+	mi := &file_proto_v1_canvas_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -645,7 +423,7 @@ func (x *EmbedQueryResponse) String() string {
 func (*EmbedQueryResponse) ProtoMessage() {}
 
 func (x *EmbedQueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[9]
+	mi := &file_proto_v1_canvas_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -658,7 +436,7 @@ func (x *EmbedQueryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmbedQueryResponse.ProtoReflect.Descriptor instead.
 func (*EmbedQueryResponse) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{9}
+	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EmbedQueryResponse) GetVector() []float32 {
@@ -689,11 +467,262 @@ func (x *EmbedQueryResponse) GetModelVersion() string {
 	return ""
 }
 
+// ===== Combined Chunk + Embed =====
+type ChunkEmbedRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	SpaceId         string                 `protobuf:"bytes,1,opt,name=space_id,json=spaceId,proto3" json:"space_id,omitempty"`
+	ContentSourceId string                 `protobuf:"bytes,2,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"` // FK CONTENT_SOURCE.id (Postgres)
+	ContentNodeId   string                 `protobuf:"bytes,3,opt,name=content_node_id,json=contentNodeId,proto3" json:"content_node_id,omitempty"`       // FK ContentNode.id (Neo4j)
+	// Types that are valid to be assigned to Source:
+	//
+	//	*ChunkEmbedRequest_Text
+	//	*ChunkEmbedRequest_BlobUrl
+	Source        isChunkEmbedRequest_Source `protobuf_oneof:"source"`
+	Chunking      *ChunkingConfig            `protobuf:"bytes,20,opt,name=chunking,proto3" json:"chunking,omitempty"`
+	Embedding     *EmbeddingConfig           `protobuf:"bytes,21,opt,name=embedding,proto3" json:"embedding,omitempty"`
+	BatchSize     int32                      `protobuf:"varint,22,opt,name=batch_size,json=batchSize,proto3" json:"batch_size,omitempty"` // optional, for future streaming/batching
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChunkEmbedRequest) Reset() {
+	*x = ChunkEmbedRequest{}
+	mi := &file_proto_v1_canvas_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChunkEmbedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChunkEmbedRequest) ProtoMessage() {}
+
+func (x *ChunkEmbedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_v1_canvas_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChunkEmbedRequest.ProtoReflect.Descriptor instead.
+func (*ChunkEmbedRequest) Descriptor() ([]byte, []int) {
+	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ChunkEmbedRequest) GetSpaceId() string {
+	if x != nil {
+		return x.SpaceId
+	}
+	return ""
+}
+
+func (x *ChunkEmbedRequest) GetContentSourceId() string {
+	if x != nil {
+		return x.ContentSourceId
+	}
+	return ""
+}
+
+func (x *ChunkEmbedRequest) GetContentNodeId() string {
+	if x != nil {
+		return x.ContentNodeId
+	}
+	return ""
+}
+
+func (x *ChunkEmbedRequest) GetSource() isChunkEmbedRequest_Source {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *ChunkEmbedRequest) GetText() string {
+	if x != nil {
+		if x, ok := x.Source.(*ChunkEmbedRequest_Text); ok {
+			return x.Text
+		}
+	}
+	return ""
+}
+
+func (x *ChunkEmbedRequest) GetBlobUrl() string {
+	if x != nil {
+		if x, ok := x.Source.(*ChunkEmbedRequest_BlobUrl); ok {
+			return x.BlobUrl
+		}
+	}
+	return ""
+}
+
+func (x *ChunkEmbedRequest) GetChunking() *ChunkingConfig {
+	if x != nil {
+		return x.Chunking
+	}
+	return nil
+}
+
+func (x *ChunkEmbedRequest) GetEmbedding() *EmbeddingConfig {
+	if x != nil {
+		return x.Embedding
+	}
+	return nil
+}
+
+func (x *ChunkEmbedRequest) GetBatchSize() int32 {
+	if x != nil {
+		return x.BatchSize
+	}
+	return 0
+}
+
+type isChunkEmbedRequest_Source interface {
+	isChunkEmbedRequest_Source()
+}
+
+type ChunkEmbedRequest_Text struct {
+	Text string `protobuf:"bytes,10,opt,name=text,proto3,oneof"` // inline text
+}
+
+type ChunkEmbedRequest_BlobUrl struct {
+	BlobUrl string `protobuf:"bytes,11,opt,name=blob_url,json=blobUrl,proto3,oneof"` // URL to fetch processed text (e.g., R2)
+}
+
+func (*ChunkEmbedRequest_Text) isChunkEmbedRequest_Source() {}
+
+func (*ChunkEmbedRequest_BlobUrl) isChunkEmbedRequest_Source() {}
+
+type ChunkEmbedding struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Chunk         *Chunk                 `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
+	Vector        []float32              `protobuf:"fixed32,2,rep,packed,name=vector,proto3" json:"vector,omitempty"` // embedding for the chunk
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChunkEmbedding) Reset() {
+	*x = ChunkEmbedding{}
+	mi := &file_proto_v1_canvas_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChunkEmbedding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChunkEmbedding) ProtoMessage() {}
+
+func (x *ChunkEmbedding) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_v1_canvas_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChunkEmbedding.ProtoReflect.Descriptor instead.
+func (*ChunkEmbedding) Descriptor() ([]byte, []int) {
+	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ChunkEmbedding) GetChunk() *Chunk {
+	if x != nil {
+		return x.Chunk
+	}
+	return nil
+}
+
+func (x *ChunkEmbedding) GetVector() []float32 {
+	if x != nil {
+		return x.Vector
+	}
+	return nil
+}
+
+type ChunkEmbedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Results       []*ChunkEmbedding      `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"` // ordered list aligned with sequence_index
+	Dims          int32                  `protobuf:"varint,2,opt,name=dims,proto3" json:"dims,omitempty"`      // embedding dimensionality
+	ModelId       string                 `protobuf:"bytes,3,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
+	ModelVersion  string                 `protobuf:"bytes,4,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChunkEmbedResponse) Reset() {
+	*x = ChunkEmbedResponse{}
+	mi := &file_proto_v1_canvas_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChunkEmbedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChunkEmbedResponse) ProtoMessage() {}
+
+func (x *ChunkEmbedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_v1_canvas_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChunkEmbedResponse.ProtoReflect.Descriptor instead.
+func (*ChunkEmbedResponse) Descriptor() ([]byte, []int) {
+	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ChunkEmbedResponse) GetResults() []*ChunkEmbedding {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+func (x *ChunkEmbedResponse) GetDims() int32 {
+	if x != nil {
+		return x.Dims
+	}
+	return 0
+}
+
+func (x *ChunkEmbedResponse) GetModelId() string {
+	if x != nil {
+		return x.ModelId
+	}
+	return ""
+}
+
+func (x *ChunkEmbedResponse) GetModelVersion() string {
+	if x != nil {
+		return x.ModelVersion
+	}
+	return ""
+}
+
 var File_proto_v1_canvas_proto protoreflect.FileDescriptor
 
 const file_proto_v1_canvas_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/v1/canvas.proto\x12\tcanvas.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xae\x01\n" +
+	"\x15proto/v1/canvas.proto\x12\tcanvas.v1\x1a\x1bgoogle/protobuf/empty.proto\"\xae\x01\n" +
 	"\fHealthStatus\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12G\n" +
 	"\n" +
@@ -706,38 +735,23 @@ const file_proto_v1_canvas_proto_rawDesc = "" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12#\n" +
 	"\rtarget_tokens\x18\x02 \x01(\x05R\ftargetTokens\x12'\n" +
 	"\x0foverlap_percent\x18\x03 \x01(\x05R\x0eoverlapPercent\x12\x1c\n" +
-	"\ttokenizer\x18\x04 \x01(\tR\ttokenizer\"\xf1\x01\n" +
-	"\x10ChunkTextRequest\x12\x19\n" +
-	"\bspace_id\x18\x01 \x01(\tR\aspaceId\x12*\n" +
-	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12&\n" +
-	"\x0fcontent_node_id\x18\x03 \x01(\tR\rcontentNodeId\x12\x14\n" +
-	"\x04text\x18\n" +
-	" \x01(\tH\x00R\x04text\x12\x1b\n" +
-	"\bblob_url\x18\v \x01(\tH\x00R\ablobUrl\x121\n" +
-	"\x06config\x18\x14 \x01(\v2\x19.canvas.v1.ChunkingConfigR\x06configB\b\n" +
-	"\x06source\"\x97\x01\n" +
+	"\ttokenizer\x18\x04 \x01(\tR\ttokenizer\">\n" +
+	"\x12SpatialCoordinates\x12\f\n" +
+	"\x01x\x18\x01 \x01(\x05R\x01x\x12\f\n" +
+	"\x01y\x18\x02 \x01(\x05R\x01y\x12\f\n" +
+	"\x01z\x18\x03 \x01(\x05R\x01z\"\xdd\x01\n" +
 	"\x05Chunk\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
-	"\bposition\x18\x02 \x01(\x05R\bposition\x12%\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
+	"\x0esequence_index\x18\x02 \x01(\x05R\rsequenceIndex\x12%\n" +
 	"\x0estart_position\x18\x03 \x01(\x03R\rstartPosition\x12!\n" +
 	"\fend_position\x18\x04 \x01(\x03R\vendPosition\x12\x18\n" +
-	"\acontent\x18\x05 \x01(\tR\acontent\"=\n" +
-	"\x11ChunkTextResponse\x12(\n" +
-	"\x06chunks\x18\x01 \x03(\v2\x10.canvas.v1.ChunkR\x06chunks\"m\n" +
+	"\acontent\x18\x05 \x01(\tR\acontent\x129\n" +
+	"\blocation\x18\n" +
+	" \x01(\v2\x1d.canvas.v1.SpatialCoordinatesR\blocation\"m\n" +
 	"\x0fEmbeddingConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x19\n" +
 	"\bmodel_id\x18\x02 \x01(\tR\amodelId\x12#\n" +
-	"\rmodel_version\x18\x03 \x01(\tR\fmodelVersion\"\x81\x01\n" +
-	"\x12EmbedChunksRequest\x12\x1b\n" +
-	"\tchunk_ids\x18\x01 \x03(\tR\bchunkIds\x12\x1a\n" +
-	"\bcontents\x18\x02 \x03(\tR\bcontents\x122\n" +
-	"\x06config\x18\n" +
-	" \x01(\v2\x1a.canvas.v1.EmbeddingConfigR\x06config\"\x8c\x01\n" +
-	"\x13EmbedChunksResponse\x12!\n" +
-	"\fflat_vectors\x18\x01 \x03(\x02R\vflatVectors\x12\x12\n" +
-	"\x04dims\x18\x02 \x01(\x05R\x04dims\x12\x19\n" +
-	"\bmodel_id\x18\x03 \x01(\tR\amodelId\x12#\n" +
-	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion\"[\n" +
+	"\rmodel_version\x18\x03 \x01(\tR\fmodelVersion\"[\n" +
 	"\x11EmbedQueryRequest\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x122\n" +
 	"\x06config\x18\n" +
@@ -746,13 +760,33 @@ const file_proto_v1_canvas_proto_rawDesc = "" +
 	"\x06vector\x18\x01 \x03(\x02R\x06vector\x12\x12\n" +
 	"\x04dims\x18\x02 \x01(\x05R\x04dims\x12\x19\n" +
 	"\bmodel_id\x18\x03 \x01(\tR\amodelId\x12#\n" +
-	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion2\xad\x02\n" +
-	"\x0eCanvasInternal\x12F\n" +
-	"\tChunkText\x12\x1b.canvas.v1.ChunkTextRequest\x1a\x1c.canvas.v1.ChunkTextResponse\x12L\n" +
-	"\vEmbedChunks\x12\x1d.canvas.v1.EmbedChunksRequest\x1a\x1e.canvas.v1.EmbedChunksResponse\x12I\n" +
+	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion\"\xcf\x02\n" +
+	"\x11ChunkEmbedRequest\x12\x19\n" +
+	"\bspace_id\x18\x01 \x01(\tR\aspaceId\x12*\n" +
+	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12&\n" +
+	"\x0fcontent_node_id\x18\x03 \x01(\tR\rcontentNodeId\x12\x14\n" +
+	"\x04text\x18\n" +
+	" \x01(\tH\x00R\x04text\x12\x1b\n" +
+	"\bblob_url\x18\v \x01(\tH\x00R\ablobUrl\x125\n" +
+	"\bchunking\x18\x14 \x01(\v2\x19.canvas.v1.ChunkingConfigR\bchunking\x128\n" +
+	"\tembedding\x18\x15 \x01(\v2\x1a.canvas.v1.EmbeddingConfigR\tembedding\x12\x1d\n" +
+	"\n" +
+	"batch_size\x18\x16 \x01(\x05R\tbatchSizeB\b\n" +
+	"\x06source\"P\n" +
+	"\x0eChunkEmbedding\x12&\n" +
+	"\x05chunk\x18\x01 \x01(\v2\x10.canvas.v1.ChunkR\x05chunk\x12\x16\n" +
+	"\x06vector\x18\x02 \x03(\x02R\x06vector\"\x9d\x01\n" +
+	"\x12ChunkEmbedResponse\x123\n" +
+	"\aresults\x18\x01 \x03(\v2\x19.canvas.v1.ChunkEmbeddingR\aresults\x12\x12\n" +
+	"\x04dims\x18\x02 \x01(\x05R\x04dims\x12\x19\n" +
+	"\bmodel_id\x18\x03 \x01(\tR\amodelId\x12#\n" +
+	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion2\xe2\x01\n" +
+	"\x0eCanvasInternal\x12I\n" +
+	"\n" +
+	"ChunkEmbed\x12\x1c.canvas.v1.ChunkEmbedRequest\x1a\x1d.canvas.v1.ChunkEmbedResponse\x12I\n" +
 	"\n" +
 	"EmbedQuery\x12\x1c.canvas.v1.EmbedQueryRequest\x1a\x1d.canvas.v1.EmbedQueryResponse\x12:\n" +
-	"\aHealthz\x12\x16.google.protobuf.Empty\x1a\x17.canvas.v1.HealthStatusB\"Z demo/ms_canvas/proto/v1;canvasv1b\x06proto3"
+	"\aHealthz\x12\x16.google.protobuf.Empty\x1a\x17.canvas.v1.HealthStatusB-Z+demo/ms_canvas/go_app/api/proto/v1;canvasv1b\x06proto3"
 
 var (
 	file_proto_v1_canvas_proto_rawDescOnce sync.Once
@@ -768,38 +802,38 @@ func file_proto_v1_canvas_proto_rawDescGZIP() []byte {
 
 var file_proto_v1_canvas_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_v1_canvas_proto_goTypes = []any{
-	(*HealthStatus)(nil),        // 0: canvas.v1.HealthStatus
-	(*ChunkingConfig)(nil),      // 1: canvas.v1.ChunkingConfig
-	(*ChunkTextRequest)(nil),    // 2: canvas.v1.ChunkTextRequest
-	(*Chunk)(nil),               // 3: canvas.v1.Chunk
-	(*ChunkTextResponse)(nil),   // 4: canvas.v1.ChunkTextResponse
-	(*EmbeddingConfig)(nil),     // 5: canvas.v1.EmbeddingConfig
-	(*EmbedChunksRequest)(nil),  // 6: canvas.v1.EmbedChunksRequest
-	(*EmbedChunksResponse)(nil), // 7: canvas.v1.EmbedChunksResponse
-	(*EmbedQueryRequest)(nil),   // 8: canvas.v1.EmbedQueryRequest
-	(*EmbedQueryResponse)(nil),  // 9: canvas.v1.EmbedQueryResponse
-	nil,                         // 10: canvas.v1.HealthStatus.ComponentsEntry
-	(*emptypb.Empty)(nil),       // 11: google.protobuf.Empty
+	(*HealthStatus)(nil),       // 0: canvas.v1.HealthStatus
+	(*ChunkingConfig)(nil),     // 1: canvas.v1.ChunkingConfig
+	(*SpatialCoordinates)(nil), // 2: canvas.v1.SpatialCoordinates
+	(*Chunk)(nil),              // 3: canvas.v1.Chunk
+	(*EmbeddingConfig)(nil),    // 4: canvas.v1.EmbeddingConfig
+	(*EmbedQueryRequest)(nil),  // 5: canvas.v1.EmbedQueryRequest
+	(*EmbedQueryResponse)(nil), // 6: canvas.v1.EmbedQueryResponse
+	(*ChunkEmbedRequest)(nil),  // 7: canvas.v1.ChunkEmbedRequest
+	(*ChunkEmbedding)(nil),     // 8: canvas.v1.ChunkEmbedding
+	(*ChunkEmbedResponse)(nil), // 9: canvas.v1.ChunkEmbedResponse
+	nil,                        // 10: canvas.v1.HealthStatus.ComponentsEntry
+	(*emptypb.Empty)(nil),      // 11: google.protobuf.Empty
 }
 var file_proto_v1_canvas_proto_depIdxs = []int32{
 	10, // 0: canvas.v1.HealthStatus.components:type_name -> canvas.v1.HealthStatus.ComponentsEntry
-	1,  // 1: canvas.v1.ChunkTextRequest.config:type_name -> canvas.v1.ChunkingConfig
-	3,  // 2: canvas.v1.ChunkTextResponse.chunks:type_name -> canvas.v1.Chunk
-	5,  // 3: canvas.v1.EmbedChunksRequest.config:type_name -> canvas.v1.EmbeddingConfig
-	5,  // 4: canvas.v1.EmbedQueryRequest.config:type_name -> canvas.v1.EmbeddingConfig
-	2,  // 5: canvas.v1.CanvasInternal.ChunkText:input_type -> canvas.v1.ChunkTextRequest
-	6,  // 6: canvas.v1.CanvasInternal.EmbedChunks:input_type -> canvas.v1.EmbedChunksRequest
-	8,  // 7: canvas.v1.CanvasInternal.EmbedQuery:input_type -> canvas.v1.EmbedQueryRequest
-	11, // 8: canvas.v1.CanvasInternal.Healthz:input_type -> google.protobuf.Empty
-	4,  // 9: canvas.v1.CanvasInternal.ChunkText:output_type -> canvas.v1.ChunkTextResponse
-	7,  // 10: canvas.v1.CanvasInternal.EmbedChunks:output_type -> canvas.v1.EmbedChunksResponse
-	9,  // 11: canvas.v1.CanvasInternal.EmbedQuery:output_type -> canvas.v1.EmbedQueryResponse
+	2,  // 1: canvas.v1.Chunk.location:type_name -> canvas.v1.SpatialCoordinates
+	4,  // 2: canvas.v1.EmbedQueryRequest.config:type_name -> canvas.v1.EmbeddingConfig
+	1,  // 3: canvas.v1.ChunkEmbedRequest.chunking:type_name -> canvas.v1.ChunkingConfig
+	4,  // 4: canvas.v1.ChunkEmbedRequest.embedding:type_name -> canvas.v1.EmbeddingConfig
+	3,  // 5: canvas.v1.ChunkEmbedding.chunk:type_name -> canvas.v1.Chunk
+	8,  // 6: canvas.v1.ChunkEmbedResponse.results:type_name -> canvas.v1.ChunkEmbedding
+	7,  // 7: canvas.v1.CanvasInternal.ChunkEmbed:input_type -> canvas.v1.ChunkEmbedRequest
+	5,  // 8: canvas.v1.CanvasInternal.EmbedQuery:input_type -> canvas.v1.EmbedQueryRequest
+	11, // 9: canvas.v1.CanvasInternal.Healthz:input_type -> google.protobuf.Empty
+	9,  // 10: canvas.v1.CanvasInternal.ChunkEmbed:output_type -> canvas.v1.ChunkEmbedResponse
+	6,  // 11: canvas.v1.CanvasInternal.EmbedQuery:output_type -> canvas.v1.EmbedQueryResponse
 	0,  // 12: canvas.v1.CanvasInternal.Healthz:output_type -> canvas.v1.HealthStatus
-	9,  // [9:13] is the sub-list for method output_type
-	5,  // [5:9] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	10, // [10:13] is the sub-list for method output_type
+	7,  // [7:10] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_v1_canvas_proto_init() }
@@ -807,9 +841,9 @@ func file_proto_v1_canvas_proto_init() {
 	if File_proto_v1_canvas_proto != nil {
 		return
 	}
-	file_proto_v1_canvas_proto_msgTypes[2].OneofWrappers = []any{
-		(*ChunkTextRequest_Text)(nil),
-		(*ChunkTextRequest_BlobUrl)(nil),
+	file_proto_v1_canvas_proto_msgTypes[7].OneofWrappers = []any{
+		(*ChunkEmbedRequest_Text)(nil),
+		(*ChunkEmbedRequest_BlobUrl)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

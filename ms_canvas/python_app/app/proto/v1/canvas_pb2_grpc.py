@@ -3,10 +3,10 @@
 import grpc
 import warnings
 
-from . import canvas_pb2 as canvas__pb2
+import canvas_pb2 as canvas__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
-GRPC_GENERATED_VERSION = '1.74.0'
+GRPC_GENERATED_VERSION = '1.75.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -36,15 +36,10 @@ class CanvasInternalStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.ChunkText = channel.unary_unary(
-                '/canvas.v1.CanvasInternal/ChunkText',
-                request_serializer=canvas__pb2.ChunkTextRequest.SerializeToString,
-                response_deserializer=canvas__pb2.ChunkTextResponse.FromString,
-                _registered_method=True)
-        self.EmbedChunks = channel.unary_unary(
-                '/canvas.v1.CanvasInternal/EmbedChunks',
-                request_serializer=canvas__pb2.EmbedChunksRequest.SerializeToString,
-                response_deserializer=canvas__pb2.EmbedChunksResponse.FromString,
+        self.ChunkEmbed = channel.unary_unary(
+                '/canvas.v1.CanvasInternal/ChunkEmbed',
+                request_serializer=canvas__pb2.ChunkEmbedRequest.SerializeToString,
+                response_deserializer=canvas__pb2.ChunkEmbedResponse.FromString,
                 _registered_method=True)
         self.EmbedQuery = channel.unary_unary(
                 '/canvas.v1.CanvasInternal/EmbedQuery',
@@ -62,13 +57,7 @@ class CanvasInternalServicer(object):
     """Internal service for chunking and embeddings.
     """
 
-    def ChunkText(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def EmbedChunks(self, request, context):
+    def ChunkEmbed(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -89,15 +78,10 @@ class CanvasInternalServicer(object):
 
 def add_CanvasInternalServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'ChunkText': grpc.unary_unary_rpc_method_handler(
-                    servicer.ChunkText,
-                    request_deserializer=canvas__pb2.ChunkTextRequest.FromString,
-                    response_serializer=canvas__pb2.ChunkTextResponse.SerializeToString,
-            ),
-            'EmbedChunks': grpc.unary_unary_rpc_method_handler(
-                    servicer.EmbedChunks,
-                    request_deserializer=canvas__pb2.EmbedChunksRequest.FromString,
-                    response_serializer=canvas__pb2.EmbedChunksResponse.SerializeToString,
+            'ChunkEmbed': grpc.unary_unary_rpc_method_handler(
+                    servicer.ChunkEmbed,
+                    request_deserializer=canvas__pb2.ChunkEmbedRequest.FromString,
+                    response_serializer=canvas__pb2.ChunkEmbedResponse.SerializeToString,
             ),
             'EmbedQuery': grpc.unary_unary_rpc_method_handler(
                     servicer.EmbedQuery,
@@ -122,7 +106,7 @@ class CanvasInternal(object):
     """
 
     @staticmethod
-    def ChunkText(request,
+    def ChunkEmbed(request,
             target,
             options=(),
             channel_credentials=None,
@@ -135,36 +119,9 @@ class CanvasInternal(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/canvas.v1.CanvasInternal/ChunkText',
-            canvas__pb2.ChunkTextRequest.SerializeToString,
-            canvas__pb2.ChunkTextResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def EmbedChunks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.CanvasInternal/EmbedChunks',
-            canvas__pb2.EmbedChunksRequest.SerializeToString,
-            canvas__pb2.EmbedChunksResponse.FromString,
+            '/canvas.v1.CanvasInternal/ChunkEmbed',
+            canvas__pb2.ChunkEmbedRequest.SerializeToString,
+            canvas__pb2.ChunkEmbedResponse.FromString,
             options,
             channel_credentials,
             insecure,
