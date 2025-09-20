@@ -1,39 +1,42 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
 
-[project]
+[tool.poetry]
 name = "ms-canvas-python-app"
 version = "0.1.0"
 description = "Python sidecar for ms_canvas (chunking, embedding)"
-requires-python = ">=3.10"
-dependencies = [
-  "grpcio>=1.62.0",
-  "grpcio-tools>=1.62.0",
-  "protobuf>=4.25.0",
-  "spacy>=3.7.0",
-  "tiktoken>=0.7.0",
-  "requests>=2.31.0",
-  "opentelemetry-api>=1.24.0",
-  "opentelemetry-sdk>=1.24.0",
-  "opentelemetry-instrumentation-grpc>=0.45b0",
-  "opentelemetry-exporter-otlp-proto-grpc>=1.24.0",
-  "pydantic>=2.5.3",
-  "pydantic-settings>=2.10.1",
-  "confluent-kafka>=2.4.0",
-  "openai>=1.0.0",
-  "numpy>=1.24.0",
-  "sentence-transformers>=2.2.0",
-  "neo4j-graphrag>=0.1.0",
+authors = ["ms_canvas <dev@local>"]
+
+packages = [
+  { include = "app" }
 ]
 
-[project.optional-dependencies]
-test = [
-  "pytest>=7.0.0",
-  "pytest-cov>=4.0.0",
-]
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+grpcio = ">=1.62.0"
+grpcio-tools = ">=1.62.0"
+protobuf = ">=4.25.0"
+spacy = ">=3.7.0"
+tiktoken = ">=0.7.0"
+requests = ">=2.31.0"
+opentelemetry-api = ">=1.24.0"
+opentelemetry-sdk = ">=1.24.0"
+opentelemetry-instrumentation-grpc = ">=0.45b0"
+opentelemetry-exporter-otlp-proto-grpc = ">=1.24.0"
+pydantic = ">=2.5.3"
+pydantic-settings = ">=2.10.1"
+confluent-kafka = ">=2.4.0"
+openai = ">=1.0.0"
+numpy = ">=1.24.0"
+sentence-transformers = ">=2.2.0"
+neo4j-graphrag = ">=0.1.0"
 
-[project.scripts]
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+pytest-cov = ">=4.0.0"
+
+[tool.poetry.scripts]
 canvas-python-server = "app.server:main"
 
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
