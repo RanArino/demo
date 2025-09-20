@@ -181,12 +181,12 @@
   >
   > **Related Requirements:** 5.1
 
-- [ ] **5.2. Implement gRPC services in `internal/server/grpc.go`**
+- [x] **5.2. Implement gRPC services in `internal/server/grpc.go`**
   > Wire to service layer and repositories; add validation; implement GetNode, GetNeighbors, SemanticSearch, CreateStructuralLink RPCs.
   >
   > **Related Requirements:** 5.1
 
-- [ ] **5.3. Optional gRPC-Gateway HTTP endpoints**
+- [-] **5.3. Optional gRPC-Gateway HTTP endpoints**
   > Provide HTTP access via gateway; auth middleware.
   >
   > **Related Requirements:** 6.5 (Security)
