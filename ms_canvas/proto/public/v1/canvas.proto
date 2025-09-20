@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package canvas.public.v1;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
-import "../private/v1/canvas_private.proto";
+import "private/v1/canvas_private.proto";
 
 option go_package = "demo/ms_canvas/go_app/api/proto/public/v1;canvaspublicv1";
 
@@ -115,9 +114,41 @@ message GetLinksResponse {
   repeated canvas.v1.Link links = 1; // links returned in same order as requested IDs
 }
 
+// ===== GetHierarchicalLinks =====
+// Public-only RPC: GetHierarchicalLinks (not available in internal API)
+message GetHierarchicalLinksRequest {
+  repeated string ids = 1; // list of hierarchical link IDs to retrieve
+  canvas.v1.HierarchicalLinkFilter filter = 2; // optional filter for querying hierarchical links
+}
+
+message GetHierarchicalLinksResponse {
+  repeated canvas.v1.HierarchicalLink links = 1; // hierarchical links returned in same order as requested IDs
+}
+
+// ===== GetSemanticLinks =====
+// Public-only RPC: GetSemanticLinks (not available in internal API)
+message GetSemanticLinksRequest {
+  repeated string ids = 1; // list of semantic link IDs to retrieve
+  canvas.v1.SemanticLinkFilter filter = 2; // optional filter for querying semantic links
+}
+
+message GetSemanticLinksResponse {
+  repeated canvas.v1.SemanticLink links = 1; // semantic links returned in same order as requested IDs
+}
+
+// ===== GetStructuralLinks =====
+// Public-only RPC: GetStructuralLinks (not available in internal API)
+message GetStructuralLinksRequest {
+  repeated string ids = 1; // list of structural link IDs to retrieve
+  canvas.v1.StructuralLinkFilter filter = 2; // optional filter for querying structural links
+}
+
+message GetStructuralLinksResponse {
+  repeated canvas.v1.StructuralLink links = 1; // structural links returned in same order as requested IDs
+}
+
 // ===== CreateStructuralLinks =====
 // Public-only RPC: CreateStructuralLinks (not available in internal API)
-// Uses StructuralLink from canvas.v1.StructuralLink
 
 message StructuralLinkCreate {
   string source_id = 1;
