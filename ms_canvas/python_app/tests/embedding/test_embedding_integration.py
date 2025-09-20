@@ -12,7 +12,7 @@ from app.services.embedding import (
     embed_query,
 )
 from app.server import CanvasInternalServicer
-from app.proto.v1 import canvas_pb2
+from app.proto.private.v1 import canvas_private_pb2 as canvas_pb2
 
 
 class TestEmbeddingIntegration:

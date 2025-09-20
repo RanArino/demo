@@ -13,7 +13,10 @@ from .config import settings
 from .services.chunking import ChunkingConfig
 from .services.embedding import embed_query, EmbeddingConfig
 from .pipelines.chunk_and_embed import chunk_and_embed, chunk_and_embed_batched
-from .proto.v1 import canvas_pb2, canvas_pb2_grpc
+from .proto.private.v1 import (
+    canvas_private_pb2 as canvas_pb2,
+    canvas_private_pb2_grpc as canvas_pb2_grpc,
+)   
 
 
 def _setup_logging():
