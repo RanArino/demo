@@ -7,7 +7,7 @@
 ### 1. Kafka consumer and ingestion orchestration (Go)
 > Implement secure, idempotent consumption of upstream `document.processed` and trigger orchestration directly (no internal Kafka).
 
-- [x] **1.1. Create Kafka consumer setup in `internal/infrastructure/consumer/kafka`**
+- [x] **1.1. Create Kafka consumer setup in `internal/events/kafka`**
   > Initialize consumer group, topic subscription, offset management, and graceful shutdown.
   >
   > **Related Requirements:** 1.1 (Req 1: Event-Driven Document Ingestion)
@@ -99,7 +99,7 @@
   > **Related Requirements:** 3b
 
 - [x] **3b.4. Update Go orchestrator to call combined RPC**
-  > Use `internal/gateway/python/chunking_and_embedding.go` to call `ChunkAndEmbed`; persist `ChunkNode`s (content + offsets) and embeddings in Neo4j; emit `chunking.completed` and `embedding.completed` metrics.
+  > Use `internal/gateway/python/chunking_and_embedding.go` to call `ChunkEmbed`; persist `ChunkNode`s (content + offsets) and embeddings in Neo4j; emit `chunking.completed` and `embedding.completed` metrics.
   >
   > **Related Requirements:** 3b, 4.1
 
@@ -176,17 +176,17 @@
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
 
-- [ ] **5.1. Define `proto/public/canvas_public.proto` messages and services**
-  > `GetNode`, `GetNeighbors`, `SemanticSearch`, `CreateStructuralLink`.
+- [x] **5.1. Move internal proto to `proto/private/v1/canvas_private.proto`, and define public proto at `proto/public/v1/canvas.proto`**
+  > `GetNode`, `UpdateNode`, `GetNeighbors`, `SemanticSearch`, `CreateStructuralLink`.
   >
   > **Related Requirements:** 5.1
 
-- [ ] **5.2. Implement gRPC services in `internal/server/grpc.go`**
+- [x] **5.2. Implement gRPC services in `internal/server/grpc.go`**
   > Wire to service layer and repositories; add validation; implement GetNode, GetNeighbors, SemanticSearch, CreateStructuralLink RPCs.
   >
   > **Related Requirements:** 5.1
 
-- [ ] **5.3. Optional gRPC-Gateway HTTP endpoints**
+- [-] **5.3. Optional gRPC-Gateway HTTP endpoints**
   > Provide HTTP access via gateway; auth middleware.
   >
   > **Related Requirements:** 6.5 (Security)
@@ -206,13 +206,15 @@
   > Load config, start servers and consumers, health checks, graceful shutdown.
   >
   > **Related Requirements:** 6.6
+  >
+  > Follow-up: also invoke `EnsureIndexes` on startup alongside `EnsureConstraints`.
 
 ## Feature G: Internal Protocols
 
 ### 7. Protobuf definitions (internal)
 
- - [x] **7.1. Define `proto/canvas.proto`**
-  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. (Implemented at `ms_canvas/proto/v1/canvas.proto`)
+ - [ ] **7.1. Define `proto/private/v1/canvas_private.proto`**
+  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. (Implemented at `ms_canvas/proto/private/v1/canvas_private.proto`)
   >
   > **Related Requirements:** 2.1, 3.1, 5.1
 

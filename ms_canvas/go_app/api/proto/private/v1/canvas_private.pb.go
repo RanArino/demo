@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.8
 // 	protoc        v5.29.3
-// source: proto/v1/canvas.proto
+// source: proto/private/v1/canvas_private.proto
 
 package canvasv1
 
@@ -32,7 +32,7 @@ type HealthStatus struct {
 
 func (x *HealthStatus) Reset() {
 	*x = HealthStatus{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[0]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *HealthStatus) String() string {
 func (*HealthStatus) ProtoMessage() {}
 
 func (x *HealthStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[0]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *HealthStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthStatus.ProtoReflect.Descriptor instead.
 func (*HealthStatus) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{0}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *HealthStatus) GetStatus() string {
@@ -87,7 +87,7 @@ type ChunkingConfig struct {
 
 func (x *ChunkingConfig) Reset() {
 	*x = ChunkingConfig{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[1]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -99,7 +99,7 @@ func (x *ChunkingConfig) String() string {
 func (*ChunkingConfig) ProtoMessage() {}
 
 func (x *ChunkingConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[1]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -112,7 +112,7 @@ func (x *ChunkingConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkingConfig.ProtoReflect.Descriptor instead.
 func (*ChunkingConfig) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{1}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ChunkingConfig) GetType() string {
@@ -154,7 +154,7 @@ type SpatialCoordinates struct {
 
 func (x *SpatialCoordinates) Reset() {
 	*x = SpatialCoordinates{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[2]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -166,7 +166,7 @@ func (x *SpatialCoordinates) String() string {
 func (*SpatialCoordinates) ProtoMessage() {}
 
 func (x *SpatialCoordinates) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[2]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -179,7 +179,7 @@ func (x *SpatialCoordinates) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpatialCoordinates.ProtoReflect.Descriptor instead.
 func (*SpatialCoordinates) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{2}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SpatialCoordinates) GetX() int32 {
@@ -217,7 +217,7 @@ type Chunk struct {
 
 func (x *Chunk) Reset() {
 	*x = Chunk{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[3]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -229,7 +229,7 @@ func (x *Chunk) String() string {
 func (*Chunk) ProtoMessage() {}
 
 func (x *Chunk) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[3]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -242,7 +242,7 @@ func (x *Chunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Chunk.ProtoReflect.Descriptor instead.
 func (*Chunk) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{3}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Chunk) GetId() string {
@@ -298,7 +298,7 @@ type EmbeddingConfig struct {
 
 func (x *EmbeddingConfig) Reset() {
 	*x = EmbeddingConfig{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[4]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -310,7 +310,7 @@ func (x *EmbeddingConfig) String() string {
 func (*EmbeddingConfig) ProtoMessage() {}
 
 func (x *EmbeddingConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[4]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,7 +323,7 @@ func (x *EmbeddingConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmbeddingConfig.ProtoReflect.Descriptor instead.
 func (*EmbeddingConfig) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{4}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EmbeddingConfig) GetProvider() string {
@@ -357,7 +357,7 @@ type EmbedQueryRequest struct {
 
 func (x *EmbedQueryRequest) Reset() {
 	*x = EmbedQueryRequest{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[5]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -369,7 +369,7 @@ func (x *EmbedQueryRequest) String() string {
 func (*EmbedQueryRequest) ProtoMessage() {}
 
 func (x *EmbedQueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[5]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -382,7 +382,7 @@ func (x *EmbedQueryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmbedQueryRequest.ProtoReflect.Descriptor instead.
 func (*EmbedQueryRequest) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{5}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EmbedQueryRequest) GetText() string {
@@ -411,7 +411,7 @@ type EmbedQueryResponse struct {
 
 func (x *EmbedQueryResponse) Reset() {
 	*x = EmbedQueryResponse{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[6]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -423,7 +423,7 @@ func (x *EmbedQueryResponse) String() string {
 func (*EmbedQueryResponse) ProtoMessage() {}
 
 func (x *EmbedQueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[6]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,7 +436,7 @@ func (x *EmbedQueryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmbedQueryResponse.ProtoReflect.Descriptor instead.
 func (*EmbedQueryResponse) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{6}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EmbedQueryResponse) GetVector() []float32 {
@@ -487,7 +487,7 @@ type ChunkEmbedRequest struct {
 
 func (x *ChunkEmbedRequest) Reset() {
 	*x = ChunkEmbedRequest{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[7]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -499,7 +499,7 @@ func (x *ChunkEmbedRequest) String() string {
 func (*ChunkEmbedRequest) ProtoMessage() {}
 
 func (x *ChunkEmbedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[7]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -512,7 +512,7 @@ func (x *ChunkEmbedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkEmbedRequest.ProtoReflect.Descriptor instead.
 func (*ChunkEmbedRequest) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{7}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ChunkEmbedRequest) GetSpaceId() string {
@@ -608,7 +608,7 @@ type ChunkEmbedding struct {
 
 func (x *ChunkEmbedding) Reset() {
 	*x = ChunkEmbedding{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[8]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +620,7 @@ func (x *ChunkEmbedding) String() string {
 func (*ChunkEmbedding) ProtoMessage() {}
 
 func (x *ChunkEmbedding) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[8]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +633,7 @@ func (x *ChunkEmbedding) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkEmbedding.ProtoReflect.Descriptor instead.
 func (*ChunkEmbedding) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{8}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ChunkEmbedding) GetChunk() *Chunk {
@@ -662,7 +662,7 @@ type ChunkEmbedResponse struct {
 
 func (x *ChunkEmbedResponse) Reset() {
 	*x = ChunkEmbedResponse{}
-	mi := &file_proto_v1_canvas_proto_msgTypes[9]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -674,7 +674,7 @@ func (x *ChunkEmbedResponse) String() string {
 func (*ChunkEmbedResponse) ProtoMessage() {}
 
 func (x *ChunkEmbedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_canvas_proto_msgTypes[9]
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -687,7 +687,7 @@ func (x *ChunkEmbedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkEmbedResponse.ProtoReflect.Descriptor instead.
 func (*ChunkEmbedResponse) Descriptor() ([]byte, []int) {
-	return file_proto_v1_canvas_proto_rawDescGZIP(), []int{9}
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ChunkEmbedResponse) GetResults() []*ChunkEmbedding {
@@ -718,11 +718,11 @@ func (x *ChunkEmbedResponse) GetModelVersion() string {
 	return ""
 }
 
-var File_proto_v1_canvas_proto protoreflect.FileDescriptor
+var File_proto_private_v1_canvas_private_proto protoreflect.FileDescriptor
 
-const file_proto_v1_canvas_proto_rawDesc = "" +
+const file_proto_private_v1_canvas_private_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/v1/canvas.proto\x12\tcanvas.v1\x1a\x1bgoogle/protobuf/empty.proto\"\xae\x01\n" +
+	"%proto/private/v1/canvas_private.proto\x12\tcanvas.v1\x1a\x1bgoogle/protobuf/empty.proto\"\xae\x01\n" +
 	"\fHealthStatus\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12G\n" +
 	"\n" +
@@ -789,19 +789,19 @@ const file_proto_v1_canvas_proto_rawDesc = "" +
 	"\aHealthz\x12\x16.google.protobuf.Empty\x1a\x17.canvas.v1.HealthStatusB-Z+demo/ms_canvas/go_app/api/proto/v1;canvasv1b\x06proto3"
 
 var (
-	file_proto_v1_canvas_proto_rawDescOnce sync.Once
-	file_proto_v1_canvas_proto_rawDescData []byte
+	file_proto_private_v1_canvas_private_proto_rawDescOnce sync.Once
+	file_proto_private_v1_canvas_private_proto_rawDescData []byte
 )
 
-func file_proto_v1_canvas_proto_rawDescGZIP() []byte {
-	file_proto_v1_canvas_proto_rawDescOnce.Do(func() {
-		file_proto_v1_canvas_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_v1_canvas_proto_rawDesc), len(file_proto_v1_canvas_proto_rawDesc)))
+func file_proto_private_v1_canvas_private_proto_rawDescGZIP() []byte {
+	file_proto_private_v1_canvas_private_proto_rawDescOnce.Do(func() {
+		file_proto_private_v1_canvas_private_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_private_v1_canvas_private_proto_rawDesc), len(file_proto_private_v1_canvas_private_proto_rawDesc)))
 	})
-	return file_proto_v1_canvas_proto_rawDescData
+	return file_proto_private_v1_canvas_private_proto_rawDescData
 }
 
-var file_proto_v1_canvas_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_proto_v1_canvas_proto_goTypes = []any{
+var file_proto_private_v1_canvas_private_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_private_v1_canvas_private_proto_goTypes = []any{
 	(*HealthStatus)(nil),       // 0: canvas.v1.HealthStatus
 	(*ChunkingConfig)(nil),     // 1: canvas.v1.ChunkingConfig
 	(*SpatialCoordinates)(nil), // 2: canvas.v1.SpatialCoordinates
@@ -815,7 +815,7 @@ var file_proto_v1_canvas_proto_goTypes = []any{
 	nil,                        // 10: canvas.v1.HealthStatus.ComponentsEntry
 	(*emptypb.Empty)(nil),      // 11: google.protobuf.Empty
 }
-var file_proto_v1_canvas_proto_depIdxs = []int32{
+var file_proto_private_v1_canvas_private_proto_depIdxs = []int32{
 	10, // 0: canvas.v1.HealthStatus.components:type_name -> canvas.v1.HealthStatus.ComponentsEntry
 	2,  // 1: canvas.v1.Chunk.location:type_name -> canvas.v1.SpatialCoordinates
 	4,  // 2: canvas.v1.EmbedQueryRequest.config:type_name -> canvas.v1.EmbeddingConfig
@@ -836,12 +836,12 @@ var file_proto_v1_canvas_proto_depIdxs = []int32{
 	0,  // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_proto_v1_canvas_proto_init() }
-func file_proto_v1_canvas_proto_init() {
-	if File_proto_v1_canvas_proto != nil {
+func init() { file_proto_private_v1_canvas_private_proto_init() }
+func file_proto_private_v1_canvas_private_proto_init() {
+	if File_proto_private_v1_canvas_private_proto != nil {
 		return
 	}
-	file_proto_v1_canvas_proto_msgTypes[7].OneofWrappers = []any{
+	file_proto_private_v1_canvas_private_proto_msgTypes[7].OneofWrappers = []any{
 		(*ChunkEmbedRequest_Text)(nil),
 		(*ChunkEmbedRequest_BlobUrl)(nil),
 	}
@@ -849,17 +849,17 @@ func file_proto_v1_canvas_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_v1_canvas_proto_rawDesc), len(file_proto_v1_canvas_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_private_v1_canvas_private_proto_rawDesc), len(file_proto_private_v1_canvas_private_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_v1_canvas_proto_goTypes,
-		DependencyIndexes: file_proto_v1_canvas_proto_depIdxs,
-		MessageInfos:      file_proto_v1_canvas_proto_msgTypes,
+		GoTypes:           file_proto_private_v1_canvas_private_proto_goTypes,
+		DependencyIndexes: file_proto_private_v1_canvas_private_proto_depIdxs,
+		MessageInfos:      file_proto_private_v1_canvas_private_proto_msgTypes,
 	}.Build()
-	File_proto_v1_canvas_proto = out.File
-	file_proto_v1_canvas_proto_goTypes = nil
-	file_proto_v1_canvas_proto_depIdxs = nil
+	File_proto_private_v1_canvas_private_proto = out.File
+	file_proto_private_v1_canvas_private_proto_goTypes = nil
+	file_proto_private_v1_canvas_private_proto_depIdxs = nil
 }

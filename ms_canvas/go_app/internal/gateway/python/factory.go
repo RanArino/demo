@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
+	privpb "demo/ms_canvas/go_app/api/proto/private/v1"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "demo/ms_canvas/go_app/api/proto/v1"
 	"demo/ms_canvas/go_app/internal/config"
 )
 
@@ -34,7 +35,7 @@ const (
 
 // Gateway handles communication with Python services
 type Gateway struct {
-	client pb.CanvasInternalClient
+	client privpb.CanvasInternalClient
 	conn   *grpc.ClientConn
 }
 
@@ -239,7 +240,7 @@ func (f *GatewayFactory) newGateway(config Config) (*Gateway, error) {
 		return nil, fmt.Errorf("failed to connect to Python service at %s: %w", address, err)
 	}
 
-	client := pb.NewCanvasInternalClient(conn)
+	client := privpb.NewCanvasInternalClient(conn)
 
 	return &Gateway{
 		client: client,
@@ -254,4 +255,3 @@ func (g *Gateway) Close() error {
 	}
 	return nil
 }
-

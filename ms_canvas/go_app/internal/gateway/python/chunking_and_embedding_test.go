@@ -2,6 +2,7 @@ package python
 
 import (
 	"context"
+	privpb "demo/ms_canvas/go_app/api/proto/private/v1"
 	"errors"
 	"testing"
 
@@ -9,8 +10,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
-
-	pb "demo/ms_canvas/go_app/api/proto/v1"
 )
 
 // MockCanvasInternalClient is a mock implementation of pb.CanvasInternalClient
@@ -18,19 +17,19 @@ type MockCanvasInternalClient struct {
 	mock.Mock
 }
 
-func (m *MockCanvasInternalClient) ChunkEmbed(ctx context.Context, req *pb.ChunkEmbedRequest, opts ...grpc.CallOption) (*pb.ChunkEmbedResponse, error) {
+func (m *MockCanvasInternalClient) ChunkEmbed(ctx context.Context, req *privpb.ChunkEmbedRequest, opts ...grpc.CallOption) (*privpb.ChunkEmbedResponse, error) {
 	args := m.Called(ctx, req)
-	return args.Get(0).(*pb.ChunkEmbedResponse), args.Error(1)
+	return args.Get(0).(*privpb.ChunkEmbedResponse), args.Error(1)
 }
 
-func (m *MockCanvasInternalClient) EmbedQuery(ctx context.Context, req *pb.EmbedQueryRequest, opts ...grpc.CallOption) (*pb.EmbedQueryResponse, error) {
+func (m *MockCanvasInternalClient) EmbedQuery(ctx context.Context, req *privpb.EmbedQueryRequest, opts ...grpc.CallOption) (*privpb.EmbedQueryResponse, error) {
 	args := m.Called(ctx, req)
-	return args.Get(0).(*pb.EmbedQueryResponse), args.Error(1)
+	return args.Get(0).(*privpb.EmbedQueryResponse), args.Error(1)
 }
 
-func (m *MockCanvasInternalClient) Healthz(ctx context.Context, req *emptypb.Empty, opts ...grpc.CallOption) (*pb.HealthStatus, error) {
+func (m *MockCanvasInternalClient) Healthz(ctx context.Context, req *emptypb.Empty, opts ...grpc.CallOption) (*privpb.HealthStatus, error) {
 	args := m.Called(ctx, req)
-	return args.Get(0).(*pb.HealthStatus), args.Error(1)
+	return args.Get(0).(*privpb.HealthStatus), args.Error(1)
 }
 
 // Helper function to create a gateway with mock client
@@ -48,20 +47,20 @@ func TestGateway_ChunkEmbed_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Prepare test data
-	req := &pb.ChunkEmbedRequest{
+	req := &privpb.ChunkEmbedRequest{
 		SpaceId:         "space-123",
 		ContentSourceId: "content-456",
 		ContentNodeId:   "node-789",
-		Source: &pb.ChunkEmbedRequest_Text{
+		Source: &privpb.ChunkEmbedRequest_Text{
 			Text: "This is test content for chunking and embedding.",
 		},
-		Chunking: &pb.ChunkingConfig{
+		Chunking: &privpb.ChunkingConfig{
 			Type:           "sentence",
 			TargetTokens:   300,
 			OverlapPercent: 10,
 			Tokenizer:      "tiktoken:cl100k_base",
 		},
-		Embedding: &pb.EmbeddingConfig{
+		Embedding: &privpb.EmbeddingConfig{
 			Provider:     "huggingface",
 			ModelId:      "all-MiniLM-L6-v2",
 			ModelVersion: "",
@@ -69,10 +68,10 @@ func TestGateway_ChunkEmbed_Success(t *testing.T) {
 		BatchSize: 50,
 	}
 
-	expectedResponse := &pb.ChunkEmbedResponse{
-		Results: []*pb.ChunkEmbedding{
+	expectedResponse := &privpb.ChunkEmbedResponse{
+		Results: []*privpb.ChunkEmbedding{
 			{
-				Chunk: &pb.Chunk{
+				Chunk: &privpb.Chunk{
 					Id:            "chunk-1",
 					SequenceIndex: 0,
 					StartPosition: 0,
@@ -103,10 +102,10 @@ func TestGateway_ChunkEmbed_Error(t *testing.T) {
 	gateway, mockClient := newTestGateway()
 	ctx := context.Background()
 
-	req := &pb.ChunkEmbedRequest{
+	req := &privpb.ChunkEmbedRequest{
 		SpaceId:         "space-123",
 		ContentSourceId: "content-456",
-		Source: &pb.ChunkEmbedRequest_Text{
+		Source: &privpb.ChunkEmbedRequest_Text{
 			Text: "Test content",
 		},
 	}
@@ -114,7 +113,7 @@ func TestGateway_ChunkEmbed_Error(t *testing.T) {
 	expectedError := errors.New("python service unavailable")
 
 	// Set up mock expectations
-	mockClient.On("ChunkEmbed", ctx, req).Return((*pb.ChunkEmbedResponse)(nil), expectedError)
+	mockClient.On("ChunkEmbed", ctx, req).Return((*privpb.ChunkEmbedResponse)(nil), expectedError)
 
 	// Execute
 	result, err := gateway.ChunkEmbed(ctx, req)
@@ -132,18 +131,18 @@ func TestGateway_EmbedQuery_Success(t *testing.T) {
 	ctx := context.Background()
 
 	text := "What is the meaning of life?"
-	config := &pb.EmbeddingConfig{
+	config := &privpb.EmbeddingConfig{
 		Provider:     "openai",
 		ModelId:      "text-embedding-ada-002",
 		ModelVersion: "v2",
 	}
 
-	expectedRequest := &pb.EmbedQueryRequest{
+	expectedRequest := &privpb.EmbedQueryRequest{
 		Text:   text,
 		Config: config,
 	}
 
-	expectedResponse := &pb.EmbedQueryResponse{
+	expectedResponse := &privpb.EmbedQueryResponse{
 		Vector:       []float32{0.1, 0.2, 0.3, 0.4, 0.5},
 		Dims:         5,
 		ModelId:      "text-embedding-ada-002",
@@ -167,12 +166,12 @@ func TestGateway_EmbedQuery_Error(t *testing.T) {
 	ctx := context.Background()
 
 	text := "Test query"
-	config := &pb.EmbeddingConfig{
+	config := &privpb.EmbeddingConfig{
 		Provider: "openai",
 		ModelId:  "text-embedding-ada-002",
 	}
 
-	expectedRequest := &pb.EmbedQueryRequest{
+	expectedRequest := &privpb.EmbedQueryRequest{
 		Text:   text,
 		Config: config,
 	}
@@ -180,7 +179,7 @@ func TestGateway_EmbedQuery_Error(t *testing.T) {
 	expectedError := errors.New("embedding service error")
 
 	// Set up mock expectations
-	mockClient.On("EmbedQuery", ctx, expectedRequest).Return((*pb.EmbedQueryResponse)(nil), expectedError)
+	mockClient.On("EmbedQuery", ctx, expectedRequest).Return((*privpb.EmbedQueryResponse)(nil), expectedError)
 
 	// Execute
 	result, err := gateway.EmbedQuery(ctx, text, config)
@@ -196,7 +195,7 @@ func TestGateway_Healthz_Success(t *testing.T) {
 	gateway, mockClient := newTestGateway()
 	ctx := context.Background()
 
-	expectedResponse := &pb.HealthStatus{
+	expectedResponse := &privpb.HealthStatus{
 		Status: "OK",
 		Components: map[string]string{
 			"chunking":  "healthy",
@@ -223,7 +222,7 @@ func TestGateway_Healthz_Error(t *testing.T) {
 	expectedError := errors.New("health check failed")
 
 	// Set up mock expectations
-	mockClient.On("Healthz", ctx, &emptypb.Empty{}).Return((*pb.HealthStatus)(nil), expectedError)
+	mockClient.On("Healthz", ctx, &emptypb.Empty{}).Return((*privpb.HealthStatus)(nil), expectedError)
 
 	// Execute
 	result, err := gateway.Healthz(ctx)
@@ -328,14 +327,14 @@ func TestGateway_ChunkEmbed_WithDifferentSources(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		req  *pb.ChunkEmbedRequest
+		req  *privpb.ChunkEmbedRequest
 	}{
 		{
 			name: "with text source",
-			req: &pb.ChunkEmbedRequest{
+			req: &privpb.ChunkEmbedRequest{
 				SpaceId:         "space-123",
 				ContentSourceId: "content-456",
-				Source: &pb.ChunkEmbedRequest_Text{
+				Source: &privpb.ChunkEmbedRequest_Text{
 					Text: "Test content with text source",
 				},
 				Chunking:  DefaultChunkingConfig(),
@@ -344,10 +343,10 @@ func TestGateway_ChunkEmbed_WithDifferentSources(t *testing.T) {
 		},
 		{
 			name: "with blob URL source",
-			req: &pb.ChunkEmbedRequest{
+			req: &privpb.ChunkEmbedRequest{
 				SpaceId:         "space-123",
 				ContentSourceId: "content-456",
-				Source: &pb.ChunkEmbedRequest_BlobUrl{
+				Source: &privpb.ChunkEmbedRequest_BlobUrl{
 					BlobUrl: "https://example.com/document.txt",
 				},
 				Chunking:  DefaultChunkingConfig(),
@@ -356,10 +355,10 @@ func TestGateway_ChunkEmbed_WithDifferentSources(t *testing.T) {
 		},
 		{
 			name: "with batch size",
-			req: &pb.ChunkEmbedRequest{
+			req: &privpb.ChunkEmbedRequest{
 				SpaceId:         "space-123",
 				ContentSourceId: "content-456",
-				Source: &pb.ChunkEmbedRequest_Text{
+				Source: &privpb.ChunkEmbedRequest_Text{
 					Text: "Test content with batch size",
 				},
 				Chunking:  DefaultChunkingConfig(),
@@ -371,8 +370,8 @@ func TestGateway_ChunkEmbed_WithDifferentSources(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			expectedResponse := &pb.ChunkEmbedResponse{
-				Results:      []*pb.ChunkEmbedding{},
+			expectedResponse := &privpb.ChunkEmbedResponse{
+				Results:      []*privpb.ChunkEmbedding{},
 				Dims:         1536,
 				ModelId:      "all-MiniLM-L6-v2",
 				ModelVersion: "v1.0",
