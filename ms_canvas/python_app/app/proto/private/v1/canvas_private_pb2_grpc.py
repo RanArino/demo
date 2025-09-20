@@ -3,8 +3,8 @@
 import grpc
 import warnings
 
-import canvas_pb2 as canvas__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+from app.proto.private.v1 import canvas_private_pb2 as proto_dot_private_dot_v1_dot_canvas__private__pb2
 
 GRPC_GENERATED_VERSION = '1.75.0'
 GRPC_VERSION = grpc.__version__
@@ -19,7 +19,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in canvas_pb2_grpc.py depends on'
+        + f' but the generated code in proto/private/v1/canvas_private_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -38,18 +38,18 @@ class CanvasInternalStub(object):
         """
         self.ChunkEmbed = channel.unary_unary(
                 '/canvas.v1.CanvasInternal/ChunkEmbed',
-                request_serializer=canvas__pb2.ChunkEmbedRequest.SerializeToString,
-                response_deserializer=canvas__pb2.ChunkEmbedResponse.FromString,
+                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedRequest.SerializeToString,
+                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedResponse.FromString,
                 _registered_method=True)
         self.EmbedQuery = channel.unary_unary(
                 '/canvas.v1.CanvasInternal/EmbedQuery',
-                request_serializer=canvas__pb2.EmbedQueryRequest.SerializeToString,
-                response_deserializer=canvas__pb2.EmbedQueryResponse.FromString,
+                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryRequest.SerializeToString,
+                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryResponse.FromString,
                 _registered_method=True)
         self.Healthz = channel.unary_unary(
                 '/canvas.v1.CanvasInternal/Healthz',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=canvas__pb2.HealthStatus.FromString,
+                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.HealthStatus.FromString,
                 _registered_method=True)
 
 
@@ -80,18 +80,18 @@ def add_CanvasInternalServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ChunkEmbed': grpc.unary_unary_rpc_method_handler(
                     servicer.ChunkEmbed,
-                    request_deserializer=canvas__pb2.ChunkEmbedRequest.FromString,
-                    response_serializer=canvas__pb2.ChunkEmbedResponse.SerializeToString,
+                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedRequest.FromString,
+                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedResponse.SerializeToString,
             ),
             'EmbedQuery': grpc.unary_unary_rpc_method_handler(
                     servicer.EmbedQuery,
-                    request_deserializer=canvas__pb2.EmbedQueryRequest.FromString,
-                    response_serializer=canvas__pb2.EmbedQueryResponse.SerializeToString,
+                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryRequest.FromString,
+                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryResponse.SerializeToString,
             ),
             'Healthz': grpc.unary_unary_rpc_method_handler(
                     servicer.Healthz,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=canvas__pb2.HealthStatus.SerializeToString,
+                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.HealthStatus.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -120,8 +120,8 @@ class CanvasInternal(object):
             request,
             target,
             '/canvas.v1.CanvasInternal/ChunkEmbed',
-            canvas__pb2.ChunkEmbedRequest.SerializeToString,
-            canvas__pb2.ChunkEmbedResponse.FromString,
+            proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedRequest.SerializeToString,
+            proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -147,8 +147,8 @@ class CanvasInternal(object):
             request,
             target,
             '/canvas.v1.CanvasInternal/EmbedQuery',
-            canvas__pb2.EmbedQueryRequest.SerializeToString,
-            canvas__pb2.EmbedQueryResponse.FromString,
+            proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryRequest.SerializeToString,
+            proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -175,7 +175,7 @@ class CanvasInternal(object):
             target,
             '/canvas.v1.CanvasInternal/Healthz',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            canvas__pb2.HealthStatus.FromString,
+            proto_dot_private_dot_v1_dot_canvas__private__pb2.HealthStatus.FromString,
             options,
             channel_credentials,
             insecure,
