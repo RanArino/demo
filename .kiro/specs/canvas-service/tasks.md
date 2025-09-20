@@ -176,7 +176,7 @@
 ### 5. gRPC/HTTP handlers for read and search
 > Implement read APIs and semantic search endpoint.
 
-- [ ] **5.1. Move internal proto to `proto/private/v1/canvas_private.proto`, and define public proto at `proto/public/v1/canvas.proto`**
+- [x] **5.1. Move internal proto to `proto/private/v1/canvas_private.proto`, and define public proto at `proto/public/v1/canvas.proto`**
   > `GetNode`, `UpdateNode`, `GetNeighbors`, `SemanticSearch`, `CreateStructuralLink`.
   >
   > **Related Requirements:** 5.1
