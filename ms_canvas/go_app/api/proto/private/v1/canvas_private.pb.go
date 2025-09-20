@@ -10,6 +10,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -718,11 +720,3500 @@ func (x *ChunkEmbedResponse) GetModelVersion() string {
 	return ""
 }
 
+type MLInfo struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	ClusteringModelVersionId string                 `protobuf:"bytes,1,opt,name=clustering_model_version_id,json=clusteringModelVersionId,proto3" json:"clustering_model_version_id,omitempty"`
+	DrModelVersionId         string                 `protobuf:"bytes,2,opt,name=dr_model_version_id,json=drModelVersionId,proto3" json:"dr_model_version_id,omitempty"`
+	EmbeddingModelId         string                 `protobuf:"bytes,3,opt,name=embedding_model_id,json=embeddingModelId,proto3" json:"embedding_model_id,omitempty"`
+	ModelVersion             string                 `protobuf:"bytes,4,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *MLInfo) Reset() {
+	*x = MLInfo{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MLInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MLInfo) ProtoMessage() {}
+
+func (x *MLInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MLInfo.ProtoReflect.Descriptor instead.
+func (*MLInfo) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MLInfo) GetClusteringModelVersionId() string {
+	if x != nil {
+		return x.ClusteringModelVersionId
+	}
+	return ""
+}
+
+func (x *MLInfo) GetDrModelVersionId() string {
+	if x != nil {
+		return x.DrModelVersionId
+	}
+	return ""
+}
+
+func (x *MLInfo) GetEmbeddingModelId() string {
+	if x != nil {
+		return x.EmbeddingModelId
+	}
+	return ""
+}
+
+func (x *MLInfo) GetModelVersion() string {
+	if x != nil {
+		return x.ModelVersion
+	}
+	return ""
+}
+
+type BaseNode struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SpaceId          string                 `protobuf:"bytes,2,opt,name=space_id,json=spaceId,proto3" json:"space_id,omitempty"`
+	AbstractionLevel int32                  `protobuf:"varint,3,opt,name=abstraction_level,json=abstractionLevel,proto3" json:"abstraction_level,omitempty"`
+	ContextType      string                 `protobuf:"bytes,4,opt,name=context_type,json=contextType,proto3" json:"context_type,omitempty"`
+	Embedding        []float32              `protobuf:"fixed32,5,rep,packed,name=embedding,proto3" json:"embedding,omitempty"`
+	Keywords         []string               `protobuf:"bytes,6,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	ChatContent      *string                `protobuf:"bytes,7,opt,name=chat_content,json=chatContent,proto3,oneof" json:"chat_content,omitempty"`
+	DisplayContent   *string                `protobuf:"bytes,8,opt,name=display_content,json=displayContent,proto3,oneof" json:"display_content,omitempty"`
+	SemanticDensity  *float64               `protobuf:"fixed64,9,opt,name=semantic_density,json=semanticDensity,proto3,oneof" json:"semantic_density,omitempty"`
+	Position_3D      *SpatialCoordinates    `protobuf:"bytes,10,opt,name=position_3d,json=position3d,proto3,oneof" json:"position_3d,omitempty"`
+	IsPositionLocked *bool                  `protobuf:"varint,11,opt,name=is_position_locked,json=isPositionLocked,proto3,oneof" json:"is_position_locked,omitempty"`
+	Visibility       *bool                  `protobuf:"varint,12,opt,name=visibility,proto3,oneof" json:"visibility,omitempty"`
+	DisplayProps     *DisplayProps          `protobuf:"bytes,13,opt,name=display_props,json=displayProps,proto3,oneof" json:"display_props,omitempty"`
+	EngagementScore  *EngagementScore       `protobuf:"bytes,14,opt,name=engagement_score,json=engagementScore,proto3,oneof" json:"engagement_score,omitempty"`
+	MlInfo           *MLInfo                `protobuf:"bytes,15,opt,name=ml_info,json=mlInfo,proto3,oneof" json:"ml_info,omitempty"`
+	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt        *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=deleted_at,json=deletedAt,proto3,oneof" json:"deleted_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *BaseNode) Reset() {
+	*x = BaseNode{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseNode) ProtoMessage() {}
+
+func (x *BaseNode) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseNode.ProtoReflect.Descriptor instead.
+func (*BaseNode) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *BaseNode) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BaseNode) GetSpaceId() string {
+	if x != nil {
+		return x.SpaceId
+	}
+	return ""
+}
+
+func (x *BaseNode) GetAbstractionLevel() int32 {
+	if x != nil {
+		return x.AbstractionLevel
+	}
+	return 0
+}
+
+func (x *BaseNode) GetContextType() string {
+	if x != nil {
+		return x.ContextType
+	}
+	return ""
+}
+
+func (x *BaseNode) GetEmbedding() []float32 {
+	if x != nil {
+		return x.Embedding
+	}
+	return nil
+}
+
+func (x *BaseNode) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *BaseNode) GetChatContent() string {
+	if x != nil && x.ChatContent != nil {
+		return *x.ChatContent
+	}
+	return ""
+}
+
+func (x *BaseNode) GetDisplayContent() string {
+	if x != nil && x.DisplayContent != nil {
+		return *x.DisplayContent
+	}
+	return ""
+}
+
+func (x *BaseNode) GetSemanticDensity() float64 {
+	if x != nil && x.SemanticDensity != nil {
+		return *x.SemanticDensity
+	}
+	return 0
+}
+
+func (x *BaseNode) GetPosition_3D() *SpatialCoordinates {
+	if x != nil {
+		return x.Position_3D
+	}
+	return nil
+}
+
+func (x *BaseNode) GetIsPositionLocked() bool {
+	if x != nil && x.IsPositionLocked != nil {
+		return *x.IsPositionLocked
+	}
+	return false
+}
+
+func (x *BaseNode) GetVisibility() bool {
+	if x != nil && x.Visibility != nil {
+		return *x.Visibility
+	}
+	return false
+}
+
+func (x *BaseNode) GetDisplayProps() *DisplayProps {
+	if x != nil {
+		return x.DisplayProps
+	}
+	return nil
+}
+
+func (x *BaseNode) GetEngagementScore() *EngagementScore {
+	if x != nil {
+		return x.EngagementScore
+	}
+	return nil
+}
+
+func (x *BaseNode) GetMlInfo() *MLInfo {
+	if x != nil {
+		return x.MlInfo
+	}
+	return nil
+}
+
+func (x *BaseNode) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *BaseNode) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *BaseNode) GetDeletedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DeletedAt
+	}
+	return nil
+}
+
+type DisplayProps struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Size          int32                  `protobuf:"varint,1,opt,name=size,proto3" json:"size,omitempty"`
+	Opacity       float64                `protobuf:"fixed64,2,opt,name=opacity,proto3" json:"opacity,omitempty"`
+	Shape         string                 `protobuf:"bytes,3,opt,name=shape,proto3" json:"shape,omitempty"`
+	Color         string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisplayProps) Reset() {
+	*x = DisplayProps{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisplayProps) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisplayProps) ProtoMessage() {}
+
+func (x *DisplayProps) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisplayProps.ProtoReflect.Descriptor instead.
+func (*DisplayProps) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DisplayProps) GetSize() int32 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *DisplayProps) GetOpacity() float64 {
+	if x != nil {
+		return x.Opacity
+	}
+	return 0
+}
+
+func (x *DisplayProps) GetShape() string {
+	if x != nil {
+		return x.Shape
+	}
+	return ""
+}
+
+func (x *DisplayProps) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+type EngagementScore struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CanvasScore   float64                `protobuf:"fixed64,1,opt,name=canvas_score,json=canvasScore,proto3" json:"canvas_score,omitempty"`
+	ChatScore     float64                `protobuf:"fixed64,2,opt,name=chat_score,json=chatScore,proto3" json:"chat_score,omitempty"`
+	OverallScore  float64                `protobuf:"fixed64,3,opt,name=overall_score,json=overallScore,proto3" json:"overall_score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EngagementScore) Reset() {
+	*x = EngagementScore{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EngagementScore) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EngagementScore) ProtoMessage() {}
+
+func (x *EngagementScore) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EngagementScore.ProtoReflect.Descriptor instead.
+func (*EngagementScore) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *EngagementScore) GetCanvasScore() float64 {
+	if x != nil {
+		return x.CanvasScore
+	}
+	return 0
+}
+
+func (x *EngagementScore) GetChatScore() float64 {
+	if x != nil {
+		return x.ChatScore
+	}
+	return 0
+}
+
+func (x *EngagementScore) GetOverallScore() float64 {
+	if x != nil {
+		return x.OverallScore
+	}
+	return 0
+}
+
+type ChunkNode struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Base            *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	ContentSourceId string                 `protobuf:"bytes,2,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`
+	SequenceIndex   int32                  `protobuf:"varint,3,opt,name=sequence_index,json=sequenceIndex,proto3" json:"sequence_index,omitempty"`
+	ChunkType       string                 `protobuf:"bytes,4,opt,name=chunk_type,json=chunkType,proto3" json:"chunk_type,omitempty"`
+	StartPosition   *int64                 `protobuf:"varint,5,opt,name=start_position,json=startPosition,proto3,oneof" json:"start_position,omitempty"`
+	EndPosition     *int64                 `protobuf:"varint,6,opt,name=end_position,json=endPosition,proto3,oneof" json:"end_position,omitempty"`
+	TokenCount      *int32                 `protobuf:"varint,7,opt,name=token_count,json=tokenCount,proto3,oneof" json:"token_count,omitempty"`
+	Content         string                 `protobuf:"bytes,8,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ChunkNode) Reset() {
+	*x = ChunkNode{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChunkNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChunkNode) ProtoMessage() {}
+
+func (x *ChunkNode) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChunkNode.ProtoReflect.Descriptor instead.
+func (*ChunkNode) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ChunkNode) GetBase() *BaseNode {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *ChunkNode) GetContentSourceId() string {
+	if x != nil {
+		return x.ContentSourceId
+	}
+	return ""
+}
+
+func (x *ChunkNode) GetSequenceIndex() int32 {
+	if x != nil {
+		return x.SequenceIndex
+	}
+	return 0
+}
+
+func (x *ChunkNode) GetChunkType() string {
+	if x != nil {
+		return x.ChunkType
+	}
+	return ""
+}
+
+func (x *ChunkNode) GetStartPosition() int64 {
+	if x != nil && x.StartPosition != nil {
+		return *x.StartPosition
+	}
+	return 0
+}
+
+func (x *ChunkNode) GetEndPosition() int64 {
+	if x != nil && x.EndPosition != nil {
+		return *x.EndPosition
+	}
+	return 0
+}
+
+func (x *ChunkNode) GetTokenCount() int32 {
+	if x != nil && x.TokenCount != nil {
+		return *x.TokenCount
+	}
+	return 0
+}
+
+func (x *ChunkNode) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+type ContentNode struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Base            *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	ContentSourceId string                 `protobuf:"bytes,2,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`
+	Title           *string                `protobuf:"bytes,3,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	MediaType       *string                `protobuf:"bytes,4,opt,name=media_type,json=mediaType,proto3,oneof" json:"media_type,omitempty"`
+	Source          *string                `protobuf:"bytes,5,opt,name=source,proto3,oneof" json:"source,omitempty"`
+	TokenCount      *int32                 `protobuf:"varint,6,opt,name=token_count,json=tokenCount,proto3,oneof" json:"token_count,omitempty"`
+	ActionData      *structpb.Struct       `protobuf:"bytes,7,opt,name=action_data,json=actionData,proto3,oneof" json:"action_data,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ContentNode) Reset() {
+	*x = ContentNode{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentNode) ProtoMessage() {}
+
+func (x *ContentNode) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentNode.ProtoReflect.Descriptor instead.
+func (*ContentNode) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ContentNode) GetBase() *BaseNode {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *ContentNode) GetContentSourceId() string {
+	if x != nil {
+		return x.ContentSourceId
+	}
+	return ""
+}
+
+func (x *ContentNode) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
+func (x *ContentNode) GetMediaType() string {
+	if x != nil && x.MediaType != nil {
+		return *x.MediaType
+	}
+	return ""
+}
+
+func (x *ContentNode) GetSource() string {
+	if x != nil && x.Source != nil {
+		return *x.Source
+	}
+	return ""
+}
+
+func (x *ContentNode) GetTokenCount() int32 {
+	if x != nil && x.TokenCount != nil {
+		return *x.TokenCount
+	}
+	return 0
+}
+
+func (x *ContentNode) GetActionData() *structpb.Struct {
+	if x != nil {
+		return x.ActionData
+	}
+	return nil
+}
+
+type ClusterNode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Base          *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	ClusterScope  string                 `protobuf:"bytes,2,opt,name=cluster_scope,json=clusterScope,proto3" json:"cluster_scope,omitempty"`
+	Title         *string                `protobuf:"bytes,3,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	MemberCount   *int32                 `protobuf:"varint,4,opt,name=member_count,json=memberCount,proto3,oneof" json:"member_count,omitempty"`
+	CoverageScore *float64               `protobuf:"fixed64,5,opt,name=coverage_score,json=coverageScore,proto3,oneof" json:"coverage_score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClusterNode) Reset() {
+	*x = ClusterNode{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClusterNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClusterNode) ProtoMessage() {}
+
+func (x *ClusterNode) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClusterNode.ProtoReflect.Descriptor instead.
+func (*ClusterNode) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ClusterNode) GetBase() *BaseNode {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *ClusterNode) GetClusterScope() string {
+	if x != nil {
+		return x.ClusterScope
+	}
+	return ""
+}
+
+func (x *ClusterNode) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
+func (x *ClusterNode) GetMemberCount() int32 {
+	if x != nil && x.MemberCount != nil {
+		return *x.MemberCount
+	}
+	return 0
+}
+
+func (x *ClusterNode) GetCoverageScore() float64 {
+	if x != nil && x.CoverageScore != nil {
+		return *x.CoverageScore
+	}
+	return 0
+}
+
+type BaseLink struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SourceId            string                 `protobuf:"bytes,2,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	TargetId            string                 `protobuf:"bytes,3,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	ConnectionType      string                 `protobuf:"bytes,4,opt,name=connection_type,json=connectionType,proto3" json:"connection_type,omitempty"`
+	ExplorationMetadata *structpb.Struct       `protobuf:"bytes,5,opt,name=exploration_metadata,json=explorationMetadata,proto3,oneof" json:"exploration_metadata,omitempty"`
+	StyleMetadata       *structpb.Struct       `protobuf:"bytes,6,opt,name=style_metadata,json=styleMetadata,proto3,oneof" json:"style_metadata,omitempty"`
+	CreatedAt           *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt           *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=deleted_at,json=deletedAt,proto3,oneof" json:"deleted_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *BaseLink) Reset() {
+	*x = BaseLink{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseLink) ProtoMessage() {}
+
+func (x *BaseLink) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseLink.ProtoReflect.Descriptor instead.
+func (*BaseLink) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *BaseLink) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BaseLink) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *BaseLink) GetTargetId() string {
+	if x != nil {
+		return x.TargetId
+	}
+	return ""
+}
+
+func (x *BaseLink) GetConnectionType() string {
+	if x != nil {
+		return x.ConnectionType
+	}
+	return ""
+}
+
+func (x *BaseLink) GetExplorationMetadata() *structpb.Struct {
+	if x != nil {
+		return x.ExplorationMetadata
+	}
+	return nil
+}
+
+func (x *BaseLink) GetStyleMetadata() *structpb.Struct {
+	if x != nil {
+		return x.StyleMetadata
+	}
+	return nil
+}
+
+func (x *BaseLink) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *BaseLink) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *BaseLink) GetDeletedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DeletedAt
+	}
+	return nil
+}
+
+type HierarchicalLink struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Base           *BaseLink              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	HierarchyDepth int32                  `protobuf:"varint,2,opt,name=hierarchy_depth,json=hierarchyDepth,proto3" json:"hierarchy_depth,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *HierarchicalLink) Reset() {
+	*x = HierarchicalLink{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HierarchicalLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HierarchicalLink) ProtoMessage() {}
+
+func (x *HierarchicalLink) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HierarchicalLink.ProtoReflect.Descriptor instead.
+func (*HierarchicalLink) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *HierarchicalLink) GetBase() *BaseLink {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *HierarchicalLink) GetHierarchyDepth() int32 {
+	if x != nil {
+		return x.HierarchyDepth
+	}
+	return 0
+}
+
+type SemanticLink struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Base               *BaseLink              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	StrengthScore      float64                `protobuf:"fixed64,2,opt,name=strength_score,json=strengthScore,proto3" json:"strength_score,omitempty"`
+	SimilarityScore    float64                `protobuf:"fixed64,3,opt,name=similarity_score,json=similarityScore,proto3" json:"similarity_score,omitempty"`
+	AbstractionBridge  bool                   `protobuf:"varint,4,opt,name=abstraction_bridge,json=abstractionBridge,proto3" json:"abstraction_bridge,omitempty"`
+	HierarchicalBridge bool                   `protobuf:"varint,5,opt,name=hierarchical_bridge,json=hierarchicalBridge,proto3" json:"hierarchical_bridge,omitempty"`
+	SemanticTags       []string               `protobuf:"bytes,6,rep,name=semantic_tags,json=semanticTags,proto3" json:"semantic_tags,omitempty"`
+	Description        *string                `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *SemanticLink) Reset() {
+	*x = SemanticLink{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SemanticLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SemanticLink) ProtoMessage() {}
+
+func (x *SemanticLink) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SemanticLink.ProtoReflect.Descriptor instead.
+func (*SemanticLink) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *SemanticLink) GetBase() *BaseLink {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *SemanticLink) GetStrengthScore() float64 {
+	if x != nil {
+		return x.StrengthScore
+	}
+	return 0
+}
+
+func (x *SemanticLink) GetSimilarityScore() float64 {
+	if x != nil {
+		return x.SimilarityScore
+	}
+	return 0
+}
+
+func (x *SemanticLink) GetAbstractionBridge() bool {
+	if x != nil {
+		return x.AbstractionBridge
+	}
+	return false
+}
+
+func (x *SemanticLink) GetHierarchicalBridge() bool {
+	if x != nil {
+		return x.HierarchicalBridge
+	}
+	return false
+}
+
+func (x *SemanticLink) GetSemanticTags() []string {
+	if x != nil {
+		return x.SemanticTags
+	}
+	return nil
+}
+
+func (x *SemanticLink) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+type StructuralLink struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Base            *BaseLink              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	ConfidenceScore float64                `protobuf:"fixed64,2,opt,name=confidence_score,json=confidenceScore,proto3" json:"confidence_score,omitempty"`
+	Description     *string                `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	CreatedBy       string                 `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *StructuralLink) Reset() {
+	*x = StructuralLink{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StructuralLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StructuralLink) ProtoMessage() {}
+
+func (x *StructuralLink) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StructuralLink.ProtoReflect.Descriptor instead.
+func (*StructuralLink) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *StructuralLink) GetBase() *BaseLink {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *StructuralLink) GetConfidenceScore() float64 {
+	if x != nil {
+		return x.ConfidenceScore
+	}
+	return 0
+}
+
+func (x *StructuralLink) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *StructuralLink) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return ""
+}
+
+type CreateClusterNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ClusterNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateClusterNodesRequest) Reset() {
+	*x = CreateClusterNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateClusterNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateClusterNodesRequest) ProtoMessage() {}
+
+func (x *CreateClusterNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateClusterNodesRequest.ProtoReflect.Descriptor instead.
+func (*CreateClusterNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *CreateClusterNodesRequest) GetNodes() []*ClusterNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type CreateClusterNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ClusterNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateClusterNodesResponse) Reset() {
+	*x = CreateClusterNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateClusterNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateClusterNodesResponse) ProtoMessage() {}
+
+func (x *CreateClusterNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateClusterNodesResponse.ProtoReflect.Descriptor instead.
+func (*CreateClusterNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CreateClusterNodesResponse) GetNodes() []*ClusterNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type CreateContentNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ContentNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateContentNodesRequest) Reset() {
+	*x = CreateContentNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateContentNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateContentNodesRequest) ProtoMessage() {}
+
+func (x *CreateContentNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateContentNodesRequest.ProtoReflect.Descriptor instead.
+func (*CreateContentNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CreateContentNodesRequest) GetNodes() []*ContentNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type CreateContentNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ContentNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateContentNodesResponse) Reset() {
+	*x = CreateContentNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateContentNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateContentNodesResponse) ProtoMessage() {}
+
+func (x *CreateContentNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateContentNodesResponse.ProtoReflect.Descriptor instead.
+func (*CreateContentNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *CreateContentNodesResponse) GetNodes() []*ContentNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type CreateChunkNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ChunkNode           `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateChunkNodesRequest) Reset() {
+	*x = CreateChunkNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateChunkNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateChunkNodesRequest) ProtoMessage() {}
+
+func (x *CreateChunkNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateChunkNodesRequest.ProtoReflect.Descriptor instead.
+func (*CreateChunkNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CreateChunkNodesRequest) GetNodes() []*ChunkNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type CreateChunkNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ChunkNode           `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateChunkNodesResponse) Reset() {
+	*x = CreateChunkNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateChunkNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateChunkNodesResponse) ProtoMessage() {}
+
+func (x *CreateChunkNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateChunkNodesResponse.ProtoReflect.Descriptor instead.
+func (*CreateChunkNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *CreateChunkNodesResponse) GetNodes() []*ChunkNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type UpdateClusterNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ClusterNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateClusterNodesRequest) Reset() {
+	*x = UpdateClusterNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateClusterNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateClusterNodesRequest) ProtoMessage() {}
+
+func (x *UpdateClusterNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateClusterNodesRequest.ProtoReflect.Descriptor instead.
+func (*UpdateClusterNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *UpdateClusterNodesRequest) GetNodes() []*ClusterNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type UpdateClusterNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ClusterNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateClusterNodesResponse) Reset() {
+	*x = UpdateClusterNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateClusterNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateClusterNodesResponse) ProtoMessage() {}
+
+func (x *UpdateClusterNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateClusterNodesResponse.ProtoReflect.Descriptor instead.
+func (*UpdateClusterNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *UpdateClusterNodesResponse) GetNodes() []*ClusterNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type UpdateContentNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ContentNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateContentNodesRequest) Reset() {
+	*x = UpdateContentNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateContentNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateContentNodesRequest) ProtoMessage() {}
+
+func (x *UpdateContentNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateContentNodesRequest.ProtoReflect.Descriptor instead.
+func (*UpdateContentNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *UpdateContentNodesRequest) GetNodes() []*ContentNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type UpdateContentNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ContentNode         `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateContentNodesResponse) Reset() {
+	*x = UpdateContentNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateContentNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateContentNodesResponse) ProtoMessage() {}
+
+func (x *UpdateContentNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateContentNodesResponse.ProtoReflect.Descriptor instead.
+func (*UpdateContentNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *UpdateContentNodesResponse) GetNodes() []*ContentNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type UpdateChunkNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ChunkNode           `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateChunkNodesRequest) Reset() {
+	*x = UpdateChunkNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateChunkNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateChunkNodesRequest) ProtoMessage() {}
+
+func (x *UpdateChunkNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateChunkNodesRequest.ProtoReflect.Descriptor instead.
+func (*UpdateChunkNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UpdateChunkNodesRequest) GetNodes() []*ChunkNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type UpdateChunkNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*ChunkNode           `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateChunkNodesResponse) Reset() {
+	*x = UpdateChunkNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateChunkNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateChunkNodesResponse) ProtoMessage() {}
+
+func (x *UpdateChunkNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateChunkNodesResponse.ProtoReflect.Descriptor instead.
+func (*UpdateChunkNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *UpdateChunkNodesResponse) GetNodes() []*ChunkNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type DeleteNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NodeIds       []string               `protobuf:"bytes,1,rep,name=node_ids,json=nodeIds,proto3" json:"node_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteNodesRequest) Reset() {
+	*x = DeleteNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteNodesRequest) ProtoMessage() {}
+
+func (x *DeleteNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteNodesRequest.ProtoReflect.Descriptor instead.
+func (*DeleteNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *DeleteNodesRequest) GetNodeIds() []string {
+	if x != nil {
+		return x.NodeIds
+	}
+	return nil
+}
+
+type DeleteNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeletedCount  int32                  `protobuf:"varint,1,opt,name=deleted_count,json=deletedCount,proto3" json:"deleted_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteNodesResponse) Reset() {
+	*x = DeleteNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteNodesResponse) ProtoMessage() {}
+
+func (x *DeleteNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteNodesResponse.ProtoReflect.Descriptor instead.
+func (*DeleteNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *DeleteNodesResponse) GetDeletedCount() int32 {
+	if x != nil {
+		return x.DeletedCount
+	}
+	return 0
+}
+
+type CreateHierarchicalLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*HierarchicalLink    `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateHierarchicalLinksRequest) Reset() {
+	*x = CreateHierarchicalLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateHierarchicalLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateHierarchicalLinksRequest) ProtoMessage() {}
+
+func (x *CreateHierarchicalLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateHierarchicalLinksRequest.ProtoReflect.Descriptor instead.
+func (*CreateHierarchicalLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *CreateHierarchicalLinksRequest) GetLinks() []*HierarchicalLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type CreateHierarchicalLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*HierarchicalLink    `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateHierarchicalLinksResponse) Reset() {
+	*x = CreateHierarchicalLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateHierarchicalLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateHierarchicalLinksResponse) ProtoMessage() {}
+
+func (x *CreateHierarchicalLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateHierarchicalLinksResponse.ProtoReflect.Descriptor instead.
+func (*CreateHierarchicalLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *CreateHierarchicalLinksResponse) GetLinks() []*HierarchicalLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type CreateSemanticLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*SemanticLink        `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSemanticLinksRequest) Reset() {
+	*x = CreateSemanticLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSemanticLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSemanticLinksRequest) ProtoMessage() {}
+
+func (x *CreateSemanticLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSemanticLinksRequest.ProtoReflect.Descriptor instead.
+func (*CreateSemanticLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *CreateSemanticLinksRequest) GetLinks() []*SemanticLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type CreateSemanticLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*SemanticLink        `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSemanticLinksResponse) Reset() {
+	*x = CreateSemanticLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSemanticLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSemanticLinksResponse) ProtoMessage() {}
+
+func (x *CreateSemanticLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSemanticLinksResponse.ProtoReflect.Descriptor instead.
+func (*CreateSemanticLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *CreateSemanticLinksResponse) GetLinks() []*SemanticLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type UpdateHierarchicalLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*HierarchicalLink    `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateHierarchicalLinksRequest) Reset() {
+	*x = UpdateHierarchicalLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateHierarchicalLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateHierarchicalLinksRequest) ProtoMessage() {}
+
+func (x *UpdateHierarchicalLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateHierarchicalLinksRequest.ProtoReflect.Descriptor instead.
+func (*UpdateHierarchicalLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *UpdateHierarchicalLinksRequest) GetLinks() []*HierarchicalLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type UpdateHierarchicalLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*HierarchicalLink    `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateHierarchicalLinksResponse) Reset() {
+	*x = UpdateHierarchicalLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateHierarchicalLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateHierarchicalLinksResponse) ProtoMessage() {}
+
+func (x *UpdateHierarchicalLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateHierarchicalLinksResponse.ProtoReflect.Descriptor instead.
+func (*UpdateHierarchicalLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *UpdateHierarchicalLinksResponse) GetLinks() []*HierarchicalLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type UpdateSemanticLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*SemanticLink        `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSemanticLinksRequest) Reset() {
+	*x = UpdateSemanticLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSemanticLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSemanticLinksRequest) ProtoMessage() {}
+
+func (x *UpdateSemanticLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSemanticLinksRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSemanticLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *UpdateSemanticLinksRequest) GetLinks() []*SemanticLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type UpdateSemanticLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*SemanticLink        `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSemanticLinksResponse) Reset() {
+	*x = UpdateSemanticLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSemanticLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSemanticLinksResponse) ProtoMessage() {}
+
+func (x *UpdateSemanticLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSemanticLinksResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSemanticLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *UpdateSemanticLinksResponse) GetLinks() []*SemanticLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type DeleteLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LinkIds       []string               `protobuf:"bytes,1,rep,name=link_ids,json=linkIds,proto3" json:"link_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteLinksRequest) Reset() {
+	*x = DeleteLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteLinksRequest) ProtoMessage() {}
+
+func (x *DeleteLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteLinksRequest.ProtoReflect.Descriptor instead.
+func (*DeleteLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *DeleteLinksRequest) GetLinkIds() []string {
+	if x != nil {
+		return x.LinkIds
+	}
+	return nil
+}
+
+type DeleteLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeletedCount  int32                  `protobuf:"varint,1,opt,name=deleted_count,json=deletedCount,proto3" json:"deleted_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteLinksResponse) Reset() {
+	*x = DeleteLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteLinksResponse) ProtoMessage() {}
+
+func (x *DeleteLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteLinksResponse.ProtoReflect.Descriptor instead.
+func (*DeleteLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *DeleteLinksResponse) GetDeletedCount() int32 {
+	if x != nil {
+		return x.DeletedCount
+	}
+	return 0
+}
+
+type GetNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of node IDs to retrieve
+	Filter        *NodeFilter            `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying nodes
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNodesRequest) Reset() {
+	*x = GetNodesRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNodesRequest) ProtoMessage() {}
+
+func (x *GetNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNodesRequest.ProtoReflect.Descriptor instead.
+func (*GetNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *GetNodesRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetNodesRequest) GetFilter() *NodeFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"` // nodes returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNodesResponse) Reset() {
+	*x = GetNodesResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNodesResponse) ProtoMessage() {}
+
+func (x *GetNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNodesResponse.ProtoReflect.Descriptor instead.
+func (*GetNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetNodesResponse) GetNodes() []*Node {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+type GetLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of link IDs to retrieve
+	Filter        *BaseLinkFilter        `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLinksRequest) Reset() {
+	*x = GetLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLinksRequest) ProtoMessage() {}
+
+func (x *GetLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *GetLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetLinksRequest) GetFilter() *BaseLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*Link                `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLinksResponse) Reset() {
+	*x = GetLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLinksResponse) ProtoMessage() {}
+
+func (x *GetLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *GetLinksResponse) GetLinks() []*Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type GetHierarchicalLinksRequest struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Ids           []string                `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of hierarchical link IDs to retrieve
+	Filter        *HierarchicalLinkFilter `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying hierarchical links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHierarchicalLinksRequest) Reset() {
+	*x = GetHierarchicalLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHierarchicalLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHierarchicalLinksRequest) ProtoMessage() {}
+
+func (x *GetHierarchicalLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHierarchicalLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetHierarchicalLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *GetHierarchicalLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetHierarchicalLinksRequest) GetFilter() *HierarchicalLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetHierarchicalLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*HierarchicalLink    `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // hierarchical links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHierarchicalLinksResponse) Reset() {
+	*x = GetHierarchicalLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHierarchicalLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHierarchicalLinksResponse) ProtoMessage() {}
+
+func (x *GetHierarchicalLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHierarchicalLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetHierarchicalLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *GetHierarchicalLinksResponse) GetLinks() []*HierarchicalLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type GetSemanticLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of semantic link IDs to retrieve
+	Filter        *SemanticLinkFilter    `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying semantic links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSemanticLinksRequest) Reset() {
+	*x = GetSemanticLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSemanticLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSemanticLinksRequest) ProtoMessage() {}
+
+func (x *GetSemanticLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSemanticLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetSemanticLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *GetSemanticLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetSemanticLinksRequest) GetFilter() *SemanticLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetSemanticLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*SemanticLink        `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // semantic links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSemanticLinksResponse) Reset() {
+	*x = GetSemanticLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSemanticLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSemanticLinksResponse) ProtoMessage() {}
+
+func (x *GetSemanticLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSemanticLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetSemanticLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *GetSemanticLinksResponse) GetLinks() []*SemanticLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type GetStructuralLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of structural link IDs to retrieve
+	Filter        *StructuralLinkFilter  `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying structural links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStructuralLinksRequest) Reset() {
+	*x = GetStructuralLinksRequest{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStructuralLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStructuralLinksRequest) ProtoMessage() {}
+
+func (x *GetStructuralLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStructuralLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetStructuralLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *GetStructuralLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetStructuralLinksRequest) GetFilter() *StructuralLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetStructuralLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*StructuralLink      `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // structural links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStructuralLinksResponse) Reset() {
+	*x = GetStructuralLinksResponse{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStructuralLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStructuralLinksResponse) ProtoMessage() {}
+
+func (x *GetStructuralLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStructuralLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetStructuralLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *GetStructuralLinksResponse) GetLinks() []*StructuralLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+type NodeFilter struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	SpaceId             *string                `protobuf:"bytes,1,opt,name=space_id,json=spaceId,proto3,oneof" json:"space_id,omitempty"`
+	AbstractionLevelMin *int32                 `protobuf:"varint,2,opt,name=abstraction_level_min,json=abstractionLevelMin,proto3,oneof" json:"abstraction_level_min,omitempty"`
+	AbstractionLevelMax *int32                 `protobuf:"varint,3,opt,name=abstraction_level_max,json=abstractionLevelMax,proto3,oneof" json:"abstraction_level_max,omitempty"`
+	ContextType         *string                `protobuf:"bytes,4,opt,name=context_type,json=contextType,proto3,oneof" json:"context_type,omitempty"`
+	Keywords            []string               `protobuf:"bytes,5,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	SemanticDensityMin  *float64               `protobuf:"fixed64,6,opt,name=semantic_density_min,json=semanticDensityMin,proto3,oneof" json:"semantic_density_min,omitempty"`
+	SemanticDensityMax  *float64               `protobuf:"fixed64,7,opt,name=semantic_density_max,json=semanticDensityMax,proto3,oneof" json:"semantic_density_max,omitempty"`
+	IsPositionLocked    *bool                  `protobuf:"varint,8,opt,name=is_position_locked,json=isPositionLocked,proto3,oneof" json:"is_position_locked,omitempty"`
+	Visibility          *bool                  `protobuf:"varint,9,opt,name=visibility,proto3,oneof" json:"visibility,omitempty"`
+	CreatedAfter        *string                `protobuf:"bytes,10,opt,name=created_after,json=createdAfter,proto3,oneof" json:"created_after,omitempty"`
+	CreatedBefore       *string                `protobuf:"bytes,11,opt,name=created_before,json=createdBefore,proto3,oneof" json:"created_before,omitempty"`
+	UpdatedAfter        *string                `protobuf:"bytes,12,opt,name=updated_after,json=updatedAfter,proto3,oneof" json:"updated_after,omitempty"`
+	UpdatedBefore       *string                `protobuf:"bytes,13,opt,name=updated_before,json=updatedBefore,proto3,oneof" json:"updated_before,omitempty"`
+	// Node-type specific filters
+	ContentFilter *ContentNodeFilter `protobuf:"bytes,14,opt,name=content_filter,json=contentFilter,proto3,oneof" json:"content_filter,omitempty"`
+	ChunkFilter   *ChunkNodeFilter   `protobuf:"bytes,15,opt,name=chunk_filter,json=chunkFilter,proto3,oneof" json:"chunk_filter,omitempty"`
+	ClusterFilter *ClusterNodeFilter `protobuf:"bytes,16,opt,name=cluster_filter,json=clusterFilter,proto3,oneof" json:"cluster_filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeFilter) Reset() {
+	*x = NodeFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeFilter) ProtoMessage() {}
+
+func (x *NodeFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeFilter.ProtoReflect.Descriptor instead.
+func (*NodeFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *NodeFilter) GetSpaceId() string {
+	if x != nil && x.SpaceId != nil {
+		return *x.SpaceId
+	}
+	return ""
+}
+
+func (x *NodeFilter) GetAbstractionLevelMin() int32 {
+	if x != nil && x.AbstractionLevelMin != nil {
+		return *x.AbstractionLevelMin
+	}
+	return 0
+}
+
+func (x *NodeFilter) GetAbstractionLevelMax() int32 {
+	if x != nil && x.AbstractionLevelMax != nil {
+		return *x.AbstractionLevelMax
+	}
+	return 0
+}
+
+func (x *NodeFilter) GetContextType() string {
+	if x != nil && x.ContextType != nil {
+		return *x.ContextType
+	}
+	return ""
+}
+
+func (x *NodeFilter) GetKeywords() []string {
+	if x != nil {
+		return x.Keywords
+	}
+	return nil
+}
+
+func (x *NodeFilter) GetSemanticDensityMin() float64 {
+	if x != nil && x.SemanticDensityMin != nil {
+		return *x.SemanticDensityMin
+	}
+	return 0
+}
+
+func (x *NodeFilter) GetSemanticDensityMax() float64 {
+	if x != nil && x.SemanticDensityMax != nil {
+		return *x.SemanticDensityMax
+	}
+	return 0
+}
+
+func (x *NodeFilter) GetIsPositionLocked() bool {
+	if x != nil && x.IsPositionLocked != nil {
+		return *x.IsPositionLocked
+	}
+	return false
+}
+
+func (x *NodeFilter) GetVisibility() bool {
+	if x != nil && x.Visibility != nil {
+		return *x.Visibility
+	}
+	return false
+}
+
+func (x *NodeFilter) GetCreatedAfter() string {
+	if x != nil && x.CreatedAfter != nil {
+		return *x.CreatedAfter
+	}
+	return ""
+}
+
+func (x *NodeFilter) GetCreatedBefore() string {
+	if x != nil && x.CreatedBefore != nil {
+		return *x.CreatedBefore
+	}
+	return ""
+}
+
+func (x *NodeFilter) GetUpdatedAfter() string {
+	if x != nil && x.UpdatedAfter != nil {
+		return *x.UpdatedAfter
+	}
+	return ""
+}
+
+func (x *NodeFilter) GetUpdatedBefore() string {
+	if x != nil && x.UpdatedBefore != nil {
+		return *x.UpdatedBefore
+	}
+	return ""
+}
+
+func (x *NodeFilter) GetContentFilter() *ContentNodeFilter {
+	if x != nil {
+		return x.ContentFilter
+	}
+	return nil
+}
+
+func (x *NodeFilter) GetChunkFilter() *ChunkNodeFilter {
+	if x != nil {
+		return x.ChunkFilter
+	}
+	return nil
+}
+
+func (x *NodeFilter) GetClusterFilter() *ClusterNodeFilter {
+	if x != nil {
+		return x.ClusterFilter
+	}
+	return nil
+}
+
+type ContentNodeFilter struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ContentSourceId *string                `protobuf:"bytes,1,opt,name=content_source_id,json=contentSourceId,proto3,oneof" json:"content_source_id,omitempty"`
+	Title           *string                `protobuf:"bytes,2,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	MediaType       *string                `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3,oneof" json:"media_type,omitempty"`
+	Source          *string                `protobuf:"bytes,4,opt,name=source,proto3,oneof" json:"source,omitempty"`
+	TokenCountMin   *int32                 `protobuf:"varint,5,opt,name=token_count_min,json=tokenCountMin,proto3,oneof" json:"token_count_min,omitempty"`
+	TokenCountMax   *int32                 `protobuf:"varint,6,opt,name=token_count_max,json=tokenCountMax,proto3,oneof" json:"token_count_max,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ContentNodeFilter) Reset() {
+	*x = ContentNodeFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentNodeFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentNodeFilter) ProtoMessage() {}
+
+func (x *ContentNodeFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentNodeFilter.ProtoReflect.Descriptor instead.
+func (*ContentNodeFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *ContentNodeFilter) GetContentSourceId() string {
+	if x != nil && x.ContentSourceId != nil {
+		return *x.ContentSourceId
+	}
+	return ""
+}
+
+func (x *ContentNodeFilter) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
+func (x *ContentNodeFilter) GetMediaType() string {
+	if x != nil && x.MediaType != nil {
+		return *x.MediaType
+	}
+	return ""
+}
+
+func (x *ContentNodeFilter) GetSource() string {
+	if x != nil && x.Source != nil {
+		return *x.Source
+	}
+	return ""
+}
+
+func (x *ContentNodeFilter) GetTokenCountMin() int32 {
+	if x != nil && x.TokenCountMin != nil {
+		return *x.TokenCountMin
+	}
+	return 0
+}
+
+func (x *ContentNodeFilter) GetTokenCountMax() int32 {
+	if x != nil && x.TokenCountMax != nil {
+		return *x.TokenCountMax
+	}
+	return 0
+}
+
+type ChunkNodeFilter struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ContentSourceId  *string                `protobuf:"bytes,1,opt,name=content_source_id,json=contentSourceId,proto3,oneof" json:"content_source_id,omitempty"`
+	SequenceIndexMin *int32                 `protobuf:"varint,2,opt,name=sequence_index_min,json=sequenceIndexMin,proto3,oneof" json:"sequence_index_min,omitempty"`
+	SequenceIndexMax *int32                 `protobuf:"varint,3,opt,name=sequence_index_max,json=sequenceIndexMax,proto3,oneof" json:"sequence_index_max,omitempty"`
+	ChunkType        *string                `protobuf:"bytes,4,opt,name=chunk_type,json=chunkType,proto3,oneof" json:"chunk_type,omitempty"`
+	StartPositionMin *int64                 `protobuf:"varint,5,opt,name=start_position_min,json=startPositionMin,proto3,oneof" json:"start_position_min,omitempty"`
+	StartPositionMax *int64                 `protobuf:"varint,6,opt,name=start_position_max,json=startPositionMax,proto3,oneof" json:"start_position_max,omitempty"`
+	EndPositionMin   *int64                 `protobuf:"varint,7,opt,name=end_position_min,json=endPositionMin,proto3,oneof" json:"end_position_min,omitempty"`
+	EndPositionMax   *int64                 `protobuf:"varint,8,opt,name=end_position_max,json=endPositionMax,proto3,oneof" json:"end_position_max,omitempty"`
+	TokenCountMin    *int32                 `protobuf:"varint,9,opt,name=token_count_min,json=tokenCountMin,proto3,oneof" json:"token_count_min,omitempty"`
+	TokenCountMax    *int32                 `protobuf:"varint,10,opt,name=token_count_max,json=tokenCountMax,proto3,oneof" json:"token_count_max,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ChunkNodeFilter) Reset() {
+	*x = ChunkNodeFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChunkNodeFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChunkNodeFilter) ProtoMessage() {}
+
+func (x *ChunkNodeFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChunkNodeFilter.ProtoReflect.Descriptor instead.
+func (*ChunkNodeFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *ChunkNodeFilter) GetContentSourceId() string {
+	if x != nil && x.ContentSourceId != nil {
+		return *x.ContentSourceId
+	}
+	return ""
+}
+
+func (x *ChunkNodeFilter) GetSequenceIndexMin() int32 {
+	if x != nil && x.SequenceIndexMin != nil {
+		return *x.SequenceIndexMin
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetSequenceIndexMax() int32 {
+	if x != nil && x.SequenceIndexMax != nil {
+		return *x.SequenceIndexMax
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetChunkType() string {
+	if x != nil && x.ChunkType != nil {
+		return *x.ChunkType
+	}
+	return ""
+}
+
+func (x *ChunkNodeFilter) GetStartPositionMin() int64 {
+	if x != nil && x.StartPositionMin != nil {
+		return *x.StartPositionMin
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetStartPositionMax() int64 {
+	if x != nil && x.StartPositionMax != nil {
+		return *x.StartPositionMax
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetEndPositionMin() int64 {
+	if x != nil && x.EndPositionMin != nil {
+		return *x.EndPositionMin
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetEndPositionMax() int64 {
+	if x != nil && x.EndPositionMax != nil {
+		return *x.EndPositionMax
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetTokenCountMin() int32 {
+	if x != nil && x.TokenCountMin != nil {
+		return *x.TokenCountMin
+	}
+	return 0
+}
+
+func (x *ChunkNodeFilter) GetTokenCountMax() int32 {
+	if x != nil && x.TokenCountMax != nil {
+		return *x.TokenCountMax
+	}
+	return 0
+}
+
+type ClusterNodeFilter struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ClusterScope     *string                `protobuf:"bytes,1,opt,name=cluster_scope,json=clusterScope,proto3,oneof" json:"cluster_scope,omitempty"`
+	Title            *string                `protobuf:"bytes,2,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	MemberCountMin   *int32                 `protobuf:"varint,3,opt,name=member_count_min,json=memberCountMin,proto3,oneof" json:"member_count_min,omitempty"`
+	MemberCountMax   *int32                 `protobuf:"varint,4,opt,name=member_count_max,json=memberCountMax,proto3,oneof" json:"member_count_max,omitempty"`
+	CoverageScoreMin *float64               `protobuf:"fixed64,5,opt,name=coverage_score_min,json=coverageScoreMin,proto3,oneof" json:"coverage_score_min,omitempty"`
+	CoverageScoreMax *float64               `protobuf:"fixed64,6,opt,name=coverage_score_max,json=coverageScoreMax,proto3,oneof" json:"coverage_score_max,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ClusterNodeFilter) Reset() {
+	*x = ClusterNodeFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClusterNodeFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClusterNodeFilter) ProtoMessage() {}
+
+func (x *ClusterNodeFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClusterNodeFilter.ProtoReflect.Descriptor instead.
+func (*ClusterNodeFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *ClusterNodeFilter) GetClusterScope() string {
+	if x != nil && x.ClusterScope != nil {
+		return *x.ClusterScope
+	}
+	return ""
+}
+
+func (x *ClusterNodeFilter) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
+func (x *ClusterNodeFilter) GetMemberCountMin() int32 {
+	if x != nil && x.MemberCountMin != nil {
+		return *x.MemberCountMin
+	}
+	return 0
+}
+
+func (x *ClusterNodeFilter) GetMemberCountMax() int32 {
+	if x != nil && x.MemberCountMax != nil {
+		return *x.MemberCountMax
+	}
+	return 0
+}
+
+func (x *ClusterNodeFilter) GetCoverageScoreMin() float64 {
+	if x != nil && x.CoverageScoreMin != nil {
+		return *x.CoverageScoreMin
+	}
+	return 0
+}
+
+func (x *ClusterNodeFilter) GetCoverageScoreMax() float64 {
+	if x != nil && x.CoverageScoreMax != nil {
+		return *x.CoverageScoreMax
+	}
+	return 0
+}
+
+type BaseLinkFilter struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	SourceId            *string                `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3,oneof" json:"source_id,omitempty"`
+	TargetId            *string                `protobuf:"bytes,2,opt,name=target_id,json=targetId,proto3,oneof" json:"target_id,omitempty"`
+	ConnectionType      *string                `protobuf:"bytes,3,opt,name=connection_type,json=connectionType,proto3,oneof" json:"connection_type,omitempty"`
+	ExplorationMetadata *structpb.Struct       `protobuf:"bytes,4,opt,name=exploration_metadata,json=explorationMetadata,proto3,oneof" json:"exploration_metadata,omitempty"`
+	StyleMetadata       *structpb.Struct       `protobuf:"bytes,5,opt,name=style_metadata,json=styleMetadata,proto3,oneof" json:"style_metadata,omitempty"`
+	CreatedAfter        *string                `protobuf:"bytes,6,opt,name=created_after,json=createdAfter,proto3,oneof" json:"created_after,omitempty"`
+	CreatedBefore       *string                `protobuf:"bytes,7,opt,name=created_before,json=createdBefore,proto3,oneof" json:"created_before,omitempty"`
+	UpdatedAfter        *string                `protobuf:"bytes,8,opt,name=updated_after,json=updatedAfter,proto3,oneof" json:"updated_after,omitempty"`
+	UpdatedBefore       *string                `protobuf:"bytes,9,opt,name=updated_before,json=updatedBefore,proto3,oneof" json:"updated_before,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *BaseLinkFilter) Reset() {
+	*x = BaseLinkFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BaseLinkFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BaseLinkFilter) ProtoMessage() {}
+
+func (x *BaseLinkFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BaseLinkFilter.ProtoReflect.Descriptor instead.
+func (*BaseLinkFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *BaseLinkFilter) GetSourceId() string {
+	if x != nil && x.SourceId != nil {
+		return *x.SourceId
+	}
+	return ""
+}
+
+func (x *BaseLinkFilter) GetTargetId() string {
+	if x != nil && x.TargetId != nil {
+		return *x.TargetId
+	}
+	return ""
+}
+
+func (x *BaseLinkFilter) GetConnectionType() string {
+	if x != nil && x.ConnectionType != nil {
+		return *x.ConnectionType
+	}
+	return ""
+}
+
+func (x *BaseLinkFilter) GetExplorationMetadata() *structpb.Struct {
+	if x != nil {
+		return x.ExplorationMetadata
+	}
+	return nil
+}
+
+func (x *BaseLinkFilter) GetStyleMetadata() *structpb.Struct {
+	if x != nil {
+		return x.StyleMetadata
+	}
+	return nil
+}
+
+func (x *BaseLinkFilter) GetCreatedAfter() string {
+	if x != nil && x.CreatedAfter != nil {
+		return *x.CreatedAfter
+	}
+	return ""
+}
+
+func (x *BaseLinkFilter) GetCreatedBefore() string {
+	if x != nil && x.CreatedBefore != nil {
+		return *x.CreatedBefore
+	}
+	return ""
+}
+
+func (x *BaseLinkFilter) GetUpdatedAfter() string {
+	if x != nil && x.UpdatedAfter != nil {
+		return *x.UpdatedAfter
+	}
+	return ""
+}
+
+func (x *BaseLinkFilter) GetUpdatedBefore() string {
+	if x != nil && x.UpdatedBefore != nil {
+		return *x.UpdatedBefore
+	}
+	return ""
+}
+
+type HierarchicalLinkFilter struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Base           *BaseLinkFilter        `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	HierarchyDepth *int32                 `protobuf:"varint,2,opt,name=hierarchy_depth,json=hierarchyDepth,proto3,oneof" json:"hierarchy_depth,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *HierarchicalLinkFilter) Reset() {
+	*x = HierarchicalLinkFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HierarchicalLinkFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HierarchicalLinkFilter) ProtoMessage() {}
+
+func (x *HierarchicalLinkFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HierarchicalLinkFilter.ProtoReflect.Descriptor instead.
+func (*HierarchicalLinkFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *HierarchicalLinkFilter) GetBase() *BaseLinkFilter {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *HierarchicalLinkFilter) GetHierarchyDepth() int32 {
+	if x != nil && x.HierarchyDepth != nil {
+		return *x.HierarchyDepth
+	}
+	return 0
+}
+
+type SemanticLinkFilter struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Base               *BaseLinkFilter        `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	StrengthScoreMin   *float64               `protobuf:"fixed64,2,opt,name=strength_score_min,json=strengthScoreMin,proto3,oneof" json:"strength_score_min,omitempty"`
+	StrengthScoreMax   *float64               `protobuf:"fixed64,3,opt,name=strength_score_max,json=strengthScoreMax,proto3,oneof" json:"strength_score_max,omitempty"`
+	SimilarityScoreMin *float64               `protobuf:"fixed64,4,opt,name=similarity_score_min,json=similarityScoreMin,proto3,oneof" json:"similarity_score_min,omitempty"`
+	SimilarityScoreMax *float64               `protobuf:"fixed64,5,opt,name=similarity_score_max,json=similarityScoreMax,proto3,oneof" json:"similarity_score_max,omitempty"`
+	AbstractionBridge  *bool                  `protobuf:"varint,6,opt,name=abstraction_bridge,json=abstractionBridge,proto3,oneof" json:"abstraction_bridge,omitempty"`
+	HierarchicalBridge *bool                  `protobuf:"varint,7,opt,name=hierarchical_bridge,json=hierarchicalBridge,proto3,oneof" json:"hierarchical_bridge,omitempty"`
+	SemanticTags       []string               `protobuf:"bytes,8,rep,name=semantic_tags,json=semanticTags,proto3" json:"semantic_tags,omitempty"`
+	Description        *string                `protobuf:"bytes,9,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *SemanticLinkFilter) Reset() {
+	*x = SemanticLinkFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SemanticLinkFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SemanticLinkFilter) ProtoMessage() {}
+
+func (x *SemanticLinkFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SemanticLinkFilter.ProtoReflect.Descriptor instead.
+func (*SemanticLinkFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *SemanticLinkFilter) GetBase() *BaseLinkFilter {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *SemanticLinkFilter) GetStrengthScoreMin() float64 {
+	if x != nil && x.StrengthScoreMin != nil {
+		return *x.StrengthScoreMin
+	}
+	return 0
+}
+
+func (x *SemanticLinkFilter) GetStrengthScoreMax() float64 {
+	if x != nil && x.StrengthScoreMax != nil {
+		return *x.StrengthScoreMax
+	}
+	return 0
+}
+
+func (x *SemanticLinkFilter) GetSimilarityScoreMin() float64 {
+	if x != nil && x.SimilarityScoreMin != nil {
+		return *x.SimilarityScoreMin
+	}
+	return 0
+}
+
+func (x *SemanticLinkFilter) GetSimilarityScoreMax() float64 {
+	if x != nil && x.SimilarityScoreMax != nil {
+		return *x.SimilarityScoreMax
+	}
+	return 0
+}
+
+func (x *SemanticLinkFilter) GetAbstractionBridge() bool {
+	if x != nil && x.AbstractionBridge != nil {
+		return *x.AbstractionBridge
+	}
+	return false
+}
+
+func (x *SemanticLinkFilter) GetHierarchicalBridge() bool {
+	if x != nil && x.HierarchicalBridge != nil {
+		return *x.HierarchicalBridge
+	}
+	return false
+}
+
+func (x *SemanticLinkFilter) GetSemanticTags() []string {
+	if x != nil {
+		return x.SemanticTags
+	}
+	return nil
+}
+
+func (x *SemanticLinkFilter) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+type StructuralLinkFilter struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Base               *BaseLinkFilter        `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	ConfidenceScoreMin *float64               `protobuf:"fixed64,2,opt,name=confidence_score_min,json=confidenceScoreMin,proto3,oneof" json:"confidence_score_min,omitempty"`
+	ConfidenceScoreMax *float64               `protobuf:"fixed64,3,opt,name=confidence_score_max,json=confidenceScoreMax,proto3,oneof" json:"confidence_score_max,omitempty"`
+	Description        *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	CreatedBy          *string                `protobuf:"bytes,5,opt,name=created_by,json=createdBy,proto3,oneof" json:"created_by,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *StructuralLinkFilter) Reset() {
+	*x = StructuralLinkFilter{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StructuralLinkFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StructuralLinkFilter) ProtoMessage() {}
+
+func (x *StructuralLinkFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StructuralLinkFilter.ProtoReflect.Descriptor instead.
+func (*StructuralLinkFilter) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *StructuralLinkFilter) GetBase() *BaseLinkFilter {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *StructuralLinkFilter) GetConfidenceScoreMin() float64 {
+	if x != nil && x.ConfidenceScoreMin != nil {
+		return *x.ConfidenceScoreMin
+	}
+	return 0
+}
+
+func (x *StructuralLinkFilter) GetConfidenceScoreMax() float64 {
+	if x != nil && x.ConfidenceScoreMax != nil {
+		return *x.ConfidenceScoreMax
+	}
+	return 0
+}
+
+func (x *StructuralLinkFilter) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *StructuralLinkFilter) GetCreatedBy() string {
+	if x != nil && x.CreatedBy != nil {
+		return *x.CreatedBy
+	}
+	return ""
+}
+
+type Node struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Node:
+	//
+	//	*Node_Content
+	//	*Node_Chunk
+	//	*Node_Cluster
+	Node          isNode_Node `protobuf_oneof:"node"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Node) Reset() {
+	*x = Node{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Node) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Node) ProtoMessage() {}
+
+func (x *Node) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Node.ProtoReflect.Descriptor instead.
+func (*Node) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *Node) GetNode() isNode_Node {
+	if x != nil {
+		return x.Node
+	}
+	return nil
+}
+
+func (x *Node) GetContent() *ContentNode {
+	if x != nil {
+		if x, ok := x.Node.(*Node_Content); ok {
+			return x.Content
+		}
+	}
+	return nil
+}
+
+func (x *Node) GetChunk() *ChunkNode {
+	if x != nil {
+		if x, ok := x.Node.(*Node_Chunk); ok {
+			return x.Chunk
+		}
+	}
+	return nil
+}
+
+func (x *Node) GetCluster() *ClusterNode {
+	if x != nil {
+		if x, ok := x.Node.(*Node_Cluster); ok {
+			return x.Cluster
+		}
+	}
+	return nil
+}
+
+type isNode_Node interface {
+	isNode_Node()
+}
+
+type Node_Content struct {
+	Content *ContentNode `protobuf:"bytes,1,opt,name=content,proto3,oneof"`
+}
+
+type Node_Chunk struct {
+	Chunk *ChunkNode `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
+}
+
+type Node_Cluster struct {
+	Cluster *ClusterNode `protobuf:"bytes,3,opt,name=cluster,proto3,oneof"`
+}
+
+func (*Node_Content) isNode_Node() {}
+
+func (*Node_Chunk) isNode_Node() {}
+
+func (*Node_Cluster) isNode_Node() {}
+
+type Link struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Link:
+	//
+	//	*Link_Hierarchical
+	//	*Link_Semantic
+	//	*Link_Structural
+	Link          isLink_Link `protobuf_oneof:"link"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Link) Reset() {
+	*x = Link{}
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Link) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Link) ProtoMessage() {}
+
+func (x *Link) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_private_v1_canvas_private_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Link.ProtoReflect.Descriptor instead.
+func (*Link) Descriptor() ([]byte, []int) {
+	return file_proto_private_v1_canvas_private_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *Link) GetLink() isLink_Link {
+	if x != nil {
+		return x.Link
+	}
+	return nil
+}
+
+func (x *Link) GetHierarchical() *HierarchicalLink {
+	if x != nil {
+		if x, ok := x.Link.(*Link_Hierarchical); ok {
+			return x.Hierarchical
+		}
+	}
+	return nil
+}
+
+func (x *Link) GetSemantic() *SemanticLink {
+	if x != nil {
+		if x, ok := x.Link.(*Link_Semantic); ok {
+			return x.Semantic
+		}
+	}
+	return nil
+}
+
+func (x *Link) GetStructural() *StructuralLink {
+	if x != nil {
+		if x, ok := x.Link.(*Link_Structural); ok {
+			return x.Structural
+		}
+	}
+	return nil
+}
+
+type isLink_Link interface {
+	isLink_Link()
+}
+
+type Link_Hierarchical struct {
+	Hierarchical *HierarchicalLink `protobuf:"bytes,1,opt,name=hierarchical,proto3,oneof"`
+}
+
+type Link_Semantic struct {
+	Semantic *SemanticLink `protobuf:"bytes,2,opt,name=semantic,proto3,oneof"`
+}
+
+type Link_Structural struct {
+	Structural *StructuralLink `protobuf:"bytes,3,opt,name=structural,proto3,oneof"`
+}
+
+func (*Link_Hierarchical) isLink_Link() {}
+
+func (*Link_Semantic) isLink_Link() {}
+
+func (*Link_Structural) isLink_Link() {}
+
 var File_proto_private_v1_canvas_private_proto protoreflect.FileDescriptor
 
 const file_proto_private_v1_canvas_private_proto_rawDesc = "" +
 	"\n" +
-	"%proto/private/v1/canvas_private.proto\x12\tcanvas.v1\x1a\x1bgoogle/protobuf/empty.proto\"\xae\x01\n" +
+	"%proto/private/v1/canvas_private.proto\x12\tcanvas.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xae\x01\n" +
 	"\fHealthStatus\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12G\n" +
 	"\n" +
@@ -780,8 +4271,376 @@ const file_proto_private_v1_canvas_private_proto_rawDesc = "" +
 	"\aresults\x18\x01 \x03(\v2\x19.canvas.v1.ChunkEmbeddingR\aresults\x12\x12\n" +
 	"\x04dims\x18\x02 \x01(\x05R\x04dims\x12\x19\n" +
 	"\bmodel_id\x18\x03 \x01(\tR\amodelId\x12#\n" +
-	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion2\xe2\x01\n" +
-	"\x0eCanvasInternal\x12I\n" +
+	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion\"\xc9\x01\n" +
+	"\x06MLInfo\x12=\n" +
+	"\x1bclustering_model_version_id\x18\x01 \x01(\tR\x18clusteringModelVersionId\x12-\n" +
+	"\x13dr_model_version_id\x18\x02 \x01(\tR\x10drModelVersionId\x12,\n" +
+	"\x12embedding_model_id\x18\x03 \x01(\tR\x10embeddingModelId\x12#\n" +
+	"\rmodel_version\x18\x04 \x01(\tR\fmodelVersion\"\x8a\b\n" +
+	"\bBaseNode\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bspace_id\x18\x02 \x01(\tR\aspaceId\x12+\n" +
+	"\x11abstraction_level\x18\x03 \x01(\x05R\x10abstractionLevel\x12!\n" +
+	"\fcontext_type\x18\x04 \x01(\tR\vcontextType\x12\x1c\n" +
+	"\tembedding\x18\x05 \x03(\x02R\tembedding\x12\x1a\n" +
+	"\bkeywords\x18\x06 \x03(\tR\bkeywords\x12&\n" +
+	"\fchat_content\x18\a \x01(\tH\x00R\vchatContent\x88\x01\x01\x12,\n" +
+	"\x0fdisplay_content\x18\b \x01(\tH\x01R\x0edisplayContent\x88\x01\x01\x12.\n" +
+	"\x10semantic_density\x18\t \x01(\x01H\x02R\x0fsemanticDensity\x88\x01\x01\x12C\n" +
+	"\vposition_3d\x18\n" +
+	" \x01(\v2\x1d.canvas.v1.SpatialCoordinatesH\x03R\n" +
+	"position3d\x88\x01\x01\x121\n" +
+	"\x12is_position_locked\x18\v \x01(\bH\x04R\x10isPositionLocked\x88\x01\x01\x12#\n" +
+	"\n" +
+	"visibility\x18\f \x01(\bH\x05R\n" +
+	"visibility\x88\x01\x01\x12A\n" +
+	"\rdisplay_props\x18\r \x01(\v2\x17.canvas.v1.DisplayPropsH\x06R\fdisplayProps\x88\x01\x01\x12J\n" +
+	"\x10engagement_score\x18\x0e \x01(\v2\x1a.canvas.v1.EngagementScoreH\aR\x0fengagementScore\x88\x01\x01\x12/\n" +
+	"\aml_info\x18\x0f \x01(\v2\x11.canvas.v1.MLInfoH\bR\x06mlInfo\x88\x01\x01\x129\n" +
+	"\n" +
+	"created_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"\n" +
+	"deleted_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampH\tR\tdeletedAt\x88\x01\x01B\x0f\n" +
+	"\r_chat_contentB\x12\n" +
+	"\x10_display_contentB\x13\n" +
+	"\x11_semantic_densityB\x0e\n" +
+	"\f_position_3dB\x15\n" +
+	"\x13_is_position_lockedB\r\n" +
+	"\v_visibilityB\x10\n" +
+	"\x0e_display_propsB\x13\n" +
+	"\x11_engagement_scoreB\n" +
+	"\n" +
+	"\b_ml_infoB\r\n" +
+	"\v_deleted_at\"h\n" +
+	"\fDisplayProps\x12\x12\n" +
+	"\x04size\x18\x01 \x01(\x05R\x04size\x12\x18\n" +
+	"\aopacity\x18\x02 \x01(\x01R\aopacity\x12\x14\n" +
+	"\x05shape\x18\x03 \x01(\tR\x05shape\x12\x14\n" +
+	"\x05color\x18\x04 \x01(\tR\x05color\"x\n" +
+	"\x0fEngagementScore\x12!\n" +
+	"\fcanvas_score\x18\x01 \x01(\x01R\vcanvasScore\x12\x1d\n" +
+	"\n" +
+	"chat_score\x18\x02 \x01(\x01R\tchatScore\x12#\n" +
+	"\roverall_score\x18\x03 \x01(\x01R\foverallScore\"\xee\x02\n" +
+	"\tChunkNode\x12'\n" +
+	"\x04base\x18\x01 \x01(\v2\x13.canvas.v1.BaseNodeR\x04base\x12*\n" +
+	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12%\n" +
+	"\x0esequence_index\x18\x03 \x01(\x05R\rsequenceIndex\x12\x1d\n" +
+	"\n" +
+	"chunk_type\x18\x04 \x01(\tR\tchunkType\x12*\n" +
+	"\x0estart_position\x18\x05 \x01(\x03H\x00R\rstartPosition\x88\x01\x01\x12&\n" +
+	"\fend_position\x18\x06 \x01(\x03H\x01R\vendPosition\x88\x01\x01\x12$\n" +
+	"\vtoken_count\x18\a \x01(\x05H\x02R\n" +
+	"tokenCount\x88\x01\x01\x12\x18\n" +
+	"\acontent\x18\b \x01(\tR\acontentB\x11\n" +
+	"\x0f_start_positionB\x0f\n" +
+	"\r_end_positionB\x0e\n" +
+	"\f_token_count\"\xe7\x02\n" +
+	"\vContentNode\x12'\n" +
+	"\x04base\x18\x01 \x01(\v2\x13.canvas.v1.BaseNodeR\x04base\x12*\n" +
+	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12\x19\n" +
+	"\x05title\x18\x03 \x01(\tH\x00R\x05title\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"media_type\x18\x04 \x01(\tH\x01R\tmediaType\x88\x01\x01\x12\x1b\n" +
+	"\x06source\x18\x05 \x01(\tH\x02R\x06source\x88\x01\x01\x12$\n" +
+	"\vtoken_count\x18\x06 \x01(\x05H\x03R\n" +
+	"tokenCount\x88\x01\x01\x12=\n" +
+	"\vaction_data\x18\a \x01(\v2\x17.google.protobuf.StructH\x04R\n" +
+	"actionData\x88\x01\x01B\b\n" +
+	"\x06_titleB\r\n" +
+	"\v_media_typeB\t\n" +
+	"\a_sourceB\x0e\n" +
+	"\f_token_countB\x0e\n" +
+	"\f_action_data\"\xf8\x01\n" +
+	"\vClusterNode\x12'\n" +
+	"\x04base\x18\x01 \x01(\v2\x13.canvas.v1.BaseNodeR\x04base\x12#\n" +
+	"\rcluster_scope\x18\x02 \x01(\tR\fclusterScope\x12\x19\n" +
+	"\x05title\x18\x03 \x01(\tH\x00R\x05title\x88\x01\x01\x12&\n" +
+	"\fmember_count\x18\x04 \x01(\x05H\x01R\vmemberCount\x88\x01\x01\x12*\n" +
+	"\x0ecoverage_score\x18\x05 \x01(\x01H\x02R\rcoverageScore\x88\x01\x01B\b\n" +
+	"\x06_titleB\x0f\n" +
+	"\r_member_countB\x11\n" +
+	"\x0f_coverage_score\"\x84\x04\n" +
+	"\bBaseLink\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tsource_id\x18\x02 \x01(\tR\bsourceId\x12\x1b\n" +
+	"\ttarget_id\x18\x03 \x01(\tR\btargetId\x12'\n" +
+	"\x0fconnection_type\x18\x04 \x01(\tR\x0econnectionType\x12O\n" +
+	"\x14exploration_metadata\x18\x05 \x01(\v2\x17.google.protobuf.StructH\x00R\x13explorationMetadata\x88\x01\x01\x12C\n" +
+	"\x0estyle_metadata\x18\x06 \x01(\v2\x17.google.protobuf.StructH\x01R\rstyleMetadata\x88\x01\x01\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"\n" +
+	"deleted_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampH\x02R\tdeletedAt\x88\x01\x01B\x17\n" +
+	"\x15_exploration_metadataB\x11\n" +
+	"\x0f_style_metadataB\r\n" +
+	"\v_deleted_at\"d\n" +
+	"\x10HierarchicalLink\x12'\n" +
+	"\x04base\x18\x01 \x01(\v2\x13.canvas.v1.BaseLinkR\x04base\x12'\n" +
+	"\x0fhierarchy_depth\x18\x02 \x01(\x05R\x0ehierarchyDepth\"\xc5\x02\n" +
+	"\fSemanticLink\x12'\n" +
+	"\x04base\x18\x01 \x01(\v2\x13.canvas.v1.BaseLinkR\x04base\x12%\n" +
+	"\x0estrength_score\x18\x02 \x01(\x01R\rstrengthScore\x12)\n" +
+	"\x10similarity_score\x18\x03 \x01(\x01R\x0fsimilarityScore\x12-\n" +
+	"\x12abstraction_bridge\x18\x04 \x01(\bR\x11abstractionBridge\x12/\n" +
+	"\x13hierarchical_bridge\x18\x05 \x01(\bR\x12hierarchicalBridge\x12#\n" +
+	"\rsemantic_tags\x18\x06 \x03(\tR\fsemanticTags\x12%\n" +
+	"\vdescription\x18\a \x01(\tH\x00R\vdescription\x88\x01\x01B\x0e\n" +
+	"\f_description\"\xba\x01\n" +
+	"\x0eStructuralLink\x12'\n" +
+	"\x04base\x18\x01 \x01(\v2\x13.canvas.v1.BaseLinkR\x04base\x12)\n" +
+	"\x10confidence_score\x18\x02 \x01(\x01R\x0fconfidenceScore\x12%\n" +
+	"\vdescription\x18\x03 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\x04 \x01(\tR\tcreatedByB\x0e\n" +
+	"\f_description\"I\n" +
+	"\x19CreateClusterNodesRequest\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ClusterNodeR\x05nodes\"J\n" +
+	"\x1aCreateClusterNodesResponse\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ClusterNodeR\x05nodes\"I\n" +
+	"\x19CreateContentNodesRequest\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ContentNodeR\x05nodes\"J\n" +
+	"\x1aCreateContentNodesResponse\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ContentNodeR\x05nodes\"E\n" +
+	"\x17CreateChunkNodesRequest\x12*\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x14.canvas.v1.ChunkNodeR\x05nodes\"F\n" +
+	"\x18CreateChunkNodesResponse\x12*\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x14.canvas.v1.ChunkNodeR\x05nodes\"I\n" +
+	"\x19UpdateClusterNodesRequest\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ClusterNodeR\x05nodes\"J\n" +
+	"\x1aUpdateClusterNodesResponse\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ClusterNodeR\x05nodes\"I\n" +
+	"\x19UpdateContentNodesRequest\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ContentNodeR\x05nodes\"J\n" +
+	"\x1aUpdateContentNodesResponse\x12,\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.v1.ContentNodeR\x05nodes\"E\n" +
+	"\x17UpdateChunkNodesRequest\x12*\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x14.canvas.v1.ChunkNodeR\x05nodes\"F\n" +
+	"\x18UpdateChunkNodesResponse\x12*\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x14.canvas.v1.ChunkNodeR\x05nodes\"/\n" +
+	"\x12DeleteNodesRequest\x12\x19\n" +
+	"\bnode_ids\x18\x01 \x03(\tR\anodeIds\":\n" +
+	"\x13DeleteNodesResponse\x12#\n" +
+	"\rdeleted_count\x18\x01 \x01(\x05R\fdeletedCount\"S\n" +
+	"\x1eCreateHierarchicalLinksRequest\x121\n" +
+	"\x05links\x18\x01 \x03(\v2\x1b.canvas.v1.HierarchicalLinkR\x05links\"T\n" +
+	"\x1fCreateHierarchicalLinksResponse\x121\n" +
+	"\x05links\x18\x01 \x03(\v2\x1b.canvas.v1.HierarchicalLinkR\x05links\"K\n" +
+	"\x1aCreateSemanticLinksRequest\x12-\n" +
+	"\x05links\x18\x01 \x03(\v2\x17.canvas.v1.SemanticLinkR\x05links\"L\n" +
+	"\x1bCreateSemanticLinksResponse\x12-\n" +
+	"\x05links\x18\x01 \x03(\v2\x17.canvas.v1.SemanticLinkR\x05links\"S\n" +
+	"\x1eUpdateHierarchicalLinksRequest\x121\n" +
+	"\x05links\x18\x01 \x03(\v2\x1b.canvas.v1.HierarchicalLinkR\x05links\"T\n" +
+	"\x1fUpdateHierarchicalLinksResponse\x121\n" +
+	"\x05links\x18\x01 \x03(\v2\x1b.canvas.v1.HierarchicalLinkR\x05links\"K\n" +
+	"\x1aUpdateSemanticLinksRequest\x12-\n" +
+	"\x05links\x18\x01 \x03(\v2\x17.canvas.v1.SemanticLinkR\x05links\"L\n" +
+	"\x1bUpdateSemanticLinksResponse\x12-\n" +
+	"\x05links\x18\x01 \x03(\v2\x17.canvas.v1.SemanticLinkR\x05links\"/\n" +
+	"\x12DeleteLinksRequest\x12\x19\n" +
+	"\blink_ids\x18\x01 \x03(\tR\alinkIds\":\n" +
+	"\x13DeleteLinksResponse\x12#\n" +
+	"\rdeleted_count\x18\x01 \x01(\x05R\fdeletedCount\"R\n" +
+	"\x0fGetNodesRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x12-\n" +
+	"\x06filter\x18\x02 \x01(\v2\x15.canvas.v1.NodeFilterR\x06filter\"9\n" +
+	"\x10GetNodesResponse\x12%\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x0f.canvas.v1.NodeR\x05nodes\"V\n" +
+	"\x0fGetLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x121\n" +
+	"\x06filter\x18\x02 \x01(\v2\x19.canvas.v1.BaseLinkFilterR\x06filter\"9\n" +
+	"\x10GetLinksResponse\x12%\n" +
+	"\x05links\x18\x01 \x03(\v2\x0f.canvas.v1.LinkR\x05links\"j\n" +
+	"\x1bGetHierarchicalLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x129\n" +
+	"\x06filter\x18\x02 \x01(\v2!.canvas.v1.HierarchicalLinkFilterR\x06filter\"Q\n" +
+	"\x1cGetHierarchicalLinksResponse\x121\n" +
+	"\x05links\x18\x01 \x03(\v2\x1b.canvas.v1.HierarchicalLinkR\x05links\"b\n" +
+	"\x17GetSemanticLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x125\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1d.canvas.v1.SemanticLinkFilterR\x06filter\"I\n" +
+	"\x18GetSemanticLinksResponse\x12-\n" +
+	"\x05links\x18\x01 \x03(\v2\x17.canvas.v1.SemanticLinkR\x05links\"f\n" +
+	"\x19GetStructuralLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x127\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1f.canvas.v1.StructuralLinkFilterR\x06filter\"M\n" +
+	"\x1aGetStructuralLinksResponse\x12/\n" +
+	"\x05links\x18\x01 \x03(\v2\x19.canvas.v1.StructuralLinkR\x05links\"\xd7\b\n" +
+	"\n" +
+	"NodeFilter\x12\x1e\n" +
+	"\bspace_id\x18\x01 \x01(\tH\x00R\aspaceId\x88\x01\x01\x127\n" +
+	"\x15abstraction_level_min\x18\x02 \x01(\x05H\x01R\x13abstractionLevelMin\x88\x01\x01\x127\n" +
+	"\x15abstraction_level_max\x18\x03 \x01(\x05H\x02R\x13abstractionLevelMax\x88\x01\x01\x12&\n" +
+	"\fcontext_type\x18\x04 \x01(\tH\x03R\vcontextType\x88\x01\x01\x12\x1a\n" +
+	"\bkeywords\x18\x05 \x03(\tR\bkeywords\x125\n" +
+	"\x14semantic_density_min\x18\x06 \x01(\x01H\x04R\x12semanticDensityMin\x88\x01\x01\x125\n" +
+	"\x14semantic_density_max\x18\a \x01(\x01H\x05R\x12semanticDensityMax\x88\x01\x01\x121\n" +
+	"\x12is_position_locked\x18\b \x01(\bH\x06R\x10isPositionLocked\x88\x01\x01\x12#\n" +
+	"\n" +
+	"visibility\x18\t \x01(\bH\aR\n" +
+	"visibility\x88\x01\x01\x12(\n" +
+	"\rcreated_after\x18\n" +
+	" \x01(\tH\bR\fcreatedAfter\x88\x01\x01\x12*\n" +
+	"\x0ecreated_before\x18\v \x01(\tH\tR\rcreatedBefore\x88\x01\x01\x12(\n" +
+	"\rupdated_after\x18\f \x01(\tH\n" +
+	"R\fupdatedAfter\x88\x01\x01\x12*\n" +
+	"\x0eupdated_before\x18\r \x01(\tH\vR\rupdatedBefore\x88\x01\x01\x12H\n" +
+	"\x0econtent_filter\x18\x0e \x01(\v2\x1c.canvas.v1.ContentNodeFilterH\fR\rcontentFilter\x88\x01\x01\x12B\n" +
+	"\fchunk_filter\x18\x0f \x01(\v2\x1a.canvas.v1.ChunkNodeFilterH\rR\vchunkFilter\x88\x01\x01\x12H\n" +
+	"\x0ecluster_filter\x18\x10 \x01(\v2\x1c.canvas.v1.ClusterNodeFilterH\x0eR\rclusterFilter\x88\x01\x01B\v\n" +
+	"\t_space_idB\x18\n" +
+	"\x16_abstraction_level_minB\x18\n" +
+	"\x16_abstraction_level_maxB\x0f\n" +
+	"\r_context_typeB\x17\n" +
+	"\x15_semantic_density_minB\x17\n" +
+	"\x15_semantic_density_maxB\x15\n" +
+	"\x13_is_position_lockedB\r\n" +
+	"\v_visibilityB\x10\n" +
+	"\x0e_created_afterB\x11\n" +
+	"\x0f_created_beforeB\x10\n" +
+	"\x0e_updated_afterB\x11\n" +
+	"\x0f_updated_beforeB\x11\n" +
+	"\x0f_content_filterB\x0f\n" +
+	"\r_chunk_filterB\x11\n" +
+	"\x0f_cluster_filter\"\xdc\x02\n" +
+	"\x11ContentNodeFilter\x12/\n" +
+	"\x11content_source_id\x18\x01 \x01(\tH\x00R\x0fcontentSourceId\x88\x01\x01\x12\x19\n" +
+	"\x05title\x18\x02 \x01(\tH\x01R\x05title\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"media_type\x18\x03 \x01(\tH\x02R\tmediaType\x88\x01\x01\x12\x1b\n" +
+	"\x06source\x18\x04 \x01(\tH\x03R\x06source\x88\x01\x01\x12+\n" +
+	"\x0ftoken_count_min\x18\x05 \x01(\x05H\x04R\rtokenCountMin\x88\x01\x01\x12+\n" +
+	"\x0ftoken_count_max\x18\x06 \x01(\x05H\x05R\rtokenCountMax\x88\x01\x01B\x14\n" +
+	"\x12_content_source_idB\b\n" +
+	"\x06_titleB\r\n" +
+	"\v_media_typeB\t\n" +
+	"\a_sourceB\x12\n" +
+	"\x10_token_count_minB\x12\n" +
+	"\x10_token_count_max\"\xbd\x05\n" +
+	"\x0fChunkNodeFilter\x12/\n" +
+	"\x11content_source_id\x18\x01 \x01(\tH\x00R\x0fcontentSourceId\x88\x01\x01\x121\n" +
+	"\x12sequence_index_min\x18\x02 \x01(\x05H\x01R\x10sequenceIndexMin\x88\x01\x01\x121\n" +
+	"\x12sequence_index_max\x18\x03 \x01(\x05H\x02R\x10sequenceIndexMax\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"chunk_type\x18\x04 \x01(\tH\x03R\tchunkType\x88\x01\x01\x121\n" +
+	"\x12start_position_min\x18\x05 \x01(\x03H\x04R\x10startPositionMin\x88\x01\x01\x121\n" +
+	"\x12start_position_max\x18\x06 \x01(\x03H\x05R\x10startPositionMax\x88\x01\x01\x12-\n" +
+	"\x10end_position_min\x18\a \x01(\x03H\x06R\x0eendPositionMin\x88\x01\x01\x12-\n" +
+	"\x10end_position_max\x18\b \x01(\x03H\aR\x0eendPositionMax\x88\x01\x01\x12+\n" +
+	"\x0ftoken_count_min\x18\t \x01(\x05H\bR\rtokenCountMin\x88\x01\x01\x12+\n" +
+	"\x0ftoken_count_max\x18\n" +
+	" \x01(\x05H\tR\rtokenCountMax\x88\x01\x01B\x14\n" +
+	"\x12_content_source_idB\x15\n" +
+	"\x13_sequence_index_minB\x15\n" +
+	"\x13_sequence_index_maxB\r\n" +
+	"\v_chunk_typeB\x15\n" +
+	"\x13_start_position_minB\x15\n" +
+	"\x13_start_position_maxB\x13\n" +
+	"\x11_end_position_minB\x13\n" +
+	"\x11_end_position_maxB\x12\n" +
+	"\x10_token_count_minB\x12\n" +
+	"\x10_token_count_max\"\x90\x03\n" +
+	"\x11ClusterNodeFilter\x12(\n" +
+	"\rcluster_scope\x18\x01 \x01(\tH\x00R\fclusterScope\x88\x01\x01\x12\x19\n" +
+	"\x05title\x18\x02 \x01(\tH\x01R\x05title\x88\x01\x01\x12-\n" +
+	"\x10member_count_min\x18\x03 \x01(\x05H\x02R\x0ememberCountMin\x88\x01\x01\x12-\n" +
+	"\x10member_count_max\x18\x04 \x01(\x05H\x03R\x0ememberCountMax\x88\x01\x01\x121\n" +
+	"\x12coverage_score_min\x18\x05 \x01(\x01H\x04R\x10coverageScoreMin\x88\x01\x01\x121\n" +
+	"\x12coverage_score_max\x18\x06 \x01(\x01H\x05R\x10coverageScoreMax\x88\x01\x01B\x10\n" +
+	"\x0e_cluster_scopeB\b\n" +
+	"\x06_titleB\x13\n" +
+	"\x11_member_count_minB\x13\n" +
+	"\x11_member_count_maxB\x15\n" +
+	"\x13_coverage_score_minB\x15\n" +
+	"\x13_coverage_score_max\"\xea\x04\n" +
+	"\x0eBaseLinkFilter\x12 \n" +
+	"\tsource_id\x18\x01 \x01(\tH\x00R\bsourceId\x88\x01\x01\x12 \n" +
+	"\ttarget_id\x18\x02 \x01(\tH\x01R\btargetId\x88\x01\x01\x12,\n" +
+	"\x0fconnection_type\x18\x03 \x01(\tH\x02R\x0econnectionType\x88\x01\x01\x12O\n" +
+	"\x14exploration_metadata\x18\x04 \x01(\v2\x17.google.protobuf.StructH\x03R\x13explorationMetadata\x88\x01\x01\x12C\n" +
+	"\x0estyle_metadata\x18\x05 \x01(\v2\x17.google.protobuf.StructH\x04R\rstyleMetadata\x88\x01\x01\x12(\n" +
+	"\rcreated_after\x18\x06 \x01(\tH\x05R\fcreatedAfter\x88\x01\x01\x12*\n" +
+	"\x0ecreated_before\x18\a \x01(\tH\x06R\rcreatedBefore\x88\x01\x01\x12(\n" +
+	"\rupdated_after\x18\b \x01(\tH\aR\fupdatedAfter\x88\x01\x01\x12*\n" +
+	"\x0eupdated_before\x18\t \x01(\tH\bR\rupdatedBefore\x88\x01\x01B\f\n" +
+	"\n" +
+	"_source_idB\f\n" +
+	"\n" +
+	"_target_idB\x12\n" +
+	"\x10_connection_typeB\x17\n" +
+	"\x15_exploration_metadataB\x11\n" +
+	"\x0f_style_metadataB\x10\n" +
+	"\x0e_created_afterB\x11\n" +
+	"\x0f_created_beforeB\x10\n" +
+	"\x0e_updated_afterB\x11\n" +
+	"\x0f_updated_before\"\x89\x01\n" +
+	"\x16HierarchicalLinkFilter\x12-\n" +
+	"\x04base\x18\x01 \x01(\v2\x19.canvas.v1.BaseLinkFilterR\x04base\x12,\n" +
+	"\x0fhierarchy_depth\x18\x02 \x01(\x05H\x00R\x0ehierarchyDepth\x88\x01\x01B\x12\n" +
+	"\x10_hierarchy_depth\"\xec\x04\n" +
+	"\x12SemanticLinkFilter\x12-\n" +
+	"\x04base\x18\x01 \x01(\v2\x19.canvas.v1.BaseLinkFilterR\x04base\x121\n" +
+	"\x12strength_score_min\x18\x02 \x01(\x01H\x00R\x10strengthScoreMin\x88\x01\x01\x121\n" +
+	"\x12strength_score_max\x18\x03 \x01(\x01H\x01R\x10strengthScoreMax\x88\x01\x01\x125\n" +
+	"\x14similarity_score_min\x18\x04 \x01(\x01H\x02R\x12similarityScoreMin\x88\x01\x01\x125\n" +
+	"\x14similarity_score_max\x18\x05 \x01(\x01H\x03R\x12similarityScoreMax\x88\x01\x01\x122\n" +
+	"\x12abstraction_bridge\x18\x06 \x01(\bH\x04R\x11abstractionBridge\x88\x01\x01\x124\n" +
+	"\x13hierarchical_bridge\x18\a \x01(\bH\x05R\x12hierarchicalBridge\x88\x01\x01\x12#\n" +
+	"\rsemantic_tags\x18\b \x03(\tR\fsemanticTags\x12%\n" +
+	"\vdescription\x18\t \x01(\tH\x06R\vdescription\x88\x01\x01B\x15\n" +
+	"\x13_strength_score_minB\x15\n" +
+	"\x13_strength_score_maxB\x17\n" +
+	"\x15_similarity_score_minB\x17\n" +
+	"\x15_similarity_score_maxB\x15\n" +
+	"\x13_abstraction_bridgeB\x16\n" +
+	"\x14_hierarchical_bridgeB\x0e\n" +
+	"\f_description\"\xcf\x02\n" +
+	"\x14StructuralLinkFilter\x12-\n" +
+	"\x04base\x18\x01 \x01(\v2\x19.canvas.v1.BaseLinkFilterR\x04base\x125\n" +
+	"\x14confidence_score_min\x18\x02 \x01(\x01H\x00R\x12confidenceScoreMin\x88\x01\x01\x125\n" +
+	"\x14confidence_score_max\x18\x03 \x01(\x01H\x01R\x12confidenceScoreMax\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x04 \x01(\tH\x02R\vdescription\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"created_by\x18\x05 \x01(\tH\x03R\tcreatedBy\x88\x01\x01B\x17\n" +
+	"\x15_confidence_score_minB\x17\n" +
+	"\x15_confidence_score_maxB\x0e\n" +
+	"\f_descriptionB\r\n" +
+	"\v_created_by\"\xa4\x01\n" +
+	"\x04Node\x122\n" +
+	"\acontent\x18\x01 \x01(\v2\x16.canvas.v1.ContentNodeH\x00R\acontent\x12,\n" +
+	"\x05chunk\x18\x02 \x01(\v2\x14.canvas.v1.ChunkNodeH\x00R\x05chunk\x122\n" +
+	"\acluster\x18\x03 \x01(\v2\x16.canvas.v1.ClusterNodeH\x00R\aclusterB\x06\n" +
+	"\x04node\"\xc5\x01\n" +
+	"\x04Link\x12A\n" +
+	"\fhierarchical\x18\x01 \x01(\v2\x1b.canvas.v1.HierarchicalLinkH\x00R\fhierarchical\x125\n" +
+	"\bsemantic\x18\x02 \x01(\v2\x17.canvas.v1.SemanticLinkH\x00R\bsemantic\x12;\n" +
+	"\n" +
+	"structural\x18\x03 \x01(\v2\x19.canvas.v1.StructuralLinkH\x00R\n" +
+	"structuralB\x06\n" +
+	"\x04link2\x9f\x0e\n" +
+	"\x06Canvas\x12C\n" +
+	"\bGetNodes\x12\x1a.canvas.v1.GetNodesRequest\x1a\x1b.canvas.v1.GetNodesResponse\x12a\n" +
+	"\x12CreateClusterNodes\x12$.canvas.v1.CreateClusterNodesRequest\x1a%.canvas.v1.CreateClusterNodesResponse\x12a\n" +
+	"\x12CreateContentNodes\x12$.canvas.v1.CreateContentNodesRequest\x1a%.canvas.v1.CreateContentNodesResponse\x12[\n" +
+	"\x10CreateChunkNodes\x12\".canvas.v1.CreateChunkNodesRequest\x1a#.canvas.v1.CreateChunkNodesResponse\x12a\n" +
+	"\x12UpdateClusterNodes\x12$.canvas.v1.UpdateClusterNodesRequest\x1a%.canvas.v1.UpdateClusterNodesResponse\x12a\n" +
+	"\x12UpdateContentNodes\x12$.canvas.v1.UpdateContentNodesRequest\x1a%.canvas.v1.UpdateContentNodesResponse\x12[\n" +
+	"\x10UpdateChunkNodes\x12\".canvas.v1.UpdateChunkNodesRequest\x1a#.canvas.v1.UpdateChunkNodesResponse\x12L\n" +
+	"\vDeleteNodes\x12\x1d.canvas.v1.DeleteNodesRequest\x1a\x1e.canvas.v1.DeleteNodesResponse\x12C\n" +
+	"\bGetLinks\x12\x1a.canvas.v1.GetLinksRequest\x1a\x1b.canvas.v1.GetLinksResponse\x12g\n" +
+	"\x14GetHierarchicalLinks\x12&.canvas.v1.GetHierarchicalLinksRequest\x1a'.canvas.v1.GetHierarchicalLinksResponse\x12[\n" +
+	"\x10GetSemanticLinks\x12\".canvas.v1.GetSemanticLinksRequest\x1a#.canvas.v1.GetSemanticLinksResponse\x12a\n" +
+	"\x12GetStructuralLinks\x12$.canvas.v1.GetStructuralLinksRequest\x1a%.canvas.v1.GetStructuralLinksResponse\x12p\n" +
+	"\x17CreateHierarchicalLinks\x12).canvas.v1.CreateHierarchicalLinksRequest\x1a*.canvas.v1.CreateHierarchicalLinksResponse\x12d\n" +
+	"\x13CreateSemanticLinks\x12%.canvas.v1.CreateSemanticLinksRequest\x1a&.canvas.v1.CreateSemanticLinksResponse\x12p\n" +
+	"\x17UpdateHierarchicalLinks\x12).canvas.v1.UpdateHierarchicalLinksRequest\x1a*.canvas.v1.UpdateHierarchicalLinksResponse\x12d\n" +
+	"\x13UpdateSemanticLinks\x12%.canvas.v1.UpdateSemanticLinksRequest\x1a&.canvas.v1.UpdateSemanticLinksResponse\x12L\n" +
+	"\vDeleteLinks\x12\x1d.canvas.v1.DeleteLinksRequest\x1a\x1e.canvas.v1.DeleteLinksResponse\x12I\n" +
 	"\n" +
 	"ChunkEmbed\x12\x1c.canvas.v1.ChunkEmbedRequest\x1a\x1d.canvas.v1.ChunkEmbedResponse\x12I\n" +
 	"\n" +
@@ -800,40 +4659,194 @@ func file_proto_private_v1_canvas_private_proto_rawDescGZIP() []byte {
 	return file_proto_private_v1_canvas_private_proto_rawDescData
 }
 
-var file_proto_private_v1_canvas_private_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_private_v1_canvas_private_proto_msgTypes = make([]protoimpl.MessageInfo, 66)
 var file_proto_private_v1_canvas_private_proto_goTypes = []any{
-	(*HealthStatus)(nil),       // 0: canvas.v1.HealthStatus
-	(*ChunkingConfig)(nil),     // 1: canvas.v1.ChunkingConfig
-	(*SpatialCoordinates)(nil), // 2: canvas.v1.SpatialCoordinates
-	(*Chunk)(nil),              // 3: canvas.v1.Chunk
-	(*EmbeddingConfig)(nil),    // 4: canvas.v1.EmbeddingConfig
-	(*EmbedQueryRequest)(nil),  // 5: canvas.v1.EmbedQueryRequest
-	(*EmbedQueryResponse)(nil), // 6: canvas.v1.EmbedQueryResponse
-	(*ChunkEmbedRequest)(nil),  // 7: canvas.v1.ChunkEmbedRequest
-	(*ChunkEmbedding)(nil),     // 8: canvas.v1.ChunkEmbedding
-	(*ChunkEmbedResponse)(nil), // 9: canvas.v1.ChunkEmbedResponse
-	nil,                        // 10: canvas.v1.HealthStatus.ComponentsEntry
-	(*emptypb.Empty)(nil),      // 11: google.protobuf.Empty
+	(*HealthStatus)(nil),                    // 0: canvas.v1.HealthStatus
+	(*ChunkingConfig)(nil),                  // 1: canvas.v1.ChunkingConfig
+	(*SpatialCoordinates)(nil),              // 2: canvas.v1.SpatialCoordinates
+	(*Chunk)(nil),                           // 3: canvas.v1.Chunk
+	(*EmbeddingConfig)(nil),                 // 4: canvas.v1.EmbeddingConfig
+	(*EmbedQueryRequest)(nil),               // 5: canvas.v1.EmbedQueryRequest
+	(*EmbedQueryResponse)(nil),              // 6: canvas.v1.EmbedQueryResponse
+	(*ChunkEmbedRequest)(nil),               // 7: canvas.v1.ChunkEmbedRequest
+	(*ChunkEmbedding)(nil),                  // 8: canvas.v1.ChunkEmbedding
+	(*ChunkEmbedResponse)(nil),              // 9: canvas.v1.ChunkEmbedResponse
+	(*MLInfo)(nil),                          // 10: canvas.v1.MLInfo
+	(*BaseNode)(nil),                        // 11: canvas.v1.BaseNode
+	(*DisplayProps)(nil),                    // 12: canvas.v1.DisplayProps
+	(*EngagementScore)(nil),                 // 13: canvas.v1.EngagementScore
+	(*ChunkNode)(nil),                       // 14: canvas.v1.ChunkNode
+	(*ContentNode)(nil),                     // 15: canvas.v1.ContentNode
+	(*ClusterNode)(nil),                     // 16: canvas.v1.ClusterNode
+	(*BaseLink)(nil),                        // 17: canvas.v1.BaseLink
+	(*HierarchicalLink)(nil),                // 18: canvas.v1.HierarchicalLink
+	(*SemanticLink)(nil),                    // 19: canvas.v1.SemanticLink
+	(*StructuralLink)(nil),                  // 20: canvas.v1.StructuralLink
+	(*CreateClusterNodesRequest)(nil),       // 21: canvas.v1.CreateClusterNodesRequest
+	(*CreateClusterNodesResponse)(nil),      // 22: canvas.v1.CreateClusterNodesResponse
+	(*CreateContentNodesRequest)(nil),       // 23: canvas.v1.CreateContentNodesRequest
+	(*CreateContentNodesResponse)(nil),      // 24: canvas.v1.CreateContentNodesResponse
+	(*CreateChunkNodesRequest)(nil),         // 25: canvas.v1.CreateChunkNodesRequest
+	(*CreateChunkNodesResponse)(nil),        // 26: canvas.v1.CreateChunkNodesResponse
+	(*UpdateClusterNodesRequest)(nil),       // 27: canvas.v1.UpdateClusterNodesRequest
+	(*UpdateClusterNodesResponse)(nil),      // 28: canvas.v1.UpdateClusterNodesResponse
+	(*UpdateContentNodesRequest)(nil),       // 29: canvas.v1.UpdateContentNodesRequest
+	(*UpdateContentNodesResponse)(nil),      // 30: canvas.v1.UpdateContentNodesResponse
+	(*UpdateChunkNodesRequest)(nil),         // 31: canvas.v1.UpdateChunkNodesRequest
+	(*UpdateChunkNodesResponse)(nil),        // 32: canvas.v1.UpdateChunkNodesResponse
+	(*DeleteNodesRequest)(nil),              // 33: canvas.v1.DeleteNodesRequest
+	(*DeleteNodesResponse)(nil),             // 34: canvas.v1.DeleteNodesResponse
+	(*CreateHierarchicalLinksRequest)(nil),  // 35: canvas.v1.CreateHierarchicalLinksRequest
+	(*CreateHierarchicalLinksResponse)(nil), // 36: canvas.v1.CreateHierarchicalLinksResponse
+	(*CreateSemanticLinksRequest)(nil),      // 37: canvas.v1.CreateSemanticLinksRequest
+	(*CreateSemanticLinksResponse)(nil),     // 38: canvas.v1.CreateSemanticLinksResponse
+	(*UpdateHierarchicalLinksRequest)(nil),  // 39: canvas.v1.UpdateHierarchicalLinksRequest
+	(*UpdateHierarchicalLinksResponse)(nil), // 40: canvas.v1.UpdateHierarchicalLinksResponse
+	(*UpdateSemanticLinksRequest)(nil),      // 41: canvas.v1.UpdateSemanticLinksRequest
+	(*UpdateSemanticLinksResponse)(nil),     // 42: canvas.v1.UpdateSemanticLinksResponse
+	(*DeleteLinksRequest)(nil),              // 43: canvas.v1.DeleteLinksRequest
+	(*DeleteLinksResponse)(nil),             // 44: canvas.v1.DeleteLinksResponse
+	(*GetNodesRequest)(nil),                 // 45: canvas.v1.GetNodesRequest
+	(*GetNodesResponse)(nil),                // 46: canvas.v1.GetNodesResponse
+	(*GetLinksRequest)(nil),                 // 47: canvas.v1.GetLinksRequest
+	(*GetLinksResponse)(nil),                // 48: canvas.v1.GetLinksResponse
+	(*GetHierarchicalLinksRequest)(nil),     // 49: canvas.v1.GetHierarchicalLinksRequest
+	(*GetHierarchicalLinksResponse)(nil),    // 50: canvas.v1.GetHierarchicalLinksResponse
+	(*GetSemanticLinksRequest)(nil),         // 51: canvas.v1.GetSemanticLinksRequest
+	(*GetSemanticLinksResponse)(nil),        // 52: canvas.v1.GetSemanticLinksResponse
+	(*GetStructuralLinksRequest)(nil),       // 53: canvas.v1.GetStructuralLinksRequest
+	(*GetStructuralLinksResponse)(nil),      // 54: canvas.v1.GetStructuralLinksResponse
+	(*NodeFilter)(nil),                      // 55: canvas.v1.NodeFilter
+	(*ContentNodeFilter)(nil),               // 56: canvas.v1.ContentNodeFilter
+	(*ChunkNodeFilter)(nil),                 // 57: canvas.v1.ChunkNodeFilter
+	(*ClusterNodeFilter)(nil),               // 58: canvas.v1.ClusterNodeFilter
+	(*BaseLinkFilter)(nil),                  // 59: canvas.v1.BaseLinkFilter
+	(*HierarchicalLinkFilter)(nil),          // 60: canvas.v1.HierarchicalLinkFilter
+	(*SemanticLinkFilter)(nil),              // 61: canvas.v1.SemanticLinkFilter
+	(*StructuralLinkFilter)(nil),            // 62: canvas.v1.StructuralLinkFilter
+	(*Node)(nil),                            // 63: canvas.v1.Node
+	(*Link)(nil),                            // 64: canvas.v1.Link
+	nil,                                     // 65: canvas.v1.HealthStatus.ComponentsEntry
+	(*timestamppb.Timestamp)(nil),           // 66: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),                 // 67: google.protobuf.Struct
+	(*emptypb.Empty)(nil),                   // 68: google.protobuf.Empty
 }
 var file_proto_private_v1_canvas_private_proto_depIdxs = []int32{
-	10, // 0: canvas.v1.HealthStatus.components:type_name -> canvas.v1.HealthStatus.ComponentsEntry
+	65, // 0: canvas.v1.HealthStatus.components:type_name -> canvas.v1.HealthStatus.ComponentsEntry
 	2,  // 1: canvas.v1.Chunk.location:type_name -> canvas.v1.SpatialCoordinates
 	4,  // 2: canvas.v1.EmbedQueryRequest.config:type_name -> canvas.v1.EmbeddingConfig
 	1,  // 3: canvas.v1.ChunkEmbedRequest.chunking:type_name -> canvas.v1.ChunkingConfig
 	4,  // 4: canvas.v1.ChunkEmbedRequest.embedding:type_name -> canvas.v1.EmbeddingConfig
 	3,  // 5: canvas.v1.ChunkEmbedding.chunk:type_name -> canvas.v1.Chunk
 	8,  // 6: canvas.v1.ChunkEmbedResponse.results:type_name -> canvas.v1.ChunkEmbedding
-	7,  // 7: canvas.v1.CanvasInternal.ChunkEmbed:input_type -> canvas.v1.ChunkEmbedRequest
-	5,  // 8: canvas.v1.CanvasInternal.EmbedQuery:input_type -> canvas.v1.EmbedQueryRequest
-	11, // 9: canvas.v1.CanvasInternal.Healthz:input_type -> google.protobuf.Empty
-	9,  // 10: canvas.v1.CanvasInternal.ChunkEmbed:output_type -> canvas.v1.ChunkEmbedResponse
-	6,  // 11: canvas.v1.CanvasInternal.EmbedQuery:output_type -> canvas.v1.EmbedQueryResponse
-	0,  // 12: canvas.v1.CanvasInternal.Healthz:output_type -> canvas.v1.HealthStatus
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	2,  // 7: canvas.v1.BaseNode.position_3d:type_name -> canvas.v1.SpatialCoordinates
+	12, // 8: canvas.v1.BaseNode.display_props:type_name -> canvas.v1.DisplayProps
+	13, // 9: canvas.v1.BaseNode.engagement_score:type_name -> canvas.v1.EngagementScore
+	10, // 10: canvas.v1.BaseNode.ml_info:type_name -> canvas.v1.MLInfo
+	66, // 11: canvas.v1.BaseNode.created_at:type_name -> google.protobuf.Timestamp
+	66, // 12: canvas.v1.BaseNode.updated_at:type_name -> google.protobuf.Timestamp
+	66, // 13: canvas.v1.BaseNode.deleted_at:type_name -> google.protobuf.Timestamp
+	11, // 14: canvas.v1.ChunkNode.base:type_name -> canvas.v1.BaseNode
+	11, // 15: canvas.v1.ContentNode.base:type_name -> canvas.v1.BaseNode
+	67, // 16: canvas.v1.ContentNode.action_data:type_name -> google.protobuf.Struct
+	11, // 17: canvas.v1.ClusterNode.base:type_name -> canvas.v1.BaseNode
+	67, // 18: canvas.v1.BaseLink.exploration_metadata:type_name -> google.protobuf.Struct
+	67, // 19: canvas.v1.BaseLink.style_metadata:type_name -> google.protobuf.Struct
+	66, // 20: canvas.v1.BaseLink.created_at:type_name -> google.protobuf.Timestamp
+	66, // 21: canvas.v1.BaseLink.updated_at:type_name -> google.protobuf.Timestamp
+	66, // 22: canvas.v1.BaseLink.deleted_at:type_name -> google.protobuf.Timestamp
+	17, // 23: canvas.v1.HierarchicalLink.base:type_name -> canvas.v1.BaseLink
+	17, // 24: canvas.v1.SemanticLink.base:type_name -> canvas.v1.BaseLink
+	17, // 25: canvas.v1.StructuralLink.base:type_name -> canvas.v1.BaseLink
+	16, // 26: canvas.v1.CreateClusterNodesRequest.nodes:type_name -> canvas.v1.ClusterNode
+	16, // 27: canvas.v1.CreateClusterNodesResponse.nodes:type_name -> canvas.v1.ClusterNode
+	15, // 28: canvas.v1.CreateContentNodesRequest.nodes:type_name -> canvas.v1.ContentNode
+	15, // 29: canvas.v1.CreateContentNodesResponse.nodes:type_name -> canvas.v1.ContentNode
+	14, // 30: canvas.v1.CreateChunkNodesRequest.nodes:type_name -> canvas.v1.ChunkNode
+	14, // 31: canvas.v1.CreateChunkNodesResponse.nodes:type_name -> canvas.v1.ChunkNode
+	16, // 32: canvas.v1.UpdateClusterNodesRequest.nodes:type_name -> canvas.v1.ClusterNode
+	16, // 33: canvas.v1.UpdateClusterNodesResponse.nodes:type_name -> canvas.v1.ClusterNode
+	15, // 34: canvas.v1.UpdateContentNodesRequest.nodes:type_name -> canvas.v1.ContentNode
+	15, // 35: canvas.v1.UpdateContentNodesResponse.nodes:type_name -> canvas.v1.ContentNode
+	14, // 36: canvas.v1.UpdateChunkNodesRequest.nodes:type_name -> canvas.v1.ChunkNode
+	14, // 37: canvas.v1.UpdateChunkNodesResponse.nodes:type_name -> canvas.v1.ChunkNode
+	18, // 38: canvas.v1.CreateHierarchicalLinksRequest.links:type_name -> canvas.v1.HierarchicalLink
+	18, // 39: canvas.v1.CreateHierarchicalLinksResponse.links:type_name -> canvas.v1.HierarchicalLink
+	19, // 40: canvas.v1.CreateSemanticLinksRequest.links:type_name -> canvas.v1.SemanticLink
+	19, // 41: canvas.v1.CreateSemanticLinksResponse.links:type_name -> canvas.v1.SemanticLink
+	18, // 42: canvas.v1.UpdateHierarchicalLinksRequest.links:type_name -> canvas.v1.HierarchicalLink
+	18, // 43: canvas.v1.UpdateHierarchicalLinksResponse.links:type_name -> canvas.v1.HierarchicalLink
+	19, // 44: canvas.v1.UpdateSemanticLinksRequest.links:type_name -> canvas.v1.SemanticLink
+	19, // 45: canvas.v1.UpdateSemanticLinksResponse.links:type_name -> canvas.v1.SemanticLink
+	55, // 46: canvas.v1.GetNodesRequest.filter:type_name -> canvas.v1.NodeFilter
+	63, // 47: canvas.v1.GetNodesResponse.nodes:type_name -> canvas.v1.Node
+	59, // 48: canvas.v1.GetLinksRequest.filter:type_name -> canvas.v1.BaseLinkFilter
+	64, // 49: canvas.v1.GetLinksResponse.links:type_name -> canvas.v1.Link
+	60, // 50: canvas.v1.GetHierarchicalLinksRequest.filter:type_name -> canvas.v1.HierarchicalLinkFilter
+	18, // 51: canvas.v1.GetHierarchicalLinksResponse.links:type_name -> canvas.v1.HierarchicalLink
+	61, // 52: canvas.v1.GetSemanticLinksRequest.filter:type_name -> canvas.v1.SemanticLinkFilter
+	19, // 53: canvas.v1.GetSemanticLinksResponse.links:type_name -> canvas.v1.SemanticLink
+	62, // 54: canvas.v1.GetStructuralLinksRequest.filter:type_name -> canvas.v1.StructuralLinkFilter
+	20, // 55: canvas.v1.GetStructuralLinksResponse.links:type_name -> canvas.v1.StructuralLink
+	56, // 56: canvas.v1.NodeFilter.content_filter:type_name -> canvas.v1.ContentNodeFilter
+	57, // 57: canvas.v1.NodeFilter.chunk_filter:type_name -> canvas.v1.ChunkNodeFilter
+	58, // 58: canvas.v1.NodeFilter.cluster_filter:type_name -> canvas.v1.ClusterNodeFilter
+	67, // 59: canvas.v1.BaseLinkFilter.exploration_metadata:type_name -> google.protobuf.Struct
+	67, // 60: canvas.v1.BaseLinkFilter.style_metadata:type_name -> google.protobuf.Struct
+	59, // 61: canvas.v1.HierarchicalLinkFilter.base:type_name -> canvas.v1.BaseLinkFilter
+	59, // 62: canvas.v1.SemanticLinkFilter.base:type_name -> canvas.v1.BaseLinkFilter
+	59, // 63: canvas.v1.StructuralLinkFilter.base:type_name -> canvas.v1.BaseLinkFilter
+	15, // 64: canvas.v1.Node.content:type_name -> canvas.v1.ContentNode
+	14, // 65: canvas.v1.Node.chunk:type_name -> canvas.v1.ChunkNode
+	16, // 66: canvas.v1.Node.cluster:type_name -> canvas.v1.ClusterNode
+	18, // 67: canvas.v1.Link.hierarchical:type_name -> canvas.v1.HierarchicalLink
+	19, // 68: canvas.v1.Link.semantic:type_name -> canvas.v1.SemanticLink
+	20, // 69: canvas.v1.Link.structural:type_name -> canvas.v1.StructuralLink
+	45, // 70: canvas.v1.Canvas.GetNodes:input_type -> canvas.v1.GetNodesRequest
+	21, // 71: canvas.v1.Canvas.CreateClusterNodes:input_type -> canvas.v1.CreateClusterNodesRequest
+	23, // 72: canvas.v1.Canvas.CreateContentNodes:input_type -> canvas.v1.CreateContentNodesRequest
+	25, // 73: canvas.v1.Canvas.CreateChunkNodes:input_type -> canvas.v1.CreateChunkNodesRequest
+	27, // 74: canvas.v1.Canvas.UpdateClusterNodes:input_type -> canvas.v1.UpdateClusterNodesRequest
+	29, // 75: canvas.v1.Canvas.UpdateContentNodes:input_type -> canvas.v1.UpdateContentNodesRequest
+	31, // 76: canvas.v1.Canvas.UpdateChunkNodes:input_type -> canvas.v1.UpdateChunkNodesRequest
+	33, // 77: canvas.v1.Canvas.DeleteNodes:input_type -> canvas.v1.DeleteNodesRequest
+	47, // 78: canvas.v1.Canvas.GetLinks:input_type -> canvas.v1.GetLinksRequest
+	49, // 79: canvas.v1.Canvas.GetHierarchicalLinks:input_type -> canvas.v1.GetHierarchicalLinksRequest
+	51, // 80: canvas.v1.Canvas.GetSemanticLinks:input_type -> canvas.v1.GetSemanticLinksRequest
+	53, // 81: canvas.v1.Canvas.GetStructuralLinks:input_type -> canvas.v1.GetStructuralLinksRequest
+	35, // 82: canvas.v1.Canvas.CreateHierarchicalLinks:input_type -> canvas.v1.CreateHierarchicalLinksRequest
+	37, // 83: canvas.v1.Canvas.CreateSemanticLinks:input_type -> canvas.v1.CreateSemanticLinksRequest
+	39, // 84: canvas.v1.Canvas.UpdateHierarchicalLinks:input_type -> canvas.v1.UpdateHierarchicalLinksRequest
+	41, // 85: canvas.v1.Canvas.UpdateSemanticLinks:input_type -> canvas.v1.UpdateSemanticLinksRequest
+	43, // 86: canvas.v1.Canvas.DeleteLinks:input_type -> canvas.v1.DeleteLinksRequest
+	7,  // 87: canvas.v1.Canvas.ChunkEmbed:input_type -> canvas.v1.ChunkEmbedRequest
+	5,  // 88: canvas.v1.Canvas.EmbedQuery:input_type -> canvas.v1.EmbedQueryRequest
+	68, // 89: canvas.v1.Canvas.Healthz:input_type -> google.protobuf.Empty
+	46, // 90: canvas.v1.Canvas.GetNodes:output_type -> canvas.v1.GetNodesResponse
+	22, // 91: canvas.v1.Canvas.CreateClusterNodes:output_type -> canvas.v1.CreateClusterNodesResponse
+	24, // 92: canvas.v1.Canvas.CreateContentNodes:output_type -> canvas.v1.CreateContentNodesResponse
+	26, // 93: canvas.v1.Canvas.CreateChunkNodes:output_type -> canvas.v1.CreateChunkNodesResponse
+	28, // 94: canvas.v1.Canvas.UpdateClusterNodes:output_type -> canvas.v1.UpdateClusterNodesResponse
+	30, // 95: canvas.v1.Canvas.UpdateContentNodes:output_type -> canvas.v1.UpdateContentNodesResponse
+	32, // 96: canvas.v1.Canvas.UpdateChunkNodes:output_type -> canvas.v1.UpdateChunkNodesResponse
+	34, // 97: canvas.v1.Canvas.DeleteNodes:output_type -> canvas.v1.DeleteNodesResponse
+	48, // 98: canvas.v1.Canvas.GetLinks:output_type -> canvas.v1.GetLinksResponse
+	50, // 99: canvas.v1.Canvas.GetHierarchicalLinks:output_type -> canvas.v1.GetHierarchicalLinksResponse
+	52, // 100: canvas.v1.Canvas.GetSemanticLinks:output_type -> canvas.v1.GetSemanticLinksResponse
+	54, // 101: canvas.v1.Canvas.GetStructuralLinks:output_type -> canvas.v1.GetStructuralLinksResponse
+	36, // 102: canvas.v1.Canvas.CreateHierarchicalLinks:output_type -> canvas.v1.CreateHierarchicalLinksResponse
+	38, // 103: canvas.v1.Canvas.CreateSemanticLinks:output_type -> canvas.v1.CreateSemanticLinksResponse
+	40, // 104: canvas.v1.Canvas.UpdateHierarchicalLinks:output_type -> canvas.v1.UpdateHierarchicalLinksResponse
+	42, // 105: canvas.v1.Canvas.UpdateSemanticLinks:output_type -> canvas.v1.UpdateSemanticLinksResponse
+	44, // 106: canvas.v1.Canvas.DeleteLinks:output_type -> canvas.v1.DeleteLinksResponse
+	9,  // 107: canvas.v1.Canvas.ChunkEmbed:output_type -> canvas.v1.ChunkEmbedResponse
+	6,  // 108: canvas.v1.Canvas.EmbedQuery:output_type -> canvas.v1.EmbedQueryResponse
+	0,  // 109: canvas.v1.Canvas.Healthz:output_type -> canvas.v1.HealthStatus
+	90, // [90:110] is the sub-list for method output_type
+	70, // [70:90] is the sub-list for method input_type
+	70, // [70:70] is the sub-list for extension type_name
+	70, // [70:70] is the sub-list for extension extendee
+	0,  // [0:70] is the sub-list for field type_name
 }
 
 func init() { file_proto_private_v1_canvas_private_proto_init() }
@@ -845,13 +4858,38 @@ func file_proto_private_v1_canvas_private_proto_init() {
 		(*ChunkEmbedRequest_Text)(nil),
 		(*ChunkEmbedRequest_BlobUrl)(nil),
 	}
+	file_proto_private_v1_canvas_private_proto_msgTypes[11].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[14].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[15].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[16].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[17].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[19].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[20].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[55].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[56].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[57].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[58].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[59].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[60].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[61].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[62].OneofWrappers = []any{}
+	file_proto_private_v1_canvas_private_proto_msgTypes[63].OneofWrappers = []any{
+		(*Node_Content)(nil),
+		(*Node_Chunk)(nil),
+		(*Node_Cluster)(nil),
+	}
+	file_proto_private_v1_canvas_private_proto_msgTypes[64].OneofWrappers = []any{
+		(*Link_Hierarchical)(nil),
+		(*Link_Semantic)(nil),
+		(*Link_Structural)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_private_v1_canvas_private_proto_rawDesc), len(file_proto_private_v1_canvas_private_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   66,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
