@@ -44,17 +44,15 @@ ms_canvas/
 │   │   └── main.go
 │   ├── internal/
 │   │   ├── service/
-│   │   │   ├── vector_service.go
-│   │   │   └── search_service.go
+│   │   │   ├── search_service.go // SearchService interface and its implementation
+│   │   │   ├── node_service.go // NodeService interface and its implementation
+│   │   │   └── link_service.go // LinkService interface and its implementation
 │   │   ├── gateway/
 │   │   │   └── python/
 │   │   │       ├── factory.go
 │   │   │       └── chunking_and_embedding.go
 │   │   ├── server/
 │   │   │   └── grpc.go
-│   │   ├── domain/
-│   │   │   ├── node_models.go
-│   │   │   └── link_models.go
 │   │   ├── repository/
 │   │   │   └── neo4j/
 │   │   │       ├── driver.go
@@ -69,7 +67,7 @@ ms_canvas/
 │   │       └── config.go
 │   ├── api/
 │   │   └── proto/
-│   │       └── v1/
+│   │       └── private/v1/
 │   │           └── (generated gRPC client code)
 │   └── README.md
 ├── python_app/
@@ -99,13 +97,13 @@ ms_canvas/
 
 ### 4.1 Go Application
 - `cmd/main.go`: wires dependencies; starts gRPC public API server, HTTP gateway (optional), and the Kafka consumer; manages lifecycle.
-- `internal/domain`: domain models (`ContentNode`, `ChunkNode`, `Embedding`, relationship types), repository interfaces.
 - `internal/server`: gRPC server setup, service registration, health checks, graceful shutdown (follows `ms_knowledge` pattern).
-- `internal/service`: Business logic layer containing workflows and domain services (e.g., `document_workflow.go` for ingestion orchestration, `search_service.go` for semantic search). Services coordinate gateway calls and repository operations.
+- `internal/service`: Business logic layer containing workflows and domain services (e.g., `node_service.go`, `link_service.go`, `search_service.go` for orchestration). Services coordinate gateway calls and repository operations.
 - `internal/repository`: Data access layer with Neo4j repositories (`NodeRepository`, `LinkRepository`) and driver setup.
 - `internal/events`: Event-related code including event types (`types.go`) and Kafka consumer implementation that delegates to `internal/service`.
 - `internal/gateway/python`: gRPC client to Python internal service for chunking/embedding operations.
-- `api/proto/v1`: generated Go code for internal protobufs.
+- `api/proto/private/v1`: generated Go code for private/internal protobufs.
+- `api/proto/public/v1`: generated Go code for public protobufs.
 
 ### 4.2 Python Application
 - `app/services/chunking.py`: sentence-based text chunking with configurable target_size≈tokens (default 300) and overlap% (default 10%), using spaCy for sentence segmentation and tiktoken for token estimation.
