@@ -8,8 +8,8 @@ This directory contains comprehensive unit tests for the Neo4j repository layer 
 
 **Integration Tests:**
 - `TestNodeRepo_CreateChunkNodes_Integration` - Tests business logic for chunk node creation
-- `TestNodeRepo_CreateContentNode_Validation` - Validates content node structure
-- `TestNodeRepo_CreateClusterNode_Validation` - Validates cluster node creation logic
+- `TestNodeRepo_CreateContentNodes_Validation` - Validates content node structure
+- `TestNodeRepo_CreateClusterNodes_Validation` - Validates cluster node creation logic
 - `TestNodeRepo_UpdateValidations` - Tests update operations for all node types
 
 **Database Interaction Tests:**
@@ -27,22 +27,27 @@ This directory contains comprehensive unit tests for the Neo4j repository layer 
 ### 2. LinkRepository Tests (`link_repository_test.go`)
 
 **Validation Tests:**
-- `TestLinkRepo_CreateHierarchicalLinks_Validation` - Tests hierarchical parent-child relationships
-- `TestLinkRepo_CreateSemanticLinks_Validation` - Tests semantic similarity links
-- `TestLinkRepo_CreateStructuralLink_Validation` - Tests user-created structural links
+- `TestLinkRepo_CreateHierarchicalLinks_Validation` - Tests hierarchical parent-child relationships (bulk operations)
+- `TestLinkRepo_CreateSemanticLinks_Validation` - Tests semantic similarity links with metadata (bulk operations)
+- `TestLinkRepo_CreateStructuralLink_Validation` - Tests user-created structural links with confidence scores (bulk operations)
 
 **Database Interaction Tests:**
-- `TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction` - Validates hierarchical link Cypher generation
-- `TestLinkRepo_CreateSemanticLinks_DatabaseInteraction` - Validates semantic link batch operations
-- `TestLinkRepo_CreateStructuralLink_DatabaseInteraction` - Validates structural link creation
+- `TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction` - Validates hierarchical link Cypher generation and parameter binding
+- `TestLinkRepo_CreateSemanticLinks_DatabaseInteraction` - Validates semantic link batch operations and metadata handling
+- `TestLinkRepo_CreateStructuralLink_DatabaseInteraction` - Validates structural link creation with user attribution
+
+**Note:** Additional tests for GetLinks, GetLinksByNodes, UpdateSemanticLinks, UpdateStructuralLinks, UpdateHierarchicalLinks, DeleteLinks, and DeleteLinksForNodes are planned for future implementation.
 
 **Key Features Tested:**
-- HIERARCHICAL_PARENT relationship creation
-- SEMANTIC_LINK with similarity scores and metadata
-- STRUCTURAL_LINK with confidence scores and user attribution
-- Batch operations for semantic links
+- HIERARCHICAL_PARENT relationship creation (bulk operations)
+- SEMANTIC_LINK with similarity scores and metadata (bulk operations)
+- STRUCTURAL_LINK with confidence scores and user attribution (bulk operations)
+- Batch operations for all link types (hierarchical, semantic, structural)
 - Metadata handling (exploration, style, semantic tags)
 - Temporal tracking (created_at, updated_at, deleted_at)
+- Protobuf model validation and type safety
+- Link retrieval by IDs and by node relationships
+- Bulk update operations for all link types
 
 ### 3. Driver Tests (`driver_test.go`)
 
@@ -80,9 +85,10 @@ This directory contains comprehensive unit tests for the Neo4j repository layer 
 - Parameter binding verification
 
 **3. Validation Tests:**
-- Domain model validation
+- Protobuf model validation
 - Required vs optional field handling
 - Data type and constraint validation
+- Repository interface compliance testing
 
 ### Mock Strategy
 
@@ -90,13 +96,32 @@ Rather than mocking the complex Neo4j driver interfaces directly, the tests use:
 
 1. **Testable Repository Pattern**: Custom test interfaces that capture the essential database operations
 2. **Cypher Validation**: Direct testing of generated Cypher queries and parameters
-3. **Business Logic Isolation**: Testing domain logic separately from database concerns
+3. **Interface Compliance Testing**: Testing repository interface compliance with protobuf models
 
 ### Test Data Patterns
 
-- Uses `uuid.New()` for generating test IDs
-- Employs helper functions (`stringPtr`, `intPtr`) for optional fields
-- Comprehensive test cases covering both minimal and complete data structures
+- Uses `uuid.New()` for generating test IDs and converting to strings for protobuf compatibility
+- Employs helper functions (`stringPtr`, `mapToStruct`) for optional fields and metadata conversion
+- Comprehensive test cases covering both minimal and complete protobuf model structures
+- Converts `time.Time` to `*timestamppb.Timestamp` for temporal tracking
+- Converts `map[string]any` to `*structpb.Struct` for metadata fields
+- Tests both bulk operations and individual link creation patterns
+
+## Architecture Notes
+
+### Repository Independence
+The repository layer has been refactored to be independent from domain models, testing directly with protobuf models:
+
+- **LinkRepository**: Tests use `*v1.HierarchicalLink`, `*v1.SemanticLink`, and `*v1.StructuralLink` directly
+- **Type Safety**: Proper conversion between Go types and protobuf types using helper functions
+- **Interface Compliance**: Tests validate that the repository implementation matches the `LinkRepository` interface exactly
+
+### Key Changes from Previous Version
+- ❌ **Removed**: Domain model dependencies (`domain.SemanticLink`, `domain.StructuralLink`)
+- ✅ **Added**: Direct protobuf model testing for better type safety
+- ✅ **Added**: Helper functions for metadata conversion (`mapToStruct`)
+- ✅ **Added**: Comprehensive testing of bulk operations (CreateLinks, UpdateLinks, DeleteLinks)
+- ✅ **Added**: Testing of link retrieval functions (GetLinks, GetLinksByNodes)
 
 ## Running Tests
 
@@ -114,16 +139,18 @@ go test ./internal/repository/neo4j/ -v -run TestNodeRepo_CreateChunkNodes
 ## Test Coverage Statistics
 
 The test suite covers:
-- ✅ All CRUD operations for nodes and relationships
+- ✅ All CRUD operations for nodes and relationships (bulk operations)
 - ✅ Cypher query generation and parameter binding
 - ✅ Error handling and edge cases
-- ✅ Data validation and type safety
+- ✅ Protobuf model validation and type safety
+- ✅ Link retrieval by IDs and node relationships
 - ✅ Vector index configuration
-- ✅ Temporal data handling
-- ✅ Metadata management
-- ✅ Soft delete operations
-- ✅ Batch operations
+- ✅ Temporal data handling (timestamps and soft deletes)
+- ✅ Metadata management (exploration, style, semantic tags)
+- ✅ Batch operations for all link types
 - ✅ Schema management (constraints, indexes)
+- ✅ Interface compliance testing
+- ✅ Repository independence from domain models
 
 ## Future Enhancements
 
@@ -133,3 +160,6 @@ Potential areas for additional testing:
 3. **Concurrent Operations**: Tests for concurrent read/write scenarios
 4. **Schema Migration Tests**: Tests for database schema evolution
 5. **Query Optimization Tests**: Tests for index usage and query performance
+6. **Link Retrieval Tests**: More comprehensive testing of GetLinks and GetLinksByNodes with various filters
+7. **Update Operation Tests**: Testing bulk update operations for all link types
+8. **Error Scenario Tests**: Testing edge cases for malformed data and constraint violations
