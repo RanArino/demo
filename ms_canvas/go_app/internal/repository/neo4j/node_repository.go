@@ -235,64 +235,99 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*v1.ChunkNode)
 	return err
 }
 
-// CreateContentNode creates or updates a ContentNode for the given content_source_id.
-func (r *NodeRepo) CreateContentNode(ctx context.Context, node *v1.ContentNode) error {
+// CreateContentNodes creates or updates ContentNodes in batch.
+func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*v1.ContentNode) error {
+	if len(contents) == 0 {
+		return nil
+	}
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"content_source_id": node.ContentSourceId,
-			"now":               time.Now().UTC().Format(time.RFC3339),
-			"id":                node.Base.Id,
+			"items": make([]map[string]interface{}, 0, len(contents)),
+		}
+		now := time.Now().UTC().Format(time.RFC3339)
+		for _, content := range contents {
+			item := map[string]interface{}{
+				"id":                content.Base.Id,
+				"content_source_id": content.ContentSourceId,
+				"now":               now,
+			}
+			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
 		_, err := tx.Run(ctx, `
-            MERGE (n:ContentNode {content_source_id: $content_source_id})
-            ON CREATE SET n.id = $id, n.created_at = datetime($now), n.updated_at = datetime($now)
-            ON MATCH SET n.updated_at = datetime($now)
-        `, params)
+			UNWIND $items AS item
+			MERGE (n:ContentNode {content_source_id: item.content_source_id})
+			ON CREATE SET
+				n.id = item.id,
+				n.created_at = datetime(item.now),
+				n.updated_at = datetime(item.now)
+			ON MATCH SET
+				n.updated_at = datetime(item.now)
+		`, params)
 		return nil, err
 	})
 	return err
 }
 
-// CreateClusterNode creates or updates a ClusterNode with minimal required fields.
-func (r *NodeRepo) CreateClusterNode(ctx context.Context, node *v1.ClusterNode) error {
+// CreateClusterNodes creates or updates ClusterNodes in batch.
+func (r *NodeRepo) CreateClusterNodes(ctx context.Context, clusters []*v1.ClusterNode) error {
+	if len(clusters) == 0 {
+		return nil
+	}
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"id":                node.Base.Id,
-			"space_id":          node.Base.SpaceId,
-			"abstraction_level": node.Base.AbstractionLevel,
-			"cluster_scope":     node.ClusterScope,
-			"now":               time.Now().UTC().Format(time.RFC3339),
+			"items": make([]map[string]interface{}, 0, len(clusters)),
+		}
+		now := time.Now().UTC().Format(time.RFC3339)
+		for _, cluster := range clusters {
+			item := map[string]interface{}{
+				"id":                cluster.Base.Id,
+				"space_id":          cluster.Base.SpaceId,
+				"abstraction_level": cluster.Base.AbstractionLevel,
+				"cluster_scope":     cluster.ClusterScope,
+				"now":               now,
+			}
+
+			// Add optional fields
+			if cluster.Title != nil {
+				item["title"] = *cluster.Title
+			}
+			if len(cluster.Base.Embedding) > 0 {
+				item["embedding"] = cluster.Base.Embedding
+			}
+
+			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
 
-		// Build SET clauses using slice-based approach
-		setCreateParts := []string{"n.space_id = $space_id", "n.abstraction_level = $abstraction_level", "n.cluster_scope = $cluster_scope"}
-		setMatchParts := []string{"n.space_id = $space_id", "n.abstraction_level = $abstraction_level", "n.cluster_scope = $cluster_scope"}
+		_, err := tx.Run(ctx, `
+			UNWIND $items AS item
+			MERGE (n:ClusterNode {id: item.id})
+			ON CREATE SET
+				n.space_id = item.space_id,
+				n.abstraction_level = item.abstraction_level,
+				n.cluster_scope = item.cluster_scope,
+				n.created_at = datetime(item.now),
+				n.updated_at = datetime(item.now)
+			ON MATCH SET
+				n.space_id = item.space_id,
+				n.abstraction_level = item.abstraction_level,
+				n.cluster_scope = item.cluster_scope,
+				n.updated_at = datetime(item.now)
+		`, params)
 
-		// Add optional fields
-		if node.Title != nil {
-			params["title"] = *node.Title
-			setCreateParts = append(setCreateParts, "n.title = $title")
-			setMatchParts = append(setMatchParts, "n.title = $title")
+		// Handle optional fields in separate query since Neo4j UNWIND doesn't handle conditional SET well
+		if len(clusters) > 0 && (clusters[0].Title != nil || len(clusters[0].Base.Embedding) > 0) {
+			_, err = tx.Run(ctx, `
+				UNWIND $items AS item
+				MATCH (n:ClusterNode {id: item.id})
+				SET n.title = CASE WHEN item.title IS NOT NULL THEN item.title ELSE n.title END,
+					n.embedding = CASE WHEN item.embedding IS NOT NULL THEN item.embedding ELSE n.embedding END
+			`, params)
 		}
-		if len(node.Base.Embedding) > 0 {
-			params["embedding"] = node.Base.Embedding
-			setCreateParts = append(setCreateParts, "n.embedding = $embedding")
-			setMatchParts = append(setMatchParts, "n.embedding = $embedding")
-		}
 
-		// Always set timestamps
-		setCreateParts = append(setCreateParts, "n.created_at = datetime($now)", "n.updated_at = datetime($now)")
-		setMatchParts = append(setMatchParts, "n.updated_at = datetime($now)")
-
-		setCreate := strings.Join(setCreateParts, ", ")
-		setMatch := strings.Join(setMatchParts, ", ")
-		query := fmt.Sprintf("MERGE (n:ClusterNode {id: $id}) ON CREATE SET %s ON MATCH SET %s", setCreate, setMatch)
-
-		_, err := tx.Run(ctx, query, params)
 		return nil, err
 	})
 	return err
