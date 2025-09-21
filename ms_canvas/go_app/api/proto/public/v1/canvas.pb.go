@@ -7,7 +7,7 @@
 package canvaspublicv1
 
 import (
-	v1 "demo/ms_canvas/go_app/api/proto/v1"
+	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"

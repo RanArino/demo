@@ -4645,7 +4645,7 @@ const file_proto_private_v1_canvas_private_proto_rawDesc = "" +
 	"ChunkEmbed\x12\x1c.canvas.v1.ChunkEmbedRequest\x1a\x1d.canvas.v1.ChunkEmbedResponse\x12I\n" +
 	"\n" +
 	"EmbedQuery\x12\x1c.canvas.v1.EmbedQueryRequest\x1a\x1d.canvas.v1.EmbedQueryResponse\x12:\n" +
-	"\aHealthz\x12\x16.google.protobuf.Empty\x1a\x17.canvas.v1.HealthStatusB-Z+demo/ms_canvas/go_app/api/proto/v1;canvasv1b\x06proto3"
+	"\aHealthz\x12\x16.google.protobuf.Empty\x1a\x17.canvas.v1.HealthStatusB5Z3demo/ms_canvas/go_app/api/proto/private/v1;canvasv1b\x06proto3"
 
 var (
 	file_proto_private_v1_canvas_private_proto_rawDescOnce sync.Once
