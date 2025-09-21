@@ -1,60 +1,70 @@
 package neo4j
 
 import (
+	"context"
 	"testing"
 	"time"
 
-	"demo/ms_canvas/go_app/internal/domain"
+	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestLinkRepo_CreateHierarchicalLinks_Validation(t *testing.T) {
 	tests := []struct {
 		name              string
-		contentSourceID   uuid.UUID
-		chunkIDs          []uuid.UUID
-		connectionType    string
-		hierarchyDepth    int
-		createdAt         time.Time
+		links             []*v1.HierarchicalLink
 		expectEmptyReturn bool
-		validateFunc      func(t *testing.T, contentSourceID uuid.UUID, chunkIDs []uuid.UUID, connectionType string, hierarchyDepth int, createdAt time.Time)
+		validateFunc      func(t *testing.T, links []*v1.HierarchicalLink)
 	}{
 		{
-			name:              "empty chunk IDs should return early",
-			contentSourceID:   uuid.New(),
-			chunkIDs:          []uuid.UUID{},
-			connectionType:    "document_chunk",
-			hierarchyDepth:    1,
-			createdAt:         time.Now(),
+			name:              "empty links should return early",
+			links:             []*v1.HierarchicalLink{},
 			expectEmptyReturn: true,
-			validateFunc: func(t *testing.T, contentSourceID uuid.UUID, chunkIDs []uuid.UUID, connectionType string, hierarchyDepth int, createdAt time.Time) {
-				assert.Len(t, chunkIDs, 0)
+			validateFunc: func(t *testing.T, links []*v1.HierarchicalLink) {
+				assert.Len(t, links, 0)
 			},
 		},
 		{
-			name:            "valid hierarchical links should have correct structure",
-			contentSourceID: uuid.New(),
-			chunkIDs: []uuid.UUID{
-				uuid.New(),
-				uuid.New(),
-				uuid.New(),
+			name: "valid hierarchical links should have correct structure",
+			links: []*v1.HierarchicalLink{
+				{
+					Base: &v1.BaseLink{
+						SourceId:       uuid.New().String(),
+						TargetId:       uuid.New().String(),
+						ConnectionType: "document_chunk",
+					},
+					HierarchyDepth: 1,
+				},
+				{
+					Base: &v1.BaseLink{
+						SourceId:       uuid.New().String(),
+						TargetId:       uuid.New().String(),
+						ConnectionType: "document_chunk",
+					},
+					HierarchyDepth: 1,
+				},
+				{
+					Base: &v1.BaseLink{
+						SourceId:       uuid.New().String(),
+						TargetId:       uuid.New().String(),
+						ConnectionType: "document_chunk",
+					},
+					HierarchyDepth: 1,
+				},
 			},
-			connectionType:    "document_chunk",
-			hierarchyDepth:    1,
-			createdAt:         time.Now(),
 			expectEmptyReturn: false,
-			validateFunc: func(t *testing.T, contentSourceID uuid.UUID, chunkIDs []uuid.UUID, connectionType string, hierarchyDepth int, createdAt time.Time) {
-				assert.NotEqual(t, uuid.Nil, contentSourceID)
-				assert.Len(t, chunkIDs, 3)
-				assert.Equal(t, "document_chunk", connectionType)
-				assert.Equal(t, 1, hierarchyDepth)
-				assert.False(t, createdAt.IsZero())
-
-				for _, chunkID := range chunkIDs {
-					assert.NotEqual(t, uuid.Nil, chunkID)
+			validateFunc: func(t *testing.T, links []*v1.HierarchicalLink) {
+				assert.Len(t, links, 3)
+				for _, link := range links {
+					assert.Equal(t, "document_chunk", link.Base.ConnectionType)
+					assert.Equal(t, int32(1), link.HierarchyDepth)
+					assert.NotEmpty(t, link.Base.SourceId)
+					assert.NotEmpty(t, link.Base.TargetId)
 				}
 			},
 		},
@@ -62,93 +72,101 @@ func TestLinkRepo_CreateHierarchicalLinks_Validation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.validateFunc(t, tt.contentSourceID, tt.chunkIDs, tt.connectionType, tt.hierarchyDepth, tt.createdAt)
+			tt.validateFunc(t, tt.links)
 		})
 	}
 }
 
 func TestLinkRepo_CreateSemanticLinks_Validation(t *testing.T) {
 	now := time.Now()
-	sourceID := uuid.New()
-	targetID := uuid.New()
+	sourceID := uuid.New().String()
+	targetID := uuid.New().String()
 
 	tests := []struct {
 		name         string
-		links        []domain.SemanticLink
-		validateFunc func(t *testing.T, links []domain.SemanticLink)
+		links        []*v1.SemanticLink
+		validateFunc func(t *testing.T, links []*v1.SemanticLink)
 	}{
 		{
 			name:  "empty links should be handled",
-			links: []domain.SemanticLink{},
-			validateFunc: func(t *testing.T, links []domain.SemanticLink) {
+			links: []*v1.SemanticLink{},
+			validateFunc: func(t *testing.T, links []*v1.SemanticLink) {
 				assert.Len(t, links, 0)
 			},
 		},
 		{
 			name: "semantic link with all fields should be valid",
-			links: []domain.SemanticLink{
+			links: []*v1.SemanticLink{
 				{
-					SourceID:            sourceID,
-					TargetID:            targetID,
-					ConnectionType:      "semantic_similarity",
-					StrengthScore:       0.85,
-					SimilarityScore:     0.92,
-					AbstractionBridge:   true,
-					HierarchicalBridge:  false,
-					ExplorationMetadata: map[string]any{"method": "cosine"},
-					SemanticTags:        []string{"similar", "related"},
-					StyleMetadata:       map[string]any{"color": "blue"},
-					Description:         stringPtr("High semantic similarity"),
-					CreatedAt:           now,
-					UpdatedAt:           now,
+					Base: &v1.BaseLink{
+						SourceId:            sourceID,
+						TargetId:            targetID,
+						ConnectionType:      "semantic_similarity",
+						ExplorationMetadata: mapToStruct(map[string]any{"method": "cosine"}),
+						StyleMetadata:       mapToStruct(map[string]any{"color": "blue"}),
+						CreatedAt:           timestamppb.New(now),
+						UpdatedAt:           timestamppb.New(now),
+					},
+					StrengthScore:      0.85,
+					SimilarityScore:    0.92,
+					AbstractionBridge:  true,
+					HierarchicalBridge: false,
+					SemanticTags:       []string{"similar", "related"},
+					Description:        stringPtr("High semantic similarity"),
 				},
 			},
-			validateFunc: func(t *testing.T, links []domain.SemanticLink) {
+			validateFunc: func(t *testing.T, links []*v1.SemanticLink) {
 				require.Len(t, links, 1)
 				link := links[0]
 
-				assert.NotEqual(t, uuid.Nil, link.SourceID)
-				assert.NotEqual(t, uuid.Nil, link.TargetID)
-				assert.Equal(t, "semantic_similarity", link.ConnectionType)
+				assert.Equal(t, sourceID, link.Base.SourceId)
+				assert.Equal(t, targetID, link.Base.TargetId)
+				assert.Equal(t, "semantic_similarity", link.Base.ConnectionType)
 				assert.Equal(t, 0.85, link.StrengthScore)
 				assert.Equal(t, 0.92, link.SimilarityScore)
 				assert.True(t, link.AbstractionBridge)
 				assert.False(t, link.HierarchicalBridge)
-				assert.NotNil(t, link.ExplorationMetadata)
-				assert.Equal(t, "cosine", link.ExplorationMetadata["method"])
+				assert.NotNil(t, link.Base.ExplorationMetadata)
+				assert.Equal(t, "cosine", link.Base.ExplorationMetadata.AsMap()["method"])
 				assert.Contains(t, link.SemanticTags, "similar")
 				assert.Contains(t, link.SemanticTags, "related")
-				assert.NotNil(t, link.StyleMetadata)
-				assert.Equal(t, "blue", link.StyleMetadata["color"])
+				assert.NotNil(t, link.Base.StyleMetadata)
+				assert.Equal(t, "blue", link.Base.StyleMetadata.AsMap()["color"])
 				assert.NotNil(t, link.Description)
 				assert.Equal(t, "High semantic similarity", *link.Description)
-				assert.False(t, link.CreatedAt.IsZero())
-				assert.False(t, link.UpdatedAt.IsZero())
+				assert.False(t, link.Base.CreatedAt.AsTime().IsZero())
+				assert.False(t, link.Base.UpdatedAt.AsTime().IsZero())
 			},
 		},
 		{
 			name: "semantic link with minimal fields should be valid",
-			links: []domain.SemanticLink{
+			links: []*v1.SemanticLink{
 				{
-					SourceID:        sourceID,
-					TargetID:        targetID,
-					ConnectionType:  "basic_similarity",
+					Base: &v1.BaseLink{
+						SourceId:       sourceID,
+						TargetId:       targetID,
+						ConnectionType: "basic_similarity",
+						// Note: No timestamps set - should be zero
+					},
 					StrengthScore:   0.5,
 					SimilarityScore: 0.6,
 				},
 			},
-			validateFunc: func(t *testing.T, links []domain.SemanticLink) {
+			validateFunc: func(t *testing.T, links []*v1.SemanticLink) {
 				require.Len(t, links, 1)
 				link := links[0]
 
-				assert.NotEqual(t, uuid.Nil, link.SourceID)
-				assert.NotEqual(t, uuid.Nil, link.TargetID)
-				assert.Equal(t, "basic_similarity", link.ConnectionType)
+				assert.Equal(t, sourceID, link.Base.SourceId)
+				assert.Equal(t, targetID, link.Base.TargetId)
+				assert.Equal(t, "basic_similarity", link.Base.ConnectionType)
 				assert.Equal(t, 0.5, link.StrengthScore)
 				assert.Equal(t, 0.6, link.SimilarityScore)
 				assert.False(t, link.AbstractionBridge)
 				assert.False(t, link.HierarchicalBridge)
-				assert.True(t, link.CreatedAt.IsZero()) // Not set
+				// When no timestamp is set, it should be nil or zero time
+				if link.Base.CreatedAt != nil {
+					assert.True(t, link.Base.CreatedAt.AsTime().IsZero())
+				}
 				assert.Nil(t, link.Description)
 			},
 		},
@@ -163,61 +181,68 @@ func TestLinkRepo_CreateSemanticLinks_Validation(t *testing.T) {
 
 func TestLinkRepo_CreateStructuralLink_Validation(t *testing.T) {
 	now := time.Now()
-	sourceID := uuid.New()
-	targetID := uuid.New()
+	sourceID := uuid.New().String()
+	targetID := uuid.New().String()
 
 	tests := []struct {
 		name         string
-		link         domain.StructuralLink
-		validateFunc func(t *testing.T, link domain.StructuralLink)
+		link         *v1.StructuralLink
+		validateFunc func(t *testing.T, link *v1.StructuralLink)
 	}{
 		{
 			name: "structural link with all fields should be valid",
-			link: domain.StructuralLink{
-				SourceID:            sourceID,
-				TargetID:            targetID,
-				ConnectionType:      "manual_connection",
-				ConfidenceScore:     0.95,
-				Description:         stringPtr("User-created connection"),
-				ExplorationMetadata: map[string]any{"user_id": "12345"},
-				StyleMetadata:       map[string]any{"thickness": 2},
-				CreatedBy:           "user_12345",
-				CreatedAt:           now,
-				UpdatedAt:           now,
+			link: &v1.StructuralLink{
+				Base: &v1.BaseLink{
+					SourceId:            sourceID,
+					TargetId:            targetID,
+					ConnectionType:      "manual_connection",
+					ExplorationMetadata: mapToStruct(map[string]any{"user_id": "12345"}),
+					StyleMetadata:       mapToStruct(map[string]any{"thickness": 2}),
+					CreatedAt:           timestamppb.New(now),
+					UpdatedAt:           timestamppb.New(now),
+				},
+				ConfidenceScore: 0.95,
+				Description:     stringPtr("User-created connection"),
+				CreatedBy:       "user_12345",
 			},
-			validateFunc: func(t *testing.T, link domain.StructuralLink) {
-				assert.NotEqual(t, uuid.Nil, link.SourceID)
-				assert.NotEqual(t, uuid.Nil, link.TargetID)
-				assert.Equal(t, "manual_connection", link.ConnectionType)
+			validateFunc: func(t *testing.T, link *v1.StructuralLink) {
+				assert.Equal(t, sourceID, link.Base.SourceId)
+				assert.Equal(t, targetID, link.Base.TargetId)
+				assert.Equal(t, "manual_connection", link.Base.ConnectionType)
 				assert.Equal(t, 0.95, link.ConfidenceScore)
 				assert.NotNil(t, link.Description)
 				assert.Equal(t, "User-created connection", *link.Description)
-				assert.NotNil(t, link.ExplorationMetadata)
-				assert.Equal(t, "12345", link.ExplorationMetadata["user_id"])
-				assert.NotNil(t, link.StyleMetadata)
-				assert.Equal(t, 2, link.StyleMetadata["thickness"])
+				assert.NotNil(t, link.Base.ExplorationMetadata)
+				assert.Equal(t, "12345", link.Base.ExplorationMetadata.AsMap()["user_id"])
+				assert.NotNil(t, link.Base.StyleMetadata)
+				assert.Equal(t, float64(2), link.Base.StyleMetadata.AsMap()["thickness"])
 				assert.Equal(t, "user_12345", link.CreatedBy)
-				assert.False(t, link.CreatedAt.IsZero())
-				assert.False(t, link.UpdatedAt.IsZero())
+				assert.False(t, link.Base.CreatedAt.AsTime().IsZero())
+				assert.False(t, link.Base.UpdatedAt.AsTime().IsZero())
 			},
 		},
 		{
 			name: "structural link with minimal fields should be valid",
-			link: domain.StructuralLink{
-				SourceID:        sourceID,
-				TargetID:        targetID,
-				ConnectionType:  "auto_connection",
+			link: &v1.StructuralLink{
+				Base: &v1.BaseLink{
+					SourceId:       sourceID,
+					TargetId:       targetID,
+					ConnectionType: "auto_connection",
+				},
 				ConfidenceScore: 0.7,
 				CreatedBy:       "system",
 			},
-			validateFunc: func(t *testing.T, link domain.StructuralLink) {
-				assert.NotEqual(t, uuid.Nil, link.SourceID)
-				assert.NotEqual(t, uuid.Nil, link.TargetID)
-				assert.Equal(t, "auto_connection", link.ConnectionType)
+			validateFunc: func(t *testing.T, link *v1.StructuralLink) {
+				assert.Equal(t, sourceID, link.Base.SourceId)
+				assert.Equal(t, targetID, link.Base.TargetId)
+				assert.Equal(t, "auto_connection", link.Base.ConnectionType)
 				assert.Equal(t, 0.7, link.ConfidenceScore)
 				assert.Equal(t, "system", link.CreatedBy)
 				assert.Nil(t, link.Description)
-				assert.True(t, link.CreatedAt.IsZero()) // Not set
+				// When no timestamp is set, it should be nil or zero time
+				if link.Base.CreatedAt != nil {
+					assert.True(t, link.Base.CreatedAt.AsTime().IsZero())
+				}
 			},
 		},
 	}
@@ -241,54 +266,110 @@ func (r *TestableLinkRepo) ExecuteWrite(cypher string, params map[string]any) er
 	return nil
 }
 
+// CreateHierarchicalLinks for testing - delegates to ExecuteWrite
+func (r *TestableLinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*v1.HierarchicalLink) error {
+	if len(links) == 0 {
+		return nil
+	}
+
+	// This is a simplified version for testing - in reality this would be implemented
+	// in the actual LinkRepo but we're testing the query generation through ExecuteWrite
+	items := make([]map[string]any, 0, len(links))
+	for _, link := range links {
+		createdAt := link.Base.CreatedAt.AsTime()
+		if createdAt.IsZero() {
+			createdAt = time.Now().UTC()
+		}
+		updatedAt := link.Base.UpdatedAt.AsTime()
+		if updatedAt.IsZero() {
+			updatedAt = createdAt
+		}
+		items = append(items, map[string]any{
+			"src":                  link.Base.SourceId,
+			"dst":                  link.Base.TargetId,
+			"connection_type":      link.Base.ConnectionType,
+			"hierarchy_depth":      link.HierarchyDepth,
+			"exploration_metadata": link.Base.ExplorationMetadata,
+			"style_metadata":       link.Base.StyleMetadata,
+			"created_at":           createdAt,
+			"updated_at":           updatedAt,
+			"deleted_at":           link.Base.DeletedAt.AsTime(),
+		})
+	}
+
+	params := map[string]any{
+		"items": items,
+	}
+
+	cypher := `
+        UNWIND $items AS item
+        MATCH (s {id: item.src})
+        MATCH (t {id: item.dst})
+        MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)
+        SET r.connection_type = item.connection_type,
+            r.hierarchy_depth = item.hierarchy_depth,
+            r.exploration_metadata = item.exploration_metadata,
+            r.style_metadata = item.style_metadata,
+            r.created_at = datetime(item.created_at),
+            r.updated_at = datetime(item.updated_at),
+            r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
+    `
+
+	return r.ExecuteWrite(cypher, params)
+}
+
 func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
-	contentSourceID := uuid.New()
-	chunkIDs := []uuid.UUID{uuid.New(), uuid.New()}
-	connectionType := "document_chunk"
-	hierarchyDepth := 1
-	createdAt := time.Now()
+	ctx := context.Background()
+	links := []*v1.HierarchicalLink{
+		{
+			Base: &v1.BaseLink{
+				SourceId:       uuid.New().String(),
+				TargetId:       uuid.New().String(),
+				ConnectionType: "document_chunk",
+			},
+			HierarchyDepth: 1,
+		},
+		{
+			Base: &v1.BaseLink{
+				SourceId:       uuid.New().String(),
+				TargetId:       uuid.New().String(),
+				ConnectionType: "document_chunk",
+			},
+			HierarchyDepth: 1,
+		},
+	}
 
 	tests := []struct {
 		name           string
-		contentSourceID uuid.UUID
-		chunkIDs       []uuid.UUID
-		connectionType string
-		hierarchyDepth int
-		createdAt      time.Time
-		validateCypher func(t *testing.T, cypher string, params map[string]any)
+		links          []*v1.HierarchicalLink
+		validateCypher func(t *testing.T, cypher string, params map[string]any, links []*v1.HierarchicalLink)
 	}{
 		{
-			name:            "hierarchical links should generate correct cypher",
-			contentSourceID: contentSourceID,
-			chunkIDs:        chunkIDs,
-			connectionType:  connectionType,
-			hierarchyDepth:  hierarchyDepth,
-			createdAt:       createdAt,
-			validateCypher: func(t *testing.T, cypher string, params map[string]any) {
-				assert.Contains(t, cypher, "MATCH (c:ContentNode {content_source_id: $content_source_id})")
+			name:  "hierarchical links should generate correct cypher",
+			links: links,
+			validateCypher: func(t *testing.T, cypher string, params map[string]any, testLinks []*v1.HierarchicalLink) {
 				assert.Contains(t, cypher, "UNWIND $items AS item")
-				assert.Contains(t, cypher, "MATCH (n:ChunkNode {id: item.chunk_id})")
-				assert.Contains(t, cypher, "MERGE (c)-[r:HIERARCHICAL_PARENT]->(n)")
-				assert.Contains(t, cypher, "SET r.connection_type = $connection_type")
-				assert.Contains(t, cypher, "r.hierarchy_depth = $hierarchy_depth")
+				assert.Contains(t, cypher, "MATCH (s {id: item.src})")
+				assert.Contains(t, cypher, "MATCH (t {id: item.dst})")
+				assert.Contains(t, cypher, "MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)")
+				assert.Contains(t, cypher, "SET r.connection_type = item.connection_type")
+				assert.Contains(t, cypher, "r.hierarchy_depth = item.hierarchy_depth")
 
-				assert.Contains(t, params, "content_source_id")
 				assert.Contains(t, params, "items")
-				assert.Contains(t, params, "connection_type")
-				assert.Contains(t, params, "hierarchy_depth")
-				assert.Contains(t, params, "created_at")
-
-				assert.Equal(t, contentSourceID.String(), params["content_source_id"])
-				assert.Equal(t, connectionType, params["connection_type"])
-				assert.Equal(t, hierarchyDepth, params["hierarchy_depth"])
 
 				items, ok := params["items"].([]map[string]any)
 				assert.True(t, ok)
 				assert.Len(t, items, 2)
 
 				for i, item := range items {
-					assert.Contains(t, item, "chunk_id")
-					assert.Equal(t, chunkIDs[i].String(), item["chunk_id"])
+					assert.Contains(t, item, "src")
+					assert.Contains(t, item, "dst")
+					assert.Contains(t, item, "connection_type")
+					assert.Contains(t, item, "hierarchy_depth")
+					assert.Equal(t, testLinks[i].Base.ConnectionType, item["connection_type"])
+					assert.Equal(t, int32(testLinks[i].HierarchyDepth), item["hierarchy_depth"])
+					assert.Equal(t, testLinks[i].Base.SourceId, item["src"])
+					assert.Equal(t, testLinks[i].Base.TargetId, item["dst"])
 				}
 			},
 		},
@@ -298,40 +379,18 @@ func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			testRepo := &TestableLinkRepo{
 				executeWriteFunc: func(cypher string, params map[string]any) error {
-					tt.validateCypher(t, cypher, params)
+					tt.validateCypher(t, cypher, params, tt.links)
 					return nil
 				},
 			}
 
 			// Simulate the logic from CreateHierarchicalLinks
-			if len(tt.chunkIDs) == 0 {
+			if len(tt.links) == 0 {
 				return // Early return
 			}
 
-			items := make([]map[string]any, 0, len(tt.chunkIDs))
-			for _, id := range tt.chunkIDs {
-				items = append(items, map[string]any{"chunk_id": id.String()})
-			}
-
-			params := map[string]any{
-				"content_source_id": tt.contentSourceID.String(),
-				"items":             items,
-				"connection_type":   tt.connectionType,
-				"hierarchy_depth":   tt.hierarchyDepth,
-				"created_at":        tt.createdAt,
-			}
-
-			cypher := `
-            MATCH (c:ContentNode {content_source_id: $content_source_id})
-            UNWIND $items AS item
-            MATCH (n:ChunkNode {id: item.chunk_id})
-            MERGE (c)-[r:HIERARCHICAL_PARENT]->(n)
-            SET r.connection_type = $connection_type,
-                r.hierarchy_depth = $hierarchy_depth,
-                r.created_at = datetime($created_at)
-        `
-
-			err := testRepo.ExecuteWrite(cypher, params)
+			// Call the actual method to test query generation
+			err := testRepo.CreateHierarchicalLinks(ctx, tt.links)
 			assert.NoError(t, err)
 		})
 	}
@@ -339,26 +398,30 @@ func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 
 func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 	now := time.Now()
-	links := []domain.SemanticLink{
+	links := []*v1.SemanticLink{
 		{
-			SourceID:            uuid.New(),
-			TargetID:            uuid.New(),
-			ConnectionType:      "semantic_similarity",
-			StrengthScore:       0.85,
-			SimilarityScore:     0.92,
-			AbstractionBridge:   true,
-			HierarchicalBridge:  false,
-			ExplorationMetadata: map[string]any{"method": "cosine"},
-			SemanticTags:        []string{"similar", "related"},
-			StyleMetadata:       map[string]any{"color": "blue"},
-			Description:         stringPtr("High semantic similarity"),
-			CreatedAt:           now,
-			UpdatedAt:           now,
+			Base: &v1.BaseLink{
+				SourceId:            uuid.New().String(),
+				TargetId:            uuid.New().String(),
+				ConnectionType:      "semantic_similarity",
+				ExplorationMetadata: mapToStruct(map[string]any{"method": "cosine"}),
+				StyleMetadata:       mapToStruct(map[string]any{"color": "blue"}),
+				CreatedAt:           timestamppb.New(now),
+				UpdatedAt:           timestamppb.New(now),
+			},
+			StrengthScore:      0.85,
+			SimilarityScore:    0.92,
+			AbstractionBridge:  true,
+			HierarchicalBridge: false,
+			SemanticTags:       []string{"similar", "related"},
+			Description:        stringPtr("High semantic similarity"),
 		},
 		{
-			SourceID:        uuid.New(),
-			TargetID:        uuid.New(),
-			ConnectionType:  "basic_similarity",
+			Base: &v1.BaseLink{
+				SourceId:       uuid.New().String(),
+				TargetId:       uuid.New().String(),
+				ConnectionType: "basic_similarity",
+			},
 			StrengthScore:   0.5,
 			SimilarityScore: 0.6,
 		},
@@ -408,29 +471,29 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 
 	params := map[string]any{"items": make([]map[string]any, 0, len(links))}
 	for _, l := range links {
-		createdAt := l.CreatedAt
+		createdAt := l.Base.CreatedAt.AsTime()
 		if createdAt.IsZero() {
 			createdAt = time.Now().UTC()
 		}
-		updatedAt := l.UpdatedAt
+		updatedAt := l.Base.UpdatedAt.AsTime()
 		if updatedAt.IsZero() {
 			updatedAt = createdAt
 		}
 		params["items"] = append(params["items"].([]map[string]any), map[string]any{
-			"src":                  l.SourceID.String(),
-			"dst":                  l.TargetID.String(),
-			"connection_type":      l.ConnectionType,
+			"src":                  l.Base.SourceId,
+			"dst":                  l.Base.TargetId,
+			"connection_type":      l.Base.ConnectionType,
 			"strength_score":       l.StrengthScore,
 			"similarity_score":     l.SimilarityScore,
 			"abstraction_bridge":   l.AbstractionBridge,
 			"hierarchical_bridge":  l.HierarchicalBridge,
-			"exploration_metadata": l.ExplorationMetadata,
+			"exploration_metadata": l.Base.ExplorationMetadata,
 			"semantic_tags":        l.SemanticTags,
-			"style_metadata":       l.StyleMetadata,
+			"style_metadata":       l.Base.StyleMetadata,
 			"description":          l.Description,
 			"created_at":           createdAt,
 			"updated_at":           updatedAt,
-			"deleted_at":           l.DeletedAt,
+			"deleted_at":           l.Base.DeletedAt.AsTime(),
 		})
 	}
 
@@ -459,17 +522,19 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 
 func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 	now := time.Now()
-	link := domain.StructuralLink{
-		SourceID:            uuid.New(),
-		TargetID:            uuid.New(),
-		ConnectionType:      "manual_connection",
-		ConfidenceScore:     0.95,
-		Description:         stringPtr("User-created connection"),
-		ExplorationMetadata: map[string]any{"user_id": "12345"},
-		StyleMetadata:       map[string]any{"thickness": 2},
-		CreatedBy:           "user_12345",
-		CreatedAt:           now,
-		UpdatedAt:           now,
+	link := &v1.StructuralLink{
+		Base: &v1.BaseLink{
+			SourceId:            uuid.New().String(),
+			TargetId:            uuid.New().String(),
+			ConnectionType:      "manual_connection",
+			ExplorationMetadata: mapToStruct(map[string]any{"user_id": "12345"}),
+			StyleMetadata:       mapToStruct(map[string]any{"thickness": 2}),
+			CreatedAt:           timestamppb.New(now),
+			UpdatedAt:           timestamppb.New(now),
+		},
+		ConfidenceScore: 0.95,
+		Description:     stringPtr("User-created connection"),
+		CreatedBy:       "user_12345",
 	}
 
 	testRepo := &TestableLinkRepo{
@@ -487,8 +552,8 @@ func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 			assert.Contains(t, params, "confidence_score")
 			assert.Contains(t, params, "created_by")
 
-			assert.Equal(t, link.SourceID.String(), params["src"])
-			assert.Equal(t, link.TargetID.String(), params["dst"])
+			assert.Equal(t, link.Base.SourceId, params["src"])
+			assert.Equal(t, link.Base.TargetId, params["dst"])
 			assert.Equal(t, "manual_connection", params["connection_type"])
 			assert.Equal(t, 0.95, params["confidence_score"])
 			assert.Equal(t, "user_12345", params["created_by"])
@@ -498,27 +563,27 @@ func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 	}
 
 	// Simulate CreateStructuralLink logic
-	createdAt := link.CreatedAt
+	createdAt := link.Base.CreatedAt.AsTime()
 	if createdAt.IsZero() {
 		createdAt = time.Now().UTC()
 	}
-	updatedAt := link.UpdatedAt
+	updatedAt := link.Base.UpdatedAt.AsTime()
 	if updatedAt.IsZero() {
 		updatedAt = createdAt
 	}
 
 	params := map[string]any{
-		"src":                  link.SourceID.String(),
-		"dst":                  link.TargetID.String(),
-		"connection_type":      link.ConnectionType,
+		"src":                  link.Base.SourceId,
+		"dst":                  link.Base.TargetId,
+		"connection_type":      link.Base.ConnectionType,
 		"confidence_score":     link.ConfidenceScore,
 		"description":          link.Description,
-		"exploration_metadata": link.ExplorationMetadata,
-		"style_metadata":       link.StyleMetadata,
+		"exploration_metadata": link.Base.ExplorationMetadata,
+		"style_metadata":       link.Base.StyleMetadata,
 		"created_by":           link.CreatedBy,
 		"created_at":           createdAt,
 		"updated_at":           updatedAt,
-		"deleted_at":           link.DeletedAt,
+		"deleted_at":           link.Base.DeletedAt.AsTime(),
 	}
 
 	cypher := `
@@ -538,4 +603,16 @@ func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 
 	err := testRepo.ExecuteWrite(cypher, params)
 	assert.NoError(t, err)
+}
+
+// Helper functions
+func mapToStruct(m map[string]any) *structpb.Struct {
+	if m == nil {
+		return nil
+	}
+	s, err := structpb.NewStruct(m)
+	if err != nil {
+		panic(err) // For tests, panic is acceptable
+	}
+	return s
 }
