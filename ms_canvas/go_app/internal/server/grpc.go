@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
 	canvaspublicv1 "demo/ms_canvas/go_app/api/proto/public/v1"
 	"demo/ms_canvas/go_app/internal/service"
 
@@ -76,35 +77,39 @@ func (s *canvasPublicServer) GetNodes(ctx context.Context, req *canvaspublicv1.G
 
 // UpdateNodes implements the UpdateNodes RPC
 func (s *canvasPublicServer) UpdateNodes(ctx context.Context, req *canvaspublicv1.UpdateNodesRequest) (*canvaspublicv1.UpdateNodesResponse, error) {
-	if len(req.Updates) == 0 {
+	if len(req.Nodes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no node updates provided")
 	}
 
 	// Add safety cap for batch operations
-	if len(req.Updates) > MaxNodeUpdatesBatch {
+	if len(req.Nodes) > MaxNodeUpdatesBatch {
 		return nil, status.Errorf(codes.InvalidArgument, "too many node updates in batch (max %d)", MaxNodeUpdatesBatch)
 	}
 
-	// Validate updates
-	for i, update := range req.Updates {
+	// Validate nodes have IDs
+	for i, node := range req.Nodes {
+		if node == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "node cannot be nil at index %d", i)
+		}
+		// Extract ID based on node type
 		var id string
-		switch u := update.Update.(type) {
-		case *canvaspublicv1.NodeUpdate_Content:
-			id = u.Content.Id
-		case *canvaspublicv1.NodeUpdate_Chunk:
-			id = u.Chunk.Id
-		case *canvaspublicv1.NodeUpdate_Cluster:
-			id = u.Cluster.Id
+		switch n := node.Node.(type) {
+		case *v1.Node_Content:
+			id = n.Content.Base.Id
+		case *v1.Node_Chunk:
+			id = n.Chunk.Base.Id
+		case *v1.Node_Cluster:
+			id = n.Cluster.Base.Id
 		default:
-			return nil, status.Errorf(codes.InvalidArgument, "node ID is required in update %d", i)
+			return nil, status.Errorf(codes.InvalidArgument, "node ID is required at index %d", i)
 		}
 
 		if id == "" {
-			return nil, status.Errorf(codes.InvalidArgument, "node ID is required in update %d", i)
+			return nil, status.Errorf(codes.InvalidArgument, "node ID is required at index %d", i)
 		}
 	}
 
-	updatedNodes, err := s.nodeService.UpdateNodes(ctx, req.Updates)
+	updatedNodes, err := s.nodeService.UpdateNodes(ctx, req.Nodes)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update nodes: %v", err)
 	}
