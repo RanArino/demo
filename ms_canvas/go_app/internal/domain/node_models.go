@@ -251,13 +251,3 @@ func (u *ChunkNodeUpdate) Apply(target *ChunkNode) {
 		target.TokenCount = u.TokenCount
 	}
 }
-
-type NodeRepository interface {
-	CreateChunkNodes(chunks []ChunkNode) error
-	CreateContentNode(node ContentNode) error
-	CreateClusterNode(id uuid.UUID, spaceID uuid.UUID, abstractionLevel int, clusterScope string, title *string, embedding *[]float32) error
-	UpdateClusterNode(update ClusterNodeUpdate) error
-	UpdateContentNode(update ContentNodeUpdate) error
-	UpdateChunkNode(update ChunkNodeUpdate) error
-	SoftDeleteNode(id uuid.UUID) error
-}
