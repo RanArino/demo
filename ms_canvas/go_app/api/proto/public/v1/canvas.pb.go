@@ -7,10 +7,10 @@
 package canvaspublicv1
 
 import (
+	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -23,6 +23,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ===== GetNeighbors =====
+// Public-only RPC: GetNeighbors (not available in internal API)
 type Direction int32
 
 const (
@@ -72,6 +74,8 @@ func (Direction) EnumDescriptor() ([]byte, []int) {
 	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{0}
 }
 
+// ===== SemanticSearch =====
+// Public-only RPC: SemanticSearch (not available in internal API)
 type NodeType int32
 
 const (
@@ -124,1358 +128,6 @@ func (NodeType) EnumDescriptor() ([]byte, []int) {
 	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{1}
 }
 
-type SpatialCoordinates struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	X             int32                  `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
-	Y             int32                  `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
-	Z             int32                  `protobuf:"varint,3,opt,name=z,proto3" json:"z,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SpatialCoordinates) Reset() {
-	*x = SpatialCoordinates{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SpatialCoordinates) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SpatialCoordinates) ProtoMessage() {}
-
-func (x *SpatialCoordinates) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SpatialCoordinates.ProtoReflect.Descriptor instead.
-func (*SpatialCoordinates) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *SpatialCoordinates) GetX() int32 {
-	if x != nil {
-		return x.X
-	}
-	return 0
-}
-
-func (x *SpatialCoordinates) GetY() int32 {
-	if x != nil {
-		return x.Y
-	}
-	return 0
-}
-
-func (x *SpatialCoordinates) GetZ() int32 {
-	if x != nil {
-		return x.Z
-	}
-	return 0
-}
-
-type DisplayProps struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Size          int32                  `protobuf:"varint,1,opt,name=size,proto3" json:"size,omitempty"`
-	Opacity       float64                `protobuf:"fixed64,2,opt,name=opacity,proto3" json:"opacity,omitempty"`
-	Shape         string                 `protobuf:"bytes,3,opt,name=shape,proto3" json:"shape,omitempty"`
-	Color         string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DisplayProps) Reset() {
-	*x = DisplayProps{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DisplayProps) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DisplayProps) ProtoMessage() {}
-
-func (x *DisplayProps) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DisplayProps.ProtoReflect.Descriptor instead.
-func (*DisplayProps) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *DisplayProps) GetSize() int32 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
-}
-
-func (x *DisplayProps) GetOpacity() float64 {
-	if x != nil {
-		return x.Opacity
-	}
-	return 0
-}
-
-func (x *DisplayProps) GetShape() string {
-	if x != nil {
-		return x.Shape
-	}
-	return ""
-}
-
-func (x *DisplayProps) GetColor() string {
-	if x != nil {
-		return x.Color
-	}
-	return ""
-}
-
-type EngagementScore struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CanvasScore   float64                `protobuf:"fixed64,1,opt,name=canvas_score,json=canvasScore,proto3" json:"canvas_score,omitempty"`
-	ChatScore     float64                `protobuf:"fixed64,2,opt,name=chat_score,json=chatScore,proto3" json:"chat_score,omitempty"`
-	OverallScore  float64                `protobuf:"fixed64,3,opt,name=overall_score,json=overallScore,proto3" json:"overall_score,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EngagementScore) Reset() {
-	*x = EngagementScore{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EngagementScore) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EngagementScore) ProtoMessage() {}
-
-func (x *EngagementScore) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EngagementScore.ProtoReflect.Descriptor instead.
-func (*EngagementScore) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *EngagementScore) GetCanvasScore() float64 {
-	if x != nil {
-		return x.CanvasScore
-	}
-	return 0
-}
-
-func (x *EngagementScore) GetChatScore() float64 {
-	if x != nil {
-		return x.ChatScore
-	}
-	return 0
-}
-
-func (x *EngagementScore) GetOverallScore() float64 {
-	if x != nil {
-		return x.OverallScore
-	}
-	return 0
-}
-
-type BaseNode struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	SpaceId          string                 `protobuf:"bytes,2,opt,name=space_id,json=spaceId,proto3" json:"space_id,omitempty"`
-	AbstractionLevel int32                  `protobuf:"varint,3,opt,name=abstraction_level,json=abstractionLevel,proto3" json:"abstraction_level,omitempty"`
-	ContextType      string                 `protobuf:"bytes,4,opt,name=context_type,json=contextType,proto3" json:"context_type,omitempty"`
-	Keywords         []string               `protobuf:"bytes,5,rep,name=keywords,proto3" json:"keywords,omitempty"`
-	DisplayContent   string                 `protobuf:"bytes,6,opt,name=display_content,json=displayContent,proto3" json:"display_content,omitempty"`
-	SemanticDensity  float64                `protobuf:"fixed64,7,opt,name=semantic_density,json=semanticDensity,proto3" json:"semantic_density,omitempty"`
-	Position_3D      *SpatialCoordinates    `protobuf:"bytes,8,opt,name=position_3d,json=position3d,proto3" json:"position_3d,omitempty"`
-	IsPositionLocked bool                   `protobuf:"varint,9,opt,name=is_position_locked,json=isPositionLocked,proto3" json:"is_position_locked,omitempty"`
-	Visibility       bool                   `protobuf:"varint,10,opt,name=visibility,proto3" json:"visibility,omitempty"`
-	DisplayProps     *DisplayProps          `protobuf:"bytes,11,opt,name=display_props,json=displayProps,proto3" json:"display_props,omitempty"`
-	EngagementScore  *EngagementScore       `protobuf:"bytes,12,opt,name=engagement_score,json=engagementScore,proto3" json:"engagement_score,omitempty"`
-	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *BaseNode) Reset() {
-	*x = BaseNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BaseNode) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BaseNode) ProtoMessage() {}
-
-func (x *BaseNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BaseNode.ProtoReflect.Descriptor instead.
-func (*BaseNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *BaseNode) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *BaseNode) GetSpaceId() string {
-	if x != nil {
-		return x.SpaceId
-	}
-	return ""
-}
-
-func (x *BaseNode) GetAbstractionLevel() int32 {
-	if x != nil {
-		return x.AbstractionLevel
-	}
-	return 0
-}
-
-func (x *BaseNode) GetContextType() string {
-	if x != nil {
-		return x.ContextType
-	}
-	return ""
-}
-
-func (x *BaseNode) GetKeywords() []string {
-	if x != nil {
-		return x.Keywords
-	}
-	return nil
-}
-
-func (x *BaseNode) GetDisplayContent() string {
-	if x != nil {
-		return x.DisplayContent
-	}
-	return ""
-}
-
-func (x *BaseNode) GetSemanticDensity() float64 {
-	if x != nil {
-		return x.SemanticDensity
-	}
-	return 0
-}
-
-func (x *BaseNode) GetPosition_3D() *SpatialCoordinates {
-	if x != nil {
-		return x.Position_3D
-	}
-	return nil
-}
-
-func (x *BaseNode) GetIsPositionLocked() bool {
-	if x != nil {
-		return x.IsPositionLocked
-	}
-	return false
-}
-
-func (x *BaseNode) GetVisibility() bool {
-	if x != nil {
-		return x.Visibility
-	}
-	return false
-}
-
-func (x *BaseNode) GetDisplayProps() *DisplayProps {
-	if x != nil {
-		return x.DisplayProps
-	}
-	return nil
-}
-
-func (x *BaseNode) GetEngagementScore() *EngagementScore {
-	if x != nil {
-		return x.EngagementScore
-	}
-	return nil
-}
-
-func (x *BaseNode) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *BaseNode) GetUpdatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return nil
-}
-
-type ContentNode struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Base            *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
-	ContentSourceId string                 `protobuf:"bytes,2,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`
-	Title           string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	MediaType       string                 `protobuf:"bytes,4,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
-	Source          string                 `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
-	TokenCount      int32                  `protobuf:"varint,6,opt,name=token_count,json=tokenCount,proto3" json:"token_count,omitempty"`
-	ActionData      *structpb.Struct       `protobuf:"bytes,7,opt,name=action_data,json=actionData,proto3" json:"action_data,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *ContentNode) Reset() {
-	*x = ContentNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ContentNode) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ContentNode) ProtoMessage() {}
-
-func (x *ContentNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ContentNode.ProtoReflect.Descriptor instead.
-func (*ContentNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *ContentNode) GetBase() *BaseNode {
-	if x != nil {
-		return x.Base
-	}
-	return nil
-}
-
-func (x *ContentNode) GetContentSourceId() string {
-	if x != nil {
-		return x.ContentSourceId
-	}
-	return ""
-}
-
-func (x *ContentNode) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *ContentNode) GetMediaType() string {
-	if x != nil {
-		return x.MediaType
-	}
-	return ""
-}
-
-func (x *ContentNode) GetSource() string {
-	if x != nil {
-		return x.Source
-	}
-	return ""
-}
-
-func (x *ContentNode) GetTokenCount() int32 {
-	if x != nil {
-		return x.TokenCount
-	}
-	return 0
-}
-
-func (x *ContentNode) GetActionData() *structpb.Struct {
-	if x != nil {
-		return x.ActionData
-	}
-	return nil
-}
-
-type ChunkNode struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Base            *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
-	ContentSourceId string                 `protobuf:"bytes,2,opt,name=content_source_id,json=contentSourceId,proto3" json:"content_source_id,omitempty"`
-	SequenceIndex   int32                  `protobuf:"varint,3,opt,name=sequence_index,json=sequenceIndex,proto3" json:"sequence_index,omitempty"`
-	ChunkType       string                 `protobuf:"bytes,4,opt,name=chunk_type,json=chunkType,proto3" json:"chunk_type,omitempty"`
-	StartPosition   int64                  `protobuf:"varint,5,opt,name=start_position,json=startPosition,proto3" json:"start_position,omitempty"`
-	EndPosition     int64                  `protobuf:"varint,6,opt,name=end_position,json=endPosition,proto3" json:"end_position,omitempty"`
-	TokenCount      int32                  `protobuf:"varint,7,opt,name=token_count,json=tokenCount,proto3" json:"token_count,omitempty"`
-	Content         string                 `protobuf:"bytes,8,opt,name=content,proto3" json:"content,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *ChunkNode) Reset() {
-	*x = ChunkNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ChunkNode) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChunkNode) ProtoMessage() {}
-
-func (x *ChunkNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChunkNode.ProtoReflect.Descriptor instead.
-func (*ChunkNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *ChunkNode) GetBase() *BaseNode {
-	if x != nil {
-		return x.Base
-	}
-	return nil
-}
-
-func (x *ChunkNode) GetContentSourceId() string {
-	if x != nil {
-		return x.ContentSourceId
-	}
-	return ""
-}
-
-func (x *ChunkNode) GetSequenceIndex() int32 {
-	if x != nil {
-		return x.SequenceIndex
-	}
-	return 0
-}
-
-func (x *ChunkNode) GetChunkType() string {
-	if x != nil {
-		return x.ChunkType
-	}
-	return ""
-}
-
-func (x *ChunkNode) GetStartPosition() int64 {
-	if x != nil {
-		return x.StartPosition
-	}
-	return 0
-}
-
-func (x *ChunkNode) GetEndPosition() int64 {
-	if x != nil {
-		return x.EndPosition
-	}
-	return 0
-}
-
-func (x *ChunkNode) GetTokenCount() int32 {
-	if x != nil {
-		return x.TokenCount
-	}
-	return 0
-}
-
-func (x *ChunkNode) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-type ClusterNode struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Base          *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
-	ClusterScope  string                 `protobuf:"bytes,2,opt,name=cluster_scope,json=clusterScope,proto3" json:"cluster_scope,omitempty"`
-	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	MemberCount   int32                  `protobuf:"varint,4,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
-	CoverageScore float64                `protobuf:"fixed64,5,opt,name=coverage_score,json=coverageScore,proto3" json:"coverage_score,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ClusterNode) Reset() {
-	*x = ClusterNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ClusterNode) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ClusterNode) ProtoMessage() {}
-
-func (x *ClusterNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ClusterNode.ProtoReflect.Descriptor instead.
-func (*ClusterNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *ClusterNode) GetBase() *BaseNode {
-	if x != nil {
-		return x.Base
-	}
-	return nil
-}
-
-func (x *ClusterNode) GetClusterScope() string {
-	if x != nil {
-		return x.ClusterScope
-	}
-	return ""
-}
-
-func (x *ClusterNode) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *ClusterNode) GetMemberCount() int32 {
-	if x != nil {
-		return x.MemberCount
-	}
-	return 0
-}
-
-func (x *ClusterNode) GetCoverageScore() float64 {
-	if x != nil {
-		return x.CoverageScore
-	}
-	return 0
-}
-
-type Node struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Node:
-	//
-	//	*Node_ContentNode
-	//	*Node_ChunkNode
-	//	*Node_ClusterNode
-	Node          isNode_Node `protobuf_oneof:"node"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Node) Reset() {
-	*x = Node{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Node) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Node) ProtoMessage() {}
-
-func (x *Node) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Node.ProtoReflect.Descriptor instead.
-func (*Node) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *Node) GetNode() isNode_Node {
-	if x != nil {
-		return x.Node
-	}
-	return nil
-}
-
-func (x *Node) GetContentNode() *ContentNode {
-	if x != nil {
-		if x, ok := x.Node.(*Node_ContentNode); ok {
-			return x.ContentNode
-		}
-	}
-	return nil
-}
-
-func (x *Node) GetChunkNode() *ChunkNode {
-	if x != nil {
-		if x, ok := x.Node.(*Node_ChunkNode); ok {
-			return x.ChunkNode
-		}
-	}
-	return nil
-}
-
-func (x *Node) GetClusterNode() *ClusterNode {
-	if x != nil {
-		if x, ok := x.Node.(*Node_ClusterNode); ok {
-			return x.ClusterNode
-		}
-	}
-	return nil
-}
-
-type isNode_Node interface {
-	isNode_Node()
-}
-
-type Node_ContentNode struct {
-	ContentNode *ContentNode `protobuf:"bytes,1,opt,name=content_node,json=contentNode,proto3,oneof"`
-}
-
-type Node_ChunkNode struct {
-	ChunkNode *ChunkNode `protobuf:"bytes,2,opt,name=chunk_node,json=chunkNode,proto3,oneof"`
-}
-
-type Node_ClusterNode struct {
-	ClusterNode *ClusterNode `protobuf:"bytes,3,opt,name=cluster_node,json=clusterNode,proto3,oneof"`
-}
-
-func (*Node_ContentNode) isNode_Node() {}
-
-func (*Node_ChunkNode) isNode_Node() {}
-
-func (*Node_ClusterNode) isNode_Node() {}
-
-type GetNodesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"` // list of node IDs to retrieve
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetNodesRequest) Reset() {
-	*x = GetNodesRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetNodesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetNodesRequest) ProtoMessage() {}
-
-func (x *GetNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetNodesRequest.ProtoReflect.Descriptor instead.
-func (*GetNodesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetNodesRequest) GetIds() []string {
-	if x != nil {
-		return x.Ids
-	}
-	return nil
-}
-
-type GetNodesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"` // nodes returned in same order as requested IDs
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetNodesResponse) Reset() {
-	*x = GetNodesResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetNodesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetNodesResponse) ProtoMessage() {}
-
-func (x *GetNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetNodesResponse.ProtoReflect.Descriptor instead.
-func (*GetNodesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetNodesResponse) GetNodes() []*Node {
-	if x != nil {
-		return x.Nodes
-	}
-	return nil
-}
-
-type BaseNodeUpdate struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Keywords         []string               `protobuf:"bytes,1,rep,name=keywords,proto3" json:"keywords,omitempty"`
-	DisplayContent   *string                `protobuf:"bytes,2,opt,name=display_content,json=displayContent,proto3,oneof" json:"display_content,omitempty"`
-	SemanticDensity  *float64               `protobuf:"fixed64,3,opt,name=semantic_density,json=semanticDensity,proto3,oneof" json:"semantic_density,omitempty"`
-	Position_3D      *SpatialCoordinates    `protobuf:"bytes,4,opt,name=position_3d,json=position3d,proto3,oneof" json:"position_3d,omitempty"`
-	IsPositionLocked *bool                  `protobuf:"varint,5,opt,name=is_position_locked,json=isPositionLocked,proto3,oneof" json:"is_position_locked,omitempty"`
-	Visibility       *bool                  `protobuf:"varint,6,opt,name=visibility,proto3,oneof" json:"visibility,omitempty"`
-	DisplayProps     *DisplayProps          `protobuf:"bytes,7,opt,name=display_props,json=displayProps,proto3,oneof" json:"display_props,omitempty"`
-	EngagementScore  *EngagementScore       `protobuf:"bytes,8,opt,name=engagement_score,json=engagementScore,proto3,oneof" json:"engagement_score,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *BaseNodeUpdate) Reset() {
-	*x = BaseNodeUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BaseNodeUpdate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BaseNodeUpdate) ProtoMessage() {}
-
-func (x *BaseNodeUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BaseNodeUpdate.ProtoReflect.Descriptor instead.
-func (*BaseNodeUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *BaseNodeUpdate) GetKeywords() []string {
-	if x != nil {
-		return x.Keywords
-	}
-	return nil
-}
-
-func (x *BaseNodeUpdate) GetDisplayContent() string {
-	if x != nil && x.DisplayContent != nil {
-		return *x.DisplayContent
-	}
-	return ""
-}
-
-func (x *BaseNodeUpdate) GetSemanticDensity() float64 {
-	if x != nil && x.SemanticDensity != nil {
-		return *x.SemanticDensity
-	}
-	return 0
-}
-
-func (x *BaseNodeUpdate) GetPosition_3D() *SpatialCoordinates {
-	if x != nil {
-		return x.Position_3D
-	}
-	return nil
-}
-
-func (x *BaseNodeUpdate) GetIsPositionLocked() bool {
-	if x != nil && x.IsPositionLocked != nil {
-		return *x.IsPositionLocked
-	}
-	return false
-}
-
-func (x *BaseNodeUpdate) GetVisibility() bool {
-	if x != nil && x.Visibility != nil {
-		return *x.Visibility
-	}
-	return false
-}
-
-func (x *BaseNodeUpdate) GetDisplayProps() *DisplayProps {
-	if x != nil {
-		return x.DisplayProps
-	}
-	return nil
-}
-
-func (x *BaseNodeUpdate) GetEngagementScore() *EngagementScore {
-	if x != nil {
-		return x.EngagementScore
-	}
-	return nil
-}
-
-type ContentNodeUpdate struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BaseUpdate    *BaseNodeUpdate        `protobuf:"bytes,2,opt,name=base_update,json=baseUpdate,proto3" json:"base_update,omitempty"`
-	Title         *string                `protobuf:"bytes,3,opt,name=title,proto3,oneof" json:"title,omitempty"`
-	MediaType     *string                `protobuf:"bytes,4,opt,name=media_type,json=mediaType,proto3,oneof" json:"media_type,omitempty"`
-	Source        *string                `protobuf:"bytes,5,opt,name=source,proto3,oneof" json:"source,omitempty"`
-	TokenCount    *int32                 `protobuf:"varint,6,opt,name=token_count,json=tokenCount,proto3,oneof" json:"token_count,omitempty"`
-	ActionData    *structpb.Struct       `protobuf:"bytes,7,opt,name=action_data,json=actionData,proto3,oneof" json:"action_data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ContentNodeUpdate) Reset() {
-	*x = ContentNodeUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ContentNodeUpdate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ContentNodeUpdate) ProtoMessage() {}
-
-func (x *ContentNodeUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ContentNodeUpdate.ProtoReflect.Descriptor instead.
-func (*ContentNodeUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *ContentNodeUpdate) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *ContentNodeUpdate) GetBaseUpdate() *BaseNodeUpdate {
-	if x != nil {
-		return x.BaseUpdate
-	}
-	return nil
-}
-
-func (x *ContentNodeUpdate) GetTitle() string {
-	if x != nil && x.Title != nil {
-		return *x.Title
-	}
-	return ""
-}
-
-func (x *ContentNodeUpdate) GetMediaType() string {
-	if x != nil && x.MediaType != nil {
-		return *x.MediaType
-	}
-	return ""
-}
-
-func (x *ContentNodeUpdate) GetSource() string {
-	if x != nil && x.Source != nil {
-		return *x.Source
-	}
-	return ""
-}
-
-func (x *ContentNodeUpdate) GetTokenCount() int32 {
-	if x != nil && x.TokenCount != nil {
-		return *x.TokenCount
-	}
-	return 0
-}
-
-func (x *ContentNodeUpdate) GetActionData() *structpb.Struct {
-	if x != nil {
-		return x.ActionData
-	}
-	return nil
-}
-
-type ChunkNodeUpdate struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BaseUpdate    *BaseNodeUpdate        `protobuf:"bytes,2,opt,name=base_update,json=baseUpdate,proto3" json:"base_update,omitempty"`
-	Content       *string                `protobuf:"bytes,3,opt,name=content,proto3,oneof" json:"content,omitempty"`
-	SequenceIndex *int32                 `protobuf:"varint,4,opt,name=sequence_index,json=sequenceIndex,proto3,oneof" json:"sequence_index,omitempty"`
-	ChunkType     *string                `protobuf:"bytes,5,opt,name=chunk_type,json=chunkType,proto3,oneof" json:"chunk_type,omitempty"`
-	StartPosition *int64                 `protobuf:"varint,6,opt,name=start_position,json=startPosition,proto3,oneof" json:"start_position,omitempty"`
-	EndPosition   *int64                 `protobuf:"varint,7,opt,name=end_position,json=endPosition,proto3,oneof" json:"end_position,omitempty"`
-	TokenCount    *int32                 `protobuf:"varint,8,opt,name=token_count,json=tokenCount,proto3,oneof" json:"token_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ChunkNodeUpdate) Reset() {
-	*x = ChunkNodeUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ChunkNodeUpdate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChunkNodeUpdate) ProtoMessage() {}
-
-func (x *ChunkNodeUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChunkNodeUpdate.ProtoReflect.Descriptor instead.
-func (*ChunkNodeUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *ChunkNodeUpdate) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *ChunkNodeUpdate) GetBaseUpdate() *BaseNodeUpdate {
-	if x != nil {
-		return x.BaseUpdate
-	}
-	return nil
-}
-
-func (x *ChunkNodeUpdate) GetContent() string {
-	if x != nil && x.Content != nil {
-		return *x.Content
-	}
-	return ""
-}
-
-func (x *ChunkNodeUpdate) GetSequenceIndex() int32 {
-	if x != nil && x.SequenceIndex != nil {
-		return *x.SequenceIndex
-	}
-	return 0
-}
-
-func (x *ChunkNodeUpdate) GetChunkType() string {
-	if x != nil && x.ChunkType != nil {
-		return *x.ChunkType
-	}
-	return ""
-}
-
-func (x *ChunkNodeUpdate) GetStartPosition() int64 {
-	if x != nil && x.StartPosition != nil {
-		return *x.StartPosition
-	}
-	return 0
-}
-
-func (x *ChunkNodeUpdate) GetEndPosition() int64 {
-	if x != nil && x.EndPosition != nil {
-		return *x.EndPosition
-	}
-	return 0
-}
-
-func (x *ChunkNodeUpdate) GetTokenCount() int32 {
-	if x != nil && x.TokenCount != nil {
-		return *x.TokenCount
-	}
-	return 0
-}
-
-type ClusterNodeUpdate struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BaseUpdate    *BaseNodeUpdate        `protobuf:"bytes,2,opt,name=base_update,json=baseUpdate,proto3" json:"base_update,omitempty"`
-	ClusterScope  *string                `protobuf:"bytes,3,opt,name=cluster_scope,json=clusterScope,proto3,oneof" json:"cluster_scope,omitempty"`
-	Title         *string                `protobuf:"bytes,4,opt,name=title,proto3,oneof" json:"title,omitempty"`
-	MemberCount   *int32                 `protobuf:"varint,5,opt,name=member_count,json=memberCount,proto3,oneof" json:"member_count,omitempty"`
-	CoverageScore *float64               `protobuf:"fixed64,6,opt,name=coverage_score,json=coverageScore,proto3,oneof" json:"coverage_score,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ClusterNodeUpdate) Reset() {
-	*x = ClusterNodeUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ClusterNodeUpdate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ClusterNodeUpdate) ProtoMessage() {}
-
-func (x *ClusterNodeUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ClusterNodeUpdate.ProtoReflect.Descriptor instead.
-func (*ClusterNodeUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *ClusterNodeUpdate) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *ClusterNodeUpdate) GetBaseUpdate() *BaseNodeUpdate {
-	if x != nil {
-		return x.BaseUpdate
-	}
-	return nil
-}
-
-func (x *ClusterNodeUpdate) GetClusterScope() string {
-	if x != nil && x.ClusterScope != nil {
-		return *x.ClusterScope
-	}
-	return ""
-}
-
-func (x *ClusterNodeUpdate) GetTitle() string {
-	if x != nil && x.Title != nil {
-		return *x.Title
-	}
-	return ""
-}
-
-func (x *ClusterNodeUpdate) GetMemberCount() int32 {
-	if x != nil && x.MemberCount != nil {
-		return *x.MemberCount
-	}
-	return 0
-}
-
-func (x *ClusterNodeUpdate) GetCoverageScore() float64 {
-	if x != nil && x.CoverageScore != nil {
-		return *x.CoverageScore
-	}
-	return 0
-}
-
-type NodeUpdate struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Update:
-	//
-	//	*NodeUpdate_Content
-	//	*NodeUpdate_Chunk
-	//	*NodeUpdate_Cluster
-	Update        isNodeUpdate_Update `protobuf_oneof:"update"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *NodeUpdate) Reset() {
-	*x = NodeUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *NodeUpdate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NodeUpdate) ProtoMessage() {}
-
-func (x *NodeUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NodeUpdate.ProtoReflect.Descriptor instead.
-func (*NodeUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *NodeUpdate) GetUpdate() isNodeUpdate_Update {
-	if x != nil {
-		return x.Update
-	}
-	return nil
-}
-
-func (x *NodeUpdate) GetContent() *ContentNodeUpdate {
-	if x != nil {
-		if x, ok := x.Update.(*NodeUpdate_Content); ok {
-			return x.Content
-		}
-	}
-	return nil
-}
-
-func (x *NodeUpdate) GetChunk() *ChunkNodeUpdate {
-	if x != nil {
-		if x, ok := x.Update.(*NodeUpdate_Chunk); ok {
-			return x.Chunk
-		}
-	}
-	return nil
-}
-
-func (x *NodeUpdate) GetCluster() *ClusterNodeUpdate {
-	if x != nil {
-		if x, ok := x.Update.(*NodeUpdate_Cluster); ok {
-			return x.Cluster
-		}
-	}
-	return nil
-}
-
-type isNodeUpdate_Update interface {
-	isNodeUpdate_Update()
-}
-
-type NodeUpdate_Content struct {
-	Content *ContentNodeUpdate `protobuf:"bytes,1,opt,name=content,proto3,oneof"`
-}
-
-type NodeUpdate_Chunk struct {
-	Chunk *ChunkNodeUpdate `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
-}
-
-type NodeUpdate_Cluster struct {
-	Cluster *ClusterNodeUpdate `protobuf:"bytes,3,opt,name=cluster,proto3,oneof"`
-}
-
-func (*NodeUpdate_Content) isNodeUpdate_Update() {}
-
-func (*NodeUpdate_Chunk) isNodeUpdate_Update() {}
-
-func (*NodeUpdate_Cluster) isNodeUpdate_Update() {}
-
-type UpdateNodesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Updates       []*NodeUpdate          `protobuf:"bytes,1,rep,name=updates,proto3" json:"updates,omitempty"` // batch of node updates
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UpdateNodesRequest) Reset() {
-	*x = UpdateNodesRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UpdateNodesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdateNodesRequest) ProtoMessage() {}
-
-func (x *UpdateNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpdateNodesRequest.ProtoReflect.Descriptor instead.
-func (*UpdateNodesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *UpdateNodesRequest) GetUpdates() []*NodeUpdate {
-	if x != nil {
-		return x.Updates
-	}
-	return nil
-}
-
-type UpdateNodesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"` // updated nodes in same order as requested updates
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UpdateNodesResponse) Reset() {
-	*x = UpdateNodesResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UpdateNodesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdateNodesResponse) ProtoMessage() {}
-
-func (x *UpdateNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpdateNodesResponse.ProtoReflect.Descriptor instead.
-func (*UpdateNodesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *UpdateNodesResponse) GetNodes() []*Node {
-	if x != nil {
-		return x.Nodes
-	}
-	return nil
-}
-
 type GetNeighborsRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Ids               []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
@@ -1489,7 +141,7 @@ type GetNeighborsRequest struct {
 
 func (x *GetNeighborsRequest) Reset() {
 	*x = GetNeighborsRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[17]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1501,7 +153,7 @@ func (x *GetNeighborsRequest) String() string {
 func (*GetNeighborsRequest) ProtoMessage() {}
 
 func (x *GetNeighborsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[17]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1514,7 +166,7 @@ func (x *GetNeighborsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNeighborsRequest.ProtoReflect.Descriptor instead.
 func (*GetNeighborsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{17}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetNeighborsRequest) GetIds() []string {
@@ -1554,16 +206,16 @@ func (x *GetNeighborsRequest) GetIncludeProperties() bool {
 
 type Neighbor struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	Node             *Node                  `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"` // adjacent node
+	Node             *v1.Node               `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"` // adjacent node
 	RelationshipType string                 `protobuf:"bytes,2,opt,name=relationship_type,json=relationshipType,proto3" json:"relationship_type,omitempty"`
-	Properties       *structpb.Struct       `protobuf:"bytes,3,opt,name=properties,proto3" json:"properties,omitempty"` // link properties if requested
+	Link             *v1.Link               `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"` // full link information
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Neighbor) Reset() {
 	*x = Neighbor{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[18]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1575,7 +227,7 @@ func (x *Neighbor) String() string {
 func (*Neighbor) ProtoMessage() {}
 
 func (x *Neighbor) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[18]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1588,10 +240,10 @@ func (x *Neighbor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Neighbor.ProtoReflect.Descriptor instead.
 func (*Neighbor) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{18}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Neighbor) GetNode() *Node {
+func (x *Neighbor) GetNode() *v1.Node {
 	if x != nil {
 		return x.Node
 	}
@@ -1605,9 +257,9 @@ func (x *Neighbor) GetRelationshipType() string {
 	return ""
 }
 
-func (x *Neighbor) GetProperties() *structpb.Struct {
+func (x *Neighbor) GetLink() *v1.Link {
 	if x != nil {
-		return x.Properties
+		return x.Link
 	}
 	return nil
 }
@@ -1622,7 +274,7 @@ type NeighborsList struct {
 
 func (x *NeighborsList) Reset() {
 	*x = NeighborsList{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[19]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1634,7 +286,7 @@ func (x *NeighborsList) String() string {
 func (*NeighborsList) ProtoMessage() {}
 
 func (x *NeighborsList) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[19]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1647,7 +299,7 @@ func (x *NeighborsList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NeighborsList.ProtoReflect.Descriptor instead.
 func (*NeighborsList) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{19}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *NeighborsList) GetNeighbors() []*Neighbor {
@@ -1667,7 +319,7 @@ type GetNeighborsResponse struct {
 
 func (x *GetNeighborsResponse) Reset() {
 	*x = GetNeighborsResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[20]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1679,7 +331,7 @@ func (x *GetNeighborsResponse) String() string {
 func (*GetNeighborsResponse) ProtoMessage() {}
 
 func (x *GetNeighborsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[20]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1692,7 +344,7 @@ func (x *GetNeighborsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNeighborsResponse.ProtoReflect.Descriptor instead.
 func (*GetNeighborsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{20}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetNeighborsResponse) GetResults() map[string]*NeighborsList {
@@ -1714,7 +366,7 @@ type SemanticSearchRequest struct {
 
 func (x *SemanticSearchRequest) Reset() {
 	*x = SemanticSearchRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[21]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1726,7 +378,7 @@ func (x *SemanticSearchRequest) String() string {
 func (*SemanticSearchRequest) ProtoMessage() {}
 
 func (x *SemanticSearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[21]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1739,7 +391,7 @@ func (x *SemanticSearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticSearchRequest.ProtoReflect.Descriptor instead.
 func (*SemanticSearchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{21}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SemanticSearchRequest) GetSpaceId() string {
@@ -1772,7 +424,7 @@ func (x *SemanticSearchRequest) GetNodeTypes() []NodeType {
 
 type SearchResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Node          *Node                  `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	Node          *v1.Node               `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
 	Score         float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"` // similarity score
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1780,7 +432,7 @@ type SearchResult struct {
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[22]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1792,7 +444,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[22]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1805,10 +457,10 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{22}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *SearchResult) GetNode() *Node {
+func (x *SearchResult) GetNode() *v1.Node {
 	if x != nil {
 		return x.Node
 	}
@@ -1831,7 +483,7 @@ type SemanticSearchResponse struct {
 
 func (x *SemanticSearchResponse) Reset() {
 	*x = SemanticSearchResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[23]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +495,7 @@ func (x *SemanticSearchResponse) String() string {
 func (*SemanticSearchResponse) ProtoMessage() {}
 
 func (x *SemanticSearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[23]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +508,7 @@ func (x *SemanticSearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticSearchResponse.ProtoReflect.Descriptor instead.
 func (*SemanticSearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{23}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SemanticSearchResponse) GetResults() []*SearchResult {
@@ -1866,37 +518,30 @@ func (x *SemanticSearchResponse) GetResults() []*SearchResult {
 	return nil
 }
 
-type StructuralLink struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	SourceId            string                 `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
-	TargetId            string                 `protobuf:"bytes,2,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
-	ConnectionType      string                 `protobuf:"bytes,3,opt,name=connection_type,json=connectionType,proto3" json:"connection_type,omitempty"`
-	ConfidenceScore     float64                `protobuf:"fixed64,4,opt,name=confidence_score,json=confidenceScore,proto3" json:"confidence_score,omitempty"`
-	Description         string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	ExplorationMetadata *structpb.Struct       `protobuf:"bytes,6,opt,name=exploration_metadata,json=explorationMetadata,proto3" json:"exploration_metadata,omitempty"`
-	StyleMetadata       *structpb.Struct       `protobuf:"bytes,7,opt,name=style_metadata,json=styleMetadata,proto3" json:"style_metadata,omitempty"`
-	CreatedBy           string                 `protobuf:"bytes,8,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	CreatedAt           *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt           *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+// ===== UpdateNodes =====
+// Public-only RPC: UpdateNodes (not available in internal API)
+type UpdateNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*v1.Node             `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"` // nodes to update
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StructuralLink) Reset() {
-	*x = StructuralLink{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[24]
+func (x *UpdateNodesRequest) Reset() {
+	*x = UpdateNodesRequest{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StructuralLink) String() string {
+func (x *UpdateNodesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StructuralLink) ProtoMessage() {}
+func (*UpdateNodesRequest) ProtoMessage() {}
 
-func (x *StructuralLink) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[24]
+func (x *UpdateNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1907,77 +552,548 @@ func (x *StructuralLink) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StructuralLink.ProtoReflect.Descriptor instead.
-func (*StructuralLink) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{24}
+// Deprecated: Use UpdateNodesRequest.ProtoReflect.Descriptor instead.
+func (*UpdateNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *StructuralLink) GetSourceId() string {
+func (x *UpdateNodesRequest) GetNodes() []*v1.Node {
 	if x != nil {
-		return x.SourceId
-	}
-	return ""
-}
-
-func (x *StructuralLink) GetTargetId() string {
-	if x != nil {
-		return x.TargetId
-	}
-	return ""
-}
-
-func (x *StructuralLink) GetConnectionType() string {
-	if x != nil {
-		return x.ConnectionType
-	}
-	return ""
-}
-
-func (x *StructuralLink) GetConfidenceScore() float64 {
-	if x != nil {
-		return x.ConfidenceScore
-	}
-	return 0
-}
-
-func (x *StructuralLink) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *StructuralLink) GetExplorationMetadata() *structpb.Struct {
-	if x != nil {
-		return x.ExplorationMetadata
+		return x.Nodes
 	}
 	return nil
 }
 
-func (x *StructuralLink) GetStyleMetadata() *structpb.Struct {
+type UpdateNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*v1.Node             `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"` // updated nodes in same order as requested
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateNodesResponse) Reset() {
+	*x = UpdateNodesResponse{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNodesResponse) ProtoMessage() {}
+
+func (x *UpdateNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[8]
 	if x != nil {
-		return x.StyleMetadata
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNodesResponse.ProtoReflect.Descriptor instead.
+func (*UpdateNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateNodesResponse) GetNodes() []*v1.Node {
+	if x != nil {
+		return x.Nodes
 	}
 	return nil
 }
 
-func (x *StructuralLink) GetCreatedBy() string {
-	if x != nil {
-		return x.CreatedBy
-	}
-	return ""
+// ===== GetNodes =====
+// Public-only RPC: GetNodes (not available in internal API)
+type GetNodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of node IDs to retrieve
+	Filter        *v1.NodeFilter         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying nodes
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StructuralLink) GetCreatedAt() *timestamppb.Timestamp {
+func (x *GetNodesRequest) Reset() {
+	*x = GetNodesRequest{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNodesRequest) ProtoMessage() {}
+
+func (x *GetNodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[9]
 	if x != nil {
-		return x.CreatedAt
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNodesRequest.ProtoReflect.Descriptor instead.
+func (*GetNodesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetNodesRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
 	}
 	return nil
 }
 
-func (x *StructuralLink) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *GetNodesRequest) GetFilter() *v1.NodeFilter {
 	if x != nil {
-		return x.UpdatedAt
+		return x.Filter
+	}
+	return nil
+}
+
+type GetNodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*v1.Node             `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"` // nodes returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNodesResponse) Reset() {
+	*x = GetNodesResponse{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNodesResponse) ProtoMessage() {}
+
+func (x *GetNodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNodesResponse.ProtoReflect.Descriptor instead.
+func (*GetNodesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetNodesResponse) GetNodes() []*v1.Node {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+// ===== GetLinks =====
+// Public-only RPC: GetLinks (not available in internal API)
+type GetLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of link IDs to retrieve
+	Filter        *v1.BaseLinkFilter     `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLinksRequest) Reset() {
+	*x = GetLinksRequest{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLinksRequest) ProtoMessage() {}
+
+func (x *GetLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetLinksRequest) GetFilter() *v1.BaseLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*v1.Link             `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLinksResponse) Reset() {
+	*x = GetLinksResponse{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLinksResponse) ProtoMessage() {}
+
+func (x *GetLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetLinksResponse) GetLinks() []*v1.Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+// ===== GetHierarchicalLinks =====
+// Public-only RPC: GetHierarchicalLinks (not available in internal API)
+type GetHierarchicalLinksRequest struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Ids           []string                   `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of hierarchical link IDs to retrieve
+	Filter        *v1.HierarchicalLinkFilter `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying hierarchical links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHierarchicalLinksRequest) Reset() {
+	*x = GetHierarchicalLinksRequest{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHierarchicalLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHierarchicalLinksRequest) ProtoMessage() {}
+
+func (x *GetHierarchicalLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHierarchicalLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetHierarchicalLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetHierarchicalLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetHierarchicalLinksRequest) GetFilter() *v1.HierarchicalLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetHierarchicalLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*v1.HierarchicalLink `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // hierarchical links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHierarchicalLinksResponse) Reset() {
+	*x = GetHierarchicalLinksResponse{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHierarchicalLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHierarchicalLinksResponse) ProtoMessage() {}
+
+func (x *GetHierarchicalLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHierarchicalLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetHierarchicalLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetHierarchicalLinksResponse) GetLinks() []*v1.HierarchicalLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+// ===== GetSemanticLinks =====
+// Public-only RPC: GetSemanticLinks (not available in internal API)
+type GetSemanticLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of semantic link IDs to retrieve
+	Filter        *v1.SemanticLinkFilter `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying semantic links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSemanticLinksRequest) Reset() {
+	*x = GetSemanticLinksRequest{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSemanticLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSemanticLinksRequest) ProtoMessage() {}
+
+func (x *GetSemanticLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSemanticLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetSemanticLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetSemanticLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetSemanticLinksRequest) GetFilter() *v1.SemanticLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetSemanticLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*v1.SemanticLink     `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // semantic links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSemanticLinksResponse) Reset() {
+	*x = GetSemanticLinksResponse{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSemanticLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSemanticLinksResponse) ProtoMessage() {}
+
+func (x *GetSemanticLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSemanticLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetSemanticLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetSemanticLinksResponse) GetLinks() []*v1.SemanticLink {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+// ===== GetStructuralLinks =====
+// Public-only RPC: GetStructuralLinks (not available in internal API)
+type GetStructuralLinksRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Ids           []string                 `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`       // list of structural link IDs to retrieve
+	Filter        *v1.StructuralLinkFilter `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"` // optional filter for querying structural links
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStructuralLinksRequest) Reset() {
+	*x = GetStructuralLinksRequest{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStructuralLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStructuralLinksRequest) ProtoMessage() {}
+
+func (x *GetStructuralLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStructuralLinksRequest.ProtoReflect.Descriptor instead.
+func (*GetStructuralLinksRequest) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetStructuralLinksRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *GetStructuralLinksRequest) GetFilter() *v1.StructuralLinkFilter {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type GetStructuralLinksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []*v1.StructuralLink   `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // structural links returned in same order as requested IDs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStructuralLinksResponse) Reset() {
+	*x = GetStructuralLinksResponse{}
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStructuralLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStructuralLinksResponse) ProtoMessage() {}
+
+func (x *GetStructuralLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStructuralLinksResponse.ProtoReflect.Descriptor instead.
+func (*GetStructuralLinksResponse) Descriptor() ([]byte, []int) {
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetStructuralLinksResponse) GetLinks() []*v1.StructuralLink {
+	if x != nil {
+		return x.Links
 	}
 	return nil
 }
@@ -1998,7 +1114,7 @@ type StructuralLinkCreate struct {
 
 func (x *StructuralLinkCreate) Reset() {
 	*x = StructuralLinkCreate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[25]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2010,7 +1126,7 @@ func (x *StructuralLinkCreate) String() string {
 func (*StructuralLinkCreate) ProtoMessage() {}
 
 func (x *StructuralLinkCreate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[25]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2023,7 +1139,7 @@ func (x *StructuralLinkCreate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkCreate.ProtoReflect.Descriptor instead.
 func (*StructuralLinkCreate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{25}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *StructuralLinkCreate) GetSourceId() string {
@@ -2091,7 +1207,7 @@ type CreateStructuralLinksRequest struct {
 
 func (x *CreateStructuralLinksRequest) Reset() {
 	*x = CreateStructuralLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[26]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2103,7 +1219,7 @@ func (x *CreateStructuralLinksRequest) String() string {
 func (*CreateStructuralLinksRequest) ProtoMessage() {}
 
 func (x *CreateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[26]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2116,7 +1232,7 @@ func (x *CreateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStructuralLinksRequest.ProtoReflect.Descriptor instead.
 func (*CreateStructuralLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{26}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateStructuralLinksRequest) GetLinks() []*StructuralLinkCreate {
@@ -2128,14 +1244,14 @@ func (x *CreateStructuralLinksRequest) GetLinks() []*StructuralLinkCreate {
 
 type CreateStructuralLinksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Links         []*StructuralLink      `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // created links in same order as requested
+	Links         []*v1.StructuralLink   `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // created links in same order as requested
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateStructuralLinksResponse) Reset() {
 	*x = CreateStructuralLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[27]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2147,7 +1263,7 @@ func (x *CreateStructuralLinksResponse) String() string {
 func (*CreateStructuralLinksResponse) ProtoMessage() {}
 
 func (x *CreateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[27]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2160,16 +1276,18 @@ func (x *CreateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStructuralLinksResponse.ProtoReflect.Descriptor instead.
 func (*CreateStructuralLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{27}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *CreateStructuralLinksResponse) GetLinks() []*StructuralLink {
+func (x *CreateStructuralLinksResponse) GetLinks() []*v1.StructuralLink {
 	if x != nil {
 		return x.Links
 	}
 	return nil
 }
 
+// ===== UpdateStructuralLinks =====
+// Public-only RPC: UpdateStructuralLinks (not available in internal API)
 type StructuralLinkUpdate struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	SourceId            string                 `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"` // identifies the link to update
@@ -2185,7 +1303,7 @@ type StructuralLinkUpdate struct {
 
 func (x *StructuralLinkUpdate) Reset() {
 	*x = StructuralLinkUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[28]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2197,7 +1315,7 @@ func (x *StructuralLinkUpdate) String() string {
 func (*StructuralLinkUpdate) ProtoMessage() {}
 
 func (x *StructuralLinkUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[28]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2210,7 +1328,7 @@ func (x *StructuralLinkUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkUpdate.ProtoReflect.Descriptor instead.
 func (*StructuralLinkUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{28}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *StructuralLinkUpdate) GetSourceId() string {
@@ -2271,7 +1389,7 @@ type UpdateStructuralLinksRequest struct {
 
 func (x *UpdateStructuralLinksRequest) Reset() {
 	*x = UpdateStructuralLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[29]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2283,7 +1401,7 @@ func (x *UpdateStructuralLinksRequest) String() string {
 func (*UpdateStructuralLinksRequest) ProtoMessage() {}
 
 func (x *UpdateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[29]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2296,7 +1414,7 @@ func (x *UpdateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStructuralLinksRequest.ProtoReflect.Descriptor instead.
 func (*UpdateStructuralLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{29}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateStructuralLinksRequest) GetUpdates() []*StructuralLinkUpdate {
@@ -2308,14 +1426,14 @@ func (x *UpdateStructuralLinksRequest) GetUpdates() []*StructuralLinkUpdate {
 
 type UpdateStructuralLinksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Links         []*StructuralLink      `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // updated links in same order as requested updates
+	Links         []*v1.StructuralLink   `protobuf:"bytes,1,rep,name=links,proto3" json:"links,omitempty"` // updated links in same order as requested updates
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateStructuralLinksResponse) Reset() {
 	*x = UpdateStructuralLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[30]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2327,7 +1445,7 @@ func (x *UpdateStructuralLinksResponse) String() string {
 func (*UpdateStructuralLinksResponse) ProtoMessage() {}
 
 func (x *UpdateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[30]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2340,16 +1458,18 @@ func (x *UpdateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStructuralLinksResponse.ProtoReflect.Descriptor instead.
 func (*UpdateStructuralLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{30}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{24}
 }
 
-func (x *UpdateStructuralLinksResponse) GetLinks() []*StructuralLink {
+func (x *UpdateStructuralLinksResponse) GetLinks() []*v1.StructuralLink {
 	if x != nil {
 		return x.Links
 	}
 	return nil
 }
 
+// ===== DeleteStructuralLinks =====
+// Public-only RPC: DeleteStructuralLinks (not available in internal API)
 type StructuralLinkIdentifier struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SourceId      string                 `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
@@ -2360,7 +1480,7 @@ type StructuralLinkIdentifier struct {
 
 func (x *StructuralLinkIdentifier) Reset() {
 	*x = StructuralLinkIdentifier{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[31]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2372,7 +1492,7 @@ func (x *StructuralLinkIdentifier) String() string {
 func (*StructuralLinkIdentifier) ProtoMessage() {}
 
 func (x *StructuralLinkIdentifier) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[31]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2385,7 +1505,7 @@ func (x *StructuralLinkIdentifier) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkIdentifier.ProtoReflect.Descriptor instead.
 func (*StructuralLinkIdentifier) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{31}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *StructuralLinkIdentifier) GetSourceId() string {
@@ -2411,7 +1531,7 @@ type DeleteStructuralLinksRequest struct {
 
 func (x *DeleteStructuralLinksRequest) Reset() {
 	*x = DeleteStructuralLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[32]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2423,7 +1543,7 @@ func (x *DeleteStructuralLinksRequest) String() string {
 func (*DeleteStructuralLinksRequest) ProtoMessage() {}
 
 func (x *DeleteStructuralLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[32]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2436,7 +1556,7 @@ func (x *DeleteStructuralLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteStructuralLinksRequest.ProtoReflect.Descriptor instead.
 func (*DeleteStructuralLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{32}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteStructuralLinksRequest) GetLinkIds() []*StructuralLinkIdentifier {
@@ -2455,7 +1575,7 @@ type DeleteStructuralLinksResponse struct {
 
 func (x *DeleteStructuralLinksResponse) Reset() {
 	*x = DeleteStructuralLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[33]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2467,7 +1587,7 @@ func (x *DeleteStructuralLinksResponse) String() string {
 func (*DeleteStructuralLinksResponse) ProtoMessage() {}
 
 func (x *DeleteStructuralLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[33]
+	mi := &file_proto_public_v1_canvas_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2480,7 +1600,7 @@ func (x *DeleteStructuralLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteStructuralLinksResponse.ProtoReflect.Descriptor instead.
 func (*DeleteStructuralLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{33}
+	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteStructuralLinksResponse) GetDeletedCount() int32 {
@@ -2494,169 +1614,17 @@ var File_proto_public_v1_canvas_proto protoreflect.FileDescriptor
 
 const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\n" +
-	"\x1cproto/public/v1/canvas.proto\x12\x10canvas.public.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\">\n" +
-	"\x12SpatialCoordinates\x12\f\n" +
-	"\x01x\x18\x01 \x01(\x05R\x01x\x12\f\n" +
-	"\x01y\x18\x02 \x01(\x05R\x01y\x12\f\n" +
-	"\x01z\x18\x03 \x01(\x05R\x01z\"h\n" +
-	"\fDisplayProps\x12\x12\n" +
-	"\x04size\x18\x01 \x01(\x05R\x04size\x12\x18\n" +
-	"\aopacity\x18\x02 \x01(\x01R\aopacity\x12\x14\n" +
-	"\x05shape\x18\x03 \x01(\tR\x05shape\x12\x14\n" +
-	"\x05color\x18\x04 \x01(\tR\x05color\"x\n" +
-	"\x0fEngagementScore\x12!\n" +
-	"\fcanvas_score\x18\x01 \x01(\x01R\vcanvasScore\x12\x1d\n" +
-	"\n" +
-	"chat_score\x18\x02 \x01(\x01R\tchatScore\x12#\n" +
-	"\roverall_score\x18\x03 \x01(\x01R\foverallScore\"\x93\x05\n" +
-	"\bBaseNode\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bspace_id\x18\x02 \x01(\tR\aspaceId\x12+\n" +
-	"\x11abstraction_level\x18\x03 \x01(\x05R\x10abstractionLevel\x12!\n" +
-	"\fcontext_type\x18\x04 \x01(\tR\vcontextType\x12\x1a\n" +
-	"\bkeywords\x18\x05 \x03(\tR\bkeywords\x12'\n" +
-	"\x0fdisplay_content\x18\x06 \x01(\tR\x0edisplayContent\x12)\n" +
-	"\x10semantic_density\x18\a \x01(\x01R\x0fsemanticDensity\x12E\n" +
-	"\vposition_3d\x18\b \x01(\v2$.canvas.public.v1.SpatialCoordinatesR\n" +
-	"position3d\x12,\n" +
-	"\x12is_position_locked\x18\t \x01(\bR\x10isPositionLocked\x12\x1e\n" +
-	"\n" +
-	"visibility\x18\n" +
-	" \x01(\bR\n" +
-	"visibility\x12C\n" +
-	"\rdisplay_props\x18\v \x01(\v2\x1e.canvas.public.v1.DisplayPropsR\fdisplayProps\x12L\n" +
-	"\x10engagement_score\x18\f \x01(\v2!.canvas.public.v1.EngagementScoreR\x0fengagementScore\x129\n" +
-	"\n" +
-	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x91\x02\n" +
-	"\vContentNode\x12.\n" +
-	"\x04base\x18\x01 \x01(\v2\x1a.canvas.public.v1.BaseNodeR\x04base\x12*\n" +
-	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x1d\n" +
-	"\n" +
-	"media_type\x18\x04 \x01(\tR\tmediaType\x12\x16\n" +
-	"\x06source\x18\x05 \x01(\tR\x06source\x12\x1f\n" +
-	"\vtoken_count\x18\x06 \x01(\x05R\n" +
-	"tokenCount\x128\n" +
-	"\vaction_data\x18\a \x01(\v2\x17.google.protobuf.StructR\n" +
-	"actionData\"\xb2\x02\n" +
-	"\tChunkNode\x12.\n" +
-	"\x04base\x18\x01 \x01(\v2\x1a.canvas.public.v1.BaseNodeR\x04base\x12*\n" +
-	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12%\n" +
-	"\x0esequence_index\x18\x03 \x01(\x05R\rsequenceIndex\x12\x1d\n" +
-	"\n" +
-	"chunk_type\x18\x04 \x01(\tR\tchunkType\x12%\n" +
-	"\x0estart_position\x18\x05 \x01(\x03R\rstartPosition\x12!\n" +
-	"\fend_position\x18\x06 \x01(\x03R\vendPosition\x12\x1f\n" +
-	"\vtoken_count\x18\a \x01(\x05R\n" +
-	"tokenCount\x12\x18\n" +
-	"\acontent\x18\b \x01(\tR\acontent\"\xc2\x01\n" +
-	"\vClusterNode\x12.\n" +
-	"\x04base\x18\x01 \x01(\v2\x1a.canvas.public.v1.BaseNodeR\x04base\x12#\n" +
-	"\rcluster_scope\x18\x02 \x01(\tR\fclusterScope\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12!\n" +
-	"\fmember_count\x18\x04 \x01(\x05R\vmemberCount\x12%\n" +
-	"\x0ecoverage_score\x18\x05 \x01(\x01R\rcoverageScore\"\xd4\x01\n" +
-	"\x04Node\x12B\n" +
-	"\fcontent_node\x18\x01 \x01(\v2\x1d.canvas.public.v1.ContentNodeH\x00R\vcontentNode\x12<\n" +
-	"\n" +
-	"chunk_node\x18\x02 \x01(\v2\x1b.canvas.public.v1.ChunkNodeH\x00R\tchunkNode\x12B\n" +
-	"\fcluster_node\x18\x03 \x01(\v2\x1d.canvas.public.v1.ClusterNodeH\x00R\vclusterNodeB\x06\n" +
-	"\x04node\"#\n" +
-	"\x0fGetNodesRequest\x12\x10\n" +
-	"\x03ids\x18\x01 \x03(\tR\x03ids\"@\n" +
-	"\x10GetNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.public.v1.NodeR\x05nodes\"\xd1\x04\n" +
-	"\x0eBaseNodeUpdate\x12\x1a\n" +
-	"\bkeywords\x18\x01 \x03(\tR\bkeywords\x12,\n" +
-	"\x0fdisplay_content\x18\x02 \x01(\tH\x00R\x0edisplayContent\x88\x01\x01\x12.\n" +
-	"\x10semantic_density\x18\x03 \x01(\x01H\x01R\x0fsemanticDensity\x88\x01\x01\x12J\n" +
-	"\vposition_3d\x18\x04 \x01(\v2$.canvas.public.v1.SpatialCoordinatesH\x02R\n" +
-	"position3d\x88\x01\x01\x121\n" +
-	"\x12is_position_locked\x18\x05 \x01(\bH\x03R\x10isPositionLocked\x88\x01\x01\x12#\n" +
-	"\n" +
-	"visibility\x18\x06 \x01(\bH\x04R\n" +
-	"visibility\x88\x01\x01\x12H\n" +
-	"\rdisplay_props\x18\a \x01(\v2\x1e.canvas.public.v1.DisplayPropsH\x05R\fdisplayProps\x88\x01\x01\x12Q\n" +
-	"\x10engagement_score\x18\b \x01(\v2!.canvas.public.v1.EngagementScoreH\x06R\x0fengagementScore\x88\x01\x01B\x12\n" +
-	"\x10_display_contentB\x13\n" +
-	"\x11_semantic_densityB\x0e\n" +
-	"\f_position_3dB\x15\n" +
-	"\x13_is_position_lockedB\r\n" +
-	"\v_visibilityB\x10\n" +
-	"\x0e_display_propsB\x13\n" +
-	"\x11_engagement_score\"\xeb\x02\n" +
-	"\x11ContentNodeUpdate\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12A\n" +
-	"\vbase_update\x18\x02 \x01(\v2 .canvas.public.v1.BaseNodeUpdateR\n" +
-	"baseUpdate\x12\x19\n" +
-	"\x05title\x18\x03 \x01(\tH\x00R\x05title\x88\x01\x01\x12\"\n" +
-	"\n" +
-	"media_type\x18\x04 \x01(\tH\x01R\tmediaType\x88\x01\x01\x12\x1b\n" +
-	"\x06source\x18\x05 \x01(\tH\x02R\x06source\x88\x01\x01\x12$\n" +
-	"\vtoken_count\x18\x06 \x01(\x05H\x03R\n" +
-	"tokenCount\x88\x01\x01\x12=\n" +
-	"\vaction_data\x18\a \x01(\v2\x17.google.protobuf.StructH\x04R\n" +
-	"actionData\x88\x01\x01B\b\n" +
-	"\x06_titleB\r\n" +
-	"\v_media_typeB\t\n" +
-	"\a_sourceB\x0e\n" +
-	"\f_token_countB\x0e\n" +
-	"\f_action_data\"\xaf\x03\n" +
-	"\x0fChunkNodeUpdate\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12A\n" +
-	"\vbase_update\x18\x02 \x01(\v2 .canvas.public.v1.BaseNodeUpdateR\n" +
-	"baseUpdate\x12\x1d\n" +
-	"\acontent\x18\x03 \x01(\tH\x00R\acontent\x88\x01\x01\x12*\n" +
-	"\x0esequence_index\x18\x04 \x01(\x05H\x01R\rsequenceIndex\x88\x01\x01\x12\"\n" +
-	"\n" +
-	"chunk_type\x18\x05 \x01(\tH\x02R\tchunkType\x88\x01\x01\x12*\n" +
-	"\x0estart_position\x18\x06 \x01(\x03H\x03R\rstartPosition\x88\x01\x01\x12&\n" +
-	"\fend_position\x18\a \x01(\x03H\x04R\vendPosition\x88\x01\x01\x12$\n" +
-	"\vtoken_count\x18\b \x01(\x05H\x05R\n" +
-	"tokenCount\x88\x01\x01B\n" +
-	"\n" +
-	"\b_contentB\x11\n" +
-	"\x0f_sequence_indexB\r\n" +
-	"\v_chunk_typeB\x11\n" +
-	"\x0f_start_positionB\x0f\n" +
-	"\r_end_positionB\x0e\n" +
-	"\f_token_count\"\xbf\x02\n" +
-	"\x11ClusterNodeUpdate\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12A\n" +
-	"\vbase_update\x18\x02 \x01(\v2 .canvas.public.v1.BaseNodeUpdateR\n" +
-	"baseUpdate\x12(\n" +
-	"\rcluster_scope\x18\x03 \x01(\tH\x00R\fclusterScope\x88\x01\x01\x12\x19\n" +
-	"\x05title\x18\x04 \x01(\tH\x01R\x05title\x88\x01\x01\x12&\n" +
-	"\fmember_count\x18\x05 \x01(\x05H\x02R\vmemberCount\x88\x01\x01\x12*\n" +
-	"\x0ecoverage_score\x18\x06 \x01(\x01H\x03R\rcoverageScore\x88\x01\x01B\x10\n" +
-	"\x0e_cluster_scopeB\b\n" +
-	"\x06_titleB\x0f\n" +
-	"\r_member_countB\x11\n" +
-	"\x0f_coverage_score\"\xd3\x01\n" +
-	"\n" +
-	"NodeUpdate\x12?\n" +
-	"\acontent\x18\x01 \x01(\v2#.canvas.public.v1.ContentNodeUpdateH\x00R\acontent\x129\n" +
-	"\x05chunk\x18\x02 \x01(\v2!.canvas.public.v1.ChunkNodeUpdateH\x00R\x05chunk\x12?\n" +
-	"\acluster\x18\x03 \x01(\v2#.canvas.public.v1.ClusterNodeUpdateH\x00R\aclusterB\b\n" +
-	"\x06update\"L\n" +
-	"\x12UpdateNodesRequest\x126\n" +
-	"\aupdates\x18\x01 \x03(\v2\x1c.canvas.public.v1.NodeUpdateR\aupdates\"C\n" +
-	"\x13UpdateNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.public.v1.NodeR\x05nodes\"\xe6\x01\n" +
+	"\x1cproto/public/v1/canvas.proto\x12\x10canvas.public.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a%proto/private/v1/canvas_private.proto\"\xe6\x01\n" +
 	"\x13GetNeighborsRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\tR\x03ids\x129\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.canvas.public.v1.DirectionR\tdirection\x12-\n" +
 	"\x12relationship_types\x18\x03 \x03(\tR\x11relationshipTypes\x12$\n" +
 	"\x0elimit_per_node\x18\x04 \x01(\x05R\flimitPerNode\x12-\n" +
-	"\x12include_properties\x18\x05 \x01(\bR\x11includeProperties\"\x9c\x01\n" +
-	"\bNeighbor\x12*\n" +
-	"\x04node\x18\x01 \x01(\v2\x16.canvas.public.v1.NodeR\x04node\x12+\n" +
-	"\x11relationship_type\x18\x02 \x01(\tR\x10relationshipType\x127\n" +
-	"\n" +
-	"properties\x18\x03 \x01(\v2\x17.google.protobuf.StructR\n" +
-	"properties\"I\n" +
+	"\x12include_properties\x18\x05 \x01(\bR\x11includeProperties\"\x81\x01\n" +
+	"\bNeighbor\x12#\n" +
+	"\x04node\x18\x01 \x01(\v2\x0f.canvas.v1.NodeR\x04node\x12+\n" +
+	"\x11relationship_type\x18\x02 \x01(\tR\x10relationshipType\x12#\n" +
+	"\x04link\x18\x03 \x01(\v2\x0f.canvas.v1.LinkR\x04link\"I\n" +
 	"\rNeighborsList\x128\n" +
 	"\tneighbors\x18\x01 \x03(\v2\x1a.canvas.public.v1.NeighborR\tneighbors\"\xc2\x01\n" +
 	"\x14GetNeighborsResponse\x12M\n" +
@@ -2669,27 +1637,41 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\x05query\x18\x02 \x01(\tR\x05query\x12\x13\n" +
 	"\x05top_k\x18\x03 \x01(\x05R\x04topK\x129\n" +
 	"\n" +
-	"node_types\x18\x04 \x03(\x0e2\x1a.canvas.public.v1.NodeTypeR\tnodeTypes\"P\n" +
-	"\fSearchResult\x12*\n" +
-	"\x04node\x18\x01 \x01(\v2\x16.canvas.public.v1.NodeR\x04node\x12\x14\n" +
+	"node_types\x18\x04 \x03(\x0e2\x1a.canvas.public.v1.NodeTypeR\tnodeTypes\"I\n" +
+	"\fSearchResult\x12#\n" +
+	"\x04node\x18\x01 \x01(\v2\x0f.canvas.v1.NodeR\x04node\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\"R\n" +
 	"\x16SemanticSearchResponse\x128\n" +
-	"\aresults\x18\x01 \x03(\v2\x1e.canvas.public.v1.SearchResultR\aresults\"\xe1\x03\n" +
-	"\x0eStructuralLink\x12\x1b\n" +
-	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12\x1b\n" +
-	"\ttarget_id\x18\x02 \x01(\tR\btargetId\x12'\n" +
-	"\x0fconnection_type\x18\x03 \x01(\tR\x0econnectionType\x12)\n" +
-	"\x10confidence_score\x18\x04 \x01(\x01R\x0fconfidenceScore\x12 \n" +
-	"\vdescription\x18\x05 \x01(\tR\vdescription\x12J\n" +
-	"\x14exploration_metadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\x13explorationMetadata\x12>\n" +
-	"\x0estyle_metadata\x18\a \x01(\v2\x17.google.protobuf.StructR\rstyleMetadata\x12\x1d\n" +
-	"\n" +
-	"created_by\x18\b \x01(\tR\tcreatedBy\x129\n" +
-	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xf1\x02\n" +
+	"\aresults\x18\x01 \x03(\v2\x1e.canvas.public.v1.SearchResultR\aresults\";\n" +
+	"\x12UpdateNodesRequest\x12%\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x0f.canvas.v1.NodeR\x05nodes\"<\n" +
+	"\x13UpdateNodesResponse\x12%\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x0f.canvas.v1.NodeR\x05nodes\"R\n" +
+	"\x0fGetNodesRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x12-\n" +
+	"\x06filter\x18\x02 \x01(\v2\x15.canvas.v1.NodeFilterR\x06filter\"9\n" +
+	"\x10GetNodesResponse\x12%\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x0f.canvas.v1.NodeR\x05nodes\"V\n" +
+	"\x0fGetLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x121\n" +
+	"\x06filter\x18\x02 \x01(\v2\x19.canvas.v1.BaseLinkFilterR\x06filter\"9\n" +
+	"\x10GetLinksResponse\x12%\n" +
+	"\x05links\x18\x01 \x03(\v2\x0f.canvas.v1.LinkR\x05links\"j\n" +
+	"\x1bGetHierarchicalLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x129\n" +
+	"\x06filter\x18\x02 \x01(\v2!.canvas.v1.HierarchicalLinkFilterR\x06filter\"Q\n" +
+	"\x1cGetHierarchicalLinksResponse\x121\n" +
+	"\x05links\x18\x01 \x03(\v2\x1b.canvas.v1.HierarchicalLinkR\x05links\"b\n" +
+	"\x17GetSemanticLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x125\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1d.canvas.v1.SemanticLinkFilterR\x06filter\"I\n" +
+	"\x18GetSemanticLinksResponse\x12-\n" +
+	"\x05links\x18\x01 \x03(\v2\x17.canvas.v1.SemanticLinkR\x05links\"f\n" +
+	"\x19GetStructuralLinksRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x127\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1f.canvas.v1.StructuralLinkFilterR\x06filter\"M\n" +
+	"\x1aGetStructuralLinksResponse\x12/\n" +
+	"\x05links\x18\x01 \x03(\v2\x19.canvas.v1.StructuralLinkR\x05links\"\xf1\x02\n" +
 	"\x14StructuralLinkCreate\x12\x1b\n" +
 	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12\x1b\n" +
 	"\ttarget_id\x18\x02 \x01(\tR\btargetId\x12'\n" +
@@ -2701,9 +1683,9 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\"\\\n" +
 	"\x1cCreateStructuralLinksRequest\x12<\n" +
-	"\x05links\x18\x01 \x03(\v2&.canvas.public.v1.StructuralLinkCreateR\x05links\"W\n" +
-	"\x1dCreateStructuralLinksResponse\x126\n" +
-	"\x05links\x18\x01 \x03(\v2 .canvas.public.v1.StructuralLinkR\x05links\"\xd0\x03\n" +
+	"\x05links\x18\x01 \x03(\v2&.canvas.public.v1.StructuralLinkCreateR\x05links\"P\n" +
+	"\x1dCreateStructuralLinksResponse\x12/\n" +
+	"\x05links\x18\x01 \x03(\v2\x19.canvas.v1.StructuralLinkR\x05links\"\xd0\x03\n" +
 	"\x14StructuralLinkUpdate\x12\x1b\n" +
 	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12\x1b\n" +
 	"\ttarget_id\x18\x02 \x01(\tR\btargetId\x12,\n" +
@@ -2718,9 +1700,9 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\x15_exploration_metadataB\x11\n" +
 	"\x0f_style_metadata\"`\n" +
 	"\x1cUpdateStructuralLinksRequest\x12@\n" +
-	"\aupdates\x18\x01 \x03(\v2&.canvas.public.v1.StructuralLinkUpdateR\aupdates\"W\n" +
-	"\x1dUpdateStructuralLinksResponse\x126\n" +
-	"\x05links\x18\x01 \x03(\v2 .canvas.public.v1.StructuralLinkR\x05links\"T\n" +
+	"\aupdates\x18\x01 \x03(\v2&.canvas.public.v1.StructuralLinkUpdateR\aupdates\"P\n" +
+	"\x1dUpdateStructuralLinksResponse\x12/\n" +
+	"\x05links\x18\x01 \x03(\v2\x19.canvas.v1.StructuralLinkR\x05links\"T\n" +
 	"\x18StructuralLinkIdentifier\x12\x1b\n" +
 	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12\x1b\n" +
 	"\ttarget_id\x18\x02 \x01(\tR\btargetId\"e\n" +
@@ -2736,12 +1718,16 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\x15NODE_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11NODE_TYPE_CONTENT\x10\x01\x12\x13\n" +
 	"\x0fNODE_TYPE_CHUNK\x10\x02\x12\x15\n" +
-	"\x11NODE_TYPE_CLUSTER\x10\x032\xef\x05\n" +
-	"\fCanvasPublic\x12Q\n" +
-	"\bGetNodes\x12!.canvas.public.v1.GetNodesRequest\x1a\".canvas.public.v1.GetNodesResponse\x12Z\n" +
-	"\vUpdateNodes\x12$.canvas.public.v1.UpdateNodesRequest\x1a%.canvas.public.v1.UpdateNodesResponse\x12]\n" +
+	"\x11NODE_TYPE_CLUSTER\x10\x032\x95\t\n" +
+	"\fCanvasPublic\x12]\n" +
 	"\fGetNeighbors\x12%.canvas.public.v1.GetNeighborsRequest\x1a&.canvas.public.v1.GetNeighborsResponse\x12c\n" +
-	"\x0eSemanticSearch\x12'.canvas.public.v1.SemanticSearchRequest\x1a(.canvas.public.v1.SemanticSearchResponse\x12x\n" +
+	"\x0eSemanticSearch\x12'.canvas.public.v1.SemanticSearchRequest\x1a(.canvas.public.v1.SemanticSearchResponse\x12Q\n" +
+	"\bGetNodes\x12!.canvas.public.v1.GetNodesRequest\x1a\".canvas.public.v1.GetNodesResponse\x12Z\n" +
+	"\vUpdateNodes\x12$.canvas.public.v1.UpdateNodesRequest\x1a%.canvas.public.v1.UpdateNodesResponse\x12Q\n" +
+	"\bGetLinks\x12!.canvas.public.v1.GetLinksRequest\x1a\".canvas.public.v1.GetLinksResponse\x12u\n" +
+	"\x14GetHierarchicalLinks\x12-.canvas.public.v1.GetHierarchicalLinksRequest\x1a..canvas.public.v1.GetHierarchicalLinksResponse\x12i\n" +
+	"\x10GetSemanticLinks\x12).canvas.public.v1.GetSemanticLinksRequest\x1a*.canvas.public.v1.GetSemanticLinksResponse\x12o\n" +
+	"\x12GetStructuralLinks\x12+.canvas.public.v1.GetStructuralLinksRequest\x1a,.canvas.public.v1.GetStructuralLinksResponse\x12x\n" +
 	"\x15CreateStructuralLinks\x12..canvas.public.v1.CreateStructuralLinksRequest\x1a/.canvas.public.v1.CreateStructuralLinksResponse\x12x\n" +
 	"\x15UpdateStructuralLinks\x12..canvas.public.v1.UpdateStructuralLinksRequest\x1a/.canvas.public.v1.UpdateStructuralLinksResponse\x12x\n" +
 	"\x15DeleteStructuralLinks\x12..canvas.public.v1.DeleteStructuralLinksRequest\x1a/.canvas.public.v1.DeleteStructuralLinksResponseB:Z8demo/ms_canvas/go_app/api/proto/public/v1;canvaspublicv1b\x06proto3"
@@ -2759,115 +1745,109 @@ func file_proto_public_v1_canvas_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_public_v1_canvas_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_public_v1_canvas_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_proto_public_v1_canvas_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_proto_public_v1_canvas_proto_goTypes = []any{
 	(Direction)(0),                        // 0: canvas.public.v1.Direction
 	(NodeType)(0),                         // 1: canvas.public.v1.NodeType
-	(*SpatialCoordinates)(nil),            // 2: canvas.public.v1.SpatialCoordinates
-	(*DisplayProps)(nil),                  // 3: canvas.public.v1.DisplayProps
-	(*EngagementScore)(nil),               // 4: canvas.public.v1.EngagementScore
-	(*BaseNode)(nil),                      // 5: canvas.public.v1.BaseNode
-	(*ContentNode)(nil),                   // 6: canvas.public.v1.ContentNode
-	(*ChunkNode)(nil),                     // 7: canvas.public.v1.ChunkNode
-	(*ClusterNode)(nil),                   // 8: canvas.public.v1.ClusterNode
-	(*Node)(nil),                          // 9: canvas.public.v1.Node
-	(*GetNodesRequest)(nil),               // 10: canvas.public.v1.GetNodesRequest
-	(*GetNodesResponse)(nil),              // 11: canvas.public.v1.GetNodesResponse
-	(*BaseNodeUpdate)(nil),                // 12: canvas.public.v1.BaseNodeUpdate
-	(*ContentNodeUpdate)(nil),             // 13: canvas.public.v1.ContentNodeUpdate
-	(*ChunkNodeUpdate)(nil),               // 14: canvas.public.v1.ChunkNodeUpdate
-	(*ClusterNodeUpdate)(nil),             // 15: canvas.public.v1.ClusterNodeUpdate
-	(*NodeUpdate)(nil),                    // 16: canvas.public.v1.NodeUpdate
-	(*UpdateNodesRequest)(nil),            // 17: canvas.public.v1.UpdateNodesRequest
-	(*UpdateNodesResponse)(nil),           // 18: canvas.public.v1.UpdateNodesResponse
-	(*GetNeighborsRequest)(nil),           // 19: canvas.public.v1.GetNeighborsRequest
-	(*Neighbor)(nil),                      // 20: canvas.public.v1.Neighbor
-	(*NeighborsList)(nil),                 // 21: canvas.public.v1.NeighborsList
-	(*GetNeighborsResponse)(nil),          // 22: canvas.public.v1.GetNeighborsResponse
-	(*SemanticSearchRequest)(nil),         // 23: canvas.public.v1.SemanticSearchRequest
-	(*SearchResult)(nil),                  // 24: canvas.public.v1.SearchResult
-	(*SemanticSearchResponse)(nil),        // 25: canvas.public.v1.SemanticSearchResponse
-	(*StructuralLink)(nil),                // 26: canvas.public.v1.StructuralLink
-	(*StructuralLinkCreate)(nil),          // 27: canvas.public.v1.StructuralLinkCreate
-	(*CreateStructuralLinksRequest)(nil),  // 28: canvas.public.v1.CreateStructuralLinksRequest
-	(*CreateStructuralLinksResponse)(nil), // 29: canvas.public.v1.CreateStructuralLinksResponse
-	(*StructuralLinkUpdate)(nil),          // 30: canvas.public.v1.StructuralLinkUpdate
-	(*UpdateStructuralLinksRequest)(nil),  // 31: canvas.public.v1.UpdateStructuralLinksRequest
-	(*UpdateStructuralLinksResponse)(nil), // 32: canvas.public.v1.UpdateStructuralLinksResponse
-	(*StructuralLinkIdentifier)(nil),      // 33: canvas.public.v1.StructuralLinkIdentifier
-	(*DeleteStructuralLinksRequest)(nil),  // 34: canvas.public.v1.DeleteStructuralLinksRequest
-	(*DeleteStructuralLinksResponse)(nil), // 35: canvas.public.v1.DeleteStructuralLinksResponse
-	nil,                                   // 36: canvas.public.v1.GetNeighborsResponse.ResultsEntry
-	(*timestamppb.Timestamp)(nil),         // 37: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),               // 38: google.protobuf.Struct
+	(*GetNeighborsRequest)(nil),           // 2: canvas.public.v1.GetNeighborsRequest
+	(*Neighbor)(nil),                      // 3: canvas.public.v1.Neighbor
+	(*NeighborsList)(nil),                 // 4: canvas.public.v1.NeighborsList
+	(*GetNeighborsResponse)(nil),          // 5: canvas.public.v1.GetNeighborsResponse
+	(*SemanticSearchRequest)(nil),         // 6: canvas.public.v1.SemanticSearchRequest
+	(*SearchResult)(nil),                  // 7: canvas.public.v1.SearchResult
+	(*SemanticSearchResponse)(nil),        // 8: canvas.public.v1.SemanticSearchResponse
+	(*UpdateNodesRequest)(nil),            // 9: canvas.public.v1.UpdateNodesRequest
+	(*UpdateNodesResponse)(nil),           // 10: canvas.public.v1.UpdateNodesResponse
+	(*GetNodesRequest)(nil),               // 11: canvas.public.v1.GetNodesRequest
+	(*GetNodesResponse)(nil),              // 12: canvas.public.v1.GetNodesResponse
+	(*GetLinksRequest)(nil),               // 13: canvas.public.v1.GetLinksRequest
+	(*GetLinksResponse)(nil),              // 14: canvas.public.v1.GetLinksResponse
+	(*GetHierarchicalLinksRequest)(nil),   // 15: canvas.public.v1.GetHierarchicalLinksRequest
+	(*GetHierarchicalLinksResponse)(nil),  // 16: canvas.public.v1.GetHierarchicalLinksResponse
+	(*GetSemanticLinksRequest)(nil),       // 17: canvas.public.v1.GetSemanticLinksRequest
+	(*GetSemanticLinksResponse)(nil),      // 18: canvas.public.v1.GetSemanticLinksResponse
+	(*GetStructuralLinksRequest)(nil),     // 19: canvas.public.v1.GetStructuralLinksRequest
+	(*GetStructuralLinksResponse)(nil),    // 20: canvas.public.v1.GetStructuralLinksResponse
+	(*StructuralLinkCreate)(nil),          // 21: canvas.public.v1.StructuralLinkCreate
+	(*CreateStructuralLinksRequest)(nil),  // 22: canvas.public.v1.CreateStructuralLinksRequest
+	(*CreateStructuralLinksResponse)(nil), // 23: canvas.public.v1.CreateStructuralLinksResponse
+	(*StructuralLinkUpdate)(nil),          // 24: canvas.public.v1.StructuralLinkUpdate
+	(*UpdateStructuralLinksRequest)(nil),  // 25: canvas.public.v1.UpdateStructuralLinksRequest
+	(*UpdateStructuralLinksResponse)(nil), // 26: canvas.public.v1.UpdateStructuralLinksResponse
+	(*StructuralLinkIdentifier)(nil),      // 27: canvas.public.v1.StructuralLinkIdentifier
+	(*DeleteStructuralLinksRequest)(nil),  // 28: canvas.public.v1.DeleteStructuralLinksRequest
+	(*DeleteStructuralLinksResponse)(nil), // 29: canvas.public.v1.DeleteStructuralLinksResponse
+	nil,                                   // 30: canvas.public.v1.GetNeighborsResponse.ResultsEntry
+	(*v1.Node)(nil),                       // 31: canvas.v1.Node
+	(*v1.Link)(nil),                       // 32: canvas.v1.Link
+	(*v1.NodeFilter)(nil),                 // 33: canvas.v1.NodeFilter
+	(*v1.BaseLinkFilter)(nil),             // 34: canvas.v1.BaseLinkFilter
+	(*v1.HierarchicalLinkFilter)(nil),     // 35: canvas.v1.HierarchicalLinkFilter
+	(*v1.HierarchicalLink)(nil),           // 36: canvas.v1.HierarchicalLink
+	(*v1.SemanticLinkFilter)(nil),         // 37: canvas.v1.SemanticLinkFilter
+	(*v1.SemanticLink)(nil),               // 38: canvas.v1.SemanticLink
+	(*v1.StructuralLinkFilter)(nil),       // 39: canvas.v1.StructuralLinkFilter
+	(*v1.StructuralLink)(nil),             // 40: canvas.v1.StructuralLink
+	(*structpb.Struct)(nil),               // 41: google.protobuf.Struct
 }
 var file_proto_public_v1_canvas_proto_depIdxs = []int32{
-	2,  // 0: canvas.public.v1.BaseNode.position_3d:type_name -> canvas.public.v1.SpatialCoordinates
-	3,  // 1: canvas.public.v1.BaseNode.display_props:type_name -> canvas.public.v1.DisplayProps
-	4,  // 2: canvas.public.v1.BaseNode.engagement_score:type_name -> canvas.public.v1.EngagementScore
-	37, // 3: canvas.public.v1.BaseNode.created_at:type_name -> google.protobuf.Timestamp
-	37, // 4: canvas.public.v1.BaseNode.updated_at:type_name -> google.protobuf.Timestamp
-	5,  // 5: canvas.public.v1.ContentNode.base:type_name -> canvas.public.v1.BaseNode
-	38, // 6: canvas.public.v1.ContentNode.action_data:type_name -> google.protobuf.Struct
-	5,  // 7: canvas.public.v1.ChunkNode.base:type_name -> canvas.public.v1.BaseNode
-	5,  // 8: canvas.public.v1.ClusterNode.base:type_name -> canvas.public.v1.BaseNode
-	6,  // 9: canvas.public.v1.Node.content_node:type_name -> canvas.public.v1.ContentNode
-	7,  // 10: canvas.public.v1.Node.chunk_node:type_name -> canvas.public.v1.ChunkNode
-	8,  // 11: canvas.public.v1.Node.cluster_node:type_name -> canvas.public.v1.ClusterNode
-	9,  // 12: canvas.public.v1.GetNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	2,  // 13: canvas.public.v1.BaseNodeUpdate.position_3d:type_name -> canvas.public.v1.SpatialCoordinates
-	3,  // 14: canvas.public.v1.BaseNodeUpdate.display_props:type_name -> canvas.public.v1.DisplayProps
-	4,  // 15: canvas.public.v1.BaseNodeUpdate.engagement_score:type_name -> canvas.public.v1.EngagementScore
-	12, // 16: canvas.public.v1.ContentNodeUpdate.base_update:type_name -> canvas.public.v1.BaseNodeUpdate
-	38, // 17: canvas.public.v1.ContentNodeUpdate.action_data:type_name -> google.protobuf.Struct
-	12, // 18: canvas.public.v1.ChunkNodeUpdate.base_update:type_name -> canvas.public.v1.BaseNodeUpdate
-	12, // 19: canvas.public.v1.ClusterNodeUpdate.base_update:type_name -> canvas.public.v1.BaseNodeUpdate
-	13, // 20: canvas.public.v1.NodeUpdate.content:type_name -> canvas.public.v1.ContentNodeUpdate
-	14, // 21: canvas.public.v1.NodeUpdate.chunk:type_name -> canvas.public.v1.ChunkNodeUpdate
-	15, // 22: canvas.public.v1.NodeUpdate.cluster:type_name -> canvas.public.v1.ClusterNodeUpdate
-	16, // 23: canvas.public.v1.UpdateNodesRequest.updates:type_name -> canvas.public.v1.NodeUpdate
-	9,  // 24: canvas.public.v1.UpdateNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	0,  // 25: canvas.public.v1.GetNeighborsRequest.direction:type_name -> canvas.public.v1.Direction
-	9,  // 26: canvas.public.v1.Neighbor.node:type_name -> canvas.public.v1.Node
-	38, // 27: canvas.public.v1.Neighbor.properties:type_name -> google.protobuf.Struct
-	20, // 28: canvas.public.v1.NeighborsList.neighbors:type_name -> canvas.public.v1.Neighbor
-	36, // 29: canvas.public.v1.GetNeighborsResponse.results:type_name -> canvas.public.v1.GetNeighborsResponse.ResultsEntry
-	1,  // 30: canvas.public.v1.SemanticSearchRequest.node_types:type_name -> canvas.public.v1.NodeType
-	9,  // 31: canvas.public.v1.SearchResult.node:type_name -> canvas.public.v1.Node
-	24, // 32: canvas.public.v1.SemanticSearchResponse.results:type_name -> canvas.public.v1.SearchResult
-	38, // 33: canvas.public.v1.StructuralLink.exploration_metadata:type_name -> google.protobuf.Struct
-	38, // 34: canvas.public.v1.StructuralLink.style_metadata:type_name -> google.protobuf.Struct
-	37, // 35: canvas.public.v1.StructuralLink.created_at:type_name -> google.protobuf.Timestamp
-	37, // 36: canvas.public.v1.StructuralLink.updated_at:type_name -> google.protobuf.Timestamp
-	38, // 37: canvas.public.v1.StructuralLinkCreate.exploration_metadata:type_name -> google.protobuf.Struct
-	38, // 38: canvas.public.v1.StructuralLinkCreate.style_metadata:type_name -> google.protobuf.Struct
-	27, // 39: canvas.public.v1.CreateStructuralLinksRequest.links:type_name -> canvas.public.v1.StructuralLinkCreate
-	26, // 40: canvas.public.v1.CreateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
-	38, // 41: canvas.public.v1.StructuralLinkUpdate.exploration_metadata:type_name -> google.protobuf.Struct
-	38, // 42: canvas.public.v1.StructuralLinkUpdate.style_metadata:type_name -> google.protobuf.Struct
-	30, // 43: canvas.public.v1.UpdateStructuralLinksRequest.updates:type_name -> canvas.public.v1.StructuralLinkUpdate
-	26, // 44: canvas.public.v1.UpdateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
-	33, // 45: canvas.public.v1.DeleteStructuralLinksRequest.link_ids:type_name -> canvas.public.v1.StructuralLinkIdentifier
-	21, // 46: canvas.public.v1.GetNeighborsResponse.ResultsEntry.value:type_name -> canvas.public.v1.NeighborsList
-	10, // 47: canvas.public.v1.CanvasPublic.GetNodes:input_type -> canvas.public.v1.GetNodesRequest
-	17, // 48: canvas.public.v1.CanvasPublic.UpdateNodes:input_type -> canvas.public.v1.UpdateNodesRequest
-	19, // 49: canvas.public.v1.CanvasPublic.GetNeighbors:input_type -> canvas.public.v1.GetNeighborsRequest
-	23, // 50: canvas.public.v1.CanvasPublic.SemanticSearch:input_type -> canvas.public.v1.SemanticSearchRequest
-	28, // 51: canvas.public.v1.CanvasPublic.CreateStructuralLinks:input_type -> canvas.public.v1.CreateStructuralLinksRequest
-	31, // 52: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:input_type -> canvas.public.v1.UpdateStructuralLinksRequest
-	34, // 53: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:input_type -> canvas.public.v1.DeleteStructuralLinksRequest
-	11, // 54: canvas.public.v1.CanvasPublic.GetNodes:output_type -> canvas.public.v1.GetNodesResponse
-	18, // 55: canvas.public.v1.CanvasPublic.UpdateNodes:output_type -> canvas.public.v1.UpdateNodesResponse
-	22, // 56: canvas.public.v1.CanvasPublic.GetNeighbors:output_type -> canvas.public.v1.GetNeighborsResponse
-	25, // 57: canvas.public.v1.CanvasPublic.SemanticSearch:output_type -> canvas.public.v1.SemanticSearchResponse
-	29, // 58: canvas.public.v1.CanvasPublic.CreateStructuralLinks:output_type -> canvas.public.v1.CreateStructuralLinksResponse
-	32, // 59: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:output_type -> canvas.public.v1.UpdateStructuralLinksResponse
-	35, // 60: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:output_type -> canvas.public.v1.DeleteStructuralLinksResponse
-	54, // [54:61] is the sub-list for method output_type
-	47, // [47:54] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	0,  // 0: canvas.public.v1.GetNeighborsRequest.direction:type_name -> canvas.public.v1.Direction
+	31, // 1: canvas.public.v1.Neighbor.node:type_name -> canvas.v1.Node
+	32, // 2: canvas.public.v1.Neighbor.link:type_name -> canvas.v1.Link
+	3,  // 3: canvas.public.v1.NeighborsList.neighbors:type_name -> canvas.public.v1.Neighbor
+	30, // 4: canvas.public.v1.GetNeighborsResponse.results:type_name -> canvas.public.v1.GetNeighborsResponse.ResultsEntry
+	1,  // 5: canvas.public.v1.SemanticSearchRequest.node_types:type_name -> canvas.public.v1.NodeType
+	31, // 6: canvas.public.v1.SearchResult.node:type_name -> canvas.v1.Node
+	7,  // 7: canvas.public.v1.SemanticSearchResponse.results:type_name -> canvas.public.v1.SearchResult
+	31, // 8: canvas.public.v1.UpdateNodesRequest.nodes:type_name -> canvas.v1.Node
+	31, // 9: canvas.public.v1.UpdateNodesResponse.nodes:type_name -> canvas.v1.Node
+	33, // 10: canvas.public.v1.GetNodesRequest.filter:type_name -> canvas.v1.NodeFilter
+	31, // 11: canvas.public.v1.GetNodesResponse.nodes:type_name -> canvas.v1.Node
+	34, // 12: canvas.public.v1.GetLinksRequest.filter:type_name -> canvas.v1.BaseLinkFilter
+	32, // 13: canvas.public.v1.GetLinksResponse.links:type_name -> canvas.v1.Link
+	35, // 14: canvas.public.v1.GetHierarchicalLinksRequest.filter:type_name -> canvas.v1.HierarchicalLinkFilter
+	36, // 15: canvas.public.v1.GetHierarchicalLinksResponse.links:type_name -> canvas.v1.HierarchicalLink
+	37, // 16: canvas.public.v1.GetSemanticLinksRequest.filter:type_name -> canvas.v1.SemanticLinkFilter
+	38, // 17: canvas.public.v1.GetSemanticLinksResponse.links:type_name -> canvas.v1.SemanticLink
+	39, // 18: canvas.public.v1.GetStructuralLinksRequest.filter:type_name -> canvas.v1.StructuralLinkFilter
+	40, // 19: canvas.public.v1.GetStructuralLinksResponse.links:type_name -> canvas.v1.StructuralLink
+	41, // 20: canvas.public.v1.StructuralLinkCreate.exploration_metadata:type_name -> google.protobuf.Struct
+	41, // 21: canvas.public.v1.StructuralLinkCreate.style_metadata:type_name -> google.protobuf.Struct
+	21, // 22: canvas.public.v1.CreateStructuralLinksRequest.links:type_name -> canvas.public.v1.StructuralLinkCreate
+	40, // 23: canvas.public.v1.CreateStructuralLinksResponse.links:type_name -> canvas.v1.StructuralLink
+	41, // 24: canvas.public.v1.StructuralLinkUpdate.exploration_metadata:type_name -> google.protobuf.Struct
+	41, // 25: canvas.public.v1.StructuralLinkUpdate.style_metadata:type_name -> google.protobuf.Struct
+	24, // 26: canvas.public.v1.UpdateStructuralLinksRequest.updates:type_name -> canvas.public.v1.StructuralLinkUpdate
+	40, // 27: canvas.public.v1.UpdateStructuralLinksResponse.links:type_name -> canvas.v1.StructuralLink
+	27, // 28: canvas.public.v1.DeleteStructuralLinksRequest.link_ids:type_name -> canvas.public.v1.StructuralLinkIdentifier
+	4,  // 29: canvas.public.v1.GetNeighborsResponse.ResultsEntry.value:type_name -> canvas.public.v1.NeighborsList
+	2,  // 30: canvas.public.v1.CanvasPublic.GetNeighbors:input_type -> canvas.public.v1.GetNeighborsRequest
+	6,  // 31: canvas.public.v1.CanvasPublic.SemanticSearch:input_type -> canvas.public.v1.SemanticSearchRequest
+	11, // 32: canvas.public.v1.CanvasPublic.GetNodes:input_type -> canvas.public.v1.GetNodesRequest
+	9,  // 33: canvas.public.v1.CanvasPublic.UpdateNodes:input_type -> canvas.public.v1.UpdateNodesRequest
+	13, // 34: canvas.public.v1.CanvasPublic.GetLinks:input_type -> canvas.public.v1.GetLinksRequest
+	15, // 35: canvas.public.v1.CanvasPublic.GetHierarchicalLinks:input_type -> canvas.public.v1.GetHierarchicalLinksRequest
+	17, // 36: canvas.public.v1.CanvasPublic.GetSemanticLinks:input_type -> canvas.public.v1.GetSemanticLinksRequest
+	19, // 37: canvas.public.v1.CanvasPublic.GetStructuralLinks:input_type -> canvas.public.v1.GetStructuralLinksRequest
+	22, // 38: canvas.public.v1.CanvasPublic.CreateStructuralLinks:input_type -> canvas.public.v1.CreateStructuralLinksRequest
+	25, // 39: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:input_type -> canvas.public.v1.UpdateStructuralLinksRequest
+	28, // 40: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:input_type -> canvas.public.v1.DeleteStructuralLinksRequest
+	5,  // 41: canvas.public.v1.CanvasPublic.GetNeighbors:output_type -> canvas.public.v1.GetNeighborsResponse
+	8,  // 42: canvas.public.v1.CanvasPublic.SemanticSearch:output_type -> canvas.public.v1.SemanticSearchResponse
+	12, // 43: canvas.public.v1.CanvasPublic.GetNodes:output_type -> canvas.public.v1.GetNodesResponse
+	10, // 44: canvas.public.v1.CanvasPublic.UpdateNodes:output_type -> canvas.public.v1.UpdateNodesResponse
+	14, // 45: canvas.public.v1.CanvasPublic.GetLinks:output_type -> canvas.public.v1.GetLinksResponse
+	16, // 46: canvas.public.v1.CanvasPublic.GetHierarchicalLinks:output_type -> canvas.public.v1.GetHierarchicalLinksResponse
+	18, // 47: canvas.public.v1.CanvasPublic.GetSemanticLinks:output_type -> canvas.public.v1.GetSemanticLinksResponse
+	20, // 48: canvas.public.v1.CanvasPublic.GetStructuralLinks:output_type -> canvas.public.v1.GetStructuralLinksResponse
+	23, // 49: canvas.public.v1.CanvasPublic.CreateStructuralLinks:output_type -> canvas.public.v1.CreateStructuralLinksResponse
+	26, // 50: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:output_type -> canvas.public.v1.UpdateStructuralLinksResponse
+	29, // 51: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:output_type -> canvas.public.v1.DeleteStructuralLinksResponse
+	41, // [41:52] is the sub-list for method output_type
+	30, // [30:41] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_proto_public_v1_canvas_proto_init() }
@@ -2875,28 +1855,14 @@ func file_proto_public_v1_canvas_proto_init() {
 	if File_proto_public_v1_canvas_proto != nil {
 		return
 	}
-	file_proto_public_v1_canvas_proto_msgTypes[7].OneofWrappers = []any{
-		(*Node_ContentNode)(nil),
-		(*Node_ChunkNode)(nil),
-		(*Node_ClusterNode)(nil),
-	}
-	file_proto_public_v1_canvas_proto_msgTypes[10].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[11].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[12].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[13].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[14].OneofWrappers = []any{
-		(*NodeUpdate_Content)(nil),
-		(*NodeUpdate_Chunk)(nil),
-		(*NodeUpdate_Cluster)(nil),
-	}
-	file_proto_public_v1_canvas_proto_msgTypes[28].OneofWrappers = []any{}
+	file_proto_public_v1_canvas_proto_msgTypes[22].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_public_v1_canvas_proto_rawDesc), len(file_proto_public_v1_canvas_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   35,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
