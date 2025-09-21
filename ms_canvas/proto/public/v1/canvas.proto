@@ -3,7 +3,7 @@ syntax = "proto3";
 package canvas.public.v1;
 
 import "google/protobuf/struct.proto";
-import "private/v1/canvas_private.proto";
+import "proto/private/v1/canvas_private.proto";
 
 option go_package = "demo/ms_canvas/go_app/api/proto/public/v1;canvaspublicv1";
 
