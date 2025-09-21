@@ -119,7 +119,7 @@ func TestNodeRepo_CreateChunkNodes_Integration(t *testing.T) {
 	}
 }
 
-func TestNodeRepo_CreateContentNode_Validation(t *testing.T) {
+func TestNodeRepo_CreateContentNodes_Validation(t *testing.T) {
 	tests := []struct {
 		name         string
 		node         *v1.ContentNode
@@ -174,7 +174,7 @@ func TestNodeRepo_CreateContentNode_Validation(t *testing.T) {
 	}
 }
 
-func TestNodeRepo_CreateClusterNode_Validation(t *testing.T) {
+func TestNodeRepo_CreateClusterNodes_Validation(t *testing.T) {
 	tests := []struct {
 		name         string
 		node         *v1.ClusterNode
