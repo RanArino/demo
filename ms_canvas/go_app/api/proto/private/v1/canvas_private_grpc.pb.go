@@ -20,833 +20,181 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Canvas_GetNodes_FullMethodName                = "/canvas.v1.Canvas/GetNodes"
-	Canvas_CreateClusterNodes_FullMethodName      = "/canvas.v1.Canvas/CreateClusterNodes"
-	Canvas_CreateContentNodes_FullMethodName      = "/canvas.v1.Canvas/CreateContentNodes"
-	Canvas_CreateChunkNodes_FullMethodName        = "/canvas.v1.Canvas/CreateChunkNodes"
-	Canvas_UpdateClusterNodes_FullMethodName      = "/canvas.v1.Canvas/UpdateClusterNodes"
-	Canvas_UpdateContentNodes_FullMethodName      = "/canvas.v1.Canvas/UpdateContentNodes"
-	Canvas_UpdateChunkNodes_FullMethodName        = "/canvas.v1.Canvas/UpdateChunkNodes"
-	Canvas_DeleteNodes_FullMethodName             = "/canvas.v1.Canvas/DeleteNodes"
-	Canvas_GetLinks_FullMethodName                = "/canvas.v1.Canvas/GetLinks"
-	Canvas_GetHierarchicalLinks_FullMethodName    = "/canvas.v1.Canvas/GetHierarchicalLinks"
-	Canvas_GetSemanticLinks_FullMethodName        = "/canvas.v1.Canvas/GetSemanticLinks"
-	Canvas_GetStructuralLinks_FullMethodName      = "/canvas.v1.Canvas/GetStructuralLinks"
-	Canvas_CreateHierarchicalLinks_FullMethodName = "/canvas.v1.Canvas/CreateHierarchicalLinks"
-	Canvas_CreateSemanticLinks_FullMethodName     = "/canvas.v1.Canvas/CreateSemanticLinks"
-	Canvas_UpdateHierarchicalLinks_FullMethodName = "/canvas.v1.Canvas/UpdateHierarchicalLinks"
-	Canvas_UpdateSemanticLinks_FullMethodName     = "/canvas.v1.Canvas/UpdateSemanticLinks"
-	Canvas_DeleteLinks_FullMethodName             = "/canvas.v1.Canvas/DeleteLinks"
-	Canvas_ChunkEmbed_FullMethodName              = "/canvas.v1.Canvas/ChunkEmbed"
-	Canvas_EmbedQuery_FullMethodName              = "/canvas.v1.Canvas/EmbedQuery"
-	Canvas_Healthz_FullMethodName                 = "/canvas.v1.Canvas/Healthz"
+	CanvasML_ChunkEmbed_FullMethodName = "/canvas.private.v1.CanvasML/ChunkEmbed"
+	CanvasML_EmbedQuery_FullMethodName = "/canvas.private.v1.CanvasML/EmbedQuery"
+	CanvasML_Healthz_FullMethodName    = "/canvas.private.v1.CanvasML/Healthz"
 )
 
-// CanvasClient is the client API for Canvas service.
+// CanvasMLClient is the client API for CanvasML service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-//	service for chunking and embeddings.
-type CanvasClient interface {
-	// service for Nodes
-	GetNodes(ctx context.Context, in *GetNodesRequest, opts ...grpc.CallOption) (*GetNodesResponse, error)
-	CreateClusterNodes(ctx context.Context, in *CreateClusterNodesRequest, opts ...grpc.CallOption) (*CreateClusterNodesResponse, error)
-	CreateContentNodes(ctx context.Context, in *CreateContentNodesRequest, opts ...grpc.CallOption) (*CreateContentNodesResponse, error)
-	CreateChunkNodes(ctx context.Context, in *CreateChunkNodesRequest, opts ...grpc.CallOption) (*CreateChunkNodesResponse, error)
-	UpdateClusterNodes(ctx context.Context, in *UpdateClusterNodesRequest, opts ...grpc.CallOption) (*UpdateClusterNodesResponse, error)
-	UpdateContentNodes(ctx context.Context, in *UpdateContentNodesRequest, opts ...grpc.CallOption) (*UpdateContentNodesResponse, error)
-	UpdateChunkNodes(ctx context.Context, in *UpdateChunkNodesRequest, opts ...grpc.CallOption) (*UpdateChunkNodesResponse, error)
-	DeleteNodes(ctx context.Context, in *DeleteNodesRequest, opts ...grpc.CallOption) (*DeleteNodesResponse, error)
-	// service for Links
-	GetLinks(ctx context.Context, in *GetLinksRequest, opts ...grpc.CallOption) (*GetLinksResponse, error)
-	GetHierarchicalLinks(ctx context.Context, in *GetHierarchicalLinksRequest, opts ...grpc.CallOption) (*GetHierarchicalLinksResponse, error)
-	GetSemanticLinks(ctx context.Context, in *GetSemanticLinksRequest, opts ...grpc.CallOption) (*GetSemanticLinksResponse, error)
-	GetStructuralLinks(ctx context.Context, in *GetStructuralLinksRequest, opts ...grpc.CallOption) (*GetStructuralLinksResponse, error)
-	CreateHierarchicalLinks(ctx context.Context, in *CreateHierarchicalLinksRequest, opts ...grpc.CallOption) (*CreateHierarchicalLinksResponse, error)
-	CreateSemanticLinks(ctx context.Context, in *CreateSemanticLinksRequest, opts ...grpc.CallOption) (*CreateSemanticLinksResponse, error)
-	UpdateHierarchicalLinks(ctx context.Context, in *UpdateHierarchicalLinksRequest, opts ...grpc.CallOption) (*UpdateHierarchicalLinksResponse, error)
-	UpdateSemanticLinks(ctx context.Context, in *UpdateSemanticLinksRequest, opts ...grpc.CallOption) (*UpdateSemanticLinksResponse, error)
-	DeleteLinks(ctx context.Context, in *DeleteLinksRequest, opts ...grpc.CallOption) (*DeleteLinksResponse, error)
-	// Python service to chunk and embed
+// ML service - used by gateway to call Python service
+type CanvasMLClient interface {
 	ChunkEmbed(ctx context.Context, in *ChunkEmbedRequest, opts ...grpc.CallOption) (*ChunkEmbedResponse, error)
 	EmbedQuery(ctx context.Context, in *EmbedQueryRequest, opts ...grpc.CallOption) (*EmbedQueryResponse, error)
 	Healthz(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthStatus, error)
 }
 
-type canvasClient struct {
+type canvasMLClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewCanvasClient(cc grpc.ClientConnInterface) CanvasClient {
-	return &canvasClient{cc}
+func NewCanvasMLClient(cc grpc.ClientConnInterface) CanvasMLClient {
+	return &canvasMLClient{cc}
 }
 
-func (c *canvasClient) GetNodes(ctx context.Context, in *GetNodesRequest, opts ...grpc.CallOption) (*GetNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_GetNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) CreateClusterNodes(ctx context.Context, in *CreateClusterNodesRequest, opts ...grpc.CallOption) (*CreateClusterNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateClusterNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_CreateClusterNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) CreateContentNodes(ctx context.Context, in *CreateContentNodesRequest, opts ...grpc.CallOption) (*CreateContentNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateContentNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_CreateContentNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) CreateChunkNodes(ctx context.Context, in *CreateChunkNodesRequest, opts ...grpc.CallOption) (*CreateChunkNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateChunkNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_CreateChunkNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) UpdateClusterNodes(ctx context.Context, in *UpdateClusterNodesRequest, opts ...grpc.CallOption) (*UpdateClusterNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateClusterNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_UpdateClusterNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) UpdateContentNodes(ctx context.Context, in *UpdateContentNodesRequest, opts ...grpc.CallOption) (*UpdateContentNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateContentNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_UpdateContentNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) UpdateChunkNodes(ctx context.Context, in *UpdateChunkNodesRequest, opts ...grpc.CallOption) (*UpdateChunkNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateChunkNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_UpdateChunkNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) DeleteNodes(ctx context.Context, in *DeleteNodesRequest, opts ...grpc.CallOption) (*DeleteNodesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteNodesResponse)
-	err := c.cc.Invoke(ctx, Canvas_DeleteNodes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) GetLinks(ctx context.Context, in *GetLinksRequest, opts ...grpc.CallOption) (*GetLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_GetLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) GetHierarchicalLinks(ctx context.Context, in *GetHierarchicalLinksRequest, opts ...grpc.CallOption) (*GetHierarchicalLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetHierarchicalLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_GetHierarchicalLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) GetSemanticLinks(ctx context.Context, in *GetSemanticLinksRequest, opts ...grpc.CallOption) (*GetSemanticLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetSemanticLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_GetSemanticLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) GetStructuralLinks(ctx context.Context, in *GetStructuralLinksRequest, opts ...grpc.CallOption) (*GetStructuralLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetStructuralLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_GetStructuralLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) CreateHierarchicalLinks(ctx context.Context, in *CreateHierarchicalLinksRequest, opts ...grpc.CallOption) (*CreateHierarchicalLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateHierarchicalLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_CreateHierarchicalLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) CreateSemanticLinks(ctx context.Context, in *CreateSemanticLinksRequest, opts ...grpc.CallOption) (*CreateSemanticLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateSemanticLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_CreateSemanticLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) UpdateHierarchicalLinks(ctx context.Context, in *UpdateHierarchicalLinksRequest, opts ...grpc.CallOption) (*UpdateHierarchicalLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateHierarchicalLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_UpdateHierarchicalLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) UpdateSemanticLinks(ctx context.Context, in *UpdateSemanticLinksRequest, opts ...grpc.CallOption) (*UpdateSemanticLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateSemanticLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_UpdateSemanticLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) DeleteLinks(ctx context.Context, in *DeleteLinksRequest, opts ...grpc.CallOption) (*DeleteLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteLinksResponse)
-	err := c.cc.Invoke(ctx, Canvas_DeleteLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasClient) ChunkEmbed(ctx context.Context, in *ChunkEmbedRequest, opts ...grpc.CallOption) (*ChunkEmbedResponse, error) {
+func (c *canvasMLClient) ChunkEmbed(ctx context.Context, in *ChunkEmbedRequest, opts ...grpc.CallOption) (*ChunkEmbedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ChunkEmbedResponse)
-	err := c.cc.Invoke(ctx, Canvas_ChunkEmbed_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CanvasML_ChunkEmbed_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *canvasClient) EmbedQuery(ctx context.Context, in *EmbedQueryRequest, opts ...grpc.CallOption) (*EmbedQueryResponse, error) {
+func (c *canvasMLClient) EmbedQuery(ctx context.Context, in *EmbedQueryRequest, opts ...grpc.CallOption) (*EmbedQueryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmbedQueryResponse)
-	err := c.cc.Invoke(ctx, Canvas_EmbedQuery_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CanvasML_EmbedQuery_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *canvasClient) Healthz(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthStatus, error) {
+func (c *canvasMLClient) Healthz(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthStatus, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HealthStatus)
-	err := c.cc.Invoke(ctx, Canvas_Healthz_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CanvasML_Healthz_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CanvasServer is the server API for Canvas service.
-// All implementations must embed UnimplementedCanvasServer
+// CanvasMLServer is the server API for CanvasML service.
+// All implementations must embed UnimplementedCanvasMLServer
 // for forward compatibility.
 //
-//	service for chunking and embeddings.
-type CanvasServer interface {
-	// service for Nodes
-	GetNodes(context.Context, *GetNodesRequest) (*GetNodesResponse, error)
-	CreateClusterNodes(context.Context, *CreateClusterNodesRequest) (*CreateClusterNodesResponse, error)
-	CreateContentNodes(context.Context, *CreateContentNodesRequest) (*CreateContentNodesResponse, error)
-	CreateChunkNodes(context.Context, *CreateChunkNodesRequest) (*CreateChunkNodesResponse, error)
-	UpdateClusterNodes(context.Context, *UpdateClusterNodesRequest) (*UpdateClusterNodesResponse, error)
-	UpdateContentNodes(context.Context, *UpdateContentNodesRequest) (*UpdateContentNodesResponse, error)
-	UpdateChunkNodes(context.Context, *UpdateChunkNodesRequest) (*UpdateChunkNodesResponse, error)
-	DeleteNodes(context.Context, *DeleteNodesRequest) (*DeleteNodesResponse, error)
-	// service for Links
-	GetLinks(context.Context, *GetLinksRequest) (*GetLinksResponse, error)
-	GetHierarchicalLinks(context.Context, *GetHierarchicalLinksRequest) (*GetHierarchicalLinksResponse, error)
-	GetSemanticLinks(context.Context, *GetSemanticLinksRequest) (*GetSemanticLinksResponse, error)
-	GetStructuralLinks(context.Context, *GetStructuralLinksRequest) (*GetStructuralLinksResponse, error)
-	CreateHierarchicalLinks(context.Context, *CreateHierarchicalLinksRequest) (*CreateHierarchicalLinksResponse, error)
-	CreateSemanticLinks(context.Context, *CreateSemanticLinksRequest) (*CreateSemanticLinksResponse, error)
-	UpdateHierarchicalLinks(context.Context, *UpdateHierarchicalLinksRequest) (*UpdateHierarchicalLinksResponse, error)
-	UpdateSemanticLinks(context.Context, *UpdateSemanticLinksRequest) (*UpdateSemanticLinksResponse, error)
-	DeleteLinks(context.Context, *DeleteLinksRequest) (*DeleteLinksResponse, error)
-	// Python service to chunk and embed
+// ML service - used by gateway to call Python service
+type CanvasMLServer interface {
 	ChunkEmbed(context.Context, *ChunkEmbedRequest) (*ChunkEmbedResponse, error)
 	EmbedQuery(context.Context, *EmbedQueryRequest) (*EmbedQueryResponse, error)
 	Healthz(context.Context, *emptypb.Empty) (*HealthStatus, error)
-	mustEmbedUnimplementedCanvasServer()
+	mustEmbedUnimplementedCanvasMLServer()
 }
 
-// UnimplementedCanvasServer must be embedded to have
+// UnimplementedCanvasMLServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedCanvasServer struct{}
+type UnimplementedCanvasMLServer struct{}
 
-func (UnimplementedCanvasServer) GetNodes(context.Context, *GetNodesRequest) (*GetNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNodes not implemented")
-}
-func (UnimplementedCanvasServer) CreateClusterNodes(context.Context, *CreateClusterNodesRequest) (*CreateClusterNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateClusterNodes not implemented")
-}
-func (UnimplementedCanvasServer) CreateContentNodes(context.Context, *CreateContentNodesRequest) (*CreateContentNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateContentNodes not implemented")
-}
-func (UnimplementedCanvasServer) CreateChunkNodes(context.Context, *CreateChunkNodesRequest) (*CreateChunkNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateChunkNodes not implemented")
-}
-func (UnimplementedCanvasServer) UpdateClusterNodes(context.Context, *UpdateClusterNodesRequest) (*UpdateClusterNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateClusterNodes not implemented")
-}
-func (UnimplementedCanvasServer) UpdateContentNodes(context.Context, *UpdateContentNodesRequest) (*UpdateContentNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateContentNodes not implemented")
-}
-func (UnimplementedCanvasServer) UpdateChunkNodes(context.Context, *UpdateChunkNodesRequest) (*UpdateChunkNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateChunkNodes not implemented")
-}
-func (UnimplementedCanvasServer) DeleteNodes(context.Context, *DeleteNodesRequest) (*DeleteNodesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteNodes not implemented")
-}
-func (UnimplementedCanvasServer) GetLinks(context.Context, *GetLinksRequest) (*GetLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLinks not implemented")
-}
-func (UnimplementedCanvasServer) GetHierarchicalLinks(context.Context, *GetHierarchicalLinksRequest) (*GetHierarchicalLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetHierarchicalLinks not implemented")
-}
-func (UnimplementedCanvasServer) GetSemanticLinks(context.Context, *GetSemanticLinksRequest) (*GetSemanticLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSemanticLinks not implemented")
-}
-func (UnimplementedCanvasServer) GetStructuralLinks(context.Context, *GetStructuralLinksRequest) (*GetStructuralLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStructuralLinks not implemented")
-}
-func (UnimplementedCanvasServer) CreateHierarchicalLinks(context.Context, *CreateHierarchicalLinksRequest) (*CreateHierarchicalLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateHierarchicalLinks not implemented")
-}
-func (UnimplementedCanvasServer) CreateSemanticLinks(context.Context, *CreateSemanticLinksRequest) (*CreateSemanticLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateSemanticLinks not implemented")
-}
-func (UnimplementedCanvasServer) UpdateHierarchicalLinks(context.Context, *UpdateHierarchicalLinksRequest) (*UpdateHierarchicalLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateHierarchicalLinks not implemented")
-}
-func (UnimplementedCanvasServer) UpdateSemanticLinks(context.Context, *UpdateSemanticLinksRequest) (*UpdateSemanticLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateSemanticLinks not implemented")
-}
-func (UnimplementedCanvasServer) DeleteLinks(context.Context, *DeleteLinksRequest) (*DeleteLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteLinks not implemented")
-}
-func (UnimplementedCanvasServer) ChunkEmbed(context.Context, *ChunkEmbedRequest) (*ChunkEmbedResponse, error) {
+func (UnimplementedCanvasMLServer) ChunkEmbed(context.Context, *ChunkEmbedRequest) (*ChunkEmbedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChunkEmbed not implemented")
 }
-func (UnimplementedCanvasServer) EmbedQuery(context.Context, *EmbedQueryRequest) (*EmbedQueryResponse, error) {
+func (UnimplementedCanvasMLServer) EmbedQuery(context.Context, *EmbedQueryRequest) (*EmbedQueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmbedQuery not implemented")
 }
-func (UnimplementedCanvasServer) Healthz(context.Context, *emptypb.Empty) (*HealthStatus, error) {
+func (UnimplementedCanvasMLServer) Healthz(context.Context, *emptypb.Empty) (*HealthStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Healthz not implemented")
 }
-func (UnimplementedCanvasServer) mustEmbedUnimplementedCanvasServer() {}
-func (UnimplementedCanvasServer) testEmbeddedByValue()                {}
+func (UnimplementedCanvasMLServer) mustEmbedUnimplementedCanvasMLServer() {}
+func (UnimplementedCanvasMLServer) testEmbeddedByValue()                  {}
 
-// UnsafeCanvasServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to CanvasServer will
+// UnsafeCanvasMLServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CanvasMLServer will
 // result in compilation errors.
-type UnsafeCanvasServer interface {
-	mustEmbedUnimplementedCanvasServer()
+type UnsafeCanvasMLServer interface {
+	mustEmbedUnimplementedCanvasMLServer()
 }
 
-func RegisterCanvasServer(s grpc.ServiceRegistrar, srv CanvasServer) {
-	// If the following call pancis, it indicates UnimplementedCanvasServer was
+func RegisterCanvasMLServer(s grpc.ServiceRegistrar, srv CanvasMLServer) {
+	// If the following call pancis, it indicates UnimplementedCanvasMLServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Canvas_ServiceDesc, srv)
+	s.RegisterService(&CanvasML_ServiceDesc, srv)
 }
 
-func _Canvas_GetNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).GetNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_GetNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).GetNodes(ctx, req.(*GetNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_CreateClusterNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateClusterNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).CreateClusterNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_CreateClusterNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).CreateClusterNodes(ctx, req.(*CreateClusterNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_CreateContentNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateContentNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).CreateContentNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_CreateContentNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).CreateContentNodes(ctx, req.(*CreateContentNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_CreateChunkNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateChunkNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).CreateChunkNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_CreateChunkNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).CreateChunkNodes(ctx, req.(*CreateChunkNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_UpdateClusterNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateClusterNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).UpdateClusterNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_UpdateClusterNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).UpdateClusterNodes(ctx, req.(*UpdateClusterNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_UpdateContentNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateContentNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).UpdateContentNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_UpdateContentNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).UpdateContentNodes(ctx, req.(*UpdateContentNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_UpdateChunkNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateChunkNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).UpdateChunkNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_UpdateChunkNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).UpdateChunkNodes(ctx, req.(*UpdateChunkNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_DeleteNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteNodesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).DeleteNodes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_DeleteNodes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).DeleteNodes(ctx, req.(*DeleteNodesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_GetLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).GetLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_GetLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).GetLinks(ctx, req.(*GetLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_GetHierarchicalLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetHierarchicalLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).GetHierarchicalLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_GetHierarchicalLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).GetHierarchicalLinks(ctx, req.(*GetHierarchicalLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_GetSemanticLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSemanticLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).GetSemanticLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_GetSemanticLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).GetSemanticLinks(ctx, req.(*GetSemanticLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_GetStructuralLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetStructuralLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).GetStructuralLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_GetStructuralLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).GetStructuralLinks(ctx, req.(*GetStructuralLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_CreateHierarchicalLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateHierarchicalLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).CreateHierarchicalLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_CreateHierarchicalLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).CreateHierarchicalLinks(ctx, req.(*CreateHierarchicalLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_CreateSemanticLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateSemanticLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).CreateSemanticLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_CreateSemanticLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).CreateSemanticLinks(ctx, req.(*CreateSemanticLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_UpdateHierarchicalLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateHierarchicalLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).UpdateHierarchicalLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_UpdateHierarchicalLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).UpdateHierarchicalLinks(ctx, req.(*UpdateHierarchicalLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_UpdateSemanticLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateSemanticLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).UpdateSemanticLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_UpdateSemanticLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).UpdateSemanticLinks(ctx, req.(*UpdateSemanticLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_DeleteLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasServer).DeleteLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Canvas_DeleteLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).DeleteLinks(ctx, req.(*DeleteLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Canvas_ChunkEmbed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CanvasML_ChunkEmbed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ChunkEmbedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CanvasServer).ChunkEmbed(ctx, in)
+		return srv.(CanvasMLServer).ChunkEmbed(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Canvas_ChunkEmbed_FullMethodName,
+		FullMethod: CanvasML_ChunkEmbed_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).ChunkEmbed(ctx, req.(*ChunkEmbedRequest))
+		return srv.(CanvasMLServer).ChunkEmbed(ctx, req.(*ChunkEmbedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Canvas_EmbedQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CanvasML_EmbedQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EmbedQueryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CanvasServer).EmbedQuery(ctx, in)
+		return srv.(CanvasMLServer).EmbedQuery(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Canvas_EmbedQuery_FullMethodName,
+		FullMethod: CanvasML_EmbedQuery_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).EmbedQuery(ctx, req.(*EmbedQueryRequest))
+		return srv.(CanvasMLServer).EmbedQuery(ctx, req.(*EmbedQueryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Canvas_Healthz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CanvasML_Healthz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CanvasServer).Healthz(ctx, in)
+		return srv.(CanvasMLServer).Healthz(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Canvas_Healthz_FullMethodName,
+		FullMethod: CanvasML_Healthz_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasServer).Healthz(ctx, req.(*emptypb.Empty))
+		return srv.(CanvasMLServer).Healthz(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Canvas_ServiceDesc is the grpc.ServiceDesc for Canvas service.
+// CanvasML_ServiceDesc is the grpc.ServiceDesc for CanvasML service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Canvas_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "canvas.v1.Canvas",
-	HandlerType: (*CanvasServer)(nil),
+var CanvasML_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "canvas.private.v1.CanvasML",
+	HandlerType: (*CanvasMLServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetNodes",
-			Handler:    _Canvas_GetNodes_Handler,
-		},
-		{
-			MethodName: "CreateClusterNodes",
-			Handler:    _Canvas_CreateClusterNodes_Handler,
-		},
-		{
-			MethodName: "CreateContentNodes",
-			Handler:    _Canvas_CreateContentNodes_Handler,
-		},
-		{
-			MethodName: "CreateChunkNodes",
-			Handler:    _Canvas_CreateChunkNodes_Handler,
-		},
-		{
-			MethodName: "UpdateClusterNodes",
-			Handler:    _Canvas_UpdateClusterNodes_Handler,
-		},
-		{
-			MethodName: "UpdateContentNodes",
-			Handler:    _Canvas_UpdateContentNodes_Handler,
-		},
-		{
-			MethodName: "UpdateChunkNodes",
-			Handler:    _Canvas_UpdateChunkNodes_Handler,
-		},
-		{
-			MethodName: "DeleteNodes",
-			Handler:    _Canvas_DeleteNodes_Handler,
-		},
-		{
-			MethodName: "GetLinks",
-			Handler:    _Canvas_GetLinks_Handler,
-		},
-		{
-			MethodName: "GetHierarchicalLinks",
-			Handler:    _Canvas_GetHierarchicalLinks_Handler,
-		},
-		{
-			MethodName: "GetSemanticLinks",
-			Handler:    _Canvas_GetSemanticLinks_Handler,
-		},
-		{
-			MethodName: "GetStructuralLinks",
-			Handler:    _Canvas_GetStructuralLinks_Handler,
-		},
-		{
-			MethodName: "CreateHierarchicalLinks",
-			Handler:    _Canvas_CreateHierarchicalLinks_Handler,
-		},
-		{
-			MethodName: "CreateSemanticLinks",
-			Handler:    _Canvas_CreateSemanticLinks_Handler,
-		},
-		{
-			MethodName: "UpdateHierarchicalLinks",
-			Handler:    _Canvas_UpdateHierarchicalLinks_Handler,
-		},
-		{
-			MethodName: "UpdateSemanticLinks",
-			Handler:    _Canvas_UpdateSemanticLinks_Handler,
-		},
-		{
-			MethodName: "DeleteLinks",
-			Handler:    _Canvas_DeleteLinks_Handler,
-		},
-		{
 			MethodName: "ChunkEmbed",
-			Handler:    _Canvas_ChunkEmbed_Handler,
+			Handler:    _CanvasML_ChunkEmbed_Handler,
 		},
 		{
 			MethodName: "EmbedQuery",
-			Handler:    _Canvas_EmbedQuery_Handler,
+			Handler:    _CanvasML_EmbedQuery_Handler,
 		},
 		{
 			MethodName: "Healthz",
-			Handler:    _Canvas_Healthz_Handler,
+			Handler:    _CanvasML_Healthz_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
