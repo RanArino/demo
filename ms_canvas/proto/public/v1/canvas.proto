@@ -3,34 +3,246 @@ syntax = "proto3";
 package canvas.public.v1;
 
 import "google/protobuf/struct.proto";
-import "proto/private/v1/canvas_private.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "demo/ms_canvas/go_app/api/proto/public/v1;canvaspublicv1";
 
 // Public Canvas API
 service CanvasPublic {
-  // Search 
-  rpc GetNeighbors(GetNeighborsRequest) returns (GetNeighborsResponse);
+  // Semantic Search
   rpc SemanticSearch(SemanticSearchRequest) returns (SemanticSearchResponse);
-  // Nodes
+  // Nodes (Node Creation and Deletion depends on content source status)
   rpc GetNodes(GetNodesRequest) returns (GetNodesResponse);
+  rpc GetNeighbors(GetNeighborsRequest) returns (GetNeighborsResponse);
+  rpc SearchNodes(SearchNodesRequest) returns (SearchNodesResponse);
   rpc UpdateNodes(UpdateNodesRequest) returns (UpdateNodesResponse);
   // Links
+  // Gets links based on a batch of queries or by direct IDs.
   rpc GetLinks(GetLinksRequest) returns (GetLinksResponse);
-  rpc GetHierarchicalLinks(GetHierarchicalLinksRequest) returns (GetHierarchicalLinksResponse);
-  rpc GetSemanticLinks(GetSemanticLinksRequest) returns (GetSemanticLinksResponse);
-  rpc GetStructuralLinks(GetStructuralLinksRequest) returns (GetStructuralLinksResponse);
+  // Useers can manage structural links
   rpc CreateStructuralLinks(CreateStructuralLinksRequest) returns (CreateStructuralLinksResponse);
   rpc UpdateStructuralLinks(UpdateStructuralLinksRequest) returns (UpdateStructuralLinksResponse);
   rpc DeleteStructuralLinks(DeleteStructuralLinksRequest) returns (DeleteStructuralLinksResponse);
 }
 
-// ===== GetNeighbors =====
-// Public-only RPC: GetNeighbors (not available in internal API)
+// ===== Core Data Types =====
+
+// Enums
 enum Direction {
   DIRECTION_OUTGOING = 0;
   DIRECTION_INCOMING = 1;
   DIRECTION_BOTH = 2;
+}
+
+enum NodeType {
+  NODE_TYPE_UNSPECIFIED = 0;
+  NODE_TYPE_CONTENT = 1;
+  NODE_TYPE_CHUNK = 2;
+  NODE_TYPE_CLUSTER = 3;
+}
+
+// Connection Type Enums
+enum HierarchicalConnectionType {
+  HIERARCHICAL_CONNECTION_TYPE_UNSPECIFIED = 0;
+  HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION = 1; // General hierarhical relationship (cluster -> content -> chunk)
+  HIERARCHICAL_CONNECTION_TYPE_SPATIAL = 2;     // 2D/3D positioning relationships
+  HIERARCHICAL_CONNECTION_TYPE_TEMPORAL = 3;    // Time-based connections (document versions, conversation threads)
+}
+
+enum SemanticConnectionType {
+  SEMANTIC_CONNECTION_TYPE_UNSPECIFIED = 0;
+  SEMANTIC_CONNECTION_TYPE_INTRA_LEVEL_INTRA_PARENT = 1;    // Same abstraction level, same hierarchical parent
+  SEMANTIC_CONNECTION_TYPE_CROSS_LEVEL_INTRA_PARENT = 2;    // Different abstraction levels, same hierarchical parent
+  SEMANTIC_CONNECTION_TYPE_INTRA_LEVEL_INTER_PARENT = 3;    // Same abstraction level, different hierarchical parents
+  SEMANTIC_CONNECTION_TYPE_CROSS_LEVEL_INTER_PARENT = 4;    // Different abstraction levels, different hierarchical parents
+}
+
+enum StructuralConnectionType {
+  // evidence_based|citation|user_drawn
+  STRUCTURAL_CONNECTION_TYPE_UNSPECIFIED = 0;
+  STRUCTURAL_CONNECTION_TYPE_EVIDENCE_BASED = 1; // Evidence (data, tables, charts) that supports/contradicts claims
+  STRUCTURAL_CONNECTION_TYPE_CITATION = 2;       // Formal academic or document citations between nodes
+  STRUCTURAL_CONNECTION_TYPE_USER_DRAWN = 3;     // Custom user-defined connection type (use custom_connection_type field)
+}
+
+enum LinkType {
+  LINK_TYPE_UNSPECIFIED = 0;
+  LINK_TYPE_HIERARCHICAL = 1;
+  LINK_TYPE_SEMANTIC = 2;
+  LINK_TYPE_STRUCTURAL = 3;
+}
+
+// Core Data Structures
+message MLInfo {
+  string clustering_model_version_id = 1;
+  string dr_model_version_id = 2;
+  string embedding_model_id = 3;
+  string model_version = 4;
+}
+
+message SpatialCoordinates {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+}
+
+message DisplayProps {
+  int32 size = 1;
+  double opacity = 2;
+  string shape = 3;
+  string color = 4;
+}
+
+message EngagementScore {
+  double canvas_score = 1;
+  double chat_score = 2;
+  double overall_score = 3;
+}
+
+message BaseNode {
+  string id = 1;
+  string space_id = 2;
+  int32 abstraction_level = 3;
+  string context_type = 4;
+  repeated float embedding = 5;
+  repeated string keywords = 6;
+  optional string chat_content = 7;
+  optional string display_content = 8;
+  optional double semantic_density = 9;
+  optional SpatialCoordinates position_3d = 10;
+  optional bool is_position_locked = 11;
+  optional bool visibility = 12;
+  optional DisplayProps display_props = 13;
+  optional EngagementScore engagement_score = 14;
+  optional MLInfo ml_info = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+  optional google.protobuf.Timestamp deleted_at = 18;
+}
+
+message ChunkNode {
+  BaseNode base = 1;
+  string content_source_id = 2;
+  int32 sequence_index = 3;
+  string chunk_type = 4;
+  optional int64 start_position = 5;
+  optional int64 end_position = 6;
+  optional int32 token_count = 7;
+  string content = 8;
+}
+
+message ContentNode {
+  BaseNode base = 1;
+  string content_source_id = 2;
+  optional string title = 3;
+  optional string media_type = 4;
+  optional string source = 5;
+  optional int32 token_count = 6;
+  optional google.protobuf.Struct action_data = 7;
+}
+
+message ClusterNode {
+  BaseNode base = 1;
+  string cluster_scope = 2;
+  optional string title = 3;
+  optional int32 member_count = 4;
+  optional double coverage_score = 5;
+}
+
+message BaseLink {
+  string id = 1;
+  string source_id = 2;
+  string target_id = 3;
+  // Note: connection_type is now handled by specific link types below
+  optional google.protobuf.Struct exploration_metadata = 4;
+  optional google.protobuf.Struct style_metadata = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  optional google.protobuf.Timestamp deleted_at = 8;
+}
+
+message HierarchicalLink {
+  BaseLink base = 1;
+  HierarchicalConnectionType connection_type = 2;
+  int32 hierarchy_depth = 3;
+}
+
+message SemanticLink {
+  BaseLink base = 1;
+  SemanticConnectionType connection_type = 2;
+  double strength_score = 3;
+  double similarity_score = 4;
+  bool abstraction_bridge = 5;
+  bool hierarchical_bridge = 6;
+  repeated string semantic_tags = 7;
+  optional string description = 8;
+}
+
+message StructuralLink {
+  BaseLink base = 1;
+  StructuralConnectionType connection_type = 2;
+  optional string custom_connection_type = 3; // Custom user-defined connection type name (only used when connection_type is USER_DRAWN)
+  double confidence_score = 4;
+  optional string description = 5;
+  string created_by = 6;
+}
+
+// Union Types
+message Node {
+  oneof node {
+    ContentNode content = 1;
+    ChunkNode chunk = 2;
+    ClusterNode cluster = 3;
+  }
+}
+
+message Link {
+  oneof link {
+    HierarchicalLink hierarchical = 1;
+    SemanticLink semantic = 2;
+    StructuralLink structural = 3;
+  }
+}
+
+// ===== SemanticSearch =====
+// SemanticSearch is used to search for nodes based on a query
+message SemanticSearchRequest {
+  string space_id = 1;
+  string query = 2;
+  int32 top_k = 3;
+  repeated NodeType node_types = 4; // optional filter
+}
+
+message SearchResult {
+  Node node = 1;
+  double score = 2; // similarity score
+}
+
+message SemanticSearchResponse {
+  repeated SearchResult results = 1;
+}
+
+// ===== GetNodes =====
+// Gets specific nodes by their IDs (direct lookup)
+message GetNodesRequest {
+  repeated string ids = 1; // list of node IDs to retrieve
+}
+
+message GetNodesResponse {
+  repeated Node nodes = 1; // nodes returned in same order as requested IDs
+}
+
+// ===== GetNeighbors =====
+// GetNeighbors is used to get the neighbors by node traversal
+message Neighbor {
+  Node node = 1; // adjacent node
+  string relationship_type = 2;
+  Link link = 3; // full link information
+}
+
+// A list of neighbors for a single source node
+message NeighborsList {
+  repeated Neighbor neighbors = 1;
 }
 
 message GetNeighborsRequest {
@@ -41,110 +253,165 @@ message GetNeighborsRequest {
   bool include_properties = 5;
 }
 
-message Neighbor {
-  canvas.v1.Node node = 1; // adjacent node
-  string relationship_type = 2;
-  canvas.v1.Link link = 3; // full link information
-}
-
-// A list of neighbors for a single source node
-message NeighborsList {
-  repeated Neighbor neighbors = 1;
-}
-
 message GetNeighborsResponse {
   // Key is the source node ID from the request, value is its neighbors
   map<string, NeighborsList> results = 1;
 }
 
-// ===== SemanticSearch =====
-// Public-only RPC: SemanticSearch (not available in internal API)
-enum NodeType {
-  NODE_TYPE_UNSPECIFIED = 0;
-  NODE_TYPE_CONTENT = 1;
-  NODE_TYPE_CHUNK = 2;
-  NODE_TYPE_CLUSTER = 3;
+// ===== SearchNodes =====
+// Searches for nodes based on metadata criteria and spatial bounds
+message SpatialBoundingBox {
+  SpatialCoordinates min_coords = 1;  // minimum x, y, z coordinates
+  SpatialCoordinates max_coords = 2;  // maximum x, y, z coordinates
 }
 
-message SemanticSearchRequest {
-  string space_id = 1;
-  string query = 2;
-  int32 top_k = 3;
-  repeated NodeType node_types = 4; // optional filter
+message SearchNodesRequest {
+  NodeFilter filter = 1;        // metadata filter criteria
+  SpatialBoundingBox spatial_bbox = 2; // 3D bounding box for viewport
+  int32 limit = 3;              // maximum number of nodes to return (for canvas rendering)
 }
 
-message SearchResult {
-  canvas.v1.Node node = 1;
-  double score = 2; // similarity score
-}
-
-message SemanticSearchResponse {
-  repeated SearchResult results = 1;
+message SearchNodesResponse {
+  repeated Node nodes = 1; // filtered nodes within spatial bounds and matching metadata
 }
 
 // ===== UpdateNodes =====
-// Public-only RPC: UpdateNodes (not available in internal API)
+// UpdateNodes is used to update existing nodes
+// TODO: Updatable fields should be restricted
 message UpdateNodesRequest {
-  repeated canvas.v1.Node nodes = 1; // nodes to update
+  repeated Node nodes = 1; // nodes to update
 }
 
 message UpdateNodesResponse {
-  repeated canvas.v1.Node nodes = 1; // updated nodes in same order as requested
-}
-
-// ===== GetNodes =====
-// Public-only RPC: GetNodes (not available in internal API)
-message GetNodesRequest {
-  repeated string ids = 1; // list of node IDs to retrieve
-  canvas.v1.NodeFilter filter = 2; // optional filter for querying nodes
-}
-
-message GetNodesResponse {
-  repeated canvas.v1.Node nodes = 1; // nodes returned in same order as requested IDs
+  repeated Node nodes = 1; // updated nodes in same order as requested
 }
 
 // ===== GetLinks =====
-// Public-only RPC: GetLinks (not available in internal API)
+// Consolidated GetLinks method that can handle any combination of link types
 message GetLinksRequest {
-  repeated string ids = 1; // list of link IDs to retrieve
-  canvas.v1.BaseLinkFilter filter = 2; // optional filter for querying links
+  // A list of queries to execute. Results will be combined.
+  // This handles both simple (one query) and complex (multiple queries) cases.
+  repeated LinkQuery queries = 1;
+
+  // Allows retrieval by direct IDs, bypassing the filter logic.
+  repeated string ids = 2;
 }
 
 message GetLinksResponse {
-  repeated canvas.v1.Link links = 1; // links returned in same order as requested IDs
+  // A single list containing all links that matched any of the queries.
+  repeated Link links = 1;
 }
 
-// ===== GetHierarchicalLinks =====
-// Public-only RPC: GetHierarchicalLinks (not available in internal API)
-message GetHierarchicalLinksRequest {
-  repeated string ids = 1; // list of hierarchical link IDs to retrieve
-  canvas.v1.HierarchicalLinkFilter filter = 2; // optional filter for querying hierarchical links
+// ===== Filter Types =====
+
+message NodeFilter {
+  optional string space_id = 1;
+  optional int32 abstraction_level_min = 2;
+  optional int32 abstraction_level_max = 3;
+  optional string context_type = 4;
+  repeated string keywords = 5;
+  optional double semantic_density_min = 6;
+  optional double semantic_density_max = 7;
+  optional bool is_position_locked = 8;
+  optional bool visibility = 9;
+  optional string created_after = 10;
+  optional string created_before = 11;
+  optional string updated_after = 12;
+  optional string updated_before = 13;
+  // Node-type specific filters
+  optional ContentNodeFilter content_filter = 14;
+  optional ChunkNodeFilter chunk_filter = 15;
+  optional ClusterNodeFilter cluster_filter = 16;
 }
 
-message GetHierarchicalLinksResponse {
-  repeated canvas.v1.HierarchicalLink links = 1; // hierarchical links returned in same order as requested IDs
+message ContentNodeFilter {
+  optional string content_source_id = 1;
+  optional string title = 2;
+  optional string media_type = 3;
+  optional string source = 4;
+  optional int32 token_count_min = 5;
+  optional int32 token_count_max = 6;
 }
 
-// ===== GetSemanticLinks =====
-// Public-only RPC: GetSemanticLinks (not available in internal API)
-message GetSemanticLinksRequest {
-  repeated string ids = 1; // list of semantic link IDs to retrieve
-  canvas.v1.SemanticLinkFilter filter = 2; // optional filter for querying semantic links
+message ChunkNodeFilter {
+  optional string content_source_id = 1;
+  optional int32 sequence_index_min = 2;
+  optional int32 sequence_index_max = 3;
+  optional string chunk_type = 4;
+  optional int64 start_position_min = 5;
+  optional int64 start_position_max = 6;
+  optional int64 end_position_min = 7;
+  optional int64 end_position_max = 8;
+  optional int32 token_count_min = 9;
+  optional int32 token_count_max = 10;
 }
 
-message GetSemanticLinksResponse {
-  repeated canvas.v1.SemanticLink links = 1; // semantic links returned in same order as requested IDs
+message ClusterNodeFilter {
+  optional string cluster_scope = 1;
+  optional string title = 2;
+  optional int32 member_count_min = 3;
+  optional int32 member_count_max = 4;
+  optional double coverage_score_min = 5;
+  optional double coverage_score_max = 6;
 }
 
-// ===== GetStructuralLinks =====
-// Public-only RPC: GetStructuralLinks (not available in internal API)
-message GetStructuralLinksRequest {
-  repeated string ids = 1; // list of structural link IDs to retrieve
-  canvas.v1.StructuralLinkFilter filter = 2; // optional filter for querying structural links
+message BaseLinkFilter {
+  optional string source_id = 1;
+  optional string target_id = 2;
+  optional string connection_type = 3;
+  optional google.protobuf.Struct exploration_metadata = 4;
+  optional google.protobuf.Struct style_metadata = 5;
+  optional string created_after = 6;
+  optional string created_before = 7;
+  optional string updated_after = 8;
+  optional string updated_before = 9;
 }
 
-message GetStructuralLinksResponse {
-  repeated canvas.v1.StructuralLink links = 1; // structural links returned in same order as requested IDs
+message HierarchicalLinkFilter {
+  BaseLinkFilter base = 1;
+  optional int32 hierarchy_depth = 2;
+}
+
+message SemanticLinkFilter {
+  BaseLinkFilter base = 1;
+  optional double strength_score_min = 2;
+  optional double strength_score_max = 3;
+  optional double similarity_score_min = 4;
+  optional double similarity_score_max = 5;
+  optional bool abstraction_bridge = 6;
+  optional bool hierarchical_bridge = 7;
+  repeated string semantic_tags = 8;
+  optional string description = 9;
+}
+
+message StructuralLinkFilter {
+  BaseLinkFilter base = 1;
+  optional StructuralConnectionType connection_type = 2;
+  optional string custom_connection_type = 3; // Filter by custom connection type name
+  optional double confidence_score_min = 4;
+  optional double confidence_score_max = 5;
+  optional string description = 6;
+  optional string created_by = 7;
+}
+
+// Unified filter that can handle any link type
+message LinkFilter {
+  oneof filter {
+    BaseLinkFilter base = 1;         // Generic filtering for any link type
+    HierarchicalLinkFilter hierarchical = 2; // Type-specific filtering
+    SemanticLinkFilter semantic = 3;
+    StructuralLinkFilter structural = 4;
+  }
+}
+
+// A single, flexible query message for link retrieval
+message LinkQuery {
+  // Specifies which link types to return. If empty, all types matching
+  // the filter will be considered.
+  repeated LinkType link_types = 1;
+
+  // The specific filter to apply for this query.
+  LinkFilter filter = 2;
 }
 
 // ===== CreateStructuralLinks =====
@@ -153,12 +420,13 @@ message GetStructuralLinksResponse {
 message StructuralLinkCreate {
   string source_id = 1;
   string target_id = 2;
-  string connection_type = 3;
-  double confidence_score = 4;
-  string description = 5;
-  google.protobuf.Struct exploration_metadata = 6;
-  google.protobuf.Struct style_metadata = 7;
-  string created_by = 8;
+  StructuralConnectionType connection_type = 3;
+  optional string custom_connection_type = 4; // Custom user-defined connection type name (only used when connection_type is USER_DRAWN)
+  double confidence_score = 5;
+  string description = 6;
+  google.protobuf.Struct exploration_metadata = 7;
+  google.protobuf.Struct style_metadata = 8;
+  string created_by = 9;
 }
 
 message CreateStructuralLinksRequest {
@@ -166,7 +434,7 @@ message CreateStructuralLinksRequest {
 }
 
 message CreateStructuralLinksResponse {
-  repeated canvas.v1.StructuralLink links = 1; // created links in same order as requested
+  repeated StructuralLink links = 1; // created links in same order as requested
 }
 
 // ===== UpdateStructuralLinks =====
@@ -174,11 +442,12 @@ message CreateStructuralLinksResponse {
 message StructuralLinkUpdate {
   string source_id = 1; // identifies the link to update
   string target_id = 2; // identifies the link to update
-  optional string connection_type = 3;
-  optional double confidence_score = 4;
-  optional string description = 5;
-  optional google.protobuf.Struct exploration_metadata = 6;
-  optional google.protobuf.Struct style_metadata = 7;
+  optional StructuralConnectionType connection_type = 3;
+  optional string custom_connection_type = 4; // Custom user-defined connection type name (only used when connection_type is USER_DRAWN)
+  optional double confidence_score = 5;
+  optional string description = 6;
+  optional google.protobuf.Struct exploration_metadata = 7;
+  optional google.protobuf.Struct style_metadata = 8;
 }
 
 message UpdateStructuralLinksRequest {
@@ -186,7 +455,7 @@ message UpdateStructuralLinksRequest {
 }
 
 message UpdateStructuralLinksResponse {
-  repeated canvas.v1.StructuralLink links = 1; // updated links in same order as requested updates
+  repeated StructuralLink links = 1; // updated links in same order as requested updates
 }
 
 // ===== DeleteStructuralLinks =====
@@ -203,5 +472,3 @@ message DeleteStructuralLinksRequest {
 message DeleteStructuralLinksResponse {
   int32 deleted_count = 1; // number of links successfully deleted
 }
-
-
