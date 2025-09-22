@@ -4,7 +4,7 @@ import grpc
 import warnings
 
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
-from . import canvas_private_pb2 as proto_dot_private_dot_v1_dot_canvas__private__pb2
+from proto.private.v1 import canvas_private_pb2 as proto_dot_private_dot_v1_dot_canvas__private__pb2
 
 GRPC_GENERATED_VERSION = '1.75.0'
 GRPC_VERSION = grpc.__version__
@@ -26,8 +26,8 @@ if _version_not_supported:
     )
 
 
-class CanvasStub(object):
-    """service for chunking and embeddings.
+class CanvasMLStub(object):
+    """ML service - used by gateway to call Python service
     """
 
     def __init__(self, channel):
@@ -36,219 +36,29 @@ class CanvasStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/GetNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetNodesResponse.FromString,
-                _registered_method=True)
-        self.CreateClusterNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/CreateClusterNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateClusterNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateClusterNodesResponse.FromString,
-                _registered_method=True)
-        self.CreateContentNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/CreateContentNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateContentNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateContentNodesResponse.FromString,
-                _registered_method=True)
-        self.CreateChunkNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/CreateChunkNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateChunkNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateChunkNodesResponse.FromString,
-                _registered_method=True)
-        self.UpdateClusterNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/UpdateClusterNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateClusterNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateClusterNodesResponse.FromString,
-                _registered_method=True)
-        self.UpdateContentNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/UpdateContentNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateContentNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateContentNodesResponse.FromString,
-                _registered_method=True)
-        self.UpdateChunkNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/UpdateChunkNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateChunkNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateChunkNodesResponse.FromString,
-                _registered_method=True)
-        self.DeleteNodes = channel.unary_unary(
-                '/canvas.v1.Canvas/DeleteNodes',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteNodesRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteNodesResponse.FromString,
-                _registered_method=True)
-        self.GetLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/GetLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetLinksResponse.FromString,
-                _registered_method=True)
-        self.GetHierarchicalLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/GetHierarchicalLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetHierarchicalLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetHierarchicalLinksResponse.FromString,
-                _registered_method=True)
-        self.GetSemanticLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/GetSemanticLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetSemanticLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetSemanticLinksResponse.FromString,
-                _registered_method=True)
-        self.GetStructuralLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/GetStructuralLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetStructuralLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetStructuralLinksResponse.FromString,
-                _registered_method=True)
-        self.CreateHierarchicalLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/CreateHierarchicalLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateHierarchicalLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateHierarchicalLinksResponse.FromString,
-                _registered_method=True)
-        self.CreateSemanticLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/CreateSemanticLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateSemanticLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateSemanticLinksResponse.FromString,
-                _registered_method=True)
-        self.UpdateHierarchicalLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/UpdateHierarchicalLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateHierarchicalLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateHierarchicalLinksResponse.FromString,
-                _registered_method=True)
-        self.UpdateSemanticLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/UpdateSemanticLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateSemanticLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateSemanticLinksResponse.FromString,
-                _registered_method=True)
-        self.DeleteLinks = channel.unary_unary(
-                '/canvas.v1.Canvas/DeleteLinks',
-                request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteLinksRequest.SerializeToString,
-                response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteLinksResponse.FromString,
-                _registered_method=True)
         self.ChunkEmbed = channel.unary_unary(
-                '/canvas.v1.Canvas/ChunkEmbed',
+                '/canvas.private.v1.CanvasML/ChunkEmbed',
                 request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedRequest.SerializeToString,
                 response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedResponse.FromString,
                 _registered_method=True)
         self.EmbedQuery = channel.unary_unary(
-                '/canvas.v1.Canvas/EmbedQuery',
+                '/canvas.private.v1.CanvasML/EmbedQuery',
                 request_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryRequest.SerializeToString,
                 response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryResponse.FromString,
                 _registered_method=True)
         self.Healthz = channel.unary_unary(
-                '/canvas.v1.Canvas/Healthz',
+                '/canvas.private.v1.CanvasML/Healthz',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.HealthStatus.FromString,
                 _registered_method=True)
 
 
-class CanvasServicer(object):
-    """service for chunking and embeddings.
+class CanvasMLServicer(object):
+    """ML service - used by gateway to call Python service
     """
 
-    def GetNodes(self, request, context):
-        """service for Nodes
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateClusterNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateContentNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateChunkNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def UpdateClusterNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def UpdateContentNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def UpdateChunkNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteNodes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetLinks(self, request, context):
-        """service for Links
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetHierarchicalLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetSemanticLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetStructuralLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateHierarchicalLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateSemanticLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def UpdateHierarchicalLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def UpdateSemanticLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteLinks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def ChunkEmbed(self, request, context):
-        """Python service to chunk and embed
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -266,93 +76,8 @@ class CanvasServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_CanvasServicer_to_server(servicer, server):
+def add_CanvasMLServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GetNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetNodesResponse.SerializeToString,
-            ),
-            'CreateClusterNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateClusterNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateClusterNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateClusterNodesResponse.SerializeToString,
-            ),
-            'CreateContentNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateContentNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateContentNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateContentNodesResponse.SerializeToString,
-            ),
-            'CreateChunkNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateChunkNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateChunkNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateChunkNodesResponse.SerializeToString,
-            ),
-            'UpdateClusterNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateClusterNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateClusterNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateClusterNodesResponse.SerializeToString,
-            ),
-            'UpdateContentNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateContentNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateContentNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateContentNodesResponse.SerializeToString,
-            ),
-            'UpdateChunkNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateChunkNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateChunkNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateChunkNodesResponse.SerializeToString,
-            ),
-            'DeleteNodes': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteNodes,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteNodesRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteNodesResponse.SerializeToString,
-            ),
-            'GetLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetLinksResponse.SerializeToString,
-            ),
-            'GetHierarchicalLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetHierarchicalLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetHierarchicalLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetHierarchicalLinksResponse.SerializeToString,
-            ),
-            'GetSemanticLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSemanticLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetSemanticLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetSemanticLinksResponse.SerializeToString,
-            ),
-            'GetStructuralLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetStructuralLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetStructuralLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.GetStructuralLinksResponse.SerializeToString,
-            ),
-            'CreateHierarchicalLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateHierarchicalLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateHierarchicalLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateHierarchicalLinksResponse.SerializeToString,
-            ),
-            'CreateSemanticLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateSemanticLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateSemanticLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateSemanticLinksResponse.SerializeToString,
-            ),
-            'UpdateHierarchicalLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateHierarchicalLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateHierarchicalLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateHierarchicalLinksResponse.SerializeToString,
-            ),
-            'UpdateSemanticLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateSemanticLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateSemanticLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateSemanticLinksResponse.SerializeToString,
-            ),
-            'DeleteLinks': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteLinks,
-                    request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteLinksRequest.FromString,
-                    response_serializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteLinksResponse.SerializeToString,
-            ),
             'ChunkEmbed': grpc.unary_unary_rpc_method_handler(
                     servicer.ChunkEmbed,
                     request_deserializer=proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedRequest.FromString,
@@ -370,474 +95,15 @@ def add_CanvasServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'canvas.v1.Canvas', rpc_method_handlers)
+            'canvas.private.v1.CanvasML', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('canvas.v1.Canvas', rpc_method_handlers)
+    server.add_registered_method_handlers('canvas.private.v1.CanvasML', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class Canvas(object):
-    """service for chunking and embeddings.
+class CanvasML(object):
+    """ML service - used by gateway to call Python service
     """
-
-    @staticmethod
-    def GetNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/GetNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateClusterNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/CreateClusterNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateClusterNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateClusterNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateContentNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/CreateContentNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateContentNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateContentNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateChunkNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/CreateChunkNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateChunkNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateChunkNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateClusterNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/UpdateClusterNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateClusterNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateClusterNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateContentNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/UpdateContentNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateContentNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateContentNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateChunkNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/UpdateChunkNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateChunkNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateChunkNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteNodes(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/DeleteNodes',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteNodesRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteNodesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/GetLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetHierarchicalLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/GetHierarchicalLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetHierarchicalLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetHierarchicalLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetSemanticLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/GetSemanticLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetSemanticLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetSemanticLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetStructuralLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/GetStructuralLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetStructuralLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.GetStructuralLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateHierarchicalLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/CreateHierarchicalLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateHierarchicalLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateHierarchicalLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateSemanticLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/CreateSemanticLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateSemanticLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.CreateSemanticLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateHierarchicalLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/UpdateHierarchicalLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateHierarchicalLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateHierarchicalLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateSemanticLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/UpdateSemanticLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateSemanticLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.UpdateSemanticLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteLinks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/canvas.v1.Canvas/DeleteLinks',
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteLinksRequest.SerializeToString,
-            proto_dot_private_dot_v1_dot_canvas__private__pb2.DeleteLinksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
 
     @staticmethod
     def ChunkEmbed(request,
@@ -853,7 +119,7 @@ class Canvas(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/canvas.v1.Canvas/ChunkEmbed',
+            '/canvas.private.v1.CanvasML/ChunkEmbed',
             proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedRequest.SerializeToString,
             proto_dot_private_dot_v1_dot_canvas__private__pb2.ChunkEmbedResponse.FromString,
             options,
@@ -880,7 +146,7 @@ class Canvas(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/canvas.v1.Canvas/EmbedQuery',
+            '/canvas.private.v1.CanvasML/EmbedQuery',
             proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryRequest.SerializeToString,
             proto_dot_private_dot_v1_dot_canvas__private__pb2.EmbedQueryResponse.FromString,
             options,
@@ -907,7 +173,7 @@ class Canvas(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/canvas.v1.Canvas/Healthz',
+            '/canvas.private.v1.CanvasML/Healthz',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             proto_dot_private_dot_v1_dot_canvas__private__pb2.HealthStatus.FromString,
             options,
