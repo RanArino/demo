@@ -6,7 +6,7 @@ import (
 	"log"
 
 	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
-	"demo/ms_canvas/go_app/internal/repository/neo4j"
+	"demo/ms_canvas/go_app/internal/repository"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -16,26 +16,36 @@ import (
 
 // linkServiceImpl implements LinkService
 type linkServiceImpl struct {
-	linkRepo *neo4j.LinkRepo
+	linkRepo repository.LinkRepository
 }
 
 // NewLinkService creates a new LinkService with repository dependencies
-func NewLinkService(linkRepo *neo4j.LinkRepo) LinkService {
+func NewLinkService(linkRepo repository.LinkRepository) LinkService {
 	return &linkServiceImpl{
 		linkRepo: linkRepo,
 	}
 }
 
 func (s *linkServiceImpl) CreateStructuralLinks(ctx context.Context, links []*v1.StructuralLinkCreate) ([]*v1.StructuralLink, error) {
+	// Early return for empty list
+	if len(links) == 0 {
+		return []*v1.StructuralLink{}, nil
+	}
+
 	// Convert public links to repository format (if needed)
 	repoLinks := make([]*v1.StructuralLink, 0, len(links))
 	for _, linkCreate := range links {
 		repoLink, err := s.convertLinkCreateToRepo(linkCreate)
 		if err != nil {
 			log.Printf("Failed to convert link create to repo format: %v", err)
-			continue
+			return nil, fmt.Errorf("failed to create structural links: %v", err)
 		}
 		repoLinks = append(repoLinks, repoLink)
+	}
+
+	// Early return if no valid links were converted
+	if len(repoLinks) == 0 {
+		return []*v1.StructuralLink{}, nil
 	}
 
 	// Create links in database
@@ -48,15 +58,25 @@ func (s *linkServiceImpl) CreateStructuralLinks(ctx context.Context, links []*v1
 }
 
 func (s *linkServiceImpl) UpdateStructuralLinks(ctx context.Context, updates []*v1.StructuralLinkUpdate) ([]*v1.StructuralLink, error) {
+	// Early return for empty list
+	if len(updates) == 0 {
+		return []*v1.StructuralLink{}, nil
+	}
+
 	// Convert updates to repository format
 	repoUpdates := make([]*v1.StructuralLink, 0, len(updates))
 	for _, update := range updates {
 		repoLink, err := s.convertLinkUpdateToRepo(update)
 		if err != nil {
 			log.Printf("Failed to convert link update to repo format: %v", err)
-			continue
+			return nil, fmt.Errorf("failed to update structural links: %v", err)
 		}
 		repoUpdates = append(repoUpdates, repoLink)
+	}
+
+	// Early return if no valid updates were converted
+	if len(repoUpdates) == 0 {
+		return []*v1.StructuralLink{}, nil
 	}
 
 	// Update links in database

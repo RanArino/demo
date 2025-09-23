@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
-	"demo/ms_canvas/go_app/internal/repository/neo4j"
+	"demo/ms_canvas/go_app/internal/repository"
 
 	"github.com/google/uuid"
 )
@@ -16,12 +16,12 @@ import (
 
 // nodeServiceImpl implements NodeService
 type nodeServiceImpl struct {
-	nodeRepo *neo4j.NodeRepo
-	linkRepo *neo4j.LinkRepo
+	nodeRepo repository.NodeRepository
+	linkRepo repository.LinkRepository
 }
 
 // NewNodeService creates a new NodeService with repository dependencies
-func NewNodeService(nodeRepo *neo4j.NodeRepo, linkRepo *neo4j.LinkRepo) NodeService {
+func NewNodeService(nodeRepo repository.NodeRepository, linkRepo repository.LinkRepository) NodeService {
 	return &nodeServiceImpl{
 		nodeRepo: nodeRepo,
 		linkRepo: linkRepo,
@@ -332,9 +332,7 @@ func (s *nodeServiceImpl) UpdateNodes(ctx context.Context, nodes []*v1.Node) ([]
 
 	// Return the updated nodes (same reference since they're updated in place)
 	updatedPublicNodes := make([]*v1.Node, 0, len(nodes))
-	for _, publicNode := range nodes {
-		updatedPublicNodes = append(updatedPublicNodes, publicNode)
-	}
+	updatedPublicNodes = append(updatedPublicNodes, nodes...)
 
 	return updatedPublicNodes, nil
 }
@@ -373,24 +371,6 @@ func (s *nodeServiceImpl) convertV1NodeToPublic(v1Node *v1.Node) (*v1.Node, erro
 	}
 }
 
-// convertPublicNodeToV1 converts a v1.Node to v1.Node
-func (s *nodeServiceImpl) convertPublicNodeToV1(publicNode *v1.Node) (*v1.Node, error) {
-	if publicNode == nil {
-		return nil, fmt.Errorf("public node is nil")
-	}
-
-	switch n := publicNode.Node.(type) {
-	case *v1.Node_Content:
-		return s.convertPublicContentNodeToV1(n.Content), nil
-	case *v1.Node_Chunk:
-		return s.convertPublicChunkNodeToV1(n.Chunk), nil
-	case *v1.Node_Cluster:
-		return s.convertPublicClusterNodeToV1(n.Cluster), nil
-	default:
-		return nil, fmt.Errorf("unsupported node type")
-	}
-}
-
 // Helper function to get node ID from v1 node
 func getNodeID(node *v1.Node) string {
 	if node == nil {
@@ -412,20 +392,6 @@ func getNodeID(node *v1.Node) string {
 		}
 	}
 	return "unknown"
-}
-
-// Helper function to convert LinkType enum to string
-func linkTypeToString(linkType v1.LinkType) string {
-	switch linkType {
-	case v1.LinkType_LINK_TYPE_HIERARCHICAL:
-		return "hierarchical"
-	case v1.LinkType_LINK_TYPE_SEMANTIC:
-		return "semantic"
-	case v1.LinkType_LINK_TYPE_STRUCTURAL:
-		return "structural"
-	default:
-		return ""
-	}
 }
 
 // Conversion functions for ContentNode
@@ -486,68 +452,6 @@ func (s *nodeServiceImpl) convertV1ContentNodeToPublic(v1Node *v1.ContentNode) *
 				MediaType:       v1Node.MediaType,
 				Source:          v1Node.Source,
 				TokenCount:      v1Node.TokenCount,
-			},
-		},
-	}
-}
-
-func (s *nodeServiceImpl) convertPublicContentNodeToV1(publicNode *v1.ContentNode) *v1.Node {
-	if publicNode == nil || publicNode.Base == nil {
-		return nil
-	}
-
-	var position3D *v1.SpatialCoordinates
-	if publicNode.Base.Position_3D != nil {
-		position3D = &v1.SpatialCoordinates{
-			X: publicNode.Base.Position_3D.X,
-			Y: publicNode.Base.Position_3D.Y,
-			Z: publicNode.Base.Position_3D.Z,
-		}
-	}
-
-	var displayProps *v1.DisplayProps
-	if publicNode.Base.DisplayProps != nil {
-		displayProps = &v1.DisplayProps{
-			Size:    publicNode.Base.DisplayProps.Size,
-			Opacity: publicNode.Base.DisplayProps.Opacity,
-			Shape:   publicNode.Base.DisplayProps.Shape,
-			Color:   publicNode.Base.DisplayProps.Color,
-		}
-	}
-
-	var engagementScore *v1.EngagementScore
-	if publicNode.Base.EngagementScore != nil {
-		engagementScore = &v1.EngagementScore{
-			CanvasScore:  publicNode.Base.EngagementScore.CanvasScore,
-			ChatScore:    publicNode.Base.EngagementScore.ChatScore,
-			OverallScore: publicNode.Base.EngagementScore.OverallScore,
-		}
-	}
-
-	return &v1.Node{
-		Node: &v1.Node_Content{
-			Content: &v1.ContentNode{
-				Base: &v1.BaseNode{
-					Id:               publicNode.Base.Id,
-					SpaceId:          publicNode.Base.SpaceId,
-					AbstractionLevel: publicNode.Base.AbstractionLevel,
-					ContextType:      publicNode.Base.ContextType,
-					Keywords:         publicNode.Base.Keywords,
-					DisplayContent:   publicNode.Base.DisplayContent,
-					SemanticDensity:  publicNode.Base.SemanticDensity,
-					Position_3D:      position3D,
-					IsPositionLocked: publicNode.Base.IsPositionLocked,
-					Visibility:       publicNode.Base.Visibility,
-					DisplayProps:     displayProps,
-					EngagementScore:  engagementScore,
-					CreatedAt:        publicNode.Base.CreatedAt,
-					UpdatedAt:        publicNode.Base.UpdatedAt,
-				},
-				ContentSourceId: publicNode.ContentSourceId,
-				Title:           publicNode.Title,
-				MediaType:       publicNode.MediaType,
-				Source:          publicNode.Source,
-				TokenCount:      publicNode.TokenCount,
 			},
 		},
 	}
@@ -618,70 +522,6 @@ func (s *nodeServiceImpl) convertV1ChunkNodeToPublic(v1Node *v1.ChunkNode) *v1.N
 	}
 }
 
-func (s *nodeServiceImpl) convertPublicChunkNodeToV1(publicNode *v1.ChunkNode) *v1.Node {
-	if publicNode == nil || publicNode.Base == nil {
-		return nil
-	}
-
-	var position3D *v1.SpatialCoordinates
-	if publicNode.Base.Position_3D != nil {
-		position3D = &v1.SpatialCoordinates{
-			X: publicNode.Base.Position_3D.X,
-			Y: publicNode.Base.Position_3D.Y,
-			Z: publicNode.Base.Position_3D.Z,
-		}
-	}
-
-	var displayProps *v1.DisplayProps
-	if publicNode.Base.DisplayProps != nil {
-		displayProps = &v1.DisplayProps{
-			Size:    publicNode.Base.DisplayProps.Size,
-			Opacity: publicNode.Base.DisplayProps.Opacity,
-			Shape:   publicNode.Base.DisplayProps.Shape,
-			Color:   publicNode.Base.DisplayProps.Color,
-		}
-	}
-
-	var engagementScore *v1.EngagementScore
-	if publicNode.Base.EngagementScore != nil {
-		engagementScore = &v1.EngagementScore{
-			CanvasScore:  publicNode.Base.EngagementScore.CanvasScore,
-			ChatScore:    publicNode.Base.EngagementScore.ChatScore,
-			OverallScore: publicNode.Base.EngagementScore.OverallScore,
-		}
-	}
-
-	return &v1.Node{
-		Node: &v1.Node_Chunk{
-			Chunk: &v1.ChunkNode{
-				Base: &v1.BaseNode{
-					Id:               publicNode.Base.Id,
-					SpaceId:          publicNode.Base.SpaceId,
-					AbstractionLevel: publicNode.Base.AbstractionLevel,
-					ContextType:      publicNode.Base.ContextType,
-					Keywords:         publicNode.Base.Keywords,
-					DisplayContent:   publicNode.Base.DisplayContent,
-					SemanticDensity:  publicNode.Base.SemanticDensity,
-					Position_3D:      position3D,
-					IsPositionLocked: publicNode.Base.IsPositionLocked,
-					Visibility:       publicNode.Base.Visibility,
-					DisplayProps:     displayProps,
-					EngagementScore:  engagementScore,
-					CreatedAt:        publicNode.Base.CreatedAt,
-					UpdatedAt:        publicNode.Base.UpdatedAt,
-				},
-				ContentSourceId: publicNode.ContentSourceId,
-				SequenceIndex:   publicNode.SequenceIndex,
-				ChunkType:       publicNode.ChunkType,
-				StartPosition:   publicNode.StartPosition,
-				EndPosition:     publicNode.EndPosition,
-				Content:         publicNode.Content,
-				TokenCount:      publicNode.TokenCount,
-			},
-		},
-	}
-}
-
 // Conversion functions for ClusterNode
 func (s *nodeServiceImpl) convertV1ClusterNodeToPublic(v1Node *v1.ClusterNode) *v1.Node {
 	if v1Node == nil || v1Node.Base == nil {
@@ -744,63 +584,16 @@ func (s *nodeServiceImpl) convertV1ClusterNodeToPublic(v1Node *v1.ClusterNode) *
 	}
 }
 
-func (s *nodeServiceImpl) convertPublicClusterNodeToV1(publicNode *v1.ClusterNode) *v1.Node {
-	if publicNode == nil || publicNode.Base == nil {
-		return nil
-	}
-
-	var position3D *v1.SpatialCoordinates
-	if publicNode.Base.Position_3D != nil {
-		position3D = &v1.SpatialCoordinates{
-			X: publicNode.Base.Position_3D.X,
-			Y: publicNode.Base.Position_3D.Y,
-			Z: publicNode.Base.Position_3D.Z,
-		}
-	}
-
-	var displayProps *v1.DisplayProps
-	if publicNode.Base.DisplayProps != nil {
-		displayProps = &v1.DisplayProps{
-			Size:    publicNode.Base.DisplayProps.Size,
-			Opacity: publicNode.Base.DisplayProps.Opacity,
-			Shape:   publicNode.Base.DisplayProps.Shape,
-			Color:   publicNode.Base.DisplayProps.Color,
-		}
-	}
-
-	var engagementScore *v1.EngagementScore
-	if publicNode.Base.EngagementScore != nil {
-		engagementScore = &v1.EngagementScore{
-			CanvasScore:  publicNode.Base.EngagementScore.CanvasScore,
-			ChatScore:    publicNode.Base.EngagementScore.ChatScore,
-			OverallScore: publicNode.Base.EngagementScore.OverallScore,
-		}
-	}
-
-	return &v1.Node{
-		Node: &v1.Node_Cluster{
-			Cluster: &v1.ClusterNode{
-				Base: &v1.BaseNode{
-					Id:               publicNode.Base.Id,
-					SpaceId:          publicNode.Base.SpaceId,
-					AbstractionLevel: publicNode.Base.AbstractionLevel,
-					ContextType:      publicNode.Base.ContextType,
-					Keywords:         publicNode.Base.Keywords,
-					DisplayContent:   publicNode.Base.DisplayContent,
-					SemanticDensity:  publicNode.Base.SemanticDensity,
-					Position_3D:      position3D,
-					IsPositionLocked: publicNode.Base.IsPositionLocked,
-					Visibility:       publicNode.Base.Visibility,
-					DisplayProps:     displayProps,
-					EngagementScore:  engagementScore,
-					CreatedAt:        publicNode.Base.CreatedAt,
-					UpdatedAt:        publicNode.Base.UpdatedAt,
-				},
-				ClusterScope:  publicNode.ClusterScope,
-				Title:         publicNode.Title,
-				MemberCount:   publicNode.MemberCount,
-				CoverageScore: publicNode.CoverageScore,
-			},
-		},
+// Helper function to convert LinkType enum to string
+func linkTypeToString(linkType v1.LinkType) string {
+	switch linkType {
+	case v1.LinkType_LINK_TYPE_HIERARCHICAL:
+		return "hierarchical"
+	case v1.LinkType_LINK_TYPE_SEMANTIC:
+		return "semantic"
+	case v1.LinkType_LINK_TYPE_STRUCTURAL:
+		return "structural"
+	default:
+		return ""
 	}
 }
