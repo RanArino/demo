@@ -33,8 +33,8 @@ type LinkRepository interface {
 	CreateStructuralLinks(ctx context.Context, links []*canvasv1.StructuralLink) error
 
 	// Link read methods - consolidated
-	GetLinks(ctx context.Context, ids []string, filter *canvasv1.BaseLinkFilter) ([]*canvasv1.Link, error)
-	GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, filter *canvasv1.BaseLinkFilter) ([]*canvasv1.Link, error)
+	GetLinks(ctx context.Context, ids []string, query *canvasv1.LinkQuery) ([]*canvasv1.Link, error)
+	GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, query *canvasv1.LinkQuery) ([]*canvasv1.Link, error)
 
 	// Link update methods - bulk operations
 	UpdateSemanticLinks(ctx context.Context, links []*canvasv1.SemanticLink) error

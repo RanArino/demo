@@ -180,7 +180,7 @@ func (s *canvasPublicServer) GetNeighbors(ctx context.Context, req *canvasv1.Get
 		req.LimitPerNode = DefaultLimitPerNode // Default limit per node
 	}
 
-	neighbors, err := s.nodeService.GetNeighbors(ctx, req.Ids, req.Direction, req.RelationshipTypes, req.LimitPerNode, req.IncludeProperties)
+	neighbors, err := s.nodeService.GetNeighbors(ctx, req.Ids, req.Direction, req.Query, req.LimitPerNode, req.IncludeProperties)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get neighbors: %v", err)
 	}
