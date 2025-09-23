@@ -85,7 +85,7 @@ func TestNodeRepo_CreateChunkNodes_Integration(t *testing.T) {
 					},
 					ContentSourceId: uuid.New().String(),
 					SequenceIndex:   0,
-					StartPosition:   &[]int64{0}[0],
+					StartPosition:   func() *int64 { val := int64(0); return &val }(),
 					EndPosition:     &[]int64{100}[0],
 					Content:         "test content",
 				},
@@ -154,7 +154,7 @@ func TestNodeRepo_CreateContentNodes_Validation(t *testing.T) {
 				ContentSourceId: uuid.New().String(),
 				Title:           stringPtr("Test Document"),
 				MediaType:       stringPtr("text/plain"),
-				TokenCount:      &[]int32{100}[0],
+				TokenCount:      func() *int32 { val := int32(100); return &val }(),
 			},
 			validateFunc: func(t *testing.T, node *v1.ContentNode) {
 				assert.NotNil(t, node.Title)
@@ -270,7 +270,7 @@ func TestNodeRepo_UpdateValidations(t *testing.T) {
 			ContentSourceId: uuid.New().String(),
 			Title:           stringPtr("Test Document"),
 			MediaType:       stringPtr("text/plain"),
-			TokenCount:      &[]int32{100}[0],
+			TokenCount:      func() *int32 { val := int32(100); return &val }(),
 		}
 
 		assert.NotEmpty(t, node.Base.Id)
@@ -300,7 +300,7 @@ func TestNodeRepo_UpdateValidations(t *testing.T) {
 			Content:         "test content",
 			StartPosition:   &[]int64{100}[0],
 			EndPosition:     &[]int64{200}[0],
-			TokenCount:      &[]int32{50}[0],
+			TokenCount:      func() *int32 { val := int32(50); return &val }(),
 		}
 
 		assert.NotEmpty(t, node.Base.Id)
@@ -353,7 +353,7 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 					},
 					ContentSourceId: uuid.New().String(),
 					SequenceIndex:   0,
-					StartPosition:   &[]int64{0}[0],
+					StartPosition:   func() *int64 { val := int64(0); return &val }(),
 					EndPosition:     &[]int64{100}[0],
 					Content:         "test content",
 				},
