@@ -197,20 +197,20 @@
 ### 6. Service layer coordination (business logic)
 > Objective: Implement the core business logic by defining and implementing service interfaces. Decompose services into separate files by responsibility (node, link, search) to ensure modularity and clarity. These services will orchestrate interactions between the gRPC handlers and the data repository layer.
 
-- [ ] **6.1. Implement business logic in `internal/service/`**
+- [x] **6.1. Implement business logic in `internal/service/`**
   > Service layer implementation with `node_service.go`, `link_service.go`, and `search_service.go`. Contains comprehensive CRUD operations for nodes and links, plus semantic search functionality. Services are properly structured with dependency injection and domain model conversion.
   >
   > **Related Requirements:** 1–5, 6.4 (Observability)
   > **Files:** `internal/service/node_service.go`, `internal/service/link_service.go`, `internal/service/search_service.go`
 
-- [ ] **6.2. Implement gRPC Handlers in `internal/server/`**
-  > gRPC server implementation with validation and error handling for API endpoints. Includes comprehensive service layer integration.
+- [x] **6.2. Implement gRPC Handlers in `internal/server/`**
+  > gRPC server implementation with validation and error handling for API endpoints. Includes comprehensive service layer integration. **COMPLETED**: Full gRPC server with all CRUD operations, input validation, error handling, and service layer integration.
   >
   > **Related Requirements:** 1–5, 6.4 (Observability)
   > **Files:** `internal/server/grpc.go`
 
-- [ ] **6.3. Wire `cmd/main.go`**
-  > Complete dependency injection setup: repositories → services → gRPC handlers. Includes Neo4j driver initialization with constraints, Python gateway for vector operations, health checks, and graceful shutdown handling.
+- [x] **6.3. Wire `cmd/main.go`**
+  > Complete dependency injection setup: repositories → services → gRPC handlers. Includes Neo4j driver initialization with constraints, Python gateway for vector operations, health checks, and graceful shutdown handling. **COMPLETED**: Proper dependency injection with all components wired together.
   >
   > **Related Requirements:** 6.6
   > **Files:** `cmd/main.go`
