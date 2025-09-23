@@ -236,7 +236,7 @@ message GetNodesResponse {
 // GetNeighbors is used to get the neighbors by node traversal
 message Neighbor {
   Node node = 1; // adjacent node
-  string relationship_type = 2;
+  LinkType link_type = 2;
   Link link = 3; // full link information
 }
 
@@ -248,7 +248,7 @@ message NeighborsList {
 message GetNeighborsRequest {
   repeated string ids = 1;
   Direction direction = 2;
-  repeated string relationship_types = 3; // e.g., "SEMANTIC_LINK", "STRUCTURAL_LINK", "HIERARCHICAL_PARENT"
+  LinkQuery query = 3; // Query to filter and select links
   int32 limit_per_node = 4; // limit applies to each source node individually
   bool include_properties = 5;
 }
