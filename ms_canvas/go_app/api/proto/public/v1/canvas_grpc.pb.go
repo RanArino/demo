@@ -19,14 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CanvasPublic_GetNeighbors_FullMethodName          = "/canvas.public.v1.CanvasPublic/GetNeighbors"
 	CanvasPublic_SemanticSearch_FullMethodName        = "/canvas.public.v1.CanvasPublic/SemanticSearch"
 	CanvasPublic_GetNodes_FullMethodName              = "/canvas.public.v1.CanvasPublic/GetNodes"
+	CanvasPublic_GetNeighbors_FullMethodName          = "/canvas.public.v1.CanvasPublic/GetNeighbors"
+	CanvasPublic_SearchNodes_FullMethodName           = "/canvas.public.v1.CanvasPublic/SearchNodes"
 	CanvasPublic_UpdateNodes_FullMethodName           = "/canvas.public.v1.CanvasPublic/UpdateNodes"
 	CanvasPublic_GetLinks_FullMethodName              = "/canvas.public.v1.CanvasPublic/GetLinks"
-	CanvasPublic_GetHierarchicalLinks_FullMethodName  = "/canvas.public.v1.CanvasPublic/GetHierarchicalLinks"
-	CanvasPublic_GetSemanticLinks_FullMethodName      = "/canvas.public.v1.CanvasPublic/GetSemanticLinks"
-	CanvasPublic_GetStructuralLinks_FullMethodName    = "/canvas.public.v1.CanvasPublic/GetStructuralLinks"
 	CanvasPublic_CreateStructuralLinks_FullMethodName = "/canvas.public.v1.CanvasPublic/CreateStructuralLinks"
 	CanvasPublic_UpdateStructuralLinks_FullMethodName = "/canvas.public.v1.CanvasPublic/UpdateStructuralLinks"
 	CanvasPublic_DeleteStructuralLinks_FullMethodName = "/canvas.public.v1.CanvasPublic/DeleteStructuralLinks"
@@ -38,17 +36,17 @@ const (
 //
 // Public Canvas API
 type CanvasPublicClient interface {
-	// Search
-	GetNeighbors(ctx context.Context, in *GetNeighborsRequest, opts ...grpc.CallOption) (*GetNeighborsResponse, error)
+	// Semantic Search
 	SemanticSearch(ctx context.Context, in *SemanticSearchRequest, opts ...grpc.CallOption) (*SemanticSearchResponse, error)
-	// Nodes
+	// Nodes (Node Creation and Deletion depends on content source status)
 	GetNodes(ctx context.Context, in *GetNodesRequest, opts ...grpc.CallOption) (*GetNodesResponse, error)
+	GetNeighbors(ctx context.Context, in *GetNeighborsRequest, opts ...grpc.CallOption) (*GetNeighborsResponse, error)
+	SearchNodes(ctx context.Context, in *SearchNodesRequest, opts ...grpc.CallOption) (*SearchNodesResponse, error)
 	UpdateNodes(ctx context.Context, in *UpdateNodesRequest, opts ...grpc.CallOption) (*UpdateNodesResponse, error)
 	// Links
+	// Gets links based on a batch of queries or by direct IDs.
 	GetLinks(ctx context.Context, in *GetLinksRequest, opts ...grpc.CallOption) (*GetLinksResponse, error)
-	GetHierarchicalLinks(ctx context.Context, in *GetHierarchicalLinksRequest, opts ...grpc.CallOption) (*GetHierarchicalLinksResponse, error)
-	GetSemanticLinks(ctx context.Context, in *GetSemanticLinksRequest, opts ...grpc.CallOption) (*GetSemanticLinksResponse, error)
-	GetStructuralLinks(ctx context.Context, in *GetStructuralLinksRequest, opts ...grpc.CallOption) (*GetStructuralLinksResponse, error)
+	// Useers can manage structural links
 	CreateStructuralLinks(ctx context.Context, in *CreateStructuralLinksRequest, opts ...grpc.CallOption) (*CreateStructuralLinksResponse, error)
 	UpdateStructuralLinks(ctx context.Context, in *UpdateStructuralLinksRequest, opts ...grpc.CallOption) (*UpdateStructuralLinksResponse, error)
 	DeleteStructuralLinks(ctx context.Context, in *DeleteStructuralLinksRequest, opts ...grpc.CallOption) (*DeleteStructuralLinksResponse, error)
@@ -60,16 +58,6 @@ type canvasPublicClient struct {
 
 func NewCanvasPublicClient(cc grpc.ClientConnInterface) CanvasPublicClient {
 	return &canvasPublicClient{cc}
-}
-
-func (c *canvasPublicClient) GetNeighbors(ctx context.Context, in *GetNeighborsRequest, opts ...grpc.CallOption) (*GetNeighborsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetNeighborsResponse)
-	err := c.cc.Invoke(ctx, CanvasPublic_GetNeighbors_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *canvasPublicClient) SemanticSearch(ctx context.Context, in *SemanticSearchRequest, opts ...grpc.CallOption) (*SemanticSearchResponse, error) {
@@ -92,6 +80,26 @@ func (c *canvasPublicClient) GetNodes(ctx context.Context, in *GetNodesRequest, 
 	return out, nil
 }
 
+func (c *canvasPublicClient) GetNeighbors(ctx context.Context, in *GetNeighborsRequest, opts ...grpc.CallOption) (*GetNeighborsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNeighborsResponse)
+	err := c.cc.Invoke(ctx, CanvasPublic_GetNeighbors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *canvasPublicClient) SearchNodes(ctx context.Context, in *SearchNodesRequest, opts ...grpc.CallOption) (*SearchNodesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchNodesResponse)
+	err := c.cc.Invoke(ctx, CanvasPublic_SearchNodes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *canvasPublicClient) UpdateNodes(ctx context.Context, in *UpdateNodesRequest, opts ...grpc.CallOption) (*UpdateNodesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateNodesResponse)
@@ -106,36 +114,6 @@ func (c *canvasPublicClient) GetLinks(ctx context.Context, in *GetLinksRequest, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetLinksResponse)
 	err := c.cc.Invoke(ctx, CanvasPublic_GetLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasPublicClient) GetHierarchicalLinks(ctx context.Context, in *GetHierarchicalLinksRequest, opts ...grpc.CallOption) (*GetHierarchicalLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetHierarchicalLinksResponse)
-	err := c.cc.Invoke(ctx, CanvasPublic_GetHierarchicalLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasPublicClient) GetSemanticLinks(ctx context.Context, in *GetSemanticLinksRequest, opts ...grpc.CallOption) (*GetSemanticLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetSemanticLinksResponse)
-	err := c.cc.Invoke(ctx, CanvasPublic_GetSemanticLinks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *canvasPublicClient) GetStructuralLinks(ctx context.Context, in *GetStructuralLinksRequest, opts ...grpc.CallOption) (*GetStructuralLinksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetStructuralLinksResponse)
-	err := c.cc.Invoke(ctx, CanvasPublic_GetStructuralLinks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -178,17 +156,17 @@ func (c *canvasPublicClient) DeleteStructuralLinks(ctx context.Context, in *Dele
 //
 // Public Canvas API
 type CanvasPublicServer interface {
-	// Search
-	GetNeighbors(context.Context, *GetNeighborsRequest) (*GetNeighborsResponse, error)
+	// Semantic Search
 	SemanticSearch(context.Context, *SemanticSearchRequest) (*SemanticSearchResponse, error)
-	// Nodes
+	// Nodes (Node Creation and Deletion depends on content source status)
 	GetNodes(context.Context, *GetNodesRequest) (*GetNodesResponse, error)
+	GetNeighbors(context.Context, *GetNeighborsRequest) (*GetNeighborsResponse, error)
+	SearchNodes(context.Context, *SearchNodesRequest) (*SearchNodesResponse, error)
 	UpdateNodes(context.Context, *UpdateNodesRequest) (*UpdateNodesResponse, error)
 	// Links
+	// Gets links based on a batch of queries or by direct IDs.
 	GetLinks(context.Context, *GetLinksRequest) (*GetLinksResponse, error)
-	GetHierarchicalLinks(context.Context, *GetHierarchicalLinksRequest) (*GetHierarchicalLinksResponse, error)
-	GetSemanticLinks(context.Context, *GetSemanticLinksRequest) (*GetSemanticLinksResponse, error)
-	GetStructuralLinks(context.Context, *GetStructuralLinksRequest) (*GetStructuralLinksResponse, error)
+	// Useers can manage structural links
 	CreateStructuralLinks(context.Context, *CreateStructuralLinksRequest) (*CreateStructuralLinksResponse, error)
 	UpdateStructuralLinks(context.Context, *UpdateStructuralLinksRequest) (*UpdateStructuralLinksResponse, error)
 	DeleteStructuralLinks(context.Context, *DeleteStructuralLinksRequest) (*DeleteStructuralLinksResponse, error)
@@ -202,29 +180,23 @@ type CanvasPublicServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCanvasPublicServer struct{}
 
-func (UnimplementedCanvasPublicServer) GetNeighbors(context.Context, *GetNeighborsRequest) (*GetNeighborsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNeighbors not implemented")
-}
 func (UnimplementedCanvasPublicServer) SemanticSearch(context.Context, *SemanticSearchRequest) (*SemanticSearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SemanticSearch not implemented")
 }
 func (UnimplementedCanvasPublicServer) GetNodes(context.Context, *GetNodesRequest) (*GetNodesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNodes not implemented")
 }
+func (UnimplementedCanvasPublicServer) GetNeighbors(context.Context, *GetNeighborsRequest) (*GetNeighborsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNeighbors not implemented")
+}
+func (UnimplementedCanvasPublicServer) SearchNodes(context.Context, *SearchNodesRequest) (*SearchNodesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchNodes not implemented")
+}
 func (UnimplementedCanvasPublicServer) UpdateNodes(context.Context, *UpdateNodesRequest) (*UpdateNodesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateNodes not implemented")
 }
 func (UnimplementedCanvasPublicServer) GetLinks(context.Context, *GetLinksRequest) (*GetLinksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinks not implemented")
-}
-func (UnimplementedCanvasPublicServer) GetHierarchicalLinks(context.Context, *GetHierarchicalLinksRequest) (*GetHierarchicalLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetHierarchicalLinks not implemented")
-}
-func (UnimplementedCanvasPublicServer) GetSemanticLinks(context.Context, *GetSemanticLinksRequest) (*GetSemanticLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSemanticLinks not implemented")
-}
-func (UnimplementedCanvasPublicServer) GetStructuralLinks(context.Context, *GetStructuralLinksRequest) (*GetStructuralLinksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStructuralLinks not implemented")
 }
 func (UnimplementedCanvasPublicServer) CreateStructuralLinks(context.Context, *CreateStructuralLinksRequest) (*CreateStructuralLinksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStructuralLinks not implemented")
@@ -254,24 +226,6 @@ func RegisterCanvasPublicServer(s grpc.ServiceRegistrar, srv CanvasPublicServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&CanvasPublic_ServiceDesc, srv)
-}
-
-func _CanvasPublic_GetNeighbors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNeighborsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasPublicServer).GetNeighbors(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CanvasPublic_GetNeighbors_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasPublicServer).GetNeighbors(ctx, req.(*GetNeighborsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _CanvasPublic_SemanticSearch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -310,6 +264,42 @@ func _CanvasPublic_GetNodes_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CanvasPublic_GetNeighbors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNeighborsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CanvasPublicServer).GetNeighbors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CanvasPublic_GetNeighbors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CanvasPublicServer).GetNeighbors(ctx, req.(*GetNeighborsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CanvasPublic_SearchNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchNodesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CanvasPublicServer).SearchNodes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CanvasPublic_SearchNodes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CanvasPublicServer).SearchNodes(ctx, req.(*SearchNodesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CanvasPublic_UpdateNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateNodesRequest)
 	if err := dec(in); err != nil {
@@ -342,60 +332,6 @@ func _CanvasPublic_GetLinks_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CanvasPublicServer).GetLinks(ctx, req.(*GetLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CanvasPublic_GetHierarchicalLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetHierarchicalLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasPublicServer).GetHierarchicalLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CanvasPublic_GetHierarchicalLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasPublicServer).GetHierarchicalLinks(ctx, req.(*GetHierarchicalLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CanvasPublic_GetSemanticLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSemanticLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasPublicServer).GetSemanticLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CanvasPublic_GetSemanticLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasPublicServer).GetSemanticLinks(ctx, req.(*GetSemanticLinksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CanvasPublic_GetStructuralLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetStructuralLinksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CanvasPublicServer).GetStructuralLinks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CanvasPublic_GetStructuralLinks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CanvasPublicServer).GetStructuralLinks(ctx, req.(*GetStructuralLinksRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -462,10 +398,6 @@ var CanvasPublic_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CanvasPublicServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetNeighbors",
-			Handler:    _CanvasPublic_GetNeighbors_Handler,
-		},
-		{
 			MethodName: "SemanticSearch",
 			Handler:    _CanvasPublic_SemanticSearch_Handler,
 		},
@@ -474,24 +406,20 @@ var CanvasPublic_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CanvasPublic_GetNodes_Handler,
 		},
 		{
+			MethodName: "GetNeighbors",
+			Handler:    _CanvasPublic_GetNeighbors_Handler,
+		},
+		{
+			MethodName: "SearchNodes",
+			Handler:    _CanvasPublic_SearchNodes_Handler,
+		},
+		{
 			MethodName: "UpdateNodes",
 			Handler:    _CanvasPublic_UpdateNodes_Handler,
 		},
 		{
 			MethodName: "GetLinks",
 			Handler:    _CanvasPublic_GetLinks_Handler,
-		},
-		{
-			MethodName: "GetHierarchicalLinks",
-			Handler:    _CanvasPublic_GetHierarchicalLinks_Handler,
-		},
-		{
-			MethodName: "GetSemanticLinks",
-			Handler:    _CanvasPublic_GetSemanticLinks_Handler,
-		},
-		{
-			MethodName: "GetStructuralLinks",
-			Handler:    _CanvasPublic_GetStructuralLinks_Handler,
 		},
 		{
 			MethodName: "CreateStructuralLinks",
