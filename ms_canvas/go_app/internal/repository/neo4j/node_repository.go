@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
+	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
 
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -19,9 +19,9 @@ type NodeRepo struct {
 func NewNodeRepo(driver *Driver) *NodeRepo { return &NodeRepo{driver: driver} }
 
 // GetNodes retrieves nodes by their IDs with optional filtering.
-func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *v1.NodeFilter) ([]*v1.Node, error) {
+func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.NodeFilter) ([]*canvasv1.Node, error) {
 	if len(ids) == 0 {
-		return []*v1.Node{}, nil
+		return []*canvasv1.Node{}, nil
 	}
 
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
@@ -138,7 +138,7 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *v1.NodeFi
 			return nil, err
 		}
 
-		var nodes []*v1.Node
+		var nodes []*canvasv1.Node
 		for result.Next(ctx) {
 			record := result.Record()
 
@@ -146,7 +146,7 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *v1.NodeFi
 			labelList := labels.([]interface{})
 
 			// Determine node type from labels
-			var node *v1.Node
+			var node *canvasv1.Node
 			for _, label := range labelList {
 				labelStr := label.(string)
 				switch labelStr {
@@ -174,11 +174,82 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *v1.NodeFi
 		return nil, err
 	}
 
-	return result.([]*v1.Node), nil
+	return result.([]*canvasv1.Node), nil
+}
+
+// SearchNodes searches for nodes based on filter criteria and spatial bounds
+func (r *NodeRepo) SearchNodes(ctx context.Context, filter *canvasv1.NodeFilter, spatialBBox *canvasv1.SpatialBoundingBox, limit int32) ([]*canvasv1.Node, error) {
+	// Get nodes with filter
+	nodes, err := r.GetNodes(ctx, []string{}, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// Apply spatial filtering if spatial bounding box is provided
+	if spatialBBox != nil {
+		nodes = r.applySpatialFilter(nodes, spatialBBox)
+	}
+
+	// Apply limit if specified
+	if limit > 0 && int32(len(nodes)) > limit {
+		nodes = nodes[:limit]
+	}
+
+	return nodes, nil
+}
+
+// applySpatialFilter filters nodes based on spatial bounding box
+func (r *NodeRepo) applySpatialFilter(nodes []*canvasv1.Node, spatialBBox *canvasv1.SpatialBoundingBox) []*canvasv1.Node {
+	if spatialBBox == nil {
+		return nodes
+	}
+
+	var filtered []*canvasv1.Node
+	for _, node := range nodes {
+		if r.nodeWithinBounds(node, spatialBBox) {
+			filtered = append(filtered, node)
+		}
+	}
+	return filtered
+}
+
+// nodeWithinBounds checks if a node's position is within the spatial bounding box
+func (r *NodeRepo) nodeWithinBounds(node *canvasv1.Node, spatialBBox *canvasv1.SpatialBoundingBox) bool {
+	var position *canvasv1.SpatialCoordinates
+	var chunk *canvasv1.ChunkNode
+	var content *canvasv1.ContentNode
+	var cluster *canvasv1.ClusterNode
+
+	// Extract position based on node type
+	switch n := node.Node.(type) {
+	case *canvasv1.Node_Chunk:
+		chunk = n.Chunk
+		position = chunk.Base.Position_3D
+	case *canvasv1.Node_Content:
+		content = n.Content
+		position = content.Base.Position_3D
+	case *canvasv1.Node_Cluster:
+		cluster = n.Cluster
+		position = cluster.Base.Position_3D
+	default:
+		return false // Unknown node type
+	}
+
+	if position == nil {
+		return false // No position data
+	}
+
+	// Check if node position is within bounds
+	return position.X >= spatialBBox.MinCoords.X &&
+		position.X <= spatialBBox.MaxCoords.X &&
+		position.Y >= spatialBBox.MinCoords.Y &&
+		position.Y <= spatialBBox.MaxCoords.Y &&
+		position.Z >= spatialBBox.MinCoords.Z &&
+		position.Z <= spatialBBox.MaxCoords.Z
 }
 
 // CreateChunkNodes creates chunk nodes (idempotent on id/content_source_id via MERGE).
-func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*v1.ChunkNode) error {
+func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.ChunkNode) error {
 	if len(chunks) == 0 {
 		return nil
 	}
@@ -236,7 +307,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*v1.ChunkNode)
 }
 
 // CreateContentNodes creates or updates ContentNodes in batch.
-func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*v1.ContentNode) error {
+func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.ContentNode) error {
 	if len(contents) == 0 {
 		return nil
 	}
@@ -271,7 +342,7 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*v1.Conten
 }
 
 // CreateClusterNodes creates or updates ClusterNodes in batch.
-func (r *NodeRepo) CreateClusterNodes(ctx context.Context, clusters []*v1.ClusterNode) error {
+func (r *NodeRepo) CreateClusterNodes(ctx context.Context, clusters []*canvasv1.ClusterNode) error {
 	if len(clusters) == 0 {
 		return nil
 	}
@@ -334,7 +405,7 @@ func (r *NodeRepo) CreateClusterNodes(ctx context.Context, clusters []*v1.Cluste
 }
 
 // UpdateClusterNode updates selected fields on a ClusterNode.
-func (r *NodeRepo) UpdateClusterNode(ctx context.Context, update *v1.ClusterNode) error {
+func (r *NodeRepo) UpdateClusterNode(ctx context.Context, update *canvasv1.ClusterNode) error {
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
@@ -381,7 +452,7 @@ func (r *NodeRepo) UpdateClusterNode(ctx context.Context, update *v1.ClusterNode
 }
 
 // UpdateContentNode updates selected fields on a ContentNode.
-func (r *NodeRepo) UpdateContentNode(ctx context.Context, update *v1.ContentNode) error {
+func (r *NodeRepo) UpdateContentNode(ctx context.Context, update *canvasv1.ContentNode) error {
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
@@ -429,7 +500,7 @@ func (r *NodeRepo) UpdateContentNode(ctx context.Context, update *v1.ContentNode
 }
 
 // UpdateChunkNode updates selected fields on a ChunkNode.
-func (r *NodeRepo) UpdateChunkNode(ctx context.Context, update *v1.ChunkNode) error {
+func (r *NodeRepo) UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNode) error {
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
@@ -513,8 +584,8 @@ func (r *NodeRepo) SoftDeleteNode(ctx context.Context, nodeID string) error {
 }
 
 // Build common BaseNode fields
-func (r *NodeRepo) buildBaseNode(record *neo.Record) *v1.BaseNode {
-	base := &v1.BaseNode{}
+func (r *NodeRepo) buildBaseNode(record *neo.Record) *canvasv1.BaseNode {
+	base := &canvasv1.BaseNode{}
 
 	// Required fields
 	if id, ok := r.safeGetString(record, "id"); ok {
@@ -550,7 +621,7 @@ func (r *NodeRepo) buildBaseNode(record *neo.Record) *v1.BaseNode {
 		if x, ok := location["x"].(float64); ok {
 			y := location["y"].(float64)
 			z := location["z"].(float64)
-			base.Position_3D = &v1.SpatialCoordinates{
+			base.Position_3D = &canvasv1.SpatialCoordinates{
 				X: int32(x),
 				Y: int32(y),
 				Z: int32(z),
@@ -570,7 +641,7 @@ func (r *NodeRepo) buildBaseNode(record *neo.Record) *v1.BaseNode {
 }
 
 // Helper function to build SET clauses for BaseNode fields
-func (r *NodeRepo) buildBaseNodeUpdateClauses(base *v1.BaseNode, params map[string]interface{}) []string {
+func (r *NodeRepo) buildBaseNodeUpdateClauses(base *canvasv1.BaseNode, params map[string]interface{}) []string {
 	var clauses []string
 
 	if len(base.Embedding) > 0 {
@@ -593,7 +664,7 @@ func (r *NodeRepo) buildBaseNodeUpdateClauses(base *v1.BaseNode, params map[stri
 }
 
 // Helper methods to build specific node types from database records
-func (r *NodeRepo) buildContentNode(record *neo.Record) *v1.Node {
+func (r *NodeRepo) buildContentNode(record *neo.Record) *canvasv1.Node {
 	// Build common base fields
 	base := r.buildBaseNode(record)
 
@@ -604,7 +675,7 @@ func (r *NodeRepo) buildContentNode(record *neo.Record) *v1.Node {
 	}
 
 	// Build ContentNode
-	contentNode := &v1.ContentNode{
+	contentNode := &canvasv1.ContentNode{
 		Base:            base,
 		ContentSourceId: contentSourceId,
 	}
@@ -625,14 +696,14 @@ func (r *NodeRepo) buildContentNode(record *neo.Record) *v1.Node {
 	}
 
 	// Wrap in Node
-	return &v1.Node{
-		Node: &v1.Node_Content{
+	return &canvasv1.Node{
+		Node: &canvasv1.Node_Content{
 			Content: contentNode,
 		},
 	}
 }
 
-func (r *NodeRepo) buildChunkNode(record *neo.Record) *v1.Node {
+func (r *NodeRepo) buildChunkNode(record *neo.Record) *canvasv1.Node {
 	// Build common base fields
 	base := r.buildBaseNode(record)
 
@@ -649,7 +720,7 @@ func (r *NodeRepo) buildChunkNode(record *neo.Record) *v1.Node {
 	}
 
 	// Build ChunkNode
-	chunkNode := &v1.ChunkNode{
+	chunkNode := &canvasv1.ChunkNode{
 		Base:            base,
 		ContentSourceId: contentSourceId,
 		SequenceIndex:   int32(sequenceIndex),
@@ -672,14 +743,14 @@ func (r *NodeRepo) buildChunkNode(record *neo.Record) *v1.Node {
 	}
 
 	// Wrap in Node
-	return &v1.Node{
-		Node: &v1.Node_Chunk{
+	return &canvasv1.Node{
+		Node: &canvasv1.Node_Chunk{
 			Chunk: chunkNode,
 		},
 	}
 }
 
-func (r *NodeRepo) buildClusterNode(record *neo.Record) *v1.Node {
+func (r *NodeRepo) buildClusterNode(record *neo.Record) *canvasv1.Node {
 	// Build common base fields
 	base := r.buildBaseNode(record)
 
@@ -690,7 +761,7 @@ func (r *NodeRepo) buildClusterNode(record *neo.Record) *v1.Node {
 	}
 
 	// Build ClusterNode
-	clusterNode := &v1.ClusterNode{
+	clusterNode := &canvasv1.ClusterNode{
 		Base:         base,
 		ClusterScope: clusterScope,
 	}
@@ -708,8 +779,8 @@ func (r *NodeRepo) buildClusterNode(record *neo.Record) *v1.Node {
 	}
 
 	// Wrap in Node
-	return &v1.Node{
-		Node: &v1.Node_Cluster{
+	return &canvasv1.Node{
+		Node: &canvasv1.Node_Cluster{
 			Cluster: clusterNode,
 		},
 	}
