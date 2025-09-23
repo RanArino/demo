@@ -98,9 +98,10 @@ ms_canvas/
 ### 4.1 Go Application
 - `cmd/main.go`: wires dependencies; starts gRPC public API server, HTTP gateway (optional), and the Kafka consumer; manages lifecycle.
 - `internal/server`: gRPC server setup, service registration, health checks, graceful shutdown (follows `ms_knowledge` pattern).
-- `internal/service`: Business logic layer containing workflows and domain services (e.g., `node_service.go`, `link_service.go`, `search_service.go` for orchestration). Services coordinate gateway calls and repository operations.
+- `internal/service`: Business logic layer containing workflows and domain services (e.g., `node_service.go`, `link_service.go`, `search_service.go`, `event_orchestrator.go`, `task_executor.go` for orchestration and extensible task execution). Services coordinate gateway calls and repository operations. Features worker pools, priority-based task execution, and plugin architecture for task types. (Task execution framework implemented)
 - `internal/repository`: Data access layer with Neo4j repositories (`NodeRepository`, `LinkRepository`) and driver setup.
 - `internal/events`: Event-related code including event types (`types.go`) and Kafka consumer implementation that delegates to `internal/service`.
+- `internal/service/event_orchestrator.go`: Core event orchestration service implementing the EventHandler interface to coordinate document ingestion workflows, ContentNode creation, and extensible task execution. (Implemented)
 - `internal/gateway/python`: gRPC client to Python internal service for chunking/embedding operations.
 - `api/proto/private/v1`: generated Go code for private/internal protobufs.
 - `api/proto/public/v1`: generated Go code for public protobufs.
@@ -149,8 +150,8 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 ### 6.1 Event-Driven Ingestion
 1. Kafka emits `document.processed` with metadata (space_id, content_source_id, location, etc.).
 2. Go consumer validates auth/signature and schema.
-3. Create `ContentNode` with provenance.
-4. Trigger chunking (and embedding) orchestration directly (no internal Kafka).
+3. EventOrchestrator processes the event, creates `ContentNode` with provenance.
+4. EventOrchestrator triggers chunking (and embedding) orchestration via extensible task execution framework. (Implemented)
 
 ### 6.2 Chunking
 1. Go calls Python internal `ChunkText` with parameters (target_size≈tokens, overlap%, type=sentence) and either inline text or blob URL.
