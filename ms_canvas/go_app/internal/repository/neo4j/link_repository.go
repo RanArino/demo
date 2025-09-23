@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
 	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
 
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -19,7 +18,7 @@ type LinkRepo struct {
 func NewLinkRepo(driver *Driver) *LinkRepo { return &LinkRepo{driver: driver} }
 
 // CreateHierarchicalLinks creates :HIERARCHICAL_PARENT links from HierarchicalLink objects.
-func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*v1.HierarchicalLink) error {
+func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv1.HierarchicalLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -39,7 +38,7 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*v1.Hier
 			items = append(items, map[string]any{
 				"src":                  link.Base.SourceId,
 				"dst":                  link.Base.TargetId,
-				"connection_type":      link.Base.ConnectionType,
+				"connection_type":      link.ConnectionType,
 				"hierarchy_depth":      link.HierarchyDepth,
 				"exploration_metadata": link.Base.ExplorationMetadata,
 				"style_metadata":       link.Base.StyleMetadata,
@@ -70,7 +69,7 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*v1.Hier
 }
 
 // CreateSemanticLinks creates :SEMANTIC_LINK edges with score.
-func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*v1.SemanticLink) error {
+func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*canvasv1.SemanticLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -90,7 +89,7 @@ func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*v1.Semantic
 			params["items"] = append(params["items"].([]map[string]any), map[string]any{
 				"src":                  l.Base.SourceId,
 				"dst":                  l.Base.TargetId,
-				"connection_type":      l.Base.ConnectionType,
+				"connection_type":      l.ConnectionType,
 				"strength_score":       l.StrengthScore,
 				"similarity_score":     l.SimilarityScore,
 				"abstraction_bridge":   l.AbstractionBridge,
@@ -128,7 +127,7 @@ func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*v1.Semantic
 }
 
 // CreateStructuralLinks creates :STRUCTURAL_LINK edges.
-func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*v1.StructuralLink) error {
+func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*canvasv1.StructuralLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -148,7 +147,7 @@ func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*v1.Struct
 			params["items"] = append(params["items"].([]map[string]any), map[string]any{
 				"src":                  l.Base.SourceId,
 				"dst":                  l.Base.TargetId,
-				"connection_type":      l.Base.ConnectionType,
+				"connection_type":      l.ConnectionType,
 				"confidence_score":     l.ConfidenceScore,
 				"description":          l.Description,
 				"exploration_metadata": l.Base.ExplorationMetadata,
@@ -180,7 +179,7 @@ func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*v1.Struct
 }
 
 // GetLinks returns links by IDs with optional filtering.
-func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLinkFilter) ([]*v1.Link, error) {
+func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *canvasv1.BaseLinkFilter) ([]*canvasv1.Link, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -326,14 +325,13 @@ func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLi
 	}
 
 	rows := recAny.([]map[string]any)
-	links := make([]*v1.Link, 0, len(rows))
+	links := make([]*canvasv1.Link, 0, len(rows))
 
 	for _, row := range rows {
 		linkType, _ := row["link_type"].(string)
 		id, _ := row["id"].(string)
 		sourceId, _ := row["source_id"].(string)
 		targetId, _ := row["target_id"].(string)
-		connType, _ := row["connection_type"].(string)
 		explorationMetadata, _ := row["exploration_metadata"].(map[string]any)
 		styleMetadata, _ := row["style_metadata"].(map[string]any)
 		createdAt, _ := row["created_at"].(time.Time)
@@ -354,18 +352,17 @@ func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLi
 			}
 		}
 
-		var link *v1.Link
+		var link *canvasv1.Link
 		switch linkType {
 		case "hierarchical":
 			hierarchyDepth, _ := row["hierarchy_depth"].(int32)
-			link = &v1.Link{
-				Link: &v1.Link_Hierarchical{
-					Hierarchical: &v1.HierarchicalLink{
-						Base: &v1.BaseLink{
+			link = &canvasv1.Link{
+				Link: &canvasv1.Link_Hierarchical{
+					Hierarchical: &canvasv1.HierarchicalLink{
+						Base: &canvasv1.BaseLink{
 							Id:                  id,
 							SourceId:            sourceId,
 							TargetId:            targetId,
-							ConnectionType:      connType,
 							ExplorationMetadata: explorationMetadataStruct,
 							StyleMetadata:       styleMetadataStruct,
 							CreatedAt:           timestamppb.New(createdAt),
@@ -395,14 +392,13 @@ func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLi
 				descPtr = &description
 			}
 
-			link = &v1.Link{
-				Link: &v1.Link_Semantic{
-					Semantic: &v1.SemanticLink{
-						Base: &v1.BaseLink{
+			link = &canvasv1.Link{
+				Link: &canvasv1.Link_Semantic{
+					Semantic: &canvasv1.SemanticLink{
+						Base: &canvasv1.BaseLink{
 							Id:                  id,
 							SourceId:            sourceId,
 							TargetId:            targetId,
-							ConnectionType:      connType,
 							ExplorationMetadata: explorationMetadataStruct,
 							StyleMetadata:       styleMetadataStruct,
 							CreatedAt:           timestamppb.New(createdAt),
@@ -428,14 +424,13 @@ func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLi
 				descPtr = &description
 			}
 
-			link = &v1.Link{
-				Link: &v1.Link_Structural{
-					Structural: &v1.StructuralLink{
-						Base: &v1.BaseLink{
+			link = &canvasv1.Link{
+				Link: &canvasv1.Link_Structural{
+					Structural: &canvasv1.StructuralLink{
+						Base: &canvasv1.BaseLink{
 							Id:                  id,
 							SourceId:            sourceId,
 							TargetId:            targetId,
-							ConnectionType:      connType,
 							ExplorationMetadata: explorationMetadataStruct,
 							StyleMetadata:       styleMetadataStruct,
 							CreatedAt:           timestamppb.New(createdAt),
@@ -459,7 +454,7 @@ func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLi
 }
 
 // GetLinksByNodes returns links by node IDs with direction and filtering.
-func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, filter *v1.BaseLinkFilter) ([]*v1.Link, error) {
+func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, filter *canvasv1.BaseLinkFilter) ([]*canvasv1.Link, error) {
 	if len(nodeIDs) == 0 {
 		return nil, nil
 	}
@@ -605,14 +600,13 @@ func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direct
 	}
 
 	rows := recAny.([]map[string]any)
-	links := make([]*v1.Link, 0, len(rows))
+	links := make([]*canvasv1.Link, 0, len(rows))
 
 	for _, row := range rows {
 		linkType, _ := row["link_type"].(string)
 		id, _ := row["id"].(string)
 		sourceId, _ := row["source_id"].(string)
 		targetId, _ := row["target_id"].(string)
-		connType, _ := row["connection_type"].(string)
 		explorationMetadata, _ := row["exploration_metadata"].(map[string]any)
 		styleMetadata, _ := row["style_metadata"].(map[string]any)
 		createdAt, _ := row["created_at"].(time.Time)
@@ -633,18 +627,17 @@ func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direct
 			}
 		}
 
-		var link *v1.Link
+		var link *canvasv1.Link
 		switch linkType {
 		case "hierarchical":
 			hierarchyDepth, _ := row["hierarchy_depth"].(int32)
-			link = &v1.Link{
-				Link: &v1.Link_Hierarchical{
-					Hierarchical: &v1.HierarchicalLink{
-						Base: &v1.BaseLink{
+			link = &canvasv1.Link{
+				Link: &canvasv1.Link_Hierarchical{
+					Hierarchical: &canvasv1.HierarchicalLink{
+						Base: &canvasv1.BaseLink{
 							Id:                  id,
 							SourceId:            sourceId,
 							TargetId:            targetId,
-							ConnectionType:      connType,
 							ExplorationMetadata: explorationMetadataStruct,
 							StyleMetadata:       styleMetadataStruct,
 							CreatedAt:           timestamppb.New(createdAt),
@@ -674,14 +667,13 @@ func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direct
 				descPtr = &description
 			}
 
-			link = &v1.Link{
-				Link: &v1.Link_Semantic{
-					Semantic: &v1.SemanticLink{
-						Base: &v1.BaseLink{
+			link = &canvasv1.Link{
+				Link: &canvasv1.Link_Semantic{
+					Semantic: &canvasv1.SemanticLink{
+						Base: &canvasv1.BaseLink{
 							Id:                  id,
 							SourceId:            sourceId,
 							TargetId:            targetId,
-							ConnectionType:      connType,
 							ExplorationMetadata: explorationMetadataStruct,
 							StyleMetadata:       styleMetadataStruct,
 							CreatedAt:           timestamppb.New(createdAt),
@@ -707,14 +699,13 @@ func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direct
 				descPtr = &description
 			}
 
-			link = &v1.Link{
-				Link: &v1.Link_Structural{
-					Structural: &v1.StructuralLink{
-						Base: &v1.BaseLink{
+			link = &canvasv1.Link{
+				Link: &canvasv1.Link_Structural{
+					Structural: &canvasv1.StructuralLink{
+						Base: &canvasv1.BaseLink{
 							Id:                  id,
 							SourceId:            sourceId,
 							TargetId:            targetId,
-							ConnectionType:      connType,
 							ExplorationMetadata: explorationMetadataStruct,
 							StyleMetadata:       styleMetadataStruct,
 							CreatedAt:           timestamppb.New(createdAt),
@@ -738,7 +729,7 @@ func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direct
 }
 
 // UpdateSemanticLinks updates properties on existing semantic links.
-func (r *LinkRepo) UpdateSemanticLinks(ctx context.Context, links []*v1.SemanticLink) error {
+func (r *LinkRepo) UpdateSemanticLinks(ctx context.Context, links []*canvasv1.SemanticLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -750,7 +741,7 @@ func (r *LinkRepo) UpdateSemanticLinks(ctx context.Context, links []*v1.Semantic
 			params["items"] = append(params["items"].([]map[string]any), map[string]any{
 				"src":              l.Base.SourceId,
 				"dst":              l.Base.TargetId,
-				"connection_type":  l.Base.ConnectionType,
+				"connection_type":  l.ConnectionType,
 				"strength_score":   l.StrengthScore,
 				"similarity_score": l.SimilarityScore,
 			})
@@ -768,7 +759,7 @@ func (r *LinkRepo) UpdateSemanticLinks(ctx context.Context, links []*v1.Semantic
 }
 
 // UpdateStructuralLinks updates properties on existing structural links.
-func (r *LinkRepo) UpdateStructuralLinks(ctx context.Context, links []*v1.StructuralLink) error {
+func (r *LinkRepo) UpdateStructuralLinks(ctx context.Context, links []*canvasv1.StructuralLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -780,7 +771,7 @@ func (r *LinkRepo) UpdateStructuralLinks(ctx context.Context, links []*v1.Struct
 			params["items"] = append(params["items"].([]map[string]any), map[string]any{
 				"src":              l.Base.SourceId,
 				"dst":              l.Base.TargetId,
-				"connection_type":  l.Base.ConnectionType,
+				"connection_type":  l.ConnectionType,
 				"confidence_score": l.ConfidenceScore,
 				"description":      l.Description,
 				"created_by":       l.CreatedBy,
@@ -800,7 +791,7 @@ func (r *LinkRepo) UpdateStructuralLinks(ctx context.Context, links []*v1.Struct
 }
 
 // UpdateHierarchicalLinks updates properties on existing hierarchical links.
-func (r *LinkRepo) UpdateHierarchicalLinks(ctx context.Context, links []*v1.HierarchicalLink) error {
+func (r *LinkRepo) UpdateHierarchicalLinks(ctx context.Context, links []*canvasv1.HierarchicalLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -812,7 +803,7 @@ func (r *LinkRepo) UpdateHierarchicalLinks(ctx context.Context, links []*v1.Hier
 			params["items"] = append(params["items"].([]map[string]any), map[string]any{
 				"src":             l.Base.SourceId,
 				"dst":             l.Base.TargetId,
-				"connection_type": l.Base.ConnectionType,
+				"connection_type": l.ConnectionType,
 				"hierarchy_depth": l.HierarchyDepth,
 			})
 		}

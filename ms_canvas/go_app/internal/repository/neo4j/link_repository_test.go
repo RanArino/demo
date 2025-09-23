@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
+	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -17,51 +17,48 @@ import (
 func TestLinkRepo_CreateHierarchicalLinks_Validation(t *testing.T) {
 	tests := []struct {
 		name              string
-		links             []*v1.HierarchicalLink
+		links             []*canvasv1.HierarchicalLink
 		expectEmptyReturn bool
-		validateFunc      func(t *testing.T, links []*v1.HierarchicalLink)
+		validateFunc      func(t *testing.T, links []*canvasv1.HierarchicalLink)
 	}{
 		{
 			name:              "empty links should return early",
-			links:             []*v1.HierarchicalLink{},
+			links:             []*canvasv1.HierarchicalLink{},
 			expectEmptyReturn: true,
-			validateFunc: func(t *testing.T, links []*v1.HierarchicalLink) {
+			validateFunc: func(t *testing.T, links []*canvasv1.HierarchicalLink) {
 				assert.Len(t, links, 0)
 			},
 		},
 		{
 			name: "valid hierarchical links should have correct structure",
-			links: []*v1.HierarchicalLink{
+			links: []*canvasv1.HierarchicalLink{
 				{
-					Base: &v1.BaseLink{
-						SourceId:       uuid.New().String(),
-						TargetId:       uuid.New().String(),
-						ConnectionType: "document_chunk",
+					Base: &canvasv1.BaseLink{
+						SourceId: uuid.New().String(),
+						TargetId: uuid.New().String(),
 					},
 					HierarchyDepth: 1,
 				},
 				{
-					Base: &v1.BaseLink{
-						SourceId:       uuid.New().String(),
-						TargetId:       uuid.New().String(),
-						ConnectionType: "document_chunk",
+					Base: &canvasv1.BaseLink{
+						SourceId: uuid.New().String(),
+						TargetId: uuid.New().String(),
 					},
 					HierarchyDepth: 1,
 				},
 				{
-					Base: &v1.BaseLink{
-						SourceId:       uuid.New().String(),
-						TargetId:       uuid.New().String(),
-						ConnectionType: "document_chunk",
+					Base: &canvasv1.BaseLink{
+						SourceId: uuid.New().String(),
+						TargetId: uuid.New().String(),
 					},
 					HierarchyDepth: 1,
 				},
 			},
 			expectEmptyReturn: false,
-			validateFunc: func(t *testing.T, links []*v1.HierarchicalLink) {
+			validateFunc: func(t *testing.T, links []*canvasv1.HierarchicalLink) {
 				assert.Len(t, links, 3)
 				for _, link := range links {
-					assert.Equal(t, "document_chunk", link.Base.ConnectionType)
+					assert.Equal(t, canvasv1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION, link.ConnectionType)
 					assert.Equal(t, int32(1), link.HierarchyDepth)
 					assert.NotEmpty(t, link.Base.SourceId)
 					assert.NotEmpty(t, link.Base.TargetId)
@@ -84,24 +81,23 @@ func TestLinkRepo_CreateSemanticLinks_Validation(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		links        []*v1.SemanticLink
-		validateFunc func(t *testing.T, links []*v1.SemanticLink)
+		links        []*canvasv1.SemanticLink
+		validateFunc func(t *testing.T, links []*canvasv1.SemanticLink)
 	}{
 		{
 			name:  "empty links should be handled",
-			links: []*v1.SemanticLink{},
-			validateFunc: func(t *testing.T, links []*v1.SemanticLink) {
+			links: []*canvasv1.SemanticLink{},
+			validateFunc: func(t *testing.T, links []*canvasv1.SemanticLink) {
 				assert.Len(t, links, 0)
 			},
 		},
 		{
 			name: "semantic link with all fields should be valid",
-			links: []*v1.SemanticLink{
+			links: []*canvasv1.SemanticLink{
 				{
-					Base: &v1.BaseLink{
+					Base: &canvasv1.BaseLink{
 						SourceId:            sourceID,
 						TargetId:            targetID,
-						ConnectionType:      "semantic_similarity",
 						ExplorationMetadata: mapToStruct(map[string]any{"method": "cosine"}),
 						StyleMetadata:       mapToStruct(map[string]any{"color": "blue"}),
 						CreatedAt:           timestamppb.New(now),
@@ -115,13 +111,13 @@ func TestLinkRepo_CreateSemanticLinks_Validation(t *testing.T) {
 					Description:        stringPtr("High semantic similarity"),
 				},
 			},
-			validateFunc: func(t *testing.T, links []*v1.SemanticLink) {
+			validateFunc: func(t *testing.T, links []*canvasv1.SemanticLink) {
 				require.Len(t, links, 1)
 				link := links[0]
 
 				assert.Equal(t, sourceID, link.Base.SourceId)
 				assert.Equal(t, targetID, link.Base.TargetId)
-				assert.Equal(t, "semantic_similarity", link.Base.ConnectionType)
+				assert.Equal(t, canvasv1.SemanticConnectionType_SEMANTIC_CONNECTION_TYPE_INTRA_LEVEL_INTRA_PARENT, link.ConnectionType)
 				assert.Equal(t, 0.85, link.StrengthScore)
 				assert.Equal(t, 0.92, link.SimilarityScore)
 				assert.True(t, link.AbstractionBridge)
@@ -140,25 +136,24 @@ func TestLinkRepo_CreateSemanticLinks_Validation(t *testing.T) {
 		},
 		{
 			name: "semantic link with minimal fields should be valid",
-			links: []*v1.SemanticLink{
+			links: []*canvasv1.SemanticLink{
 				{
-					Base: &v1.BaseLink{
-						SourceId:       sourceID,
-						TargetId:       targetID,
-						ConnectionType: "basic_similarity",
+					Base: &canvasv1.BaseLink{
+						SourceId: sourceID,
+						TargetId: targetID,
 						// Note: No timestamps set - should be zero
 					},
 					StrengthScore:   0.5,
 					SimilarityScore: 0.6,
 				},
 			},
-			validateFunc: func(t *testing.T, links []*v1.SemanticLink) {
+			validateFunc: func(t *testing.T, links []*canvasv1.SemanticLink) {
 				require.Len(t, links, 1)
 				link := links[0]
 
 				assert.Equal(t, sourceID, link.Base.SourceId)
 				assert.Equal(t, targetID, link.Base.TargetId)
-				assert.Equal(t, "basic_similarity", link.Base.ConnectionType)
+				assert.Equal(t, canvasv1.SemanticConnectionType_SEMANTIC_CONNECTION_TYPE_INTRA_LEVEL_INTRA_PARENT, link.ConnectionType)
 				assert.Equal(t, 0.5, link.StrengthScore)
 				assert.Equal(t, 0.6, link.SimilarityScore)
 				assert.False(t, link.AbstractionBridge)
@@ -186,16 +181,15 @@ func TestLinkRepo_CreateStructuralLink_Validation(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		link         *v1.StructuralLink
-		validateFunc func(t *testing.T, link *v1.StructuralLink)
+		link         *canvasv1.StructuralLink
+		validateFunc func(t *testing.T, link *canvasv1.StructuralLink)
 	}{
 		{
 			name: "structural link with all fields should be valid",
-			link: &v1.StructuralLink{
-				Base: &v1.BaseLink{
+			link: &canvasv1.StructuralLink{
+				Base: &canvasv1.BaseLink{
 					SourceId:            sourceID,
 					TargetId:            targetID,
-					ConnectionType:      "manual_connection",
 					ExplorationMetadata: mapToStruct(map[string]any{"user_id": "12345"}),
 					StyleMetadata:       mapToStruct(map[string]any{"thickness": 2}),
 					CreatedAt:           timestamppb.New(now),
@@ -205,10 +199,10 @@ func TestLinkRepo_CreateStructuralLink_Validation(t *testing.T) {
 				Description:     stringPtr("User-created connection"),
 				CreatedBy:       "user_12345",
 			},
-			validateFunc: func(t *testing.T, link *v1.StructuralLink) {
+			validateFunc: func(t *testing.T, link *canvasv1.StructuralLink) {
 				assert.Equal(t, sourceID, link.Base.SourceId)
 				assert.Equal(t, targetID, link.Base.TargetId)
-				assert.Equal(t, "manual_connection", link.Base.ConnectionType)
+				assert.Equal(t, canvasv1.StructuralConnectionType_STRUCTURAL_CONNECTION_TYPE_USER_DRAWN, link.ConnectionType)
 				assert.Equal(t, 0.95, link.ConfidenceScore)
 				assert.NotNil(t, link.Description)
 				assert.Equal(t, "User-created connection", *link.Description)
@@ -223,19 +217,18 @@ func TestLinkRepo_CreateStructuralLink_Validation(t *testing.T) {
 		},
 		{
 			name: "structural link with minimal fields should be valid",
-			link: &v1.StructuralLink{
-				Base: &v1.BaseLink{
-					SourceId:       sourceID,
-					TargetId:       targetID,
-					ConnectionType: "auto_connection",
+			link: &canvasv1.StructuralLink{
+				Base: &canvasv1.BaseLink{
+					SourceId: sourceID,
+					TargetId: targetID,
 				},
 				ConfidenceScore: 0.7,
 				CreatedBy:       "system",
 			},
-			validateFunc: func(t *testing.T, link *v1.StructuralLink) {
+			validateFunc: func(t *testing.T, link *canvasv1.StructuralLink) {
 				assert.Equal(t, sourceID, link.Base.SourceId)
 				assert.Equal(t, targetID, link.Base.TargetId)
-				assert.Equal(t, "auto_connection", link.Base.ConnectionType)
+				assert.Equal(t, canvasv1.StructuralConnectionType_STRUCTURAL_CONNECTION_TYPE_EVIDENCE_BASED, link.ConnectionType)
 				assert.Equal(t, 0.7, link.ConfidenceScore)
 				assert.Equal(t, "system", link.CreatedBy)
 				assert.Nil(t, link.Description)
@@ -267,7 +260,7 @@ func (r *TestableLinkRepo) ExecuteWrite(cypher string, params map[string]any) er
 }
 
 // CreateHierarchicalLinks for testing - delegates to ExecuteWrite
-func (r *TestableLinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*v1.HierarchicalLink) error {
+func (r *TestableLinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv1.HierarchicalLink) error {
 	if len(links) == 0 {
 		return nil
 	}
@@ -287,7 +280,7 @@ func (r *TestableLinkRepo) CreateHierarchicalLinks(ctx context.Context, links []
 		items = append(items, map[string]any{
 			"src":                  link.Base.SourceId,
 			"dst":                  link.Base.TargetId,
-			"connection_type":      link.Base.ConnectionType,
+			"connection_type":      link.ConnectionType,
 			"hierarchy_depth":      link.HierarchyDepth,
 			"exploration_metadata": link.Base.ExplorationMetadata,
 			"style_metadata":       link.Base.StyleMetadata,
@@ -320,20 +313,18 @@ func (r *TestableLinkRepo) CreateHierarchicalLinks(ctx context.Context, links []
 
 func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 	ctx := context.Background()
-	links := []*v1.HierarchicalLink{
+	links := []*canvasv1.HierarchicalLink{
 		{
-			Base: &v1.BaseLink{
-				SourceId:       uuid.New().String(),
-				TargetId:       uuid.New().String(),
-				ConnectionType: "document_chunk",
+			Base: &canvasv1.BaseLink{
+				SourceId: uuid.New().String(),
+				TargetId: uuid.New().String(),
 			},
 			HierarchyDepth: 1,
 		},
 		{
-			Base: &v1.BaseLink{
-				SourceId:       uuid.New().String(),
-				TargetId:       uuid.New().String(),
-				ConnectionType: "document_chunk",
+			Base: &canvasv1.BaseLink{
+				SourceId: uuid.New().String(),
+				TargetId: uuid.New().String(),
 			},
 			HierarchyDepth: 1,
 		},
@@ -341,13 +332,13 @@ func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		links          []*v1.HierarchicalLink
-		validateCypher func(t *testing.T, cypher string, params map[string]any, links []*v1.HierarchicalLink)
+		links          []*canvasv1.HierarchicalLink
+		validateCypher func(t *testing.T, cypher string, params map[string]any, links []*canvasv1.HierarchicalLink)
 	}{
 		{
 			name:  "hierarchical links should generate correct cypher",
 			links: links,
-			validateCypher: func(t *testing.T, cypher string, params map[string]any, testLinks []*v1.HierarchicalLink) {
+			validateCypher: func(t *testing.T, cypher string, params map[string]any, testLinks []*canvasv1.HierarchicalLink) {
 				assert.Contains(t, cypher, "UNWIND $items AS item")
 				assert.Contains(t, cypher, "MATCH (s {id: item.src})")
 				assert.Contains(t, cypher, "MATCH (t {id: item.dst})")
@@ -366,7 +357,7 @@ func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 					assert.Contains(t, item, "dst")
 					assert.Contains(t, item, "connection_type")
 					assert.Contains(t, item, "hierarchy_depth")
-					assert.Equal(t, testLinks[i].Base.ConnectionType, item["connection_type"])
+					assert.Equal(t, testLinks[i].ConnectionType, item["connection_type"])
 					assert.Equal(t, int32(testLinks[i].HierarchyDepth), item["hierarchy_depth"])
 					assert.Equal(t, testLinks[i].Base.SourceId, item["src"])
 					assert.Equal(t, testLinks[i].Base.TargetId, item["dst"])
@@ -398,12 +389,11 @@ func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 
 func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 	now := time.Now()
-	links := []*v1.SemanticLink{
+	links := []*canvasv1.SemanticLink{
 		{
-			Base: &v1.BaseLink{
+			Base: &canvasv1.BaseLink{
 				SourceId:            uuid.New().String(),
 				TargetId:            uuid.New().String(),
-				ConnectionType:      "semantic_similarity",
 				ExplorationMetadata: mapToStruct(map[string]any{"method": "cosine"}),
 				StyleMetadata:       mapToStruct(map[string]any{"color": "blue"}),
 				CreatedAt:           timestamppb.New(now),
@@ -417,10 +407,9 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 			Description:        stringPtr("High semantic similarity"),
 		},
 		{
-			Base: &v1.BaseLink{
-				SourceId:       uuid.New().String(),
-				TargetId:       uuid.New().String(),
-				ConnectionType: "basic_similarity",
+			Base: &canvasv1.BaseLink{
+				SourceId: uuid.New().String(),
+				TargetId: uuid.New().String(),
 			},
 			StrengthScore:   0.5,
 			SimilarityScore: 0.6,
@@ -448,7 +437,7 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 			assert.Contains(t, item1, "src")
 			assert.Contains(t, item1, "dst")
 			assert.Contains(t, item1, "connection_type")
-			assert.Equal(t, "semantic_similarity", item1["connection_type"])
+			assert.Equal(t, canvasv1.SemanticConnectionType_SEMANTIC_CONNECTION_TYPE_INTRA_LEVEL_INTRA_PARENT, item1["connection_type"])
 			assert.Equal(t, 0.85, item1["strength_score"])
 			assert.Equal(t, 0.92, item1["similarity_score"])
 			assert.Equal(t, true, item1["abstraction_bridge"])
@@ -456,7 +445,7 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 
 			// Check second link (minimal)
 			item2 := items[1]
-			assert.Equal(t, "basic_similarity", item2["connection_type"])
+			assert.Equal(t, canvasv1.SemanticConnectionType_SEMANTIC_CONNECTION_TYPE_INTRA_LEVEL_INTRA_PARENT, item2["connection_type"])
 			assert.Equal(t, 0.5, item2["strength_score"])
 			assert.Equal(t, 0.6, item2["similarity_score"])
 
@@ -482,7 +471,7 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 		params["items"] = append(params["items"].([]map[string]any), map[string]any{
 			"src":                  l.Base.SourceId,
 			"dst":                  l.Base.TargetId,
-			"connection_type":      l.Base.ConnectionType,
+			"connection_type":      l.ConnectionType,
 			"strength_score":       l.StrengthScore,
 			"similarity_score":     l.SimilarityScore,
 			"abstraction_bridge":   l.AbstractionBridge,
@@ -522,11 +511,10 @@ func TestLinkRepo_CreateSemanticLinks_DatabaseInteraction(t *testing.T) {
 
 func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 	now := time.Now()
-	link := &v1.StructuralLink{
-		Base: &v1.BaseLink{
+	link := &canvasv1.StructuralLink{
+		Base: &canvasv1.BaseLink{
 			SourceId:            uuid.New().String(),
 			TargetId:            uuid.New().String(),
-			ConnectionType:      "manual_connection",
 			ExplorationMetadata: mapToStruct(map[string]any{"user_id": "12345"}),
 			StyleMetadata:       mapToStruct(map[string]any{"thickness": 2}),
 			CreatedAt:           timestamppb.New(now),
@@ -554,7 +542,7 @@ func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 
 			assert.Equal(t, link.Base.SourceId, params["src"])
 			assert.Equal(t, link.Base.TargetId, params["dst"])
-			assert.Equal(t, "manual_connection", params["connection_type"])
+			assert.Equal(t, canvasv1.StructuralConnectionType_STRUCTURAL_CONNECTION_TYPE_USER_DRAWN, params["connection_type"])
 			assert.Equal(t, 0.95, params["confidence_score"])
 			assert.Equal(t, "user_12345", params["created_by"])
 
@@ -575,7 +563,7 @@ func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 	params := map[string]any{
 		"src":                  link.Base.SourceId,
 		"dst":                  link.Base.TargetId,
-		"connection_type":      link.Base.ConnectionType,
+		"connection_type":      link.ConnectionType,
 		"confidence_score":     link.ConfidenceScore,
 		"description":          link.Description,
 		"exploration_metadata": link.Base.ExplorationMetadata,
