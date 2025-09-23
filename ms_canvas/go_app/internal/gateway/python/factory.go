@@ -35,7 +35,7 @@ const (
 
 // Gateway handles communication with Python services
 type Gateway struct {
-	client privpb.CanvasClient
+	client privpb.CanvasMLClient
 	conn   *grpc.ClientConn
 }
 
@@ -240,7 +240,7 @@ func (f *GatewayFactory) newGateway(config Config) (*Gateway, error) {
 		return nil, fmt.Errorf("failed to connect to Python service at %s: %w", address, err)
 	}
 
-	client := privpb.NewCanvasClient(conn)
+	client := privpb.NewCanvasMLClient(conn)
 
 	return &Gateway{
 		client: client,
