@@ -1,0 +1,42 @@
+package kafka
+
+import (
+	"errors"
+	"log"
+	"strings"
+
+	"demo/ms_canvas/go_app/internal/config"
+	"demo/ms_canvas/go_app/internal/events"
+	"demo/ms_canvas/go_app/internal/service"
+)
+
+type Handler struct {
+	cfg          config.Config
+	eventHandler service.EventHandler
+}
+
+func NewHandler(cfg config.Config, eventHandler service.EventHandler) *Handler {
+	return &Handler{cfg: cfg, eventHandler: eventHandler}
+}
+
+func (h *Handler) ValidateAndNormalize(evt events.DocumentProcessedEvent, headers map[string]string) (events.DocumentProcessedEvent, error) {
+	if strings.TrimSpace(evt.Status) == "" {
+		return evt, errors.New("missing status")
+	}
+	if strings.ToUpper(evt.Status) != "PROCESSED" {
+		log.Printf("[Handler] skipping event with status=%s", evt.Status)
+		return evt, nil
+	}
+	return evt, nil
+}
+
+func (h *Handler) Handle(evt events.DocumentProcessedEvent, headers map[string]string) error {
+	norm, err := h.ValidateAndNormalize(evt, headers)
+	if err != nil {
+		return err
+	}
+	if strings.ToUpper(norm.Status) != "PROCESSED" {
+		return nil
+	}
+	return h.eventHandler.HandleDocumentProcessed(norm)
+}
