@@ -219,10 +219,11 @@
 
 ### 7. Protobuf definitions (internal)
 
- - [ ] **7.1. Define `proto/private/v1/canvas_private.proto`**
-  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. (Implemented at `ms_canvas/proto/private/v1/canvas_private.proto`)
+ - [x] **7.1. Define `proto/private/v1/canvas_private.proto`**
+  > `ChunkText`, `EmbedChunks`, `EmbedQuery` with oneof `text | blob_url`, chunking config (type fixed to sentence for now, target_tokens, overlap_percent), tokenizer, and provenance metadata. **COMPLETED**: Full protobuf definitions implemented with comprehensive message types and service definitions.
   >
   > **Related Requirements:** 2.1, 3.1, 5.1
+  > **Files:** `proto/private/v1/canvas_private.proto`
 
 ## Feature H: Future ML Workloads (Python via internal gRPC)
 
