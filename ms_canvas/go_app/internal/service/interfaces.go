@@ -4,6 +4,7 @@ import (
 	"context"
 
 	canvaspublicv1 "demo/ms_canvas/go_app/api/proto/public/v1"
+	"demo/ms_canvas/go_app/internal/events"
 )
 
 // NodeService defines the interface for node business logic operations
@@ -37,4 +38,10 @@ type LinkService interface {
 
 	// DeleteStructuralLinks deletes structural links
 	DeleteStructuralLinks(ctx context.Context, linkIDs []*canvaspublicv1.StructuralLinkIdentifier) (int32, error)
+}
+
+// EventHandler defines the interface for processing events from external sources
+type EventHandler interface {
+	// HandleDocumentProcessed processes incoming document.processed events
+	HandleDocumentProcessed(event events.DocumentProcessedEvent) error
 }
