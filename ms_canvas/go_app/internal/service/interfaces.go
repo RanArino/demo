@@ -18,7 +18,7 @@ type NodeService interface {
 	UpdateNodes(ctx context.Context, nodes []*canvaspublicv1.Node) ([]*canvaspublicv1.Node, error)
 
 	// GetNeighbors retrieves neighboring nodes for given node IDs
-	GetNeighbors(ctx context.Context, ids []string, direction canvaspublicv1.Direction, relationshipTypes []string, limitPerNode int32, includeProperties bool) (map[string]*canvaspublicv1.NeighborsList, error)
+	GetNeighbors(ctx context.Context, ids []string, direction canvaspublicv1.Direction, query *canvaspublicv1.LinkQuery, limitPerNode int32, includeProperties bool) (map[string]*canvaspublicv1.NeighborsList, error)
 }
 
 // SearchService defines the interface for search operations
