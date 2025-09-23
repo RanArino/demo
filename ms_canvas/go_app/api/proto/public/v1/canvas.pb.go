@@ -1844,12 +1844,12 @@ func (x *GetNodesResponse) GetNodes() []*Node {
 // ===== GetNeighbors =====
 // GetNeighbors is used to get the neighbors by node traversal
 type Neighbor struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Node             *Node                  `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"` // adjacent node
-	RelationshipType string                 `protobuf:"bytes,2,opt,name=relationship_type,json=relationshipType,proto3" json:"relationship_type,omitempty"`
-	Link             *Link                  `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"` // full link information
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Node          *Node                  `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"` // adjacent node
+	LinkType      LinkType               `protobuf:"varint,2,opt,name=link_type,json=linkType,proto3,enum=canvas.public.v1.LinkType" json:"link_type,omitempty"`
+	Link          *Link                  `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"` // full link information
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Neighbor) Reset() {
@@ -1889,11 +1889,11 @@ func (x *Neighbor) GetNode() *Node {
 	return nil
 }
 
-func (x *Neighbor) GetRelationshipType() string {
+func (x *Neighbor) GetLinkType() LinkType {
 	if x != nil {
-		return x.RelationshipType
+		return x.LinkType
 	}
-	return ""
+	return LinkType_LINK_TYPE_UNSPECIFIED
 }
 
 func (x *Neighbor) GetLink() *Link {
@@ -1952,8 +1952,8 @@ type GetNeighborsRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Ids               []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
 	Direction         Direction              `protobuf:"varint,2,opt,name=direction,proto3,enum=canvas.public.v1.Direction" json:"direction,omitempty"`
-	RelationshipTypes []string               `protobuf:"bytes,3,rep,name=relationship_types,json=relationshipTypes,proto3" json:"relationship_types,omitempty"` // e.g., "SEMANTIC_LINK", "STRUCTURAL_LINK", "HIERARCHICAL_PARENT"
-	LimitPerNode      int32                  `protobuf:"varint,4,opt,name=limit_per_node,json=limitPerNode,proto3" json:"limit_per_node,omitempty"`             // limit applies to each source node individually
+	Query             *LinkQuery             `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`                                      // Query to filter and select links
+	LimitPerNode      int32                  `protobuf:"varint,4,opt,name=limit_per_node,json=limitPerNode,proto3" json:"limit_per_node,omitempty"` // limit applies to each source node individually
 	IncludeProperties bool                   `protobuf:"varint,5,opt,name=include_properties,json=includeProperties,proto3" json:"include_properties,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -2003,9 +2003,9 @@ func (x *GetNeighborsRequest) GetDirection() Direction {
 	return Direction_DIRECTION_OUTGOING
 }
 
-func (x *GetNeighborsRequest) GetRelationshipTypes() []string {
+func (x *GetNeighborsRequest) GetQuery() *LinkQuery {
 	if x != nil {
-		return x.RelationshipTypes
+		return x.Query
 	}
 	return nil
 }
@@ -4093,17 +4093,17 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\x0fGetNodesRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\tR\x03ids\"@\n" +
 	"\x10GetNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.public.v1.NodeR\x05nodes\"\x8f\x01\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.canvas.public.v1.NodeR\x05nodes\"\x9b\x01\n" +
 	"\bNeighbor\x12*\n" +
-	"\x04node\x18\x01 \x01(\v2\x16.canvas.public.v1.NodeR\x04node\x12+\n" +
-	"\x11relationship_type\x18\x02 \x01(\tR\x10relationshipType\x12*\n" +
+	"\x04node\x18\x01 \x01(\v2\x16.canvas.public.v1.NodeR\x04node\x127\n" +
+	"\tlink_type\x18\x02 \x01(\x0e2\x1a.canvas.public.v1.LinkTypeR\blinkType\x12*\n" +
 	"\x04link\x18\x03 \x01(\v2\x16.canvas.public.v1.LinkR\x04link\"I\n" +
 	"\rNeighborsList\x128\n" +
-	"\tneighbors\x18\x01 \x03(\v2\x1a.canvas.public.v1.NeighborR\tneighbors\"\xe6\x01\n" +
+	"\tneighbors\x18\x01 \x03(\v2\x1a.canvas.public.v1.NeighborR\tneighbors\"\xea\x01\n" +
 	"\x13GetNeighborsRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\tR\x03ids\x129\n" +
-	"\tdirection\x18\x02 \x01(\x0e2\x1b.canvas.public.v1.DirectionR\tdirection\x12-\n" +
-	"\x12relationship_types\x18\x03 \x03(\tR\x11relationshipTypes\x12$\n" +
+	"\tdirection\x18\x02 \x01(\x0e2\x1b.canvas.public.v1.DirectionR\tdirection\x121\n" +
+	"\x05query\x18\x03 \x01(\v2\x1b.canvas.public.v1.LinkQueryR\x05query\x12$\n" +
 	"\x0elimit_per_node\x18\x04 \x01(\x05R\flimitPerNode\x12-\n" +
 	"\x12include_properties\x18\x05 \x01(\bR\x11includeProperties\"\xc2\x01\n" +
 	"\x14GetNeighborsResponse\x12M\n" +
@@ -4479,69 +4479,71 @@ var file_proto_public_v1_canvas_proto_depIdxs = []int32{
 	21, // 30: canvas.public.v1.SemanticSearchResponse.results:type_name -> canvas.public.v1.SearchResult
 	18, // 31: canvas.public.v1.GetNodesResponse.nodes:type_name -> canvas.public.v1.Node
 	18, // 32: canvas.public.v1.Neighbor.node:type_name -> canvas.public.v1.Node
-	19, // 33: canvas.public.v1.Neighbor.link:type_name -> canvas.public.v1.Link
-	25, // 34: canvas.public.v1.NeighborsList.neighbors:type_name -> canvas.public.v1.Neighbor
-	0,  // 35: canvas.public.v1.GetNeighborsRequest.direction:type_name -> canvas.public.v1.Direction
-	55, // 36: canvas.public.v1.GetNeighborsResponse.results:type_name -> canvas.public.v1.GetNeighborsResponse.ResultsEntry
-	7,  // 37: canvas.public.v1.SpatialBoundingBox.min_coords:type_name -> canvas.public.v1.SpatialCoordinates
-	7,  // 38: canvas.public.v1.SpatialBoundingBox.max_coords:type_name -> canvas.public.v1.SpatialCoordinates
-	36, // 39: canvas.public.v1.SearchNodesRequest.filter:type_name -> canvas.public.v1.NodeFilter
-	29, // 40: canvas.public.v1.SearchNodesRequest.spatial_bbox:type_name -> canvas.public.v1.SpatialBoundingBox
-	18, // 41: canvas.public.v1.SearchNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	18, // 42: canvas.public.v1.UpdateNodesRequest.nodes:type_name -> canvas.public.v1.Node
-	18, // 43: canvas.public.v1.UpdateNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	45, // 44: canvas.public.v1.GetLinksRequest.queries:type_name -> canvas.public.v1.LinkQuery
-	19, // 45: canvas.public.v1.GetLinksResponse.links:type_name -> canvas.public.v1.Link
-	37, // 46: canvas.public.v1.NodeFilter.content_filter:type_name -> canvas.public.v1.ContentNodeFilter
-	38, // 47: canvas.public.v1.NodeFilter.chunk_filter:type_name -> canvas.public.v1.ChunkNodeFilter
-	39, // 48: canvas.public.v1.NodeFilter.cluster_filter:type_name -> canvas.public.v1.ClusterNodeFilter
-	57, // 49: canvas.public.v1.BaseLinkFilter.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 50: canvas.public.v1.BaseLinkFilter.style_metadata:type_name -> google.protobuf.Struct
-	40, // 51: canvas.public.v1.HierarchicalLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	40, // 52: canvas.public.v1.SemanticLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	40, // 53: canvas.public.v1.StructuralLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	4,  // 54: canvas.public.v1.StructuralLinkFilter.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	40, // 55: canvas.public.v1.LinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	41, // 56: canvas.public.v1.LinkFilter.hierarchical:type_name -> canvas.public.v1.HierarchicalLinkFilter
-	42, // 57: canvas.public.v1.LinkFilter.semantic:type_name -> canvas.public.v1.SemanticLinkFilter
-	43, // 58: canvas.public.v1.LinkFilter.structural:type_name -> canvas.public.v1.StructuralLinkFilter
-	5,  // 59: canvas.public.v1.LinkQuery.link_types:type_name -> canvas.public.v1.LinkType
-	44, // 60: canvas.public.v1.LinkQuery.filter:type_name -> canvas.public.v1.LinkFilter
-	4,  // 61: canvas.public.v1.StructuralLinkCreate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	57, // 62: canvas.public.v1.StructuralLinkCreate.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 63: canvas.public.v1.StructuralLinkCreate.style_metadata:type_name -> google.protobuf.Struct
-	46, // 64: canvas.public.v1.CreateStructuralLinksRequest.links:type_name -> canvas.public.v1.StructuralLinkCreate
-	17, // 65: canvas.public.v1.CreateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
-	4,  // 66: canvas.public.v1.StructuralLinkUpdate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	57, // 67: canvas.public.v1.StructuralLinkUpdate.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 68: canvas.public.v1.StructuralLinkUpdate.style_metadata:type_name -> google.protobuf.Struct
-	49, // 69: canvas.public.v1.UpdateStructuralLinksRequest.updates:type_name -> canvas.public.v1.StructuralLinkUpdate
-	17, // 70: canvas.public.v1.UpdateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
-	52, // 71: canvas.public.v1.DeleteStructuralLinksRequest.link_ids:type_name -> canvas.public.v1.StructuralLinkIdentifier
-	26, // 72: canvas.public.v1.GetNeighborsResponse.ResultsEntry.value:type_name -> canvas.public.v1.NeighborsList
-	20, // 73: canvas.public.v1.CanvasPublic.SemanticSearch:input_type -> canvas.public.v1.SemanticSearchRequest
-	23, // 74: canvas.public.v1.CanvasPublic.GetNodes:input_type -> canvas.public.v1.GetNodesRequest
-	27, // 75: canvas.public.v1.CanvasPublic.GetNeighbors:input_type -> canvas.public.v1.GetNeighborsRequest
-	30, // 76: canvas.public.v1.CanvasPublic.SearchNodes:input_type -> canvas.public.v1.SearchNodesRequest
-	32, // 77: canvas.public.v1.CanvasPublic.UpdateNodes:input_type -> canvas.public.v1.UpdateNodesRequest
-	34, // 78: canvas.public.v1.CanvasPublic.GetLinks:input_type -> canvas.public.v1.GetLinksRequest
-	47, // 79: canvas.public.v1.CanvasPublic.CreateStructuralLinks:input_type -> canvas.public.v1.CreateStructuralLinksRequest
-	50, // 80: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:input_type -> canvas.public.v1.UpdateStructuralLinksRequest
-	53, // 81: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:input_type -> canvas.public.v1.DeleteStructuralLinksRequest
-	22, // 82: canvas.public.v1.CanvasPublic.SemanticSearch:output_type -> canvas.public.v1.SemanticSearchResponse
-	24, // 83: canvas.public.v1.CanvasPublic.GetNodes:output_type -> canvas.public.v1.GetNodesResponse
-	28, // 84: canvas.public.v1.CanvasPublic.GetNeighbors:output_type -> canvas.public.v1.GetNeighborsResponse
-	31, // 85: canvas.public.v1.CanvasPublic.SearchNodes:output_type -> canvas.public.v1.SearchNodesResponse
-	33, // 86: canvas.public.v1.CanvasPublic.UpdateNodes:output_type -> canvas.public.v1.UpdateNodesResponse
-	35, // 87: canvas.public.v1.CanvasPublic.GetLinks:output_type -> canvas.public.v1.GetLinksResponse
-	48, // 88: canvas.public.v1.CanvasPublic.CreateStructuralLinks:output_type -> canvas.public.v1.CreateStructuralLinksResponse
-	51, // 89: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:output_type -> canvas.public.v1.UpdateStructuralLinksResponse
-	54, // 90: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:output_type -> canvas.public.v1.DeleteStructuralLinksResponse
-	82, // [82:91] is the sub-list for method output_type
-	73, // [73:82] is the sub-list for method input_type
-	73, // [73:73] is the sub-list for extension type_name
-	73, // [73:73] is the sub-list for extension extendee
-	0,  // [0:73] is the sub-list for field type_name
+	5,  // 33: canvas.public.v1.Neighbor.link_type:type_name -> canvas.public.v1.LinkType
+	19, // 34: canvas.public.v1.Neighbor.link:type_name -> canvas.public.v1.Link
+	25, // 35: canvas.public.v1.NeighborsList.neighbors:type_name -> canvas.public.v1.Neighbor
+	0,  // 36: canvas.public.v1.GetNeighborsRequest.direction:type_name -> canvas.public.v1.Direction
+	45, // 37: canvas.public.v1.GetNeighborsRequest.query:type_name -> canvas.public.v1.LinkQuery
+	55, // 38: canvas.public.v1.GetNeighborsResponse.results:type_name -> canvas.public.v1.GetNeighborsResponse.ResultsEntry
+	7,  // 39: canvas.public.v1.SpatialBoundingBox.min_coords:type_name -> canvas.public.v1.SpatialCoordinates
+	7,  // 40: canvas.public.v1.SpatialBoundingBox.max_coords:type_name -> canvas.public.v1.SpatialCoordinates
+	36, // 41: canvas.public.v1.SearchNodesRequest.filter:type_name -> canvas.public.v1.NodeFilter
+	29, // 42: canvas.public.v1.SearchNodesRequest.spatial_bbox:type_name -> canvas.public.v1.SpatialBoundingBox
+	18, // 43: canvas.public.v1.SearchNodesResponse.nodes:type_name -> canvas.public.v1.Node
+	18, // 44: canvas.public.v1.UpdateNodesRequest.nodes:type_name -> canvas.public.v1.Node
+	18, // 45: canvas.public.v1.UpdateNodesResponse.nodes:type_name -> canvas.public.v1.Node
+	45, // 46: canvas.public.v1.GetLinksRequest.queries:type_name -> canvas.public.v1.LinkQuery
+	19, // 47: canvas.public.v1.GetLinksResponse.links:type_name -> canvas.public.v1.Link
+	37, // 48: canvas.public.v1.NodeFilter.content_filter:type_name -> canvas.public.v1.ContentNodeFilter
+	38, // 49: canvas.public.v1.NodeFilter.chunk_filter:type_name -> canvas.public.v1.ChunkNodeFilter
+	39, // 50: canvas.public.v1.NodeFilter.cluster_filter:type_name -> canvas.public.v1.ClusterNodeFilter
+	57, // 51: canvas.public.v1.BaseLinkFilter.exploration_metadata:type_name -> google.protobuf.Struct
+	57, // 52: canvas.public.v1.BaseLinkFilter.style_metadata:type_name -> google.protobuf.Struct
+	40, // 53: canvas.public.v1.HierarchicalLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	40, // 54: canvas.public.v1.SemanticLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	40, // 55: canvas.public.v1.StructuralLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	4,  // 56: canvas.public.v1.StructuralLinkFilter.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	40, // 57: canvas.public.v1.LinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	41, // 58: canvas.public.v1.LinkFilter.hierarchical:type_name -> canvas.public.v1.HierarchicalLinkFilter
+	42, // 59: canvas.public.v1.LinkFilter.semantic:type_name -> canvas.public.v1.SemanticLinkFilter
+	43, // 60: canvas.public.v1.LinkFilter.structural:type_name -> canvas.public.v1.StructuralLinkFilter
+	5,  // 61: canvas.public.v1.LinkQuery.link_types:type_name -> canvas.public.v1.LinkType
+	44, // 62: canvas.public.v1.LinkQuery.filter:type_name -> canvas.public.v1.LinkFilter
+	4,  // 63: canvas.public.v1.StructuralLinkCreate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	57, // 64: canvas.public.v1.StructuralLinkCreate.exploration_metadata:type_name -> google.protobuf.Struct
+	57, // 65: canvas.public.v1.StructuralLinkCreate.style_metadata:type_name -> google.protobuf.Struct
+	46, // 66: canvas.public.v1.CreateStructuralLinksRequest.links:type_name -> canvas.public.v1.StructuralLinkCreate
+	17, // 67: canvas.public.v1.CreateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
+	4,  // 68: canvas.public.v1.StructuralLinkUpdate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	57, // 69: canvas.public.v1.StructuralLinkUpdate.exploration_metadata:type_name -> google.protobuf.Struct
+	57, // 70: canvas.public.v1.StructuralLinkUpdate.style_metadata:type_name -> google.protobuf.Struct
+	49, // 71: canvas.public.v1.UpdateStructuralLinksRequest.updates:type_name -> canvas.public.v1.StructuralLinkUpdate
+	17, // 72: canvas.public.v1.UpdateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
+	52, // 73: canvas.public.v1.DeleteStructuralLinksRequest.link_ids:type_name -> canvas.public.v1.StructuralLinkIdentifier
+	26, // 74: canvas.public.v1.GetNeighborsResponse.ResultsEntry.value:type_name -> canvas.public.v1.NeighborsList
+	20, // 75: canvas.public.v1.CanvasPublic.SemanticSearch:input_type -> canvas.public.v1.SemanticSearchRequest
+	23, // 76: canvas.public.v1.CanvasPublic.GetNodes:input_type -> canvas.public.v1.GetNodesRequest
+	27, // 77: canvas.public.v1.CanvasPublic.GetNeighbors:input_type -> canvas.public.v1.GetNeighborsRequest
+	30, // 78: canvas.public.v1.CanvasPublic.SearchNodes:input_type -> canvas.public.v1.SearchNodesRequest
+	32, // 79: canvas.public.v1.CanvasPublic.UpdateNodes:input_type -> canvas.public.v1.UpdateNodesRequest
+	34, // 80: canvas.public.v1.CanvasPublic.GetLinks:input_type -> canvas.public.v1.GetLinksRequest
+	47, // 81: canvas.public.v1.CanvasPublic.CreateStructuralLinks:input_type -> canvas.public.v1.CreateStructuralLinksRequest
+	50, // 82: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:input_type -> canvas.public.v1.UpdateStructuralLinksRequest
+	53, // 83: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:input_type -> canvas.public.v1.DeleteStructuralLinksRequest
+	22, // 84: canvas.public.v1.CanvasPublic.SemanticSearch:output_type -> canvas.public.v1.SemanticSearchResponse
+	24, // 85: canvas.public.v1.CanvasPublic.GetNodes:output_type -> canvas.public.v1.GetNodesResponse
+	28, // 86: canvas.public.v1.CanvasPublic.GetNeighbors:output_type -> canvas.public.v1.GetNeighborsResponse
+	31, // 87: canvas.public.v1.CanvasPublic.SearchNodes:output_type -> canvas.public.v1.SearchNodesResponse
+	33, // 88: canvas.public.v1.CanvasPublic.UpdateNodes:output_type -> canvas.public.v1.UpdateNodesResponse
+	35, // 89: canvas.public.v1.CanvasPublic.GetLinks:output_type -> canvas.public.v1.GetLinksResponse
+	48, // 90: canvas.public.v1.CanvasPublic.CreateStructuralLinks:output_type -> canvas.public.v1.CreateStructuralLinksResponse
+	51, // 91: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:output_type -> canvas.public.v1.UpdateStructuralLinksResponse
+	54, // 92: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:output_type -> canvas.public.v1.DeleteStructuralLinksResponse
+	84, // [84:93] is the sub-list for method output_type
+	75, // [75:84] is the sub-list for method input_type
+	75, // [75:75] is the sub-list for extension type_name
+	75, // [75:75] is the sub-list for extension extendee
+	0,  // [0:75] is the sub-list for field type_name
 }
 
 func init() { file_proto_public_v1_canvas_proto_init() }
