@@ -2,6 +2,8 @@ package neo4j
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
@@ -453,75 +455,241 @@ func (r *LinkRepo) GetLinks(ctx context.Context, ids []string, filter *canvasv1.
 	return links, nil
 }
 
+// buildDynamicLinkQuery builds a dynamic Cypher query based on LinkQuery
+func (r *LinkRepo) buildDynamicLinkQuery(nodeIDs []string, direction canvasv1.Direction, query *canvasv1.LinkQuery) (string, map[string]any) {
+	params := map[string]any{"ids": nodeIDs}
+
+	// Add filter parameters if they exist
+	if query != nil && query.Filter != nil {
+		switch f := query.Filter.Filter.(type) {
+		case *canvasv1.LinkFilter_Base:
+			if f.Base.SourceId != nil {
+				params["source_id"] = *f.Base.SourceId
+			}
+			if f.Base.TargetId != nil {
+				params["target_id"] = *f.Base.TargetId
+			}
+		case *canvasv1.LinkFilter_Hierarchical:
+			if f.Hierarchical.Base.SourceId != nil {
+				params["source_id"] = *f.Hierarchical.Base.SourceId
+			}
+			if f.Hierarchical.Base.TargetId != nil {
+				params["target_id"] = *f.Hierarchical.Base.TargetId
+			}
+		case *canvasv1.LinkFilter_Semantic:
+			if f.Semantic.Base.SourceId != nil {
+				params["source_id"] = *f.Semantic.Base.SourceId
+			}
+			if f.Semantic.Base.TargetId != nil {
+				params["target_id"] = *f.Semantic.Base.TargetId
+			}
+		case *canvasv1.LinkFilter_Structural:
+			if f.Structural.Base.SourceId != nil {
+				params["source_id"] = *f.Structural.Base.SourceId
+			}
+			if f.Structural.Base.TargetId != nil {
+				params["target_id"] = *f.Structural.Base.TargetId
+			}
+		}
+	}
+
+	// Determine which link types to query
+	linkTypes := make(map[string]bool)
+	if query != nil && len(query.LinkTypes) > 0 {
+		for _, linkType := range query.LinkTypes {
+			switch linkType {
+			case canvasv1.LinkType_LINK_TYPE_HIERARCHICAL:
+				linkTypes["hierarchical"] = true
+			case canvasv1.LinkType_LINK_TYPE_SEMANTIC:
+				linkTypes["semantic"] = true
+			case canvasv1.LinkType_LINK_TYPE_STRUCTURAL:
+				linkTypes["structural"] = true
+			}
+		}
+	} else {
+		// If no link types specified, query all
+		linkTypes["hierarchical"] = true
+		linkTypes["semantic"] = true
+		linkTypes["structural"] = true
+	}
+
+	// Extract the appropriate filter
+	var filter interface{}
+	if query != nil && query.Filter != nil {
+		switch f := query.Filter.Filter.(type) {
+		case *canvasv1.LinkFilter_Base:
+			filter = f.Base
+		case *canvasv1.LinkFilter_Hierarchical:
+			filter = f.Hierarchical
+		case *canvasv1.LinkFilter_Semantic:
+			filter = f.Semantic
+		case *canvasv1.LinkFilter_Structural:
+			filter = f.Structural
+		}
+	}
+
+	// Build dynamic query parts
+	var queryParts []string
+	if linkTypes["hierarchical"] {
+		queryParts = append(queryParts, r.buildHierarchicalQueryPart(filter))
+	}
+	if linkTypes["semantic"] {
+		if len(queryParts) > 0 {
+			queryParts = append(queryParts, "UNION ALL")
+		}
+		queryParts = append(queryParts, r.buildSemanticQueryPart(filter))
+	}
+	if linkTypes["structural"] {
+		if len(queryParts) > 0 {
+			queryParts = append(queryParts, "UNION ALL")
+		}
+		queryParts = append(queryParts, r.buildStructuralQueryPart(filter))
+	}
+
+	return strings.Join(queryParts, "\n"), params
+}
+
+// buildHierarchicalQueryPart builds the hierarchical link query part
+func (r *LinkRepo) buildHierarchicalQueryPart(filter interface{}) string {
+	baseWhere := "WHERE s.id IN $ids OR t.id IN $ids"
+
+	// Add filter conditions
+	if filter != nil {
+		switch f := filter.(type) {
+		case *canvasv1.BaseLinkFilter:
+			if f.SourceId != nil {
+				baseWhere += " AND s.id = $source_id"
+			}
+			if f.TargetId != nil {
+				baseWhere += " AND t.id = $target_id"
+			}
+		case *canvasv1.HierarchicalLinkFilter:
+			if f.Base.SourceId != nil {
+				baseWhere += " AND s.id = $source_id"
+			}
+			if f.Base.TargetId != nil {
+				baseWhere += " AND t.id = $target_id"
+			}
+		}
+	}
+
+	return fmt.Sprintf(`// Query hierarchical links
+MATCH (s)-[r:HIERARCHICAL_PARENT]->(t)
+%s
+RETURN 'hierarchical' AS link_type,
+       r.id AS id,
+       s.id AS source_id,
+       t.id AS target_id,
+       r.connection_type AS connection_type,
+       r.hierarchy_depth AS hierarchy_depth,
+       r.exploration_metadata AS exploration_metadata,
+       r.style_metadata AS style_metadata,
+       r.created_at AS created_at,
+       r.updated_at AS updated_at,
+       r.deleted_at AS deleted_at`, baseWhere)
+}
+
+// buildSemanticQueryPart builds the semantic link query part
+func (r *LinkRepo) buildSemanticQueryPart(filter interface{}) string {
+	baseWhere := "WHERE s.id IN $ids OR t.id IN $ids"
+
+	// Add filter conditions
+	if filter != nil {
+		switch f := filter.(type) {
+		case *canvasv1.BaseLinkFilter:
+			if f.SourceId != nil {
+				baseWhere += " AND s.id = $source_id"
+			}
+			if f.TargetId != nil {
+				baseWhere += " AND t.id = $target_id"
+			}
+		case *canvasv1.SemanticLinkFilter:
+			if f.Base.SourceId != nil {
+				baseWhere += " AND s.id = $source_id"
+			}
+			if f.Base.TargetId != nil {
+				baseWhere += " AND t.id = $target_id"
+			}
+		}
+	}
+
+	return fmt.Sprintf(`// Query semantic links
+MATCH (s)-[r:SEMANTIC_LINK]->(t)
+%s
+RETURN 'semantic' AS link_type,
+       r.id AS id,
+       s.id AS source_id,
+       t.id AS target_id,
+       r.connection_type AS connection_type,
+       r.strength_score AS strength_score,
+       r.similarity_score AS similarity_score,
+       r.abstraction_bridge AS abstraction_bridge,
+       r.hierarchical_bridge AS hierarchical_bridge,
+       r.semantic_tags AS semantic_tags,
+       r.description AS description,
+       r.exploration_metadata AS exploration_metadata,
+       r.style_metadata AS style_metadata,
+       r.created_at AS created_at,
+       r.updated_at AS updated_at,
+       r.deleted_at AS deleted_at`, baseWhere)
+}
+
+// buildStructuralQueryPart builds the structural link query part
+func (r *LinkRepo) buildStructuralQueryPart(filter interface{}) string {
+	baseWhere := "WHERE s.id IN $ids OR t.id IN $ids"
+
+	// Add filter conditions
+	if filter != nil {
+		switch f := filter.(type) {
+		case *canvasv1.BaseLinkFilter:
+			if f.SourceId != nil {
+				baseWhere += " AND s.id = $source_id"
+			}
+			if f.TargetId != nil {
+				baseWhere += " AND t.id = $target_id"
+			}
+		case *canvasv1.StructuralLinkFilter:
+			if f.Base.SourceId != nil {
+				baseWhere += " AND s.id = $source_id"
+			}
+			if f.Base.TargetId != nil {
+				baseWhere += " AND t.id = $target_id"
+			}
+		}
+	}
+
+	return fmt.Sprintf(`// Query structural links
+MATCH (s)-[r:STRUCTURAL_LINK]->(t)
+%s
+RETURN 'structural' AS link_type,
+       r.id AS id,
+       s.id AS source_id,
+       t.id AS target_id,
+       r.connection_type AS connection_type,
+       r.confidence_score AS confidence_score,
+       r.description AS description,
+       r.created_by AS created_by,
+       r.exploration_metadata AS exploration_metadata,
+       r.style_metadata AS style_metadata,
+       r.created_at AS created_at,
+       r.updated_at AS updated_at,
+       r.deleted_at AS deleted_at`, baseWhere)
+}
+
 // GetLinksByNodes returns links by node IDs with direction and filtering.
-func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, filter *canvasv1.BaseLinkFilter) ([]*canvasv1.Link, error) {
+func (r *LinkRepo) GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, query *canvasv1.LinkQuery) ([]*canvasv1.Link, error) {
 	if len(nodeIDs) == 0 {
 		return nil, nil
 	}
+
+	// Build dynamic query based on LinkQuery
+	cypherQuery, params := r.buildDynamicLinkQuery(nodeIDs, direction, query)
+
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
+
 	recAny, err := sess.ExecuteRead(ctx, func(tx neo.ManagedTransaction) (any, error) {
-		params := map[string]any{"ids": nodeIDs}
-		if filter != nil {
-			params["source_id"] = filter.SourceId
-			params["target_id"] = filter.TargetId
-			params["connection_type"] = filter.ConnectionType
-			params["exploration_metadata"] = filter.ExplorationMetadata
-			params["style_metadata"] = filter.StyleMetadata
-		}
-		result, err := tx.Run(ctx, `
-			// Query hierarchical links
-			MATCH (s)-[r:HIERARCHICAL_PARENT]->(t)
-			WHERE s.id IN $ids OR t.id IN $ids
-			RETURN 'hierarchical' AS link_type,
-				   r.id AS id,
-				   s.id AS source_id,
-				   t.id AS target_id,
-				   r.connection_type AS connection_type,
-				   r.hierarchy_depth AS hierarchy_depth,
-				   r.exploration_metadata AS exploration_metadata,
-				   r.style_metadata AS style_metadata,
-				   r.created_at AS created_at,
-				   r.updated_at AS updated_at,
-				   r.deleted_at AS deleted_at
-			UNION ALL
-			// Query semantic links
-			MATCH (s)-[r:SEMANTIC_LINK]->(t)
-			WHERE s.id IN $ids OR t.id IN $ids
-			RETURN 'semantic' AS link_type,
-				   r.id AS id,
-				   s.id AS source_id,
-				   t.id AS target_id,
-				   r.connection_type AS connection_type,
-				   r.strength_score AS strength_score,
-				   r.similarity_score AS similarity_score,
-				   r.abstraction_bridge AS abstraction_bridge,
-				   r.hierarchical_bridge AS hierarchical_bridge,
-				   r.semantic_tags AS semantic_tags,
-				   r.description AS description,
-				   r.exploration_metadata AS exploration_metadata,
-				   r.style_metadata AS style_metadata,
-				   r.created_at AS created_at,
-				   r.updated_at AS updated_at,
-				   r.deleted_at AS deleted_at
-			UNION ALL
-			// Query structural links
-			MATCH (s)-[r:STRUCTURAL_LINK]->(t)
-			WHERE s.id IN $ids OR t.id IN $ids
-			RETURN 'structural' AS link_type,
-				   r.id AS id,
-				   s.id AS source_id,
-				   t.id AS target_id,
-				   r.connection_type AS connection_type,
-				   r.confidence_score AS confidence_score,
-				   r.description AS description,
-				   r.created_by AS created_by,
-				   r.exploration_metadata AS exploration_metadata,
-				   r.style_metadata AS style_metadata,
-				   r.created_at AS created_at,
-				   r.updated_at AS updated_at,
-				   r.deleted_at AS deleted_at
-		`, params)
+		result, err := tx.Run(ctx, cypherQuery, params)
 		if err != nil {
 			return nil, err
 		}
