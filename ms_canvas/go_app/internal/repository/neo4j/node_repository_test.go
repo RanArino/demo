@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
+	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
 
 	"github.com/google/uuid"
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
