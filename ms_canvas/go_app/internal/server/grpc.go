@@ -2,8 +2,7 @@ package server
 
 import (
 	"context"
-	v1 "demo/ms_canvas/go_app/api/proto/private/v1"
-	canvaspublicv1 "demo/ms_canvas/go_app/api/proto/public/v1"
+	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
 	"demo/ms_canvas/go_app/internal/service"
 
 	"google.golang.org/grpc/codes"
@@ -27,7 +26,7 @@ const (
 
 // canvasPublicServer implements the CanvasPublicServer interface
 type canvasPublicServer struct {
-	canvaspublicv1.UnimplementedCanvasPublicServer
+	canvasv1.UnimplementedCanvasPublicServer
 
 	searchService service.SearchService
 	nodeService   service.NodeService
@@ -39,7 +38,7 @@ func NewCanvasPublicServer(
 	searchService service.SearchService,
 	nodeService service.NodeService,
 	linkService service.LinkService,
-) canvaspublicv1.CanvasPublicServer {
+) canvasv1.CanvasPublicServer {
 	return &canvasPublicServer{
 		searchService: searchService,
 		nodeService:   nodeService,
@@ -48,7 +47,7 @@ func NewCanvasPublicServer(
 }
 
 // GetNodes implements the GetNodes RPC
-func (s *canvasPublicServer) GetNodes(ctx context.Context, req *canvaspublicv1.GetNodesRequest) (*canvaspublicv1.GetNodesResponse, error) {
+func (s *canvasPublicServer) GetNodes(ctx context.Context, req *canvasv1.GetNodesRequest) (*canvasv1.GetNodesResponse, error) {
 	if len(req.Ids) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no node IDs provided")
 	}
@@ -70,13 +69,43 @@ func (s *canvasPublicServer) GetNodes(ctx context.Context, req *canvaspublicv1.G
 		return nil, status.Errorf(codes.Internal, "failed to get nodes: %v", err)
 	}
 
-	return &canvaspublicv1.GetNodesResponse{
+	return &canvasv1.GetNodesResponse{
+		Nodes: nodes,
+	}, nil
+}
+
+// SearchNodes implements the SearchNodes RPC
+func (s *canvasPublicServer) SearchNodes(ctx context.Context, req *canvasv1.SearchNodesRequest) (*canvasv1.SearchNodesResponse, error) {
+	// Set default values
+	if req.Limit <= 0 {
+		req.Limit = 100 // Default limit
+	}
+	if req.Limit > 1000 {
+		req.Limit = 1000 // Safety cap for canvas rendering
+	}
+
+	if req.Filter == nil {
+		return nil, status.Error(codes.InvalidArgument, "filter is required for SearchNodes")
+	}
+
+	if req.SpatialBbox == nil {
+		return nil, status.Error(codes.InvalidArgument, "spatial_bbox is required for SearchNodes")
+	}
+
+	// TODO: Implement the actual search logic using the service layer
+	// For now, return empty result to avoid breaking the build
+	nodes, err := s.nodeService.SearchNodes(ctx, req.Filter, req.SpatialBbox, req.Limit)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to search nodes: %v", err)
+	}
+
+	return &canvasv1.SearchNodesResponse{
 		Nodes: nodes,
 	}, nil
 }
 
 // UpdateNodes implements the UpdateNodes RPC
-func (s *canvasPublicServer) UpdateNodes(ctx context.Context, req *canvaspublicv1.UpdateNodesRequest) (*canvaspublicv1.UpdateNodesResponse, error) {
+func (s *canvasPublicServer) UpdateNodes(ctx context.Context, req *canvasv1.UpdateNodesRequest) (*canvasv1.UpdateNodesResponse, error) {
 	if len(req.Nodes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no node updates provided")
 	}
@@ -94,12 +123,18 @@ func (s *canvasPublicServer) UpdateNodes(ctx context.Context, req *canvaspublicv
 		// Extract ID based on node type
 		var id string
 		switch n := node.Node.(type) {
-		case *v1.Node_Content:
-			id = n.Content.Base.Id
-		case *v1.Node_Chunk:
-			id = n.Chunk.Base.Id
-		case *v1.Node_Cluster:
-			id = n.Cluster.Base.Id
+		case *canvasv1.Node_Content:
+			if n.Content != nil && n.Content.Base != nil {
+				id = n.Content.Base.Id
+			}
+		case *canvasv1.Node_Chunk:
+			if n.Chunk != nil && n.Chunk.Base != nil {
+				id = n.Chunk.Base.Id
+			}
+		case *canvasv1.Node_Cluster:
+			if n.Cluster != nil && n.Cluster.Base != nil {
+				id = n.Cluster.Base.Id
+			}
 		default:
 			return nil, status.Errorf(codes.InvalidArgument, "node ID is required at index %d", i)
 		}
@@ -114,13 +149,13 @@ func (s *canvasPublicServer) UpdateNodes(ctx context.Context, req *canvaspublicv
 		return nil, status.Errorf(codes.Internal, "failed to update nodes: %v", err)
 	}
 
-	return &canvaspublicv1.UpdateNodesResponse{
+	return &canvasv1.UpdateNodesResponse{
 		Nodes: updatedNodes,
 	}, nil
 }
 
 // GetNeighbors implements the GetNeighbors RPC
-func (s *canvasPublicServer) GetNeighbors(ctx context.Context, req *canvaspublicv1.GetNeighborsRequest) (*canvaspublicv1.GetNeighborsResponse, error) {
+func (s *canvasPublicServer) GetNeighbors(ctx context.Context, req *canvasv1.GetNeighborsRequest) (*canvasv1.GetNeighborsResponse, error) {
 	if len(req.Ids) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no node IDs provided")
 	}
@@ -150,13 +185,13 @@ func (s *canvasPublicServer) GetNeighbors(ctx context.Context, req *canvaspublic
 		return nil, status.Errorf(codes.Internal, "failed to get neighbors: %v", err)
 	}
 
-	return &canvaspublicv1.GetNeighborsResponse{
+	return &canvasv1.GetNeighborsResponse{
 		Results: neighbors,
 	}, nil
 }
 
 // SemanticSearch implements the SemanticSearch RPC
-func (s *canvasPublicServer) SemanticSearch(ctx context.Context, req *canvaspublicv1.SemanticSearchRequest) (*canvaspublicv1.SemanticSearchResponse, error) {
+func (s *canvasPublicServer) SemanticSearch(ctx context.Context, req *canvasv1.SemanticSearchRequest) (*canvasv1.SemanticSearchResponse, error) {
 	if req.Query == "" {
 		return nil, status.Error(codes.InvalidArgument, "query cannot be empty")
 	}
@@ -176,13 +211,13 @@ func (s *canvasPublicServer) SemanticSearch(ctx context.Context, req *canvaspubl
 		return nil, status.Errorf(codes.Internal, "failed to perform semantic search: %v", err)
 	}
 
-	return &canvaspublicv1.SemanticSearchResponse{
+	return &canvasv1.SemanticSearchResponse{
 		Results: results,
 	}, nil
 }
 
 // CreateStructuralLinks implements the CreateStructuralLinks RPC
-func (s *canvasPublicServer) CreateStructuralLinks(ctx context.Context, req *canvaspublicv1.CreateStructuralLinksRequest) (*canvaspublicv1.CreateStructuralLinksResponse, error) {
+func (s *canvasPublicServer) CreateStructuralLinks(ctx context.Context, req *canvasv1.CreateStructuralLinksRequest) (*canvasv1.CreateStructuralLinksResponse, error) {
 	if len(req.Links) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no structural links provided")
 	}
@@ -197,7 +232,7 @@ func (s *canvasPublicServer) CreateStructuralLinks(ctx context.Context, req *can
 		if link.SourceId == "" || link.TargetId == "" {
 			return nil, status.Errorf(codes.InvalidArgument, "source_id and target_id are required for link %d", i)
 		}
-		if link.ConnectionType == "" {
+		if link.ConnectionType == canvasv1.StructuralConnectionType_STRUCTURAL_CONNECTION_TYPE_UNSPECIFIED {
 			return nil, status.Errorf(codes.InvalidArgument, "connection_type is required for link %d", i)
 		}
 		if link.CreatedBy == "" {
@@ -214,13 +249,13 @@ func (s *canvasPublicServer) CreateStructuralLinks(ctx context.Context, req *can
 		return nil, status.Errorf(codes.Internal, "failed to create structural links: %v", err)
 	}
 
-	return &canvaspublicv1.CreateStructuralLinksResponse{
+	return &canvasv1.CreateStructuralLinksResponse{
 		Links: createdLinks,
 	}, nil
 }
 
 // UpdateStructuralLinks implements the UpdateStructuralLinks RPC
-func (s *canvasPublicServer) UpdateStructuralLinks(ctx context.Context, req *canvaspublicv1.UpdateStructuralLinksRequest) (*canvaspublicv1.UpdateStructuralLinksResponse, error) {
+func (s *canvasPublicServer) UpdateStructuralLinks(ctx context.Context, req *canvasv1.UpdateStructuralLinksRequest) (*canvasv1.UpdateStructuralLinksResponse, error) {
 	if len(req.Updates) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no structural link updates provided")
 	}
@@ -248,13 +283,13 @@ func (s *canvasPublicServer) UpdateStructuralLinks(ctx context.Context, req *can
 		return nil, status.Errorf(codes.Internal, "failed to update structural links: %v", err)
 	}
 
-	return &canvaspublicv1.UpdateStructuralLinksResponse{
+	return &canvasv1.UpdateStructuralLinksResponse{
 		Links: updatedLinks,
 	}, nil
 }
 
 // DeleteStructuralLinks implements the DeleteStructuralLinks RPC
-func (s *canvasPublicServer) DeleteStructuralLinks(ctx context.Context, req *canvaspublicv1.DeleteStructuralLinksRequest) (*canvaspublicv1.DeleteStructuralLinksResponse, error) {
+func (s *canvasPublicServer) DeleteStructuralLinks(ctx context.Context, req *canvasv1.DeleteStructuralLinksRequest) (*canvasv1.DeleteStructuralLinksResponse, error) {
 	if len(req.LinkIds) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no structural link IDs provided")
 	}
@@ -276,7 +311,7 @@ func (s *canvasPublicServer) DeleteStructuralLinks(ctx context.Context, req *can
 		return nil, status.Errorf(codes.Internal, "failed to delete structural links: %v", err)
 	}
 
-	return &canvaspublicv1.DeleteStructuralLinksResponse{
+	return &canvasv1.DeleteStructuralLinksResponse{
 		DeletedCount: deletedCount,
 	}, nil
 }
