@@ -206,14 +206,12 @@ func (s *canvasPublicServer) SemanticSearch(ctx context.Context, req *canvasv1.S
 		// For now, just check it's not empty - in real implementation would validate format
 	}
 
-	results, err := s.searchService.SemanticSearch(ctx, req.SpaceId, req.Query, req.TopK, req.NodeTypes)
+	results, err := s.searchService.SemanticSearch(ctx, req)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to perform semantic search: %v", err)
 	}
 
-	return &canvasv1.SemanticSearchResponse{
-		Results: results,
-	}, nil
+	return results, nil
 }
 
 // CreateStructuralLinks implements the CreateStructuralLinks RPC

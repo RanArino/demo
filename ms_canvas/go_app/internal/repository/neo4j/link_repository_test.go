@@ -296,8 +296,8 @@ func (r *TestableLinkRepo) CreateHierarchicalLinks(ctx context.Context, links []
 
 	cypher := `
         UNWIND $items AS item
-        MATCH (s {id: item.src})
-        MATCH (t {id: item.dst})
+        MATCH (s:Node {id: item.src})
+        MATCH (t:Node {id: item.dst})
         MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)
         SET r.connection_type = item.connection_type,
             r.hierarchy_depth = item.hierarchy_depth,
@@ -340,8 +340,8 @@ func TestLinkRepo_CreateHierarchicalLinks_DatabaseInteraction(t *testing.T) {
 			links: links,
 			validateCypher: func(t *testing.T, cypher string, params map[string]any, testLinks []*canvasv1.HierarchicalLink) {
 				assert.Contains(t, cypher, "UNWIND $items AS item")
-				assert.Contains(t, cypher, "MATCH (s {id: item.src})")
-				assert.Contains(t, cypher, "MATCH (t {id: item.dst})")
+				assert.Contains(t, cypher, "MATCH (s:Node {id: item.src})")
+				assert.Contains(t, cypher, "MATCH (t:Node {id: item.dst})")
 				assert.Contains(t, cypher, "MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)")
 				assert.Contains(t, cypher, "SET r.connection_type = item.connection_type")
 				assert.Contains(t, cypher, "r.hierarchy_depth = item.hierarchy_depth")
@@ -527,8 +527,8 @@ func TestLinkRepo_CreateStructuralLink_DatabaseInteraction(t *testing.T) {
 
 	testRepo := &TestableLinkRepo{
 		executeWriteFunc: func(cypher string, params map[string]any) error {
-			assert.Contains(t, cypher, "MATCH (s {id: $src})")
-			assert.Contains(t, cypher, "MATCH (t {id: $dst})")
+			assert.Contains(t, cypher, "MATCH (s:Node {id: $src})")
+			assert.Contains(t, cypher, "MATCH (t:Node {id: $dst})")
 			assert.Contains(t, cypher, "MERGE (s)-[r:STRUCTURAL_LINK]->(t)")
 			assert.Contains(t, cypher, "SET r.connection_type = $connection_type")
 			assert.Contains(t, cypher, "r.confidence_score = $confidence_score")

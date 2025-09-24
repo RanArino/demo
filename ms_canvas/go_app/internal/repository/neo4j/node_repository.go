@@ -96,7 +96,7 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 		}
 
 		query := `
-			MATCH (n)
+			MATCH (n:Node)
 			` + whereClause + `
 			RETURN
 				n.id as id,
@@ -285,7 +285,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 		}
 		_, err := tx.Run(ctx, `
 			UNWIND $items AS item
-			MERGE (n:ChunkNode {id: item.id})
+			MERGE (n:ChunkNode:Node {id: item.id})
 			ON CREATE SET
 				n.content_source_id = item.content_source_id,
 				n.sequence_index = item.sequence_index,
@@ -328,7 +328,7 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 		}
 		_, err := tx.Run(ctx, `
 			UNWIND $items AS item
-			MERGE (n:ContentNode {content_source_id: item.content_source_id})
+			MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
 			ON CREATE SET
 				n.id = item.id,
 				n.created_at = datetime(item.now),
@@ -375,7 +375,7 @@ func (r *NodeRepo) CreateClusterNodes(ctx context.Context, clusters []*canvasv1.
 
 		_, err := tx.Run(ctx, `
 			UNWIND $items AS item
-			MERGE (n:ClusterNode {id: item.id})
+			MERGE (n:ClusterNode:Node {id: item.id})
 			ON CREATE SET
 				n.space_id = item.space_id,
 				n.abstraction_level = item.abstraction_level,
@@ -575,7 +575,7 @@ func (r *NodeRepo) SoftDeleteNode(ctx context.Context, nodeID string) error {
 			"now": time.Now().UTC().Format(time.RFC3339),
 		}
 		_, err := tx.Run(ctx, `
-			MATCH (n {id: $id})
+			MATCH (n:Node {id: $id})
 			SET n.deleted_at = datetime($now)
 		`, params)
 		return nil, err

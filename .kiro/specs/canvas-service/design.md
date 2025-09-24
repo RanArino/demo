@@ -98,9 +98,10 @@ ms_canvas/
 ### 4.1 Go Application
 - `cmd/main.go`: wires dependencies; starts gRPC public API server, HTTP gateway (optional), and the Kafka consumer; manages lifecycle.
 - `internal/server`: gRPC server setup, service registration, health checks, graceful shutdown (follows `ms_knowledge` pattern).
-- `internal/service`: Business logic layer containing workflows and domain services (e.g., `node_service.go`, `link_service.go`, `search_service.go` for orchestration). Services coordinate gateway calls and repository operations.
+- `internal/service`: Business logic layer containing workflows and domain services (e.g., `node_service.go`, `link_service.go`, `search_service.go`, `event_orchestrator.go`, `task_executor.go` for orchestration and extensible task execution). Services coordinate gateway calls and repository operations. Features worker pools, priority-based task execution, and plugin architecture for task types.
 - `internal/repository`: Data access layer with Neo4j repositories (`NodeRepository`, `LinkRepository`) and driver setup.
 - `internal/events`: Event-related code including event types (`types.go`) and Kafka consumer implementation that delegates to `internal/service`.
+- `internal/service/event_orchestrator.go`: Core event orchestration service implementing the EventHandler interface to coordinate document ingestion workflows, ContentNode creation, and extensible task execution.
 - `internal/gateway/python`: gRPC client to Python internal service for chunking/embedding operations.
 - `api/proto/private/v1`: generated Go code for private/internal protobufs.
 - `api/proto/public/v1`: generated Go code for public protobufs.
@@ -149,8 +150,8 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 ### 6.1 Event-Driven Ingestion
 1. Kafka emits `document.processed` with metadata (space_id, content_source_id, location, etc.).
 2. Go consumer validates auth/signature and schema.
-3. Create `ContentNode` with provenance.
-4. Trigger chunking (and embedding) orchestration directly (no internal Kafka).
+3. EventOrchestrator processes the event, creates `ContentNode` with provenance.
+4. EventOrchestrator triggers chunking (and embedding) orchestration via extensible task execution framework.
 
 ### 6.2 Chunking
 1. Go calls Python internal `ChunkText` with parameters (target_size≈tokens, overlap%, type=sentence) and either inline text or blob URL.
@@ -178,17 +179,64 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 
 ### 6.5 Querying & Search
 - Get node by id; get neighbors with relationship filters.
-- Semantic search: input query -> temporary embedding (Python) -> similarity on vector index -> return top-N nodes.
+- Semantic search: input query -> embedding (Python) -> similarity on vector index -> return top-N nodes with database similarity scores.
 
-## 7. API Design (Proto Sketches)
+## 7. API Endpoint Design
+[This section describes the specifications for each API endpoint. Clarify requests, responses, authentication requirements, etc.]
 
-### 7.1 Public API (`canvas_public.proto`)
+### `POST /api/semantic-search`
+- **Description:** Performs semantic search on nodes in the knowledge graph.
+- **Authentication:** API key required
+- **Request Body:**
+  ```json
+  {
+    "space_id": "string",
+    "query": "string",
+    "top_k": 25,
+    "node_types": ["CONTENT", "CHUNK", "CLUSTER"]
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "results": [
+      {
+        "node": { /* node object */ },
+        "score": 0.95
+      }
+    ]
+  }
+  ```
+
+### `GET /api/nodes/{id}`
+- **Description:** Retrieves a specific node by ID.
+- **Authentication:** API key required
+- **Response (200 OK):**
+  ```json
+  {
+    "id": "string",
+    "type": "CONTENT",
+    "content": "string",
+    "metadata": { /* additional metadata */ }
+  }
+  ```
+
+## 8. UI/UX Design
+[As this is a backend service, UI/UX design is not applicable for the core service functionality. The service provides gRPC and REST APIs for frontend applications to consume.]
+
+- **Note:** UI/UX design would be handled by consuming frontend applications
+- **API Documentation:** OpenAPI/Swagger specifications will be generated for all endpoints
+- **Client Libraries:** Generated gRPC client libraries will be provided for different programming languages
+
+## 9. API Design (Proto Sketches)
+
+### 9.1 Public API (`canvas_public.proto`)
 - `rpc GetNode(GetNodeRequest) returns (GetNodeResponse)`
 - `rpc GetNeighbors(GetNeighborsRequest) returns (GetNeighborsResponse)`
 - `rpc SemanticSearch(SemanticSearchRequest) returns (SemanticSearchResponse)`
 - `rpc CreateStructuralLink(CreateStructuralLinkRequest) returns (CreateStructuralLinkResponse)`
 
-### 7.2 Internal API (`proto/private/v1/canvas_private.proto`)
+### 9.2 Internal API (`proto/private/v1/canvas_private.proto`)
 - `rpc ChunkText(ChunkTextRequest) returns (ChunkTextResponse)`
 - `rpc EmbedChunks(EmbedChunksRequest) returns (EmbedChunksResponse)`
 - `rpc EmbedQuery(EmbedQueryRequest) returns (EmbedQueryResponse)`
@@ -196,7 +244,7 @@ Soft delete: `deleted_at != null` implies filtered from reads.
 
 Note: Exact message fields will map to `requirements.md` metadata (space_id, content_source_id, etc.).
 
-## 8. Configuration
+## 10. Configuration
 
 - Chunking (env vars, read by Python app):
   - `CANVAS_CHUNK_TYPE=sentence` (fixed for this phase)
@@ -212,27 +260,27 @@ Note: Exact message fields will map to `requirements.md` metadata (space_id, con
 - Neo4j: uri, user, password; vector index configuration.
 - Security: event authentication/authorization; secrets management; PII scrubbing in logs.
 
-## 9. Observability & Reliability
+## 11. Observability & Reliability
 
 - Structured logging with PII scrubbing; request and event correlation IDs.
 - Metrics: `document.received`, `chunking.completed` (emitted by Go after persistence), `embedding.completed`, consumer lag, RPC latency; Python processing P99.
 - Tracing across Go and Python via OpenTelemetry exporters.
 - Idempotency keys for event processing; retry with backoff; poison-queue handling.
 
-## 10. Deployment & Runtime
+## 12. Deployment & Runtime
 
 - Single Dockerfile builds Go binary and installs Python deps.
 - `supervisord` or `start.sh` to run both processes; health checks for both. Go exposes primary health endpoints; Python exposes internal-only healthz for readiness checks used by Go.
 - Readiness: Go API ready, Python RPC reachable; liveness for both.
 - Config via env vars; secrets via mounted files or secret manager.
 
-## 11. Security
+## 13. Security
 
 - Validate and authorize incoming events; signed messages or mTLS for Kafka.
 - Least-privilege Neo4j credentials; encrypt sensitive data at rest.
 - Internal gRPC bound to localhost; not exposed externally.
 
-## 12. NFR Mapping
+## 14. NFR Mapping
 
 - Performance: vector index lookups < 100ms for S/M workspaces; Python chunking+embedding P99 < 5s for 200k characters.
 - Reliability: idempotent handlers; retries; backoff; DLQ.
@@ -242,9 +290,10 @@ Note: Exact message fields will map to `requirements.md` metadata (space_id, con
 - Configurability: chunking, embedding, thresholds via config.
 - Tooling: migration scripts for indexes and sample data.
 
-## 13. Risks & Open Questions
+## 15. Risks & Open Questions
 
 - Vector indexing in Neo4j vs external vector store; fallback plan.
 - Embedding provider quotas/costs; local model alternative.
 - Message schema evolution and compatibility.
 - Backpressure handling for large documents and bulk events.
+
