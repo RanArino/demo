@@ -22,7 +22,7 @@ func NewSearchRepo(driver *Driver) *SearchRepo {
 // VectorSearch performs semantic search using Neo4j's native vector search
 // If nodeTypes is empty or nil, searches across all node types (ClusterNode, ContentNode, ChunkNode)
 // using their respective vector indexes. If nodeTypes is specified, only searches the specified types.
-func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, error) {
+func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, []float64, error) {
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 
@@ -121,12 +121,14 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 			params["labels"] = labels
 		}
 
+		var nodes []*canvasv1.Node
+		var scores []float64
+
 		result, err := tx.Run(ctx, query, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute vector search query: %w", err)
 		}
 
-		var nodes []*canvasv1.Node
 		for result.Next(ctx) {
 			record := result.Record()
 
@@ -139,17 +141,24 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 			node := r.convertNeo4jNodeToProtobufWithScore(nodeInterface, score.(float64), nodeType.(string))
 			if node != nil {
 				nodes = append(nodes, node)
+				scores = append(scores, score.(float64))
 			}
 		}
 
-		return nodes, nil
+		return []interface{}{nodes, scores}, nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return result.([]*canvasv1.Node), nil
+	nodesAndScores := result.([]interface{})
+	if len(nodesAndScores) == 2 {
+		nodes := nodesAndScores[0].([]*canvasv1.Node)
+		scores := nodesAndScores[1].([]float64)
+		return nodes, scores, nil
+	}
+	return []*canvasv1.Node{}, []float64{}, nil
 }
 
 // MultiHopSearch performs real-time multi-hop search across abstraction levels
@@ -170,17 +179,17 @@ func (r *SearchRepo) MultiHopSearch(ctx context.Context, spaceID uuid.UUID, quer
 	// This provides real-time results at each abstraction level
 
 	// Step 1: Search ClusterNodes
-	if clusters, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CLUSTER}); err == nil {
+	if clusters, _, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CLUSTER}); err == nil {
 		response.ClusterResults = clusters
 	}
 
 	// Step 2: Search ContentNodes
-	if contents, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CONTENT}); err == nil {
+	if contents, _, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CONTENT}); err == nil {
 		response.ContentResults = contents
 	}
 
 	// Step 3: Search ChunkNodes
-	if chunks, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CHUNK}); err == nil {
+	if chunks, _, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CHUNK}); err == nil {
 		response.ChunkResults = chunks
 	}
 
