@@ -82,8 +82,8 @@ func (m *MockLinkRepoForNodeService) CreateStructuralLinks(ctx context.Context, 
 	return args.Error(0)
 }
 
-func (m *MockLinkRepoForNodeService) GetLinks(ctx context.Context, ids []string, query *v1.LinkQuery) ([]*v1.Link, error) {
-	args := m.Called(ctx, ids, query)
+func (m *MockLinkRepoForNodeService) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLinkFilter) ([]*v1.Link, error) {
+	args := m.Called(ctx, ids, filter)
 	return args.Get(0).([]*v1.Link), args.Error(1)
 }
 
