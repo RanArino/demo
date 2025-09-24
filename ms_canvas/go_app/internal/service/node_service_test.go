@@ -750,3 +750,17 @@ func TestHelperFunctions(t *testing.T) {
 		assert.Equal(t, "", result)
 	})
 }
+
+// linkTypeToString is used by tests; keep it here to avoid unused code in production.
+func linkTypeToString(linkType v1.LinkType) string {
+	switch linkType {
+	case v1.LinkType_LINK_TYPE_HIERARCHICAL:
+		return "hierarchical"
+	case v1.LinkType_LINK_TYPE_SEMANTIC:
+		return "semantic"
+	case v1.LinkType_LINK_TYPE_STRUCTURAL:
+		return "structural"
+	default:
+		return ""
+	}
+}
