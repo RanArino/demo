@@ -137,7 +137,6 @@ THEN the API must return the requested graph data.
 WHEN a semantic search query is executed via the API
 THEN the API must return a list of nodes that are semantically similar to the query, using the vector index.
 ```
-
 ### Requirement 6: Non-functional Requirements
 
 **Requirements:**
@@ -146,7 +145,7 @@ THEN the API must return a list of nodes that are semantically similar to the qu
   - Python chunking and embedding processing must achieve P99 latency under 5 seconds for a 200,000-character input (on target deployment hardware).
 - **Reliability:** All event handlers must be idempotent and support retries.
 - **Data Management:** The system must support soft deletes for nodes and relationships.
- - **Observability:** The service must emit metrics for key stages (e.g., `document.received`, `chunking.completed`, `embedding.completed`). It must also produce structured logs for failures, and include OpenTelemetry traces/metrics across Go and Python components.
+- **Observability:** The service must emit metrics for key stages (e.g., `document.received`, `chunking.completed`, `embedding.completed`). It must also produce structured logs for failures, and include OpenTelemetry traces/metrics across Go and Python components.
 - **Security:** Incoming events must be validated for authentication and authorization. Sensitive data should be encrypted at rest. Logs must scrub/redact PII by default.
 - **Configurability:** Chunking parameters (type=sentence only for now, target_size≈tokens, overlap%), embedding models, tokenizer, and similarity thresholds must be configurable via environment variables.
 - **Tooling:** The service must include data migration scripts for setting up indexes and sample data.
