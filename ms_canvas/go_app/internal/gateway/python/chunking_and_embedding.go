@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	privpb "demo/ms_canvas/go_app/api/proto/private/v1"
+	"demo/ms_canvas/go_app/internal/config"
 
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -53,6 +54,23 @@ func DefaultEmbeddingConfig() *privpb.EmbeddingConfig {
 		ModelId:      "all-MiniLM-L6-v2",
 		ModelVersion: "",
 	}
+}
+
+// DefaultGeminiEmbeddingConfig returns default Gemini embedding configuration
+func DefaultGeminiEmbeddingConfig() *privpb.EmbeddingConfig {
+	return &privpb.EmbeddingConfig{
+		Provider:             "gemini",
+		ModelId:              "gemini-embedding-001",
+		ModelVersion:         "",
+		OutputDimensionality: 1536,
+		TaskType:             "SEMANTIC_SIMILARITY",
+		NormalizeEmbeddings:  true,
+	}
+}
+
+// GetGeminiAPIKey returns the Gemini API key from configuration
+func GetGeminiAPIKey(cfg *config.Config) string {
+	return cfg.GEMINIAPIKey
 }
 
 // ParseBatchSize parses batch size from string, returns nil if empty or invalid
