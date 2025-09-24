@@ -25,7 +25,7 @@ type NodeService interface {
 // SearchService defines the interface for search operations
 type SearchService interface {
 	// SemanticSearch performs semantic search on nodes
-	SemanticSearch(ctx context.Context, spaceID, query string, topK int32, nodeTypes []canvaspublicv1.NodeType) ([]*canvaspublicv1.SearchResult, error)
+	SemanticSearch(ctx context.Context, req *canvaspublicv1.SemanticSearchRequest) (*canvaspublicv1.SemanticSearchResponse, error)
 }
 
 // LinkService defines the interface for link operations
