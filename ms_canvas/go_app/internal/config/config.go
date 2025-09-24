@@ -17,6 +17,7 @@ type Config struct {
 	KafkaGroupID          string
 	GRPCPort              int
 	ClerkSecretKey        string
+	GEMINIAPIKey          string
 	Neo4jURI              string
 	Neo4jUsername         string
 	Neo4jPassword         string
@@ -58,6 +59,7 @@ func Load() Config {
 		KafkaGroupID:          getEnv("KAFKA_GROUP_ID", "ms_canvas-consumer-group"),
 		GRPCPort:              getEnvInt("GRPC_PORT", 50055), // Different from Python port
 		ClerkSecretKey:        getEnv("CLERK_SECRET_KEY", ""),
+		GEMINIAPIKey:          getEnv("GEMINI_API_KEY", ""),
 		Neo4jURI:              getEnv("NEO4J_URI", "bolt://localhost:7687"),
 		Neo4jUsername:         getEnv("NEO4J_USERNAME", "neo4j"),
 		Neo4jPassword:         getEnv("NEO4J_PASSWORD", "password"),
