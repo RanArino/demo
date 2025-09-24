@@ -362,7 +362,7 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 			expectedError: false,
 			validateCypher: func(t *testing.T, cypher string, params map[string]interface{}) {
 				assert.Contains(t, cypher, "UNWIND $items AS item")
-				assert.Contains(t, cypher, "MERGE (n:ChunkNode {id: item.id})")
+				assert.Contains(t, cypher, "MERGE (n:ChunkNode:Node {id: item.id})")
 				assert.Contains(t, cypher, "ON CREATE SET")
 				assert.Contains(t, cypher, "ON MATCH SET")
 				assert.Contains(t, params, "items")
@@ -399,7 +399,7 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 			expectedError: true,
 			validateCypher: func(t *testing.T, cypher string, params map[string]interface{}) {
 				// Cypher should still be correct even if execution fails
-				assert.Contains(t, cypher, "MERGE (n:ChunkNode {id: item.id})")
+				assert.Contains(t, cypher, "MERGE (n:ChunkNode:Node {id: item.id})")
 			},
 		},
 	}
@@ -448,7 +448,7 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 
 			cypher := `
 			UNWIND $items AS item
-			MERGE (n:ChunkNode {id: item.id})
+			MERGE (n:ChunkNode:Node {id: item.id})
 			ON CREATE SET
 				n.content_source_id = item.content_source_id,
 				n.sequence_index = item.sequence_index,
