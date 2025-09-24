@@ -565,17 +565,21 @@ func (r *NodeRepo) UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNo
 	return err
 }
 
-// SoftDeleteNode marks a node as deleted by setting deleted_at.
-func (r *NodeRepo) SoftDeleteNode(ctx context.Context, nodeID string) error {
+// SoftDeleteNodes marks multiple nodes as deleted by setting deleted_at.
+func (r *NodeRepo) SoftDeleteNodes(ctx context.Context, nodeIDs []string) error {
+	if len(nodeIDs) == 0 {
+		return nil
+	}
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"id":  nodeID,
+			"ids": nodeIDs,
 			"now": time.Now().UTC().Format(time.RFC3339),
 		}
 		_, err := tx.Run(ctx, `
-			MATCH (n:Node {id: $id})
+			MATCH (n:Node)
+			WHERE n.id IN $ids
 			SET n.deleted_at = datetime($now)
 		`, params)
 		return nil, err
