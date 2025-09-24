@@ -70,10 +70,17 @@ func (d *Driver) EnsureIndexes(ctx context.Context) error {
 			log.Printf("[Neo4j] create index chunknode_csid: %v", e)
 		}
 
-		// Vector index (Neo4j 5.11+). This may fail on older versions; log and continue.
-		query := fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim)
-		if _, e := tx.Run(ctx, query, nil); e != nil {
-			log.Printf("[Neo4j] create vector index (embedding): %v", e)
+		// Vector indexes (Neo4j 5.11+). This may fail on older versions; log and continue.
+		vectorIndexQueries := []string{
+			fmt.Sprintf("CREATE VECTOR INDEX clusternode_embedding IF NOT EXISTS FOR (n:ClusterNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
+			fmt.Sprintf("CREATE VECTOR INDEX contentnode_embedding IF NOT EXISTS FOR (n:ContentNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
+			fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
+		}
+
+		for _, query := range vectorIndexQueries {
+			if _, e := tx.Run(ctx, query, nil); e != nil {
+				log.Printf("[Neo4j] create vector index (embedding): %v", e)
+			}
 		}
 		return nil, nil
 	})

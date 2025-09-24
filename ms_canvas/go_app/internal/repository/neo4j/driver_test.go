@@ -113,19 +113,6 @@ func TestDriver_EnsureIndexes_Logic(t *testing.T) {
 				assert.Contains(t, cypher, "ON (n.content_source_id)")
 			},
 		},
-		{
-			name:          "vector index should be created with proper configuration",
-			expectedQuery: fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", defaultVectorDim),
-			validateQuery: func(t *testing.T, cypher string) {
-				assert.Contains(t, cypher, "CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS")
-				assert.Contains(t, cypher, "FOR (n:ChunkNode)")
-				assert.Contains(t, cypher, "ON (n.embedding)")
-				assert.Contains(t, cypher, "vector.dimensions")
-				assert.Contains(t, cypher, fmt.Sprintf("%d", defaultVectorDim))
-				assert.Contains(t, cypher, "vector.similarity_function")
-				assert.Contains(t, cypher, "cosine")
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -133,6 +120,31 @@ func TestDriver_EnsureIndexes_Logic(t *testing.T) {
 			tt.validateQuery(t, tt.expectedQuery)
 		})
 	}
+}
+
+func TestDriver_VectorIndexes_Logic(t *testing.T) {
+	// Test all three vector index queries
+	vectorIndexQueries := []string{
+		fmt.Sprintf("CREATE VECTOR INDEX clusternode_embedding IF NOT EXISTS FOR (n:ClusterNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", defaultVectorDim),
+		fmt.Sprintf("CREATE VECTOR INDEX contentnode_embedding IF NOT EXISTS FOR (n:ContentNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", defaultVectorDim),
+		fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", defaultVectorDim),
+	}
+
+	t.Run("vector indexes should be created for all node types", func(t *testing.T) {
+		// Test all three vector indexes
+		for i, query := range vectorIndexQueries {
+			t.Run(fmt.Sprintf("vector index %d", i+1), func(t *testing.T) {
+				assert.Contains(t, query, "CREATE VECTOR INDEX")
+				assert.Contains(t, query, "IF NOT EXISTS")
+				assert.Contains(t, query, "FOR (n:")
+				assert.Contains(t, query, "ON (n.embedding)")
+				assert.Contains(t, query, "vector.dimensions")
+				assert.Contains(t, query, fmt.Sprintf("%d", defaultVectorDim))
+				assert.Contains(t, query, "vector.similarity_function")
+				assert.Contains(t, query, "cosine")
+			})
+		}
+	})
 }
 
 func TestDriver_DatabaseOperations_Validation(t *testing.T) {
