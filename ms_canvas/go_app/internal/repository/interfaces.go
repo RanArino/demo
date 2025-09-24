@@ -4,6 +4,8 @@ import (
 	"context"
 
 	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
+
+	"github.com/google/uuid"
 )
 
 // NodeRepository defines the interface for node data operations
@@ -22,7 +24,7 @@ type NodeRepository interface {
 	UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNode) error
 
 	// Node deletion
-	SoftDeleteNodes(ctx context.Context, nodeIDs []string) error
+	SoftDeleteNode(ctx context.Context, nodeID string) error
 }
 
 // LinkRepository defines the interface for link data operations
@@ -33,7 +35,7 @@ type LinkRepository interface {
 	CreateStructuralLinks(ctx context.Context, links []*canvasv1.StructuralLink) error
 
 	// Link read methods - consolidated
-	GetLinks(ctx context.Context, ids []string, query *canvasv1.LinkQuery) ([]*canvasv1.Link, error)
+	GetLinks(ctx context.Context, ids []string, filter *canvasv1.BaseLinkFilter) ([]*canvasv1.Link, error)
 	GetLinksByNodes(ctx context.Context, nodeIDs []string, direction canvasv1.Direction, query *canvasv1.LinkQuery) ([]*canvasv1.Link, error)
 
 	// Link update methods - bulk operations
@@ -44,4 +46,16 @@ type LinkRepository interface {
 	// Link deletion methods - consolidated
 	DeleteLinks(ctx context.Context, linkIDs []string) error
 	DeleteLinksForNodes(ctx context.Context, nodeIDs []string) error
+}
+
+type SearchRepository interface {
+	VectorSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, error)
+	MultiHopSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32) (*MultiHopSearchResponse, error)
+}
+
+// MultiHopSearchResponse contains results from each abstraction level
+type MultiHopSearchResponse struct {
+	ClusterResults []*canvasv1.Node `json:"cluster_results"`
+	ContentResults []*canvasv1.Node `json:"content_results"`
+	ChunkResults   []*canvasv1.Node `json:"chunk_results"`
 }
