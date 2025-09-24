@@ -77,7 +77,7 @@ func (e *EventOrchestrator) HandleDocumentProcessed(event events.DocumentProcess
 
 	// TODO: Future operations can be added here if needed:
 	// - Update existing nodes: e.nodeRepo.UpdateContentNode(ctx, updatedNode)
-	// - Soft delete nodes: e.nodeRepo.SoftDeleteNode(ctx, nodeID)
+	// - Soft delete nodes: e.nodeRepo.SoftDeleteNodes(ctx, []string{nodeID})
 	// - Create additional links: e.linkRepo.CreateStructuralLinks(ctx, links)
 
 	log.Printf("[EventOrchestrator] Successfully processed document ingestion event")

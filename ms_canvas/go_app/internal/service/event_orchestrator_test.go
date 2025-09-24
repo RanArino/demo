@@ -58,8 +58,8 @@ func (m *MockNodeRepository) UpdateChunkNode(ctx context.Context, update *v1.Chu
 	return args.Error(0)
 }
 
-func (m *MockNodeRepository) SoftDeleteNode(ctx context.Context, nodeID string) error {
-	args := m.Called(ctx, nodeID)
+func (m *MockNodeRepository) SoftDeleteNodes(ctx context.Context, nodeIDs []string) error {
+	args := m.Called(ctx, nodeIDs)
 	return args.Error(0)
 }
 

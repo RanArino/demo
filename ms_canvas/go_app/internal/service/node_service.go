@@ -583,17 +583,3 @@ func (s *nodeServiceImpl) convertV1ClusterNodeToPublic(v1Node *v1.ClusterNode) *
 		},
 	}
 }
-
-// Helper function to convert LinkType enum to string
-func linkTypeToString(linkType v1.LinkType) string {
-	switch linkType {
-	case v1.LinkType_LINK_TYPE_HIERARCHICAL:
-		return "hierarchical"
-	case v1.LinkType_LINK_TYPE_SEMANTIC:
-		return "semantic"
-	case v1.LinkType_LINK_TYPE_STRUCTURAL:
-		return "structural"
-	default:
-		return ""
-	}
-}

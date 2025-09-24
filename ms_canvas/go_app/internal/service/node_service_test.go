@@ -82,8 +82,8 @@ func (m *MockLinkRepoForNodeService) CreateStructuralLinks(ctx context.Context, 
 	return args.Error(0)
 }
 
-func (m *MockLinkRepoForNodeService) GetLinks(ctx context.Context, ids []string, query *v1.LinkQuery) ([]*v1.Link, error) {
-	args := m.Called(ctx, ids, query)
+func (m *MockLinkRepoForNodeService) GetLinks(ctx context.Context, ids []string, filter *v1.BaseLinkFilter) ([]*v1.Link, error) {
+	args := m.Called(ctx, ids, filter)
 	return args.Get(0).([]*v1.Link), args.Error(1)
 }
 
@@ -749,4 +749,18 @@ func TestHelperFunctions(t *testing.T) {
 		result := linkTypeToString(v1.LinkType_LINK_TYPE_UNSPECIFIED)
 		assert.Equal(t, "", result)
 	})
+}
+
+// linkTypeToString is used by tests; keep it here to avoid unused code in production.
+func linkTypeToString(linkType v1.LinkType) string {
+	switch linkType {
+	case v1.LinkType_LINK_TYPE_HIERARCHICAL:
+		return "hierarchical"
+	case v1.LinkType_LINK_TYPE_SEMANTIC:
+		return "semantic"
+	case v1.LinkType_LINK_TYPE_STRUCTURAL:
+		return "structural"
+	default:
+		return ""
+	}
 }
