@@ -23,8 +23,8 @@ type NodeRepository interface {
 	UpdateContentNode(ctx context.Context, update *canvasv1.ContentNode) error
 	UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNode) error
 
-	// Node deletion
-	SoftDeleteNode(ctx context.Context, nodeID string) error
+	// Node deletion - batch operations
+	SoftDeleteNodes(ctx context.Context, nodeIDs []string) error
 }
 
 // LinkRepository defines the interface for link data operations
