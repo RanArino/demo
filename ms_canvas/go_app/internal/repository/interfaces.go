@@ -49,7 +49,7 @@ type LinkRepository interface {
 }
 
 type SearchRepository interface {
-	VectorSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, error)
+	VectorSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, []float64, error)
 	MultiHopSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32) (*MultiHopSearchResponse, error)
 }
 
