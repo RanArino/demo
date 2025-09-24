@@ -288,12 +288,15 @@ func (x *Chunk) GetLocation() *SpatialCoordinates {
 }
 
 type EmbeddingConfig struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"` // e.g., openai, local
-	ModelId       string                 `protobuf:"bytes,2,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
-	ModelVersion  string                 `protobuf:"bytes,3,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Provider             string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"` // e.g., openai, local, gemini
+	ModelId              string                 `protobuf:"bytes,2,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
+	ModelVersion         string                 `protobuf:"bytes,3,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
+	OutputDimensionality int32                  `protobuf:"varint,4,opt,name=output_dimensionality,json=outputDimensionality,proto3" json:"output_dimensionality,omitempty"` // embedding dimension size (128-3072)
+	TaskType             string                 `protobuf:"bytes,5,opt,name=task_type,json=taskType,proto3" json:"task_type,omitempty"`                                      // task-specific optimization (SEMANTIC_SIMILARITY, etc.)
+	NormalizeEmbeddings  bool                   `protobuf:"varint,6,opt,name=normalize_embeddings,json=normalizeEmbeddings,proto3" json:"normalize_embeddings,omitempty"`    // whether to normalize embeddings
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *EmbeddingConfig) Reset() {
@@ -345,6 +348,27 @@ func (x *EmbeddingConfig) GetModelVersion() string {
 		return x.ModelVersion
 	}
 	return ""
+}
+
+func (x *EmbeddingConfig) GetOutputDimensionality() int32 {
+	if x != nil {
+		return x.OutputDimensionality
+	}
+	return 0
+}
+
+func (x *EmbeddingConfig) GetTaskType() string {
+	if x != nil {
+		return x.TaskType
+	}
+	return ""
+}
+
+func (x *EmbeddingConfig) GetNormalizeEmbeddings() bool {
+	if x != nil {
+		return x.NormalizeEmbeddings
+	}
+	return false
 }
 
 type EmbedQueryRequest struct {
@@ -747,11 +771,14 @@ const file_proto_private_v1_canvas_private_proto_rawDesc = "" +
 	"\fend_position\x18\x04 \x01(\x03R\vendPosition\x12\x18\n" +
 	"\acontent\x18\x05 \x01(\tR\acontent\x12A\n" +
 	"\blocation\x18\n" +
-	" \x01(\v2%.canvas.private.v1.SpatialCoordinatesR\blocation\"m\n" +
+	" \x01(\v2%.canvas.private.v1.SpatialCoordinatesR\blocation\"\xf2\x01\n" +
 	"\x0fEmbeddingConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x19\n" +
 	"\bmodel_id\x18\x02 \x01(\tR\amodelId\x12#\n" +
-	"\rmodel_version\x18\x03 \x01(\tR\fmodelVersion\"c\n" +
+	"\rmodel_version\x18\x03 \x01(\tR\fmodelVersion\x123\n" +
+	"\x15output_dimensionality\x18\x04 \x01(\x05R\x14outputDimensionality\x12\x1b\n" +
+	"\ttask_type\x18\x05 \x01(\tR\btaskType\x121\n" +
+	"\x14normalize_embeddings\x18\x06 \x01(\bR\x13normalizeEmbeddings\"c\n" +
 	"\x11EmbedQueryRequest\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12:\n" +
 	"\x06config\x18\n" +

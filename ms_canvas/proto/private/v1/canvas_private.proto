@@ -42,9 +42,12 @@ message Chunk {
 }
 
 message EmbeddingConfig {
-  string provider = 1; // e.g., openai, local
+  string provider = 1; // e.g., openai, local, gemini
   string model_id = 2;
   string model_version = 3;
+  int32 output_dimensionality = 4; // embedding dimension size (128-3072)
+  string task_type = 5; // task-specific optimization (SEMANTIC_SIMILARITY, etc.)
+  bool normalize_embeddings = 6; // whether to normalize embeddings
 }
 
 message EmbedQueryRequest {

@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n%proto/private/v1/canvas_private.proto\x12\x11\x63\x61nvas.private.v1\x1a\x1bgoogle/protobuf/empty.proto\"\x96\x01\n\x0cHealthStatus\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x43\n\ncomponents\x18\x02 \x03(\x0b\x32/.canvas.private.v1.HealthStatus.ComponentsEntry\x1a\x31\n\x0f\x43omponentsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"a\n\x0e\x43hunkingConfig\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x15\n\rtarget_tokens\x18\x02 \x01(\x05\x12\x17\n\x0foverlap_percent\x18\x03 \x01(\x05\x12\x11\n\ttokenizer\x18\x04 \x01(\t\"5\n\x12SpatialCoordinates\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01z\x18\x03 \x01(\x05\"\xa3\x01\n\x05\x43hunk\x12\n\n\x02id\x18\x01 \x01(\t\x12\x16\n\x0esequence_index\x18\x02 \x01(\x05\x12\x16\n\x0estart_position\x18\x03 \x01(\x03\x12\x14\n\x0c\x65nd_position\x18\x04 \x01(\x03\x12\x0f\n\x07\x63ontent\x18\x05 \x01(\t\x12\x37\n\x08location\x18\n \x01(\x0b\x32%.canvas.private.v1.SpatialCoordinates\"L\n\x0f\x45mbeddingConfig\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x10\n\x08model_id\x18\x02 \x01(\t\x12\x15\n\rmodel_version\x18\x03 \x01(\t\"U\n\x11\x45mbedQueryRequest\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x32\n\x06\x63onfig\x18\n \x01(\x0b\x32\".canvas.private.v1.EmbeddingConfig\"[\n\x12\x45mbedQueryResponse\x12\x0e\n\x06vector\x18\x01 \x03(\x02\x12\x0c\n\x04\x64ims\x18\x02 \x01(\x05\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x15\n\rmodel_version\x18\x04 \x01(\t\"\x87\x02\n\x11\x43hunkEmbedRequest\x12\x10\n\x08space_id\x18\x01 \x01(\t\x12\x19\n\x11\x63ontent_source_id\x18\x02 \x01(\t\x12\x17\n\x0f\x63ontent_node_id\x18\x03 \x01(\t\x12\x0e\n\x04text\x18\n \x01(\tH\x00\x12\x12\n\x08\x62lob_url\x18\x0b \x01(\tH\x00\x12\x33\n\x08\x63hunking\x18\x14 \x01(\x0b\x32!.canvas.private.v1.ChunkingConfig\x12\x35\n\tembedding\x18\x15 \x01(\x0b\x32\".canvas.private.v1.EmbeddingConfig\x12\x12\n\nbatch_size\x18\x16 \x01(\x05\x42\x08\n\x06source\"I\n\x0e\x43hunkEmbedding\x12\'\n\x05\x63hunk\x18\x01 \x01(\x0b\x32\x18.canvas.private.v1.Chunk\x12\x0e\n\x06vector\x18\x02 \x03(\x02\"\x7f\n\x12\x43hunkEmbedResponse\x12\x32\n\x07results\x18\x01 \x03(\x0b\x32!.canvas.private.v1.ChunkEmbedding\x12\x0c\n\x04\x64ims\x18\x02 \x01(\x05\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x15\n\rmodel_version\x18\x04 \x01(\t2\x84\x02\n\x08\x43\x61nvasML\x12Y\n\nChunkEmbed\x12$.canvas.private.v1.ChunkEmbedRequest\x1a%.canvas.private.v1.ChunkEmbedResponse\x12Y\n\nEmbedQuery\x12$.canvas.private.v1.EmbedQueryRequest\x1a%.canvas.private.v1.EmbedQueryResponse\x12\x42\n\x07Healthz\x12\x16.google.protobuf.Empty\x1a\x1f.canvas.private.v1.HealthStatusB5Z3demo/ms_canvas/go_app/api/proto/private/v1;canvasv1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n%proto/private/v1/canvas_private.proto\x12\x11\x63\x61nvas.private.v1\x1a\x1bgoogle/protobuf/empty.proto\"\x96\x01\n\x0cHealthStatus\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x43\n\ncomponents\x18\x02 \x03(\x0b\x32/.canvas.private.v1.HealthStatus.ComponentsEntry\x1a\x31\n\x0f\x43omponentsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"a\n\x0e\x43hunkingConfig\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x15\n\rtarget_tokens\x18\x02 \x01(\x05\x12\x17\n\x0foverlap_percent\x18\x03 \x01(\x05\x12\x11\n\ttokenizer\x18\x04 \x01(\t\"5\n\x12SpatialCoordinates\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01z\x18\x03 \x01(\x05\"\xa3\x01\n\x05\x43hunk\x12\n\n\x02id\x18\x01 \x01(\t\x12\x16\n\x0esequence_index\x18\x02 \x01(\x05\x12\x16\n\x0estart_position\x18\x03 \x01(\x03\x12\x14\n\x0c\x65nd_position\x18\x04 \x01(\x03\x12\x0f\n\x07\x63ontent\x18\x05 \x01(\t\x12\x37\n\x08location\x18\n \x01(\x0b\x32%.canvas.private.v1.SpatialCoordinates\"\x9c\x01\n\x0f\x45mbeddingConfig\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x10\n\x08model_id\x18\x02 \x01(\t\x12\x15\n\rmodel_version\x18\x03 \x01(\t\x12\x1d\n\x15output_dimensionality\x18\x04 \x01(\x05\x12\x11\n\ttask_type\x18\x05 \x01(\t\x12\x1c\n\x14normalize_embeddings\x18\x06 \x01(\x08\"U\n\x11\x45mbedQueryRequest\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x32\n\x06\x63onfig\x18\n \x01(\x0b\x32\".canvas.private.v1.EmbeddingConfig\"[\n\x12\x45mbedQueryResponse\x12\x0e\n\x06vector\x18\x01 \x03(\x02\x12\x0c\n\x04\x64ims\x18\x02 \x01(\x05\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x15\n\rmodel_version\x18\x04 \x01(\t\"\x87\x02\n\x11\x43hunkEmbedRequest\x12\x10\n\x08space_id\x18\x01 \x01(\t\x12\x19\n\x11\x63ontent_source_id\x18\x02 \x01(\t\x12\x17\n\x0f\x63ontent_node_id\x18\x03 \x01(\t\x12\x0e\n\x04text\x18\n \x01(\tH\x00\x12\x12\n\x08\x62lob_url\x18\x0b \x01(\tH\x00\x12\x33\n\x08\x63hunking\x18\x14 \x01(\x0b\x32!.canvas.private.v1.ChunkingConfig\x12\x35\n\tembedding\x18\x15 \x01(\x0b\x32\".canvas.private.v1.EmbeddingConfig\x12\x12\n\nbatch_size\x18\x16 \x01(\x05\x42\x08\n\x06source\"I\n\x0e\x43hunkEmbedding\x12\'\n\x05\x63hunk\x18\x01 \x01(\x0b\x32\x18.canvas.private.v1.Chunk\x12\x0e\n\x06vector\x18\x02 \x03(\x02\"\x7f\n\x12\x43hunkEmbedResponse\x12\x32\n\x07results\x18\x01 \x03(\x0b\x32!.canvas.private.v1.ChunkEmbedding\x12\x0c\n\x04\x64ims\x18\x02 \x01(\x05\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x15\n\rmodel_version\x18\x04 \x01(\t2\x84\x02\n\x08\x43\x61nvasML\x12Y\n\nChunkEmbed\x12$.canvas.private.v1.ChunkEmbedRequest\x1a%.canvas.private.v1.ChunkEmbedResponse\x12Y\n\nEmbedQuery\x12$.canvas.private.v1.EmbedQueryRequest\x1a%.canvas.private.v1.EmbedQueryResponse\x12\x42\n\x07Healthz\x12\x16.google.protobuf.Empty\x1a\x1f.canvas.private.v1.HealthStatusB5Z3demo/ms_canvas/go_app/api/proto/private/v1;canvasv1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -45,18 +45,18 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SPATIALCOORDINATES']._serialized_end=394
   _globals['_CHUNK']._serialized_start=397
   _globals['_CHUNK']._serialized_end=560
-  _globals['_EMBEDDINGCONFIG']._serialized_start=562
-  _globals['_EMBEDDINGCONFIG']._serialized_end=638
-  _globals['_EMBEDQUERYREQUEST']._serialized_start=640
-  _globals['_EMBEDQUERYREQUEST']._serialized_end=725
-  _globals['_EMBEDQUERYRESPONSE']._serialized_start=727
-  _globals['_EMBEDQUERYRESPONSE']._serialized_end=818
-  _globals['_CHUNKEMBEDREQUEST']._serialized_start=821
-  _globals['_CHUNKEMBEDREQUEST']._serialized_end=1084
-  _globals['_CHUNKEMBEDDING']._serialized_start=1086
-  _globals['_CHUNKEMBEDDING']._serialized_end=1159
-  _globals['_CHUNKEMBEDRESPONSE']._serialized_start=1161
-  _globals['_CHUNKEMBEDRESPONSE']._serialized_end=1288
-  _globals['_CANVASML']._serialized_start=1291
-  _globals['_CANVASML']._serialized_end=1551
+  _globals['_EMBEDDINGCONFIG']._serialized_start=563
+  _globals['_EMBEDDINGCONFIG']._serialized_end=719
+  _globals['_EMBEDQUERYREQUEST']._serialized_start=721
+  _globals['_EMBEDQUERYREQUEST']._serialized_end=806
+  _globals['_EMBEDQUERYRESPONSE']._serialized_start=808
+  _globals['_EMBEDQUERYRESPONSE']._serialized_end=899
+  _globals['_CHUNKEMBEDREQUEST']._serialized_start=902
+  _globals['_CHUNKEMBEDREQUEST']._serialized_end=1165
+  _globals['_CHUNKEMBEDDING']._serialized_start=1167
+  _globals['_CHUNKEMBEDDING']._serialized_end=1240
+  _globals['_CHUNKEMBEDRESPONSE']._serialized_start=1242
+  _globals['_CHUNKEMBEDRESPONSE']._serialized_end=1369
+  _globals['_CANVASML']._serialized_start=1372
+  _globals['_CANVASML']._serialized_end=1632
 # @@protoc_insertion_point(module_scope)
