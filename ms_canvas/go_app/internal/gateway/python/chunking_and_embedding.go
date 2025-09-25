@@ -22,6 +22,67 @@ func (g *Gateway) ChunkEmbed(ctx context.Context, req *privpb.ChunkEmbedRequest)
 	return pbResp, nil
 }
 
+// ChunkDocumentRequest represents a request to chunk a document
+type ChunkDocumentRequest struct {
+	DocumentContent string
+	ContentNodeID   string
+	SpaceID         string
+}
+
+// ChunkDocumentResponse represents the response from chunking a document
+type ChunkDocumentResponse struct {
+	Chunks []ChunkInfo
+}
+
+// ChunkInfo represents information about a single chunk
+type ChunkInfo struct {
+	ID            string
+	Content       string
+	Embedding     []float32
+	SequenceIndex int32
+	StartPosition int64
+	EndPosition   int64
+}
+
+// ChunkDocument processes a document through chunking and returns chunk information
+func (g *Gateway) ChunkDocument(ctx context.Context, documentContent []byte, contentNodeID string) (*ChunkDocumentResponse, error) {
+	// Convert document content to string
+	contentStr := string(documentContent)
+
+	// Create chunk embed request using text source
+	req := &privpb.ChunkEmbedRequest{
+		SpaceId:       contentNodeID, // Use content node ID as space ID for now
+		ContentNodeId: contentNodeID,
+		Source:        &privpb.ChunkEmbedRequest_Text{Text: contentStr},
+		Chunking:      DefaultChunkingConfig(),
+		Embedding:     DefaultGeminiEmbeddingConfig(),
+		BatchSize:     0, // Default batch size
+	}
+
+	// Call the Python service
+	resp, err := g.ChunkEmbed(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to chunk document: %w", err)
+	}
+
+	// Convert response to our format
+	chunks := make([]ChunkInfo, len(resp.Results))
+	for i, chunkEmbedding := range resp.Results {
+		chunks[i] = ChunkInfo{
+			ID:            chunkEmbedding.Chunk.Id,
+			Content:       chunkEmbedding.Chunk.Content,
+			Embedding:     chunkEmbedding.Vector,
+			SequenceIndex: chunkEmbedding.Chunk.SequenceIndex,
+			StartPosition: chunkEmbedding.Chunk.StartPosition,
+			EndPosition:   chunkEmbedding.Chunk.EndPosition,
+		}
+	}
+
+	return &ChunkDocumentResponse{
+		Chunks: chunks,
+	}, nil
+}
+
 // EmbedQuery embeds a single query text
 func (g *Gateway) EmbedQuery(ctx context.Context, text string, config *privpb.EmbeddingConfig) (*privpb.EmbedQueryResponse, error) {
 	req := &privpb.EmbedQueryRequest{

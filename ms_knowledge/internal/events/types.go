@@ -31,6 +31,7 @@ const (
 // DocumentProcessedEvent is produced by ms_document_process after processing.
 type DocumentProcessedEvent struct {
 	ContentSourceID   uuid.UUID     `json:"content_source_id"`
+	SpaceID           uuid.UUID     `json:"space_id"`
 	ProcessedBlobHash *string       `json:"processed_blob_hash,omitempty"`
 	Status            ProcessStatus `json:"status"`
 	ErrorMessage      string        `json:"error_message,omitempty"`
