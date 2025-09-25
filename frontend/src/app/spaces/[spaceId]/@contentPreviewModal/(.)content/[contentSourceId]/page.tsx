@@ -1,13 +1,14 @@
 "use client";
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 import ContentPreviewModal from '@/app/spaces/[spaceId]/@contentPreviewModal/components/ContentPreviewModal';
 
 interface ContentPreviewPageProps {
-  params: { spaceId: string; contentSourceId: string };
+  params: Promise<{ spaceId: string; contentSourceId: string }>;
 }
 
 export default function ContentPreviewPage({ params }: ContentPreviewPageProps) {
-  const { contentSourceId } = params;
+  const { contentSourceId } = use(params);
   const router = useRouter();
 
   const handleClose = () => {
