@@ -77,6 +77,7 @@ class DocumentProcessService:
             # Produce a success event
             processed_event = DocumentProcessedEvent(
                 content_source_id=event.content_source_id,
+                space_id=event.space_id,
                 processed_blob_hash=processed_blob_hash,
                 status="PROCESSED",
                 error_message=None,
@@ -88,6 +89,7 @@ class DocumentProcessService:
             logger.error(f"Processing failed for content_source_id: {event.content_source_id}: {e}", exc_info=True)
             failed_event = DocumentProcessedEvent(
                 content_source_id=event.content_source_id,
+                space_id=event.space_id,
                 processed_blob_hash=None,
                 status="FAILED",
                 error_message=str(e),
