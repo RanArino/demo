@@ -1,6 +1,7 @@
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString();
+  // Use fixed format to prevent hydration mismatches between server and client
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 }
 
 export function fileTypeLabel(mimeType?: string | null, sourceType?: string | null): string {
