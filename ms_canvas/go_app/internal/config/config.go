@@ -25,6 +25,15 @@ type Config struct {
 	Neo4jVectorDimensions int
 	Topics                Topics
 	PythonService         PythonServiceConfig
+	R2Config              R2Config
+}
+
+type R2Config struct {
+	Endpoint        string
+	AccessKeyID     string
+	SecretAccessKey string
+	AccountID       string
+	BucketProcessed string
 }
 
 type PythonServiceConfig struct {
@@ -73,6 +82,13 @@ func Load() Config {
 			Port:        getEnvInt("CANVAS_PY_PORT", 50054),
 			MaxMsgBytes: getEnvInt("CANVAS_MAX_GRPC_MSG_BYTES", 64*1024*1024),
 			BatchSize:   getEnvInt("CANVAS_BATCH_SIZE", 50),
+		},
+		R2Config: R2Config{
+			Endpoint:        getEnv("R2_ENDPOINT", ""),
+			AccessKeyID:     getEnv("R2_ACCESS_KEY_ID", ""),
+			SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", ""),
+			AccountID:       getEnv("R2_ACCOUNT_ID", ""),
+			BucketProcessed: getEnv("R2_BUCKET_PROCESSED", ""),
 		},
 	}
 }
