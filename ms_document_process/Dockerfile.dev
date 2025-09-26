@@ -1,12 +1,12 @@
 FROM python:3.13-slim
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install watchdog for hot reloading
-RUN pip install --no-cache-dir poetry watchdog
+# Install Poetry and watchdog's CLI (watchmedo)
+RUN pip install --no-cache-dir poetry watchdog[watchmedo]
 
 # Install only dependency metadata first for better caching
 COPY pyproject.toml poetry.lock ./
@@ -24,5 +24,5 @@ EXPOSE 50053
 
 ENV PYTHONPATH=/app
 
-# Use watchdog for hot reloading
-CMD ["python", "-m", "watchdog", "auto-restart", "--directory=.", "--pattern=*.py", "--recursive", "--", "python", "-m", "app.main"]
+# Use watchmedo for hot reloading
+CMD ["watchmedo", "auto-restart", "--directory=.", "--pattern=*.py", "--recursive", "--", "python", "-m", "app.main"]
