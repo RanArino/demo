@@ -23,7 +23,10 @@ services:
       - NODE_ENV=development
     ports:
       - "3002:3002"
-    command: ["npx", "next", "dev", "--turbopack", "--port", "3002", "--hostname", "0.0.0.0"]
+    # Use the image entrypoint so dependencies are installed inside the container
+    # (the previous direct next invocation bypassed the entrypoint and failed if node_modules
+    # were not present due to the bind mount)
+    command: ["/entrypoint.sh"]
 
   # Go microservices with hot reloading using Air
   ms_user:
