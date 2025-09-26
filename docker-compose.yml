@@ -75,7 +75,7 @@ services:
       context: ./ms_canvas
       dockerfile: Dockerfile.dev
     ports:
-      - "50054:50051"
+      - "50054:50054"
       - "8082:8080"
     env_file:
       - ./ms_canvas/.env.local
@@ -115,6 +115,7 @@ services:
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/profile/setup
       - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
       - MS_KNOWLEDGE_GRPC_URL_INTERNAL=ms_knowledge:50052
+      - MS_CANVAS_GRPC_URL_INTERNAL=ms_canvas:50054
     depends_on:
       - ms_user
     restart: unless-stopped
