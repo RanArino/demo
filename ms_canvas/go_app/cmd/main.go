@@ -4,17 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
 	"demo/ms_canvas/go_app/internal/config"
 	"demo/ms_canvas/go_app/internal/events/kafka"
 	"demo/ms_canvas/go_app/internal/gateway/python"
 	"demo/ms_canvas/go_app/internal/repository/neo4j"
+	"demo/ms_canvas/go_app/internal/server"
 	"demo/ms_canvas/go_app/internal/service"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -35,6 +39,7 @@ func main() {
 
 	nodeRepo := neo4j.NewNodeRepo(drv)
 	linkRepo := neo4j.NewLinkRepo(drv)
+	searchRepo := neo4j.NewSearchRepo(drv)
 
 	// Initialize Python gateway for ML operations
 	gatewayFactory := python.NewGatewayFactory(cfg)
@@ -52,6 +57,11 @@ func main() {
 		pythonGateway,
 	)
 
+	// Initialize services for gRPC server
+	searchService := service.NewSearchService(pythonGateway, searchRepo)
+	nodeService := service.NewNodeService(nodeRepo, linkRepo)
+	linkService := service.NewLinkService(linkRepo)
+
 	// Create Kafka consumer with the EventOrchestrator as event handler
 	consumer, err := kafka.NewConsumer(cfg, eventOrchestrator)
 	if err != nil {
@@ -67,6 +77,23 @@ func main() {
 	go func() {
 		if err := consumer.Start(ctx); err != nil {
 			log.Printf("[Main] Consumer stopped with error: %v", err)
+		}
+	}()
+
+	// Initialize gRPC server for CanvasPublic API
+	grpcSrv := grpc.NewServer()
+	canvasServer := server.NewCanvasPublicServer(searchService, nodeService, linkService)
+	canvasv1.RegisterCanvasPublicServer(grpcSrv, canvasServer)
+
+	// Start gRPC server on configured port (50054 per requirements)
+	grpcListener, err := net.Listen("tcp", ":50054")
+	if err != nil {
+		log.Fatalf("failed to listen on gRPC port 50054: %v", err)
+	}
+	go func() {
+		log.Printf("[Main] gRPC server listening on :50054")
+		if err := grpcSrv.Serve(grpcListener); err != nil {
+			log.Printf("[Main] gRPC server stopped: %v", err)
 		}
 	}()
 
@@ -88,11 +115,11 @@ func main() {
 		}
 	})
 
-	port := fmt.Sprintf(":%d", cfg.GRPCPort)
-	log.Printf("[Main] ms_canvas service starting on port %s", port)
+	httpPort := ":8080"
+	log.Printf("[Main] ms_canvas service starting - gRPC on :50054, HTTP health checks on %s", httpPort)
 	log.Printf("[Main] Ready to receive Kafka events from topic: %s", cfg.Topics.DocumentProcessed)
 
-	server := &http.Server{Addr: port}
+	server := &http.Server{Addr: httpPort}
 
 	// Handle graceful shutdown
 	go func() {
@@ -102,8 +129,14 @@ func main() {
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer shutdownCancel()
 
+		// Shutdown gRPC server gracefully
+		log.Printf("[Main] Stopping gRPC server...")
+		grpcSrv.GracefulStop()
+
+		// Shutdown HTTP server
+		log.Printf("[Main] Stopping HTTP server...")
 		if err := server.Shutdown(shutdownCtx); err != nil {
-			log.Printf("[Main] Server shutdown error: %v", err)
+			log.Printf("[Main] HTTP server shutdown error: %v", err)
 		}
 
 		log.Printf("[Main] Shutdown complete")
