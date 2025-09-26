@@ -2,14 +2,22 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json package-lock.json* ./
-RUN npm ci
+# OS dependencies for better install performance and optional native modules
+RUN apk add --no-cache libc6-compat python3 make g++
 
-# Copy source code (will be mounted as volume in dev)
-COPY . .
+# Only copy package manifests for layer caching
+COPY package.json package-lock.json* ./
+
+# Preinstall to prime cache in image (will be overwritten by bind mount, but speeds up first boot)
+RUN npm ci --include=dev || npm install
+
+# Bring in the app (will be bind-mounted in dev)
+COPY . ./
+
+# Ship entrypoint to handle installs after bind mount
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 3002
 
-# Use development server with hot reloading (skip proto generation)
-CMD ["npx", "next", "dev", "--turbopack", "--port", "3002", "--hostname", "0.0.0.0"]
+ENTRYPOINT ["/entrypoint.sh"]
