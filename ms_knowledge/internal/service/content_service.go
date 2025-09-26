@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -60,9 +61,14 @@ func (s *ContentService) scopeContentFilterToOwner(ctx context.Context, filter d
 }
 
 // buildObjectKey constructs the R2 object key including the owner prefix and space/content path
+// New format: <userId>/spaces/<spaceId>/content/<contentSourceId>+<media_extension>
 func buildObjectKey(ownerID, spaceID, contentID uuid.UUID, filename string) string {
-	// <userId>/spaces/<spaceId>/content/<contentSourceId>/<fileName>
-	return ownerID.String() + "/spaces/" + spaceID.String() + "/content/" + contentID.String() + "/" + strings.TrimSpace(filename)
+	// derive extension from filename
+	ext := strings.TrimPrefix(filepath.Ext(strings.TrimSpace(filename)), ".")
+	if ext == "" {
+		ext = "bin"
+	}
+	return ownerID.String() + "/spaces/" + spaceID.String() + "/content/" + contentID.String() + "+" + strings.ToLower(ext)
 }
 
 // getBucketFromObjectKind returns the appropriate bucket name based on the object kind
@@ -143,7 +149,7 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 		// Log error but don't fail the upload process itself
 	}
 
-	// Generate object key based on persisted content ID
+	// Generate object key based on persisted content ID (new format handled by buildObjectKey)
 	objectKey := buildObjectKey(ownerUUID, spaceID, content.ID, filename)
 
 	// Get appropriate bucket based on object kind
@@ -186,7 +192,8 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 
 	// Emit document.uploaded event
 	if s.producer != nil {
-		objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, strings.TrimSpace(content.Source))
+		// Emit with configured key format
+		objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, content.Source)
 		evt := events.DocumentUploadedEvent{
 			ContentSourceID:   content.ID,
 			OriginalBlobHash:  blobHash,
@@ -383,8 +390,8 @@ func (s *ContentService) GenerateDownloadURL(ctx context.Context, contentID uuid
 		expires = 15 * time.Minute
 	}
 
-	filename := content.Source
-	objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, filename)
+	// Build object key and generate presigned URL
+	objectKey := buildObjectKey(content.OwnerID, content.SpaceID, content.ID, strings.TrimSpace(content.Source))
 
 	url, err := s.storage.GeneratePresignedDownloadURL(bucket, objectKey, expires)
 	if err != nil {
