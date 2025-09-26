@@ -61,14 +61,14 @@ func (s *ContentService) scopeContentFilterToOwner(ctx context.Context, filter d
 }
 
 // buildObjectKey constructs the R2 object key including the owner prefix and space/content path
-// New format: <userId>/spaces/<spaceId>/content/<contentSourceId>+<media_extension>
+// New format: <userId>/spaces/<spaceId>/content/<contentSourceId>.<media_extension>
 func buildObjectKey(ownerID, spaceID, contentID uuid.UUID, filename string) string {
 	// derive extension from filename
 	ext := strings.TrimPrefix(filepath.Ext(strings.TrimSpace(filename)), ".")
 	if ext == "" {
 		ext = "bin"
 	}
-	return ownerID.String() + "/spaces/" + spaceID.String() + "/content/" + contentID.String() + "+" + strings.ToLower(ext)
+	return ownerID.String() + "/spaces/" + spaceID.String() + "/content/" + contentID.String() + "." + strings.ToLower(ext)
 }
 
 // getBucketFromObjectKind returns the appropriate bucket name based on the object kind
