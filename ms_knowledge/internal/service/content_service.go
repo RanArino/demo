@@ -199,6 +199,7 @@ func (s *ContentService) ConfirmUpload(ctx context.Context, contentID uuid.UUID,
 			OriginalBlobHash:  blobHash,
 			SpaceID:           content.SpaceID,
 			OriginalObjectKey: objectKey,
+			Title:             content.Title,
 		}
 		if err := s.producer.ProduceJSON(ctx, events.TopicDocumentUploaded, content.ID.String(), evt); err != nil {
 			slog.Error("Failed to produce document.uploaded event", "content_id", content.ID, "error", err)
@@ -249,7 +250,7 @@ func (s *ContentService) ListContentSources(ctx context.Context, filter domain.C
 	return contents, nil
 }
 
-func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.UUID, status domain.ContentStatus, processedBlobHash, errorMessage string) (*domain.ContentSource, error) {
+func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.UUID, status domain.ContentStatus, processedBlobHash, errorMessage string, summary *string, keywords *[]string, title *string) (*domain.ContentSource, error) {
 	// Get content source
 	content, err := s.contentRepo.GetByID(ctx, id)
 	if err != nil {
@@ -277,6 +278,49 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 	err = s.contentRepo.UpdateStatus(ctx, id, status, processedBlobHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update content source status: %w", err)
+	}
+
+	// Ensure the in-memory representation reflects the newly persisted values before applying
+	// additional metadata changes to avoid unintentionally reverting the status via a later update.
+	content.Status = status
+	if processedBlobHash != "" {
+		content.ProcessedBlobHash = &processedBlobHash
+	} else {
+		content.ProcessedBlobHash = nil
+	}
+
+	// Apply optional metadata updates when provided
+	updatesNeeded := summary != nil || keywords != nil || title != nil
+	if updatesNeeded {
+		if summary != nil {
+			trimmed := strings.TrimSpace(*summary)
+			content.ContentSummary = nil
+			if trimmed != "" {
+				content.ContentSummary = &trimmed
+			}
+		}
+		if keywords != nil {
+			dedup := make(map[string]struct{})
+			normalized := make([]string, 0, len(*keywords))
+			for _, kw := range *keywords {
+				clean := strings.TrimSpace(kw)
+				if clean == "" {
+					continue
+				}
+				if _, seen := dedup[clean]; seen {
+					continue
+				}
+				dedup[clean] = struct{}{}
+				normalized = append(normalized, clean)
+			}
+			content.Keywords = normalized
+		}
+		if title != nil {
+			content.Title = strings.TrimSpace(*title)
+		}
+		if err := s.contentRepo.Update(ctx, content); err != nil {
+			return nil, fmt.Errorf("failed to update content metadata: %w", err)
+		}
 	}
 
 	// Get updated content source

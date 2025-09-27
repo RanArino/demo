@@ -6,11 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install Poetry and watchdog's CLI (watchmedo)
-# System build tools for packages with native extensions (e.g., watchdog on Py3.13)
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential gcc \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir poetry watchdog[watchmedo]
+RUN pip install --no-cache-dir poetry watchdog[watchmedo]
 
 # Install only dependency metadata first for better caching
 COPY pyproject.toml poetry.lock ./

@@ -1,4 +1,6 @@
-from pydantic_settings import BaseSettings
+import os
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     grpc_port: int = 50053
@@ -15,10 +17,15 @@ class Settings(BaseSettings):
     r2_bucket_source_name: str = ""
     r2_bucket_processed_name: str = ""
     ms_knowledge_grpc_url: str = "localhost:50052"
+    gemini_api_key: str = ""
+    gemini_model: str = "models/gemini-flash-latest"
+    gemini_summary_tokens: int = 512
+    gemini_keyword_count: int = 10
 
-    class Config:
-        env_file = ".env.local"
-        env_file_encoding = "utf-8"
-        extra = "forbid"
+    model_config = SettingsConfigDict(
+        env_file=".env.local",
+        env_file_encoding="utf-8",
+        extra="ignore" if os.environ.get("ALLOW_EXTRA_SETTINGS") == "1" else "forbid",
+    )
 
 settings = Settings()

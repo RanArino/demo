@@ -25,7 +25,7 @@ const (
 func (current ContentStatus) ValidateTransition(next ContentStatus) error {
 	validTransitions := map[ContentStatus][]ContentStatus{
 		ContentStatusUploading:  {ContentStatusUploaded, ContentStatusFailed},
-		ContentStatusUploaded:   {ContentStatusProcessing, ContentStatusFailed},
+		ContentStatusUploaded:   {ContentStatusProcessing, ContentStatusProcessed, ContentStatusFailed},
 		ContentStatusPending:    {ContentStatusProcessing, ContentStatusFailed},
 		ContentStatusProcessing: {ContentStatusProcessed, ContentStatusFailed},
 		ContentStatusProcessed:  {},                        // Terminal state - no transitions allowed

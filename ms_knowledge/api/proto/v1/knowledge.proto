@@ -225,6 +225,9 @@ message UpdateContentSourceStatusRequest {
   ContentStatus status = 2;
   string processed_blob_hash = 3;
   string error_message = 4;
+  optional string content_summary = 5;
+  repeated string keywords = 6;
+  optional string title = 7;
 }
 
 message DeleteContentSourceRequest {

@@ -257,7 +257,16 @@ func (s *GRPCServer) UpdateContentSourceStatus(ctx context.Context, req *knowled
 		return nil, status.Errorf(codes.InvalidArgument, "invalid content source id: %v", err)
 	}
 
-	content, err := s.contentService.UpdateContentSourceStatus(ctx, id, domain.ContentStatus(req.Status.String()), req.ProcessedBlobHash, req.ErrorMessage)
+	content, err := s.contentService.UpdateContentSourceStatus(
+		ctx,
+		id,
+		domain.ContentStatus(req.Status.String()),
+		req.ProcessedBlobHash,
+		req.ErrorMessage,
+		nil,
+		nil,
+		req.Title,
+	)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update content source status: %v", err)
 	}

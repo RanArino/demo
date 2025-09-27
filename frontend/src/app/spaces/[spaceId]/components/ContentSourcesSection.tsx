@@ -1,16 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ContentSource, ContentStatus } from '@/api/generated/v1/knowledge_pb';
-import { generateDownloadURL, deleteContentSource } from '@/api/actions/contentActions';
-import { useToast } from '@/components/ui/use-toast';
-import { useProcessingPoller } from '@/app/spaces/hooks/useProcessingPoller';
-import ContentSourcesHeader from './ContentSourcesHeader';
 import ContentSourceCard from '@/components/content/ContentSourceCard';
+import { useProcessingPoller } from '@/app/spaces/hooks/useProcessingPoller';
+import { generateDownloadURL, deleteContentSource } from '@/api/actions/contentActions';
+import ContentSourcesHeader from './ContentSourcesHeader';
+import { useToast } from '@/components/ui/use-toast';
 
 // Prefer terminal states when deduping same-id entries
 function rankStatus(status: ContentStatus): number {
@@ -55,6 +55,48 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(contentSources.map((s) => s.id)));
   const [progressById, setProgressById] = useState<Record<string, number>>({});
 
+  const UPLOAD_PROGRESS_MAX = 90;
+  const STAGE_PROGRESS: Partial<Record<ContentStatus, number>> = {
+    [ContentStatus. UPLOADING]: 10,
+    [ContentStatus.UPLOADED]: 92,
+    [ContentStatus.PROCESSING]: 97,
+  };
+
+  const applyUploadProgress = useCallback((id: string, percent: number) => {
+    setProgressById((prev) => {
+      const normalized = Math.min(Math.max(percent, 0), 100);
+      const scaled = Math.round((normalized / 100) * UPLOAD_PROGRESS_MAX);
+      if (prev[id] === scaled) {
+        return prev;
+      }
+      return { ...prev, [id]: scaled };
+    });
+  }, []);
+
+  const applyStatusProgress = useCallback((id: string, status: ContentStatus) => {
+    setProgressById((prev) => {
+      if (status === ContentStatus.PROCESSED || status === ContentStatus.FAILED) {
+        if (prev[id] === undefined) {
+          return prev;
+        }
+        const { [id]: _remove, ...rest } = prev;
+        return rest;
+      }
+
+      const target = STAGE_PROGRESS[status];
+      if (target === undefined) {
+        return prev;
+      }
+
+      const prevValue = prev[id] ?? 0;
+      const nextValue = Math.max(prevValue, target);
+      if (nextValue === prevValue) {
+        return prev;
+      }
+      return { ...prev, [id]: nextValue };
+    });
+  }, [STAGE_PROGRESS]);
+
   useEffect(() => {
     // When the component mounts or window regains focus, fetch the latest sources
     // uncached to avoid stale UI after closing the upload modal.
@@ -82,29 +124,31 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
   useEffect(() => {
     const onCreated = (e: CustomEvent<ContentSource>) => {
       const detail = e.detail;
-      setSources((prev) => dedupeByIdPreferTerminal([detail, ...prev]));
+      setSources((prev) => {
+        if (prev.some((s) => s.id === detail.id)) return prev;
+        return [detail, ...prev];
+      });
+      if (detail.status === ContentStatus.UPLOADING) {
+        applyUploadProgress(detail.id, 0);
+      } else {
+        applyStatusProgress(detail.id, detail.status);
+      }
     };
     const onUpdated = (e: CustomEvent<ContentSource>) => {
       const detail = e.detail;
       setSources((prev) => prev.map((s) => (s.id === detail.id ? detail : s)));
+      applyStatusProgress(detail.id, detail.status);
       if (detail.status === ContentStatus.PROCESSED) {
         setSelectedIds((prev) => {
           const next = new Set(prev);
           next.add(detail.id);
           return next;
         });
-        setProgressById((prev) => ({ ...prev, [detail.id]: 100 }));
-        setTimeout(() => {
-          setProgressById((prev) => {
-            const { [detail.id]: _, ...rest } = prev;
-            return rest;
-          });
-        }, 1500);
       }
     };
     const onProgress = (e: CustomEvent<{ contentSourceId: string; progress: number }>) => {
       const { contentSourceId, progress } = e.detail;
-      setProgressById((prev) => ({ ...prev, [contentSourceId]: progress }));
+      applyUploadProgress(contentSourceId, progress);
     };
     const createdHandler = onCreated as unknown as EventListener;
     const updatedHandler = onUpdated as unknown as EventListener;
@@ -117,7 +161,7 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
       window.removeEventListener('content:updated', updatedHandler);
       window.removeEventListener('content:progress', progressHandler);
     };
-  }, []);
+  }, [applyStatusProgress, applyUploadProgress]);
 
   const handleAddContent = () => {
     router.push(`/spaces/${spaceId}/upload`);
@@ -171,6 +215,7 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
       });
 
       updates.forEach((u) => {
+        applyStatusProgress(u.id, u.status);
         if (u.status === ContentStatus.PROCESSED) {
           try {
             const completed = sources.find((s) => s.id === u.id);
@@ -181,23 +226,11 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
             next.add(u.id);
             return next;
           });
-          setProgressById((prev) => ({ ...prev, [u.id]: 100 }));
-          setTimeout(() => {
-            setProgressById((prev) => {
-              const { [u.id]: _, ...rest } = prev;
-              return rest;
-            });
-          }, 1500);
-        }
-        if (u.status === ContentStatus.FAILED) {
+        } else if (u.status === ContentStatus.FAILED) {
           toast({ title: 'Processing failed', description: 'An error occurred while processing the file', variant: 'destructive' });
-          setProgressById((prev) => {
-            const { [u.id]: _, ...rest } = prev;
-            return rest;
-          });
         }
       });
-    }, [sources, toast]),
+    }, [applyStatusProgress, sources, toast]),
   });
 
   const statusCounts = useMemo(() => ({
