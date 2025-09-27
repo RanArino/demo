@@ -280,6 +280,15 @@ func (s *ContentService) UpdateContentSourceStatus(ctx context.Context, id uuid.
 		return nil, fmt.Errorf("failed to update content source status: %w", err)
 	}
 
+	// Ensure the in-memory representation reflects the newly persisted values before applying
+	// additional metadata changes to avoid unintentionally reverting the status via a later update.
+	content.Status = status
+	if processedBlobHash != "" {
+		content.ProcessedBlobHash = &processedBlobHash
+	} else {
+		content.ProcessedBlobHash = nil
+	}
+
 	// Apply optional metadata updates when provided
 	updatesNeeded := summary != nil || keywords != nil || title != nil
 	if updatesNeeded {
