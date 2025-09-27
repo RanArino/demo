@@ -189,18 +189,15 @@ func (s *nodeServiceImpl) GetNeighbors(ctx context.Context, ids []string, direct
 			continue
 		}
 
-		// Determine which node is the neighbor based on direction
-		var neighborID string
-		if sourceID != "" && (sourceID != targetID) {
-			// For outgoing links, the target is the neighbor
-			neighborID = targetID
-		} else if targetID != "" {
-			// For incoming links, the source is the neighbor
-			neighborID = sourceID
-		}
-
-		if neighborNode, exists := nodeMap[neighborID]; exists {
-			// Get link type from the link
+		// Determine neighbors based on the requested direction.
+		addNeighbor := func(ownerID, neighborID string) {
+			if ownerID == "" || neighborID == "" || ownerID == neighborID {
+				return
+			}
+			neighborNode, exists := nodeMap[neighborID]
+			if !exists {
+				return
+			}
 			var linkType v1.LinkType
 			if link.GetHierarchical() != nil {
 				linkType = v1.LinkType_LINK_TYPE_HIERARCHICAL
@@ -209,16 +206,27 @@ func (s *nodeServiceImpl) GetNeighbors(ctx context.Context, ids []string, direct
 			} else if link.GetStructural() != nil {
 				linkType = v1.LinkType_LINK_TYPE_STRUCTURAL
 			}
-
-			// Add neighbor to the appropriate source node
-			if _, ok := results[sourceID]; ok {
+			if _, ok := results[ownerID]; ok {
 				neighbor := &v1.Neighbor{
 					Node:     neighborNode,
 					LinkType: linkType,
 					Link:     link,
 				}
-				results[sourceID].Neighbors = append(results[sourceID].Neighbors, neighbor)
+				results[ownerID].Neighbors = append(results[ownerID].Neighbors, neighbor)
 			}
+		}
+
+		switch direction {
+		case v1.Direction_DIRECTION_OUTGOING:
+			// For a requested source node, the neighbor is the target.
+			addNeighbor(sourceID, targetID)
+		case v1.Direction_DIRECTION_INCOMING:
+			// For a requested target node, the neighbor is the source.
+			addNeighbor(targetID, sourceID)
+		default:
+			// Include both incoming and outgoing relationships for any other value.
+			addNeighbor(sourceID, targetID)
+			addNeighbor(targetID, sourceID)
 		}
 	}
 
