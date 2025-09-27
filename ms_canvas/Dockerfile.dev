@@ -1,4 +1,4 @@
-FROM golang:1.25
+FROM golang:1.23-bookworm
 
 WORKDIR /app
 
@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y python3 python3-venv python3-pip && rm 
 # Copy go.mod first to download dependencies for go_app
 COPY go_app/go.mod go_app/go.sum ./go_app/
 RUN cd go_app && go mod download
+
+# Enable automatic toolchain download so newer tools can run on Go 1.23
+ENV GOTOOLCHAIN=auto
 
 # Install air for hot reloading during development
 RUN go install github.com/air-verse/air@latest
@@ -28,7 +31,4 @@ COPY supervisord.conf /app/supervisord.conf
 COPY scripts/start.sh /app/scripts/start.sh
 RUN chmod +x /app/scripts/start.sh
 
-CMD ["/app/scripts/start.sh"]
-
-# Use air for hot reloading of the Go service in development
-CMD ["air", "-c", ".air.toml"]
+CMD ["sh", "/app/scripts/start.sh"]

@@ -66,6 +66,7 @@ services:
     build:
       context: ./ms_canvas
       dockerfile: Dockerfile.dev
+    command: ["sh", "/app/scripts/start.sh"]
     volumes:
       - ./ms_canvas:/app
       - /app/tmp
