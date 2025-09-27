@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: api/proto/v1/knowledge.proto
+// source: knowledge.proto
 
 package knowledgev1
 
@@ -624,5 +624,5 @@ var KnowledgeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/proto/v1/knowledge.proto",
+	Metadata: "knowledge.proto",
 }
