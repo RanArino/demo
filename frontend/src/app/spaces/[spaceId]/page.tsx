@@ -13,7 +13,7 @@ interface SpaceDetailPageProps {
 }
 
 export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) {
-  const { spaceId } = params;
+  const { spaceId } = await params;
 
   // Fetch space data and content sources in parallel
   const [spaceResult, contentSourcesResult] = await Promise.all([
