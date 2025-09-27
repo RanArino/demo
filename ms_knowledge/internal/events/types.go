@@ -1,6 +1,8 @@
 package events
 
 import (
+	"strings"
+
 	"github.com/google/uuid"
 )
 
@@ -16,6 +18,7 @@ type DocumentUploadedEvent struct {
 	OriginalBlobHash  string    `json:"original_blob_hash"`
 	SpaceID           uuid.UUID `json:"space_id"`
 	OriginalObjectKey string    `json:"original_object_key"`
+	Title             string    `json:"title"`
 }
 
 // ProcessStatus is the processing outcome in the processed event.
@@ -34,4 +37,29 @@ type DocumentProcessedEvent struct {
 	ProcessedBlobHash *string       `json:"processed_blob_hash,omitempty"`
 	Status            ProcessStatus `json:"status"`
 	ErrorMessage      string        `json:"error_message,omitempty"`
+	Keywords          []string      `json:"keywords,omitempty"`
+	Summary           string        `json:"summary,omitempty"`
+	Title             string        `json:"title,omitempty"`
+}
+
+func (e DocumentProcessedEvent) SummaryPtr() *string {
+	if strings.TrimSpace(e.Summary) == "" {
+		return nil
+	}
+	return &e.Summary
+}
+
+func (e DocumentProcessedEvent) KeywordsPtr() *[]string {
+	if len(e.Keywords) == 0 {
+		return nil
+	}
+	return &e.Keywords
+}
+
+func (e DocumentProcessedEvent) TitlePtr() *string {
+	trimmed := strings.TrimSpace(e.Title)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }
