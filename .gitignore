@@ -82,3 +82,6 @@ tmp/
 ms_*/app
 ms_*/server
 ms_*/test_app
+# Canvas service specific
+ms_canvas/go_app/main
+ms_canvas/supervisord.pid
