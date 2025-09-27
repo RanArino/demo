@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
-	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 
 	"github.com/google/uuid"
 )
@@ -127,7 +127,10 @@ func TestUpdateContentSourceStatus(t *testing.T) {
 	item := &domain.ContentSource{ID: uuid.New(), SpaceID: space.ID, Title: "Doc", MediaType: "text/plain", Source: "f", Status: domain.ContentStatusUploaded}
 	_ = contentRepo.Create(ctx, item)
 
-	res, err := svc.UpdateContentSourceStatus(ctx, item.ID, domain.ContentStatusProcessed, "processed-hash", "")
+	summary := "Summary text"
+	keywords := []string{"keyword1", "keyword2"}
+	newTitle := "Updated Title"
+	res, err := svc.UpdateContentSourceStatus(ctx, item.ID, domain.ContentStatusProcessed, "processed-hash", "", &summary, &keywords, &newTitle)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -136,6 +139,15 @@ func TestUpdateContentSourceStatus(t *testing.T) {
 	}
 	if res.ProcessedBlobHash == nil || *res.ProcessedBlobHash != "processed-hash" {
 		t.Fatalf("expected processed hash to be set")
+	}
+	if res.ContentSummary == nil || *res.ContentSummary != summary {
+		t.Fatalf("expected summary to be updated")
+	}
+	if len(res.Keywords) != len(keywords) || res.Keywords[0] != keywords[0] {
+		t.Fatalf("expected keywords to be updated")
+	}
+	if res.Title != newTitle {
+		t.Fatalf("expected title to be updated")
 	}
 }
 

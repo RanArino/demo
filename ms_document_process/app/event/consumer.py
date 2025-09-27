@@ -9,6 +9,7 @@ from app.service.document_service import DocumentProcessService
 from app.repository.document_repository import DocumentRepository
 from app.event.producer import KafkaProducer
 from app.infra.r2_client import R2Client
+from app.service.insights_service import DocumentInsightsService
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,8 @@ def start_consumer():
         r2_client = R2Client()
         doc_repository = DocumentRepository(r2_client)
         kafka_producer = KafkaProducer()
-        doc_service = DocumentProcessService(doc_repository, kafka_producer)
+        insights_service = DocumentInsightsService()
+        doc_service = DocumentProcessService(doc_repository, kafka_producer, insights_service)
         consumer = KafkaConsumer(doc_service)
     except Exception as e:
         logger.critical(f"Failed to initialize consumer dependencies: {e}", exc_info=True)

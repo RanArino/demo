@@ -91,7 +91,7 @@ func main() {
 
 	r2Storage := storager2.NewAdapter(r2Client)
 	contentService := service.NewContentService(contentRepo, spaceRepo, r2Storage, producer, cfg, contentLogger)
-	// Initialize gRPC server  
+	// Initialize gRPC server
 	grpcServer := server.NewGRPCServer(spaceService, contentService)
 
 	// Initialize User service client for authentication
@@ -215,6 +215,6 @@ func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event ev
 	}
 	ctxWithOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
 
-	_, err = h.svc.UpdateContentSourceStatus(ctxWithOwner, event.ContentSourceID, status, processedHash, event.ErrorMessage)
+	_, err = h.svc.UpdateContentSourceStatus(ctxWithOwner, event.ContentSourceID, status, processedHash, event.ErrorMessage, event.SummaryPtr(), event.KeywordsPtr(), event.TitlePtr())
 	return err
 }

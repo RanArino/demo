@@ -28,6 +28,7 @@ func TestConsumerSimple_RetryMechanism(t *testing.T) {
 		SpaceID:           uuid.New(),
 		ProcessedBlobHash: stringPtr("test-hash"),
 		Status:            ProcessStatusProcessed,
+		Title:             "Test Title",
 	}
 
 	// Simulate the retry logic directly
@@ -102,17 +103,20 @@ func TestConsumerSimple_EventTypes(t *testing.T) {
 			SpaceID:           uuid.New(),
 			ProcessedBlobHash: stringPtr("processed-hash-1"),
 			Status:            ProcessStatusProcessed,
+			Title:             "Processed Doc",
 		},
 		{
 			ContentSourceID: uuid.New(),
 			SpaceID:         uuid.New(),
 			Status:          ProcessStatusFailed,
 			ErrorMessage:    "Processing failed",
+			Title:           "Failed Doc",
 		},
 		{
 			ContentSourceID: uuid.New(),
 			SpaceID:         uuid.New(),
 			Status:          ProcessStatusProcessing,
+			Title:           "Processing Doc",
 		},
 	}
 

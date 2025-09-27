@@ -1435,6 +1435,21 @@ export class UpdateContentSourceStatusRequest extends Message<UpdateContentSourc
    */
   errorMessage = "";
 
+  /**
+   * @generated from field: optional string content_summary = 5;
+   */
+  contentSummary?: string;
+
+  /**
+   * @generated from field: repeated string keywords = 6;
+   */
+  keywords: string[] = [];
+
+  /**
+   * @generated from field: optional string title = 7;
+   */
+  title?: string;
+
   constructor(data?: PartialMessage<UpdateContentSourceStatusRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1447,6 +1462,9 @@ export class UpdateContentSourceStatusRequest extends Message<UpdateContentSourc
     { no: 2, name: "status", kind: "enum", T: proto3.getEnumType(ContentStatus) },
     { no: 3, name: "processed_blob_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "error_message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "content_summary", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "keywords", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateContentSourceStatusRequest {

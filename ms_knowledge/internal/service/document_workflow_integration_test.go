@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
+	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 	"demo/ms_knowledge/internal/config"
 	"demo/ms_knowledge/internal/domain"
 	"demo/ms_knowledge/internal/events"
-	knowledgev1 "demo/ms_knowledge/api/proto/v1"
 
 	"github.com/google/uuid"
 )
@@ -84,7 +84,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 
 	// Step 4: Simulate document processing (ms_document_process would do this)
 	// First, transition to PROCESSING status
-	processingContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
+	processingContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "", nil, nil, nil)
 	if err != nil {
 		t.Fatalf("Failed to update to processing status: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestDocumentWorkflowIntegration_SuccessfulFlow(t *testing.T) {
 
 	// Step 5: Complete processing with successful result
 	processedHash := "processed-blob-hash-456"
-	processedContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessed, processedHash, "")
+	processedContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessed, processedHash, "", nil, nil, nil)
 	if err != nil {
 		t.Fatalf("Failed to update to processed status: %v", err)
 	}
@@ -143,10 +143,10 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
 
 	// Test 1: Processing failure
-	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
+	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "", nil, nil, nil)
 
 	// Simulate processing failure
-	failedContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusFailed, "", "Processing failed due to invalid PDF format")
+	failedContent, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusFailed, "", "Processing failed due to invalid PDF format", nil, nil, nil)
 	if err != nil {
 		t.Fatalf("Failed to update to failed status: %v", err)
 	}
@@ -157,7 +157,7 @@ func TestDocumentWorkflowIntegration_FailureScenarios(t *testing.T) {
 
 	// Test 2: Invalid status transitions (should be logged but allowed for now)
 	// Try to go from FAILED directly to PROCESSED (invalid transition)
-	_, err = contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessed, "hash", "")
+	_, err = contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessed, "hash", "", nil, nil, nil)
 	// This should succeed for now (as per implementation) but log a warning
 	if err != nil {
 		t.Fatalf("Status transition validation should allow invalid transitions for now: %v", err)
@@ -184,7 +184,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	space, _ := spaceSvc.CreateSpace(ctxOwner, "Test Space", "Test space")
 	content, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc.pdf", "application/pdf", 1024, "Test Doc", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	contentSvc.ConfirmUpload(ctxOwner, content.ID, "original-hash")
-	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
+	contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "", nil, nil, nil)
 
 	// Create event handler
 	handler := &DocumentProcessedHandler{
@@ -197,6 +197,7 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 		ContentSourceID:   content.ID,
 		ProcessedBlobHash: stringPtr("processed-hash-123"),
 		Status:            events.ProcessStatusProcessed,
+		Title:             "Test Doc",
 	}
 
 	err := handler.HandleDocumentProcessed(ctxOwner, successEvent)
@@ -213,12 +214,13 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	// Test failure event
 	content2, _, _, _, _ := contentSvc.CreateUploadURL(ctxOwner, space.ID, "test-doc2.pdf", "application/pdf", 1024, "Test Doc 2", knowledgev1.DownloadObjectKind_DOWNLOAD_OBJECT_KIND_ORIGINAL)
 	contentSvc.ConfirmUpload(ctxOwner, content2.ID, "original-hash-2")
-	contentSvc.UpdateContentSourceStatus(ctxOwner, content2.ID, domain.ContentStatusProcessing, "", "")
+	contentSvc.UpdateContentSourceStatus(ctxOwner, content2.ID, domain.ContentStatusProcessing, "", "", nil, nil, nil)
 
 	failureEvent := events.DocumentProcessedEvent{
 		ContentSourceID: content2.ID,
 		Status:          events.ProcessStatusFailed,
 		ErrorMessage:    "Failed to process document",
+		Title:           "Test Doc 2",
 	}
 
 	err = handler.HandleDocumentProcessed(ctxOwner, failureEvent)
@@ -264,7 +266,7 @@ func TestDocumentWorkflowIntegration_ConcurrentOperations(t *testing.T) {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			_, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "")
+			_, err := contentSvc.UpdateContentSourceStatus(ctxOwner, content.ID, domain.ContentStatusProcessing, "", "", nil, nil, nil)
 			results[index] = err
 		}(i)
 	}
@@ -409,7 +411,7 @@ func (h *DocumentProcessedHandler) HandleDocumentProcessed(ctx context.Context, 
 	}
 
 	// Update content source status
-	_, err := h.contentSvc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage)
+	_, err := h.contentSvc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage, nil, nil, &event.Title)
 	if err != nil {
 		return fmt.Errorf("failed to update content source status: %w", err)
 	}
