@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { use } from 'react';
 import { getSpace } from '@/api/actions/spaceActions';
 import { listContentSources } from '@/api/actions/contentActions';
 import SpaceCanvas from './components/SpaceCanvas';
@@ -7,13 +8,11 @@ import ChatSection from './components/ChatSection';
 import LeftSidebar from './components/LeftSidebar';
 
 interface SpaceDetailPageProps {
-  params: {
-    spaceId: string;
-  };
+  params: Promise<{ spaceId: string }>;
 }
 
 export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) {
-  const { spaceId } = params;
+  const { spaceId } = await params;
 
   // Fetch space data and content sources in parallel
   const [spaceResult, contentSourcesResult] = await Promise.all([
