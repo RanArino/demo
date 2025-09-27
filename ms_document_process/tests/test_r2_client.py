@@ -1,94 +1,66 @@
 import unittest
-import os
+from unittest.mock import MagicMock, patch
+
+from botocore.exceptions import ClientError
+
 from app.infra.r2_client import R2Client
-from app.config.config import settings
+
 
 class TestR2Client(unittest.TestCase):
-
     def setUp(self):
-        """Set up the test client and check for credentials."""
-        # This test is an integration test and requires R2 credentials to be set in the environment.
-        if not all([settings.r2_account_id, settings.r2_access_key_id, settings.r2_secret_access_key]):
-            self.skipTest("R2 credentials are not configured. Skipping R2 integration tests.")
-        
-        self.r2_client = R2Client()
-        self.bucket_name = "scaler-demo"
-        self.processed_bucket_name = "scaler-demo-document-process"
-        self.upload_key = "integration-tests/test-upload.md"
+        boto_patcher = patch("app.infra.r2_client.boto3.client")
+        self.addCleanup(boto_patcher.stop)
+        mock_boto_client = boto_patcher.start()
+        self.mock_s3 = MagicMock()
+        mock_boto_client.return_value = self.mock_s3
 
-    def tearDown(self):
-        """Clean up any files created during the test."""
-        try:
-            # Attempt to delete the test file from the processed bucket
-            self.r2_client.s3_client.delete_object(Bucket=self.processed_bucket_name, Key=self.upload_key)
-            print(f"\nSuccessfully cleaned up test file '{self.upload_key}'.")
-        except Exception as e:
-            # Log if cleanup fails but don't fail the test
-            print(f"\nCleanup failed for '{self.upload_key}': {e}")
+        settings_patcher = patch("app.infra.r2_client.settings")
+        self.addCleanup(settings_patcher.stop)
+        mocked_settings = settings_patcher.start()
+        mocked_settings.r2_endpoint = "https://example.com"
+        mocked_settings.r2_account_id = "acct"
+        mocked_settings.r2_access_key_id = "key"
+        mocked_settings.r2_secret_access_key = "secret"
 
-    def test_upload_file_successfully(self):
-        """
-        Tests that a markdown text can be successfully uploaded to the processed R2 bucket.
-        """
-        # ARRANGE
-        markdown_content = "# Test Header\n\nThis is a test markdown file."
-        content_bytes = markdown_content.encode('utf-8')
+        self.client = R2Client()
 
-        # ACT
-        try:
-            self.r2_client.upload_file(
-                bucket_name=self.processed_bucket_name,
-                key=self.upload_key,
-                data=content_bytes,
-                content_type='text/markdown'
-            )
-        except Exception as e:
-            self.fail(f"An unexpected error occurred during upload: {e}")
+    def test_upload_file_success(self):
+        data = b"content"
+        self.client.upload_file("bucket", "key", data, content_type="text/plain")
+        self.mock_s3.put_object.assert_called_once_with(
+            Bucket="bucket",
+            Key="key",
+            Body=data,
+            ContentType="text/plain",
+        )
 
-        # ASSERT
-        try:
-            # Verify by downloading the file and checking its content
-            downloaded_content = self.r2_client.download_file(self.processed_bucket_name, self.upload_key)
-            self.assertEqual(downloaded_content, content_bytes)
-            print(f"\nSuccessfully uploaded and verified '{self.upload_key}'.")
-        except FileNotFoundError:
-            self.fail("Uploaded file not found during verification.")
-        except Exception as e:
-            self.fail(f"An unexpected error occurred during verification: {e}")
+    def test_upload_file_client_error(self):
+        error_response = {"Error": {"Code": "AccessDenied"}}
+        self.mock_s3.put_object.side_effect = ClientError(error_response, "PutObject")
+        with self.assertRaises(ClientError):
+            self.client.upload_file("bucket", "key", b"data")
 
-    def test_download_file_successfully(self):
-        """
-        Tests that a file can be successfully downloaded from R2.
-        """
-        # ARRANGE
-        # This key must exist in the 'scaler-demo' bucket for the test to pass.
-        key = "integration-tests/679acdee-5431-4e18-9c3a-6f5e912f727c.pdf"
+    def test_download_file_success(self):
+        body = MagicMock()
+        body.read.return_value = b"data"
+        self.mock_s3.get_object.return_value = {"Body": body}
 
-        # ACT
-        try:
-            file_content = self.r2_client.download_file(self.bucket_name, key)
-        except FileNotFoundError:
-            self.fail(f"Test file not found in R2: bucket='{self.bucket_name}', key='{key}'")
-        except Exception as e:
-            self.fail(f"An unexpected error occurred during download: {e}")
+        content = self.client.download_file("bucket", "key")
+        self.assertEqual(content, b"data")
+        self.mock_s3.get_object.assert_called_once_with(Bucket="bucket", Key="key")
 
-        # ASSERT
-        self.assertIsNotNone(file_content)
-        self.assertIsInstance(file_content, bytes)
-        self.assertGreater(len(file_content), 0, "The downloaded file should not be empty.")
-        print(f"\nSuccessfully downloaded '{key}'. Size: {len(file_content)} bytes.")
-
-    def test_download_nonexistent_file(self):
-        """
-        Tests that downloading a nonexistent file raises FileNotFoundError.
-        """
-        # ARRANGE
-        key = "this/key/definitely/does/not/exist.txt"
-
-        # ACT & ASSERT
+    def test_download_file_not_found(self):
+        error_response = {"Error": {"Code": "NoSuchKey"}}
+        self.mock_s3.get_object.side_effect = ClientError(error_response, "GetObject")
         with self.assertRaises(FileNotFoundError):
-            self.r2_client.download_file(self.bucket_name, key)
-        print(f"\nSuccessfully confirmed that downloading a non-existent file raises an error.")
+            self.client.download_file("bucket", "missing")
+
+    def test_download_file_other_error(self):
+        error_response = {"Error": {"Code": "AccessDenied"}}
+        self.mock_s3.get_object.side_effect = ClientError(error_response, "GetObject")
+        with self.assertRaises(ClientError):
+            self.client.download_file("bucket", "key")
+
 
 if __name__ == '__main__':
     unittest.main()

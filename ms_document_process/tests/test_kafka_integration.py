@@ -1,3 +1,4 @@
+import os
 import unittest
 import json
 import threading
@@ -28,6 +29,15 @@ class InMemoryDocumentRepository:
         self.storage[processed_blob_hash] = content_bytes
 
 
+class FakeInsightsService:
+    def __init__(self):
+        self.summary = "This is a summary"
+        self.keywords = ["keyword1", "keyword2"]
+
+    def generate_insights(self, document_text: str, title: str | None = None):
+        return type("Insights", (), {"summary": self.summary, "keywords": self.keywords})()
+
+
 @contextmanager
 def kafka_topics(admin: AdminClient, topics: list[str]):
     try:
@@ -43,9 +53,12 @@ def kafka_topics(admin: AdminClient, topics: list[str]):
             pass
 
 
+@unittest.skipUnless(os.getenv("RUN_KAFKA_INTEGRATION") == "1", "set RUN_KAFKA_INTEGRATION=1 to run against a real Kafka broker")
 class TestKafkaIntegration(unittest.TestCase):
     def setUp(self):
-        # Ensure tests target local broker (Redpanda) and PLAINTEXT
+        if not settings.kafka_brokers:
+            self.skipTest("Kafka brokers not configured")
+
         settings.kafka_brokers = "localhost:9092"
         settings.kafka_security_protocol = "PLAINTEXT"
         settings.kafka_sasl_username = ""
@@ -55,7 +68,6 @@ class TestKafkaIntegration(unittest.TestCase):
         self.source_topic = get_document_uploaded_topic()
         self.processed_topic = get_document_processed_topic()
 
-        # Real Kafka producer/consumer configs
         self.producer = Producer({'bootstrap.servers': settings.kafka_brokers})
         self.processed_consumer = Consumer({
             'bootstrap.servers': settings.kafka_brokers,
@@ -64,10 +76,9 @@ class TestKafkaIntegration(unittest.TestCase):
         })
         self.processed_consumer.subscribe([self.processed_topic])
 
-        # Service with stub repository and real producer
         self.repo = InMemoryDocumentRepository()
         self.service_producer = ServiceKafkaProducer()
-        self.service = DocumentProcessService(self.repo, self.service_producer)
+        self.service = DocumentProcessService(self.repo, self.service_producer, FakeInsightsService())
 
     def tearDown(self):
         self.processed_consumer.close()
@@ -83,7 +94,8 @@ class TestKafkaIntegration(unittest.TestCase):
                 content_source_id=content_source_id,
                 original_blob_hash='original_hash',
                 space_id=space_id,
-                original_object_key=f"{owner_id}/spaces/{space_id}/content/{content_source_id}/{filename}"
+                original_object_key=f"{owner_id}/spaces/{space_id}/content/{content_source_id}/{filename}",
+                title="Integration Test Document",
             )
 
             # Patch conversion to avoid external PDF tooling
@@ -103,6 +115,8 @@ class TestKafkaIntegration(unittest.TestCase):
             self.assertEqual(consumed_event.content_source_id, event.content_source_id)
             self.assertEqual(consumed_event.status, "PROCESSED")
             self.assertIsNotNone(consumed_event.processed_blob_hash)
+            self.assertEqual(consumed_event.summary, "This is a summary")
+            self.assertEqual(consumed_event.keywords, ["keyword1", "keyword2"])
 
 
 if __name__ == '__main__':
