@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "models/gemini-flash-latest"
     gemini_summary_tokens: int = 512
+    gemini_keyword_count: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env.local",
