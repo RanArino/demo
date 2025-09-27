@@ -12,6 +12,35 @@ import { useProcessingPoller } from '@/app/spaces/hooks/useProcessingPoller';
 import ContentSourcesHeader from './ContentSourcesHeader';
 import ContentSourceCard from '@/components/content/ContentSourceCard';
 
+// Prefer terminal states when deduping same-id entries
+function rankStatus(status: ContentStatus): number {
+  switch (status) {
+    case ContentStatus.PROCESSED:
+      return 5;
+    case ContentStatus.FAILED:
+      return 4;
+    case ContentStatus.PROCESSING:
+      return 3;
+    case ContentStatus.UPLOADED:
+      return 2;
+    case ContentStatus.UPLOADING:
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function dedupeByIdPreferTerminal(items: ContentSource[]): ContentSource[] {
+  const best = new Map<string, ContentSource>();
+  for (const item of items) {
+    const prev = best.get(item.id);
+    if (!prev || rankStatus(item.status) > rankStatus(prev.status)) {
+      best.set(item.id, item);
+    }
+  }
+  return Array.from(best.values());
+}
+
 interface ContentSourcesSectionProps {
   spaceId: string;
   contentSources: ContentSource[];
@@ -22,7 +51,7 @@ interface ContentSourcesSectionProps {
 export default function ContentSourcesSection({ spaceId, contentSources, className, errorMessage }: ContentSourcesSectionProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [sources, setSources] = useState<ContentSource[]>(contentSources);
+  const [sources, setSources] = useState<ContentSource[]>(() => dedupeByIdPreferTerminal(contentSources));
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(contentSources.map((s) => s.id)));
   const [progressById, setProgressById] = useState<Record<string, number>>({});
 
@@ -35,10 +64,9 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
         const res = await listContentSourcesUncached(spaceId, 'processed');
         if (res.ok && res.data) {
           setSources((prev) => {
-            // Merge: keep any non-processed placeholders, replace processed list
             const placeholders = prev.filter((s) => s.status !== ContentStatus.PROCESSED);
             const processed = res.data ?? [];
-            const next = [...processed, ...placeholders];
+            const next = dedupeByIdPreferTerminal([...processed, ...placeholders]);
             return next;
           });
         }
@@ -54,10 +82,7 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
   useEffect(() => {
     const onCreated = (e: CustomEvent<ContentSource>) => {
       const detail = e.detail;
-      setSources((prev) => {
-        if (prev.some((s) => s.id === detail.id)) return prev;
-        return [detail, ...prev];
-      });
+      setSources((prev) => dedupeByIdPreferTerminal([detail, ...prev]));
     };
     const onUpdated = (e: CustomEvent<ContentSource>) => {
       const detail = e.detail;
@@ -137,10 +162,13 @@ export default function ContentSourcesSection({ spaceId, contentSources, classNa
     candidateIds: useMemo(() => sources.filter(s => s.status !== ContentStatus.PROCESSED && s.status !== ContentStatus.FAILED).map(s => s.id), [sources]),
     onUpdates: useCallback((updates) => {
       if (!updates || updates.length === 0) return;
-      setSources((list) => list.map((s) => {
-        const hit = updates.find((u) => u.id === s.id);
-        return hit ? { ...s, status: hit.status } as ContentSource : s;
-      }));
+      setSources((list) => {
+        const updated = list.map((s) => {
+          const hit = updates.find((u) => u.id === s.id);
+          return hit ? { ...s, status: hit.status } as ContentSource : s;
+        });
+        return dedupeByIdPreferTerminal(updated);
+      });
 
       updates.forEach((u) => {
         if (u.status === ContentStatus.PROCESSED) {
