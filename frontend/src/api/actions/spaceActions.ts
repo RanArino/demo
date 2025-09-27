@@ -14,7 +14,7 @@ import {
   DeleteSpaceRequest,
 } from '../generated/v1/knowledge_pb';
 import { ActionResult } from '@/lib/types'; 
-import { createAuthHeaders, sanitizeError, generateSpacesListCacheKey, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
+import { createAuthHeaders, sanitizeError, sanitizeErrorString, generateSpacesListCacheKey, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
 
 
 
@@ -56,7 +56,10 @@ async function searchSpacesCore(
     if (isUnauthorizedError(error)) {
       logAuthFailure('searchSpacesCore', error);
     } else {
-      console.error('searchSpacesCore error:', error);
+      // Log a safe, informative message; avoid bare null/undefined
+      const message = sanitizeErrorString(error);
+      const details = error instanceof Error ? { name: error.name } : undefined;
+      console.error('searchSpacesCore error:', { message, details });
     }
     return { ok: false, error: sanitizeError(error) };
   }
@@ -99,8 +102,16 @@ export async function searchSpaces(filters?: SpaceFilters): Promise<ActionResult
 
     // Create auth headers outside the cached function
     const headers = await createAuthHeaders();
-    
-    return await searchSpacesCached(userId, headers, filters);
+
+    // Convert SpaceFilters to plain object to avoid serialization issues
+    const plainFilters = {
+      q: filters?.q || '',
+      keywords: filters?.keywords || [],
+      sortBy: filters?.sortBy || 'created',
+      sortOrder: filters?.sortOrder || 'desc',
+    };
+
+    return await searchSpacesCached(userId, headers, plainFilters as unknown as SpaceFilters);
   } catch (error) {
     if (isUnauthorizedError(error)) {
       logAuthFailure('searchSpaces', error);
@@ -191,12 +202,15 @@ export async function createSpace(input: CreateSpaceRequest): Promise<ActionResu
 
     const response = await client.createSpace(request, { headers });
 
+    // Sanitize the response to remove protobuf toJSON methods for client-side serialization
+    const sanitizedResponse = sanitizeProtobufForJson(response);
+
     // Revalidate cache tags and paths
     revalidateTag(`spaces-list-${userId}`);
     revalidatePath('/spaces');
     return {
       ok: true,
-      data: response,
+      data: sanitizedResponse,
     };
   } catch (error) {
     if (isUnauthorizedError(error)) {
