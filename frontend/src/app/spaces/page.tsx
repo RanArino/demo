@@ -14,24 +14,28 @@ interface SearchParams {
 export default async function SpacesPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  // `searchParams` can be an awaited object in Next.js app router; await before use
+  searchParams: SearchParams | Promise<SearchParams>;
 }) {
+  // Await searchParams per Next.js dynamic API requirements
+  const params = await searchParams;
+
   // Parse search parameters
-  const filters = new SpaceFilters({
-    q: searchParams.q || '',
-    keywords: Array.isArray(searchParams.keywords) 
-      ? searchParams.keywords 
-      : searchParams.keywords?.split(',').filter(Boolean) || [],
-    sortBy: searchParams.sortBy || 'created',
-    sortOrder: searchParams.sortOrder || 'desc',
-  });
+  const plainFilters = {
+    q: params.q || '',
+    keywords: Array.isArray(params.keywords)
+      ? params.keywords
+      : params.keywords?.split(',').filter(Boolean) || [],
+    sortBy: params.sortBy || 'created',
+    sortOrder: params.sortOrder || 'desc',
+  };
 
   // Parse pagination parameters separately
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  const pageSize = searchParams.pageSize ? parseInt(searchParams.pageSize) : 20;
+  const page = params.page ? parseInt(params.page) : 1;
+  const pageSize = params.pageSize ? parseInt(params.pageSize) : 20;
 
   // Fetch initial spaces data
-  const result = await searchSpaces(filters);
+  const result = await searchSpaces(plainFilters as unknown as SpaceFilters);
   
   // Handle error state
   if (!result.ok) {
@@ -53,10 +57,10 @@ export default async function SpacesPage({
 
   // Create initialFilters object for the client component
   const initialFilters: Partial<ListSpacesRequest> = {
-    q: searchParams.q,
-    keywords: Array.isArray(searchParams.keywords) 
-      ? searchParams.keywords 
-      : searchParams.keywords?.split(',').filter(Boolean),
+    q: params.q,
+    keywords: Array.isArray(params.keywords) 
+      ? params.keywords 
+      : params.keywords?.split(',').filter(Boolean),
   };
 
   return (
