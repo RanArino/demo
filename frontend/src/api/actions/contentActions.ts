@@ -155,7 +155,7 @@ export async function createUploadURL(
     const { rebuildCreateUploadURLRequest } = await import('./utils');
     const rebuilt = rebuildCreateUploadURLRequest(request as CreateUploadURLRequest);
     const response = await client.createUploadURL(rebuilt, { headers });
-    // Sanitize response (contains ContentSource with size_bytes BigInt field)
+    // Sanitize response (contains ContentSource with size_bytes BigInt field and Timestamp objects)
     const sanitizedResponse = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitizedResponse };
   } catch (error) {
@@ -181,7 +181,7 @@ export async function confirmUpload(
     const request = new ConfirmUploadRequest({ contentSourceId, blobHash });
 
     const response = await client.confirmUpload(request, { headers });
-    // Sanitize ContentSource object (handles size_bytes BigInt field)
+    // Sanitize ContentSource object (handles size_bytes BigInt field and Timestamp objects)
     const sanitizedResponse = sanitizeProtobufForJson(response);
     // Revalidate content lists for this space
     if (sanitizedResponse && (sanitizedResponse as any).spaceId) {
@@ -213,7 +213,7 @@ export async function generateDownloadURL(
   contentSourceId: string,
   kind: 'original' | 'processed' = 'original',
   expiresSeconds?: number
-): Promise<ActionResult<{ url: string; expiresAt: Timestamp | undefined; objectKey: string }>> {
+): Promise<ActionResult<{ url: string; expiresAt?: string; objectKey: string }>> {
   try {
     const { userId } = await auth();
     if (!userId) return { ok: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
@@ -234,7 +234,7 @@ export async function generateDownloadURL(
       ok: true,
       data: {
         url: response.url,
-        expiresAt: response.expiresAt,
+        expiresAt: response.expiresAt ? sanitizeProtobufForJson(response.expiresAt) as unknown as string : undefined,
         objectKey: response.objectKey,
       },
     };
@@ -283,7 +283,7 @@ export async function getContentSource(contentSourceId: string): Promise<ActionR
     const request = new GetContentSourceRequest({ id: contentSourceId });
 
     const response = await client.getContentSource(request, { headers });
-    // Sanitize ContentSource object (handles size_bytes BigInt field)
+    // Sanitize ContentSource object (handles size_bytes BigInt field and Timestamp objects)
     const sanitizedResponse = sanitizeProtobufForJson(response);
     return { ok: true, data: sanitizedResponse };
   } catch (error) {

@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package canvas.private.v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "demo/ms_canvas/go_app/api/proto/private/v1;canvasv1";
+
+// ML service - used by gateway to call Python service
+service CanvasML {
+  rpc ChunkEmbed(ChunkEmbedRequest) returns (ChunkEmbedResponse);
+  rpc EmbedQuery(EmbedQueryRequest) returns (EmbedQueryResponse);
+  rpc Healthz(google.protobuf.Empty) returns (HealthStatus);
+}
+
+message HealthStatus {
+  string status = 1;
+  map<string, string> components = 2;
+}
+
+message ChunkingConfig {
+  // fixed to "sentence" for this phase
+  string type = 1; // "sentence"
+  int32 target_tokens = 2; // default 300
+  int32 overlap_percent = 3; // default 10
+  string tokenizer = 4; // e.g., "tiktoken:cl100k_base"
+}
+
+message SpatialCoordinates {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+}
+
+message Chunk {
+  string id = 1; // optional client-generated id or empty.
+  int32 sequence_index = 2; // the ordinal sequence of the chunk within the document
+  int64 start_position = 3; // character offset in original content
+  int64 end_position = 4;   // character offset in original content (exclusive)
+  string content = 5; // normalized chunk text
+  SpatialCoordinates location = 10;  // optional 3D spatial coordinates for the chunk
+}
+
+message EmbeddingConfig {
+  string provider = 1; // e.g., openai, local, gemini
+  string model_id = 2;
+  string model_version = 3;
+  int32 output_dimensionality = 4; // embedding dimension size (128-3072)
+  string task_type = 5; // task-specific optimization (SEMANTIC_SIMILARITY, etc.)
+  bool normalize_embeddings = 6; // whether to normalize embeddings
+}
+
+message EmbedQueryRequest {
+  string text = 1;
+  EmbeddingConfig config = 10;
+}
+
+message EmbedQueryResponse {
+  repeated float vector = 1;
+  int32 dims = 2;
+  string model_id = 3;
+  string model_version = 4;
+}
+// ===== Combined Chunk + Embed =====
+message ChunkEmbedRequest {
+  string space_id = 1;
+  string content_source_id = 2; // FK CONTENT_SOURCE.id (Postgres)
+  string content_node_id = 3;   // FK ContentNode.id (Neo4j)
+
+  oneof source {
+    string text = 10;       // inline text
+    string blob_url = 11;   // URL to fetch processed text (e.g., R2)
+  }
+
+  ChunkingConfig chunking = 20;
+  EmbeddingConfig embedding = 21;
+  int32 batch_size = 22; // optional, for future streaming/batching
+}
+
+message ChunkEmbedding {
+  Chunk chunk = 1;
+  repeated float vector = 2; // embedding for the chunk
+}
+
+message ChunkEmbedResponse {
+  repeated ChunkEmbedding results = 1; // ordered list aligned with sequence_index
+  int32 dims = 2;                      // embedding dimensionality
+  string model_id = 3;
+  string model_version = 4;
+}
+

@@ -10,6 +10,7 @@ class DocumentUploadedEvent(BaseModel):
 
 class DocumentProcessedEvent(BaseModel):
     content_source_id: UUID
+    space_id: UUID
     processed_blob_hash: Optional[str]
     status: str  # e.g., "PROCESSED", "FAILED"
     error_message: Optional[str]
