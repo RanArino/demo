@@ -20,13 +20,18 @@ func NewHandler(cfg config.Config, eventHandler service.EventHandler) *Handler {
 }
 
 func (h *Handler) ValidateAndNormalize(evt events.DocumentProcessedEvent, headers map[string]string) (events.DocumentProcessedEvent, error) {
-	if strings.TrimSpace(evt.Status) == "" {
+	status := strings.TrimSpace(string(evt.Status))
+	if status == "" {
 		return evt, errors.New("missing status")
 	}
-	if strings.ToUpper(evt.Status) != "PROCESSED" {
-		log.Printf("[Handler] skipping event with status=%s", evt.Status)
+
+	normalized := events.ProcessStatus(strings.ToUpper(status))
+	if normalized != events.ProcessStatusProcessed {
+		log.Printf("[Handler] skipping event with status=%s", normalized)
 		return evt, nil
 	}
+
+	evt.Status = normalized
 	return evt, nil
 }
 
@@ -35,7 +40,7 @@ func (h *Handler) Handle(evt events.DocumentProcessedEvent, headers map[string]s
 	if err != nil {
 		return err
 	}
-	if strings.ToUpper(norm.Status) != "PROCESSED" {
+	if norm.Status != events.ProcessStatusProcessed {
 		return nil
 	}
 	return h.eventHandler.HandleDocumentProcessed(norm)
