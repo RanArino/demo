@@ -13,8 +13,10 @@ class DocumentProcessedEvent(BaseModel):
     content_source_id: UUID
     space_id: UUID
     processed_blob_hash: Optional[str]
+    processed_object_key: Optional[str] = None
     status: str  # e.g., "PROCESSED", "FAILED"
     error_message: Optional[str]
     keywords: Optional[Sequence[str]] = None
     summary: Optional[str] = None
     title: Optional[str] = None
+    source: Optional[str] = None
