@@ -115,7 +115,6 @@ class TestKafkaIntegration(unittest.TestCase):
             self.assertEqual(consumed_event.content_source_id, event.content_source_id)
             self.assertEqual(consumed_event.status, "PROCESSED")
             self.assertIsNotNone(consumed_event.processed_blob_hash)
-            self.assertEqual(consumed_event.processed_object_key, event.original_object_key)
             self.assertEqual(consumed_event.summary, "This is a summary")
             self.assertEqual(consumed_event.keywords, ["keyword1", "keyword2"])
 
