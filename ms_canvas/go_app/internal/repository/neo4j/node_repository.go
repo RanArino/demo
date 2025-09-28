@@ -333,19 +333,50 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 				"content_source_id": content.ContentSourceId,
 				"now":               now,
 			}
+
+			// Add base/optional fields when available
+			if content.Base != nil {
+				item["space_id"] = content.Base.SpaceId
+				if len(content.Base.Keywords) > 0 {
+					item["keywords"] = content.Base.Keywords
+				}
+				if content.Base.ChatContent != nil {
+					item["chat_content"] = *content.Base.ChatContent
+				}
+			}
+			if content.Title != nil {
+				item["title"] = *content.Title
+			}
+
 			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
 
 		_, err = tx.Run(ctx, `
-			UNWIND $items AS item
-			MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
-			ON CREATE SET
-				n.id = item.id,
-				n.created_at = datetime(item.now)
-			SET
-				n.id = item.id,
-				n.updated_at = datetime(item.now)
-		`, params)
+            UNWIND $items AS item
+            MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
+            ON CREATE SET
+                n.id = item.id,
+                n.space_id = item.space_id,
+                n.created_at = datetime(item.now)
+            ON MATCH SET
+                n.id = item.id,
+                n.space_id = item.space_id,
+                n.updated_at = datetime(item.now)
+            SET
+                n.updated_at = datetime(item.now)
+        `, params)
+
+		// Handle optional fields (title, keywords, chat_content) in a separate query
+		// so we don't overwrite existing values with NULL when items lack those fields.
+		if len(contents) > 0 && (contents[0].Title != nil || (contents[0].Base != nil && (contents[0].Base.ChatContent != nil || len(contents[0].Base.Keywords) > 0))) {
+			_, err = tx.Run(ctx, `
+                UNWIND $items AS item
+                MATCH (n:ContentNode {content_source_id: item.content_source_id})
+                SET n.title = CASE WHEN item.title IS NOT NULL THEN item.title ELSE n.title END,
+                    n.keywords = CASE WHEN item.keywords IS NOT NULL THEN item.keywords ELSE n.keywords END,
+                    n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END
+            `, params)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to create content nodes: %v", err)
 		}
