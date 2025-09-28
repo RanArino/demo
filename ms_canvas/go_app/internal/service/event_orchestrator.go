@@ -139,18 +139,31 @@ func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.
 		contentNode.Title = &event.Title
 	}
 
-	if event.Summary != "" {
-		contentNode.Source = &event.Summary
-	}
+	// if event.Source != "" {
+	// 	contentNode.Source = &event.Source
+	// }
 
 	if len(event.Keywords) > 0 {
+		keywords := make([]interface{}, len(event.Keywords))
+		for i, kw := range event.Keywords {
+			keywords[i] = kw
+		}
 		actionData, err := structpb.NewStruct(map[string]interface{}{
-			"keywords": event.Keywords,
+			"keywords": keywords,
 		})
 		if err == nil {
 			contentNode.ActionData = actionData
 		} else {
 			log.Printf("[EventOrchestrator] Warning: failed to build action data: %v", err)
+		}
+	}
+
+	if event.ProcessedObjectKey != nil {
+		if contentNode.ActionData == nil {
+			contentNode.ActionData, _ = structpb.NewStruct(map[string]interface{}{})
+		}
+		if contentNode.ActionData != nil {
+			contentNode.ActionData.Fields["processed_object_key"] = structpb.NewStringValue(*event.ProcessedObjectKey)
 		}
 	}
 
@@ -184,13 +197,20 @@ func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, conten
 		return nil
 	}
 
-	if event.ProcessedBlobHash == nil || *event.ProcessedBlobHash == "" {
-		log.Printf("[EventOrchestrator] Warning: No processed blob hash available, skipping chunking workflow")
+	downloadKey := ""
+	if event.ProcessedObjectKey != nil && *event.ProcessedObjectKey != "" {
+		downloadKey = *event.ProcessedObjectKey
+	} else if event.ProcessedBlobHash != nil && *event.ProcessedBlobHash != "" {
+		downloadKey = *event.ProcessedBlobHash
+	}
+
+	if downloadKey == "" {
+		log.Printf("[EventOrchestrator] Warning: No processed object key available, skipping chunking workflow")
 		return nil
 	}
 
-	log.Printf("[EventOrchestrator] Fetching processed document from R2: %s", *event.ProcessedBlobHash)
-	documentContent, err := e.r2Client.DownloadFile(*event.ProcessedBlobHash)
+	log.Printf("[EventOrchestrator] Fetching processed document from R2: %s", downloadKey)
+	documentContent, err := e.r2Client.DownloadFile(downloadKey)
 	if err != nil {
 		return fmt.Errorf("failed to fetch processed document from R2: %w", err)
 	}
