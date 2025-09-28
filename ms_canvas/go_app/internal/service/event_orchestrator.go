@@ -127,7 +127,7 @@ func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.
 	}
 
 	if event.Summary != "" {
-		baseNode.DisplayContent = &event.Summary
+		baseNode.ChatContent = &event.Summary
 	}
 
 	contentNode := &v1.ContentNode{
