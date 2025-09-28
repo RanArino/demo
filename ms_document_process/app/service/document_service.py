@@ -2,7 +2,7 @@ import hashlib
 import logging
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
-from typing import Optional
+from typing import Dict, Optional
 
 from app.domain.events import DocumentProcessedEvent, DocumentUploadedEvent
 from app.domain.insights import DocumentInsights
@@ -52,6 +52,15 @@ class DocumentProcessService:
 
     def process_document(self, event: DocumentUploadedEvent):
         logger.info(f"Processing document for content_source_id: {event.content_source_id}")
+        timings: Dict[str, float] = {}
+        status = "FAILED"
+        overall_start = time.perf_counter()
+
+        def produce_with_timing(processed_event: DocumentProcessedEvent) -> None:
+            produce_start = time.perf_counter()
+            self.kafka_producer.produce_document_processed_event(processed_event)
+            timings["event_emit"] = time.perf_counter() - produce_start
+
         try:
             if not event.original_object_key:
                 logger.error("Missing original_object_key for content_source_id: %s", event.content_source_id)
@@ -60,24 +69,33 @@ class DocumentProcessService:
                 )
             source_key = event.original_object_key
 
+            download_start = time.perf_counter()
             document_content = self._retry_with_backoff(
                 "download_source_document",
                 lambda: self.document_repository.download_source_document(source_key),
             )
+            timings["download"] = time.perf_counter() - download_start
 
             conversion_workers = 2 + int(self.insights_service is not None)
 
             with ThreadPoolExecutor(max_workers=conversion_workers) as executor:
+                def convert_with_timing() -> str:
+                    conversion_start = time.perf_counter()
+                    result = convert_document_to_markdown(document_content, "pdf")
+                    timings["conversion"] = time.perf_counter() - conversion_start
+                    return result
+
                 conversion_future = executor.submit(
                     self._retry_with_backoff,
                     "convert_document_to_markdown",
-                    lambda: convert_document_to_markdown(document_content, "pdf"),
+                    convert_with_timing,
                 )
 
                 upload_future = executor.submit(
                     self._upload_after_conversion,
                     conversion_future,
                     source_key,
+                    timings,
                 )
 
                 insights_future: Optional[Future[Optional[DocumentInsights]]] = None
@@ -86,6 +104,7 @@ class DocumentProcessService:
                         self._insights_after_conversion,
                         conversion_future,
                         event.title,
+                        timings,
                     )
 
                 markdown_content = upload_future.result()
@@ -102,7 +121,8 @@ class DocumentProcessService:
                 summary=insights.summary if insights else None,
                 keywords=insights.keywords if insights else None,
             )
-            self.kafka_producer.produce_document_processed_event(processed_event)
+            produce_with_timing(processed_event)
+            status = "PROCESSED"
             logger.info("Successfully processed document for content_source_id: %s", event.content_source_id)
 
         except Exception as e:
@@ -117,7 +137,20 @@ class DocumentProcessService:
                 summary=None,
                 keywords=None,
             )
-            self.kafka_producer.produce_document_processed_event(failed_event)
+            produce_with_timing(failed_event)
+        finally:
+            total_duration = time.perf_counter() - overall_start
+            logger.info(
+                "Document processing timings for content_source_id=%s (status=%s): download=%.3fs, conversion=%.3fs, upload=%.3fs, insights=%.3fs, event_emit=%.3fs, total=%.3fs",
+                event.content_source_id,
+                status,
+                timings.get("download", 0.0),
+                timings.get("conversion", 0.0),
+                timings.get("upload", 0.0),
+                timings.get("insights", 0.0),
+                timings.get("event_emit", 0.0),
+                total_duration,
+            )
 
     def _generate_insights_safe(
         self,
@@ -136,6 +169,7 @@ class DocumentProcessService:
         self,
         conversion_future: Future[str],
         source_key: str,
+        timings: Dict[str, float],
     ) -> str:
         markdown_content = conversion_future.result()
 
@@ -144,16 +178,22 @@ class DocumentProcessService:
                 source_key, markdown_content.encode(ENCODING)
             )
 
+        upload_start = time.perf_counter()
         self._retry_with_backoff(
             "upload_processed_document",
             upload_operation,
         )
+        timings["upload"] = time.perf_counter() - upload_start
         return markdown_content
 
     def _insights_after_conversion(
         self,
         conversion_future: Future[str],
         title: Optional[str],
+        timings: Dict[str, float],
     ) -> Optional[DocumentInsights]:
         markdown_content = conversion_future.result()
-        return self._generate_insights_safe(markdown_content, title)
+        insights_start = time.perf_counter()
+        insights = self._generate_insights_safe(markdown_content, title)
+        timings["insights"] = time.perf_counter() - insights_start
+        return insights
