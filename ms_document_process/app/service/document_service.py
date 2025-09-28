@@ -107,7 +107,7 @@ class DocumentProcessService:
                         timings,
                     )
 
-                markdown_content = upload_future.result()
+                markdown_content, processed_object_key = upload_future.result()
                 processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
                 insights = insights_future.result() if insights_future is not None else None
 
@@ -115,11 +115,13 @@ class DocumentProcessService:
                 content_source_id=event.content_source_id,
                 space_id=event.space_id,
                 processed_blob_hash=processed_blob_hash,
+                processed_object_key=processed_object_key,
                 status="PROCESSED",
                 error_message=None,
                 title=event.title,
                 summary=insights.summary if insights else None,
                 keywords=insights.keywords if insights else None,
+                # source= # TODO: Assign source either one of upload|gdrive|web|onedrive|paste
             )
             produce_with_timing(processed_event)
             status = "PROCESSED"
@@ -170,7 +172,7 @@ class DocumentProcessService:
         conversion_future: Future[str],
         source_key: str,
         timings: Dict[str, float],
-    ) -> str:
+    ) -> tuple[str, str]:
         markdown_content = conversion_future.result()
 
         def upload_operation():
@@ -179,12 +181,12 @@ class DocumentProcessService:
             )
 
         upload_start = time.perf_counter()
-        self._retry_with_backoff(
+        processed_object_key = self._retry_with_backoff(
             "upload_processed_document",
             upload_operation,
         )
         timings["upload"] = time.perf_counter() - upload_start
-        return markdown_content
+        return markdown_content, processed_object_key
 
     def _insights_after_conversion(
         self,
