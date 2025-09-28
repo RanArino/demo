@@ -72,7 +72,7 @@ services:
       - /app/tmp
     environment:
       - GO_ENV=development
-      - GRPC_PORT=50054
+      - GRPC_PORT=50055
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
       - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}

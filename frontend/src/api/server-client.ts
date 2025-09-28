@@ -47,7 +47,7 @@ class GRPCClientManager {
 
   static getCanvasInstance(): PromiseClient<typeof CanvasPublic> {
     if (!this.canvasInstance) {
-      const grpcUrl = process.env.MS_CANVAS_GRPC_URL_INTERNAL || 'http://localhost:50054';
+      const grpcUrl = process.env.MS_CANVAS_GRPC_URL_INTERNAL || 'http://localhost:50055';
       const fullUrl = grpcUrl.startsWith('http') ? grpcUrl : `http://${grpcUrl}`;
 
       const transport = createGrpcTransport({
