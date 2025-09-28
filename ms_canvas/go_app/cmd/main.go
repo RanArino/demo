@@ -98,13 +98,13 @@ func main() {
 	canvasServer := server.NewCanvasPublicServer(searchService, nodeService, linkService)
 	canvasv1.RegisterCanvasPublicServer(grpcSrv, canvasServer)
 
-	// Start gRPC server on configured port (50054 per requirements)
-	grpcListener, err := net.Listen("tcp", ":50054")
+	grpcAddr := fmt.Sprintf(":%d", cfg.GRPCPort)
+	grpcListener, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
-		log.Fatalf("failed to listen on gRPC port 50054: %v", err)
+		log.Fatalf("failed to listen on gRPC port %d: %v", cfg.GRPCPort, err)
 	}
 	go func() {
-		log.Printf("[Main] gRPC server listening on :50054")
+		log.Printf("[Main] gRPC server listening on %s", grpcAddr)
 		if err := grpcSrv.Serve(grpcListener); err != nil {
 			log.Printf("[Main] gRPC server stopped: %v", err)
 		}
@@ -129,7 +129,7 @@ func main() {
 	})
 
 	httpPort := ":8080"
-	log.Printf("[Main] ms_canvas service starting - gRPC on :50054, HTTP health checks on %s", httpPort)
+	log.Printf("[Main] ms_canvas service starting - gRPC on %s, HTTP health checks on %s", grpcAddr, httpPort)
 	log.Printf("[Main] Ready to receive Kafka events from topic: %s", cfg.Topics.DocumentProcessed)
 
 	server := &http.Server{Addr: httpPort}
