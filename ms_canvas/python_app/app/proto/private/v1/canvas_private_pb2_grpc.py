@@ -4,7 +4,7 @@ import grpc
 import warnings
 
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
-from proto.private.v1 import canvas_private_pb2 as proto_dot_private_dot_v1_dot_canvas__private__pb2
+from . import canvas_private_pb2 as proto_dot_private_dot_v1_dot_canvas__private__pb2
 
 GRPC_GENERATED_VERSION = '1.75.0'
 GRPC_VERSION = grpc.__version__
