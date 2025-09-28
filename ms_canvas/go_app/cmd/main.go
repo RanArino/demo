@@ -18,6 +18,7 @@ import (
 	"demo/ms_canvas/go_app/internal/repository/neo4j"
 	"demo/ms_canvas/go_app/internal/server"
 	"demo/ms_canvas/go_app/internal/service"
+
 	"google.golang.org/grpc"
 )
 
@@ -26,7 +27,19 @@ func main() {
 	log.Printf("[Main] Starting ms_canvas service with Kafka consumer for event-streaming")
 
 	// Initialize Neo4j driver and repositories
-	drv, err := neo4j.NewDriver(cfg.Neo4jURI, cfg.Neo4jUsername, cfg.Neo4jPassword, cfg.Neo4jDatabase, &neo4j.DriverOptions{VectorDimensions: cfg.Neo4jVectorDimensions})
+	drv, err := neo4j.NewDriver(
+		cfg.Neo4jURI,
+		cfg.Neo4jUsername,
+		cfg.Neo4jPassword,
+		cfg.Neo4jDatabase,
+		&neo4j.DriverOptions{
+			VectorDimensions:  cfg.Neo4jVectorDimensions,
+			ConstraintTimeout: time.Duration(cfg.Neo4jConstraintTimeoutSeconds) * time.Second,
+			IndexTimeout:      time.Duration(cfg.Neo4jIndexTimeoutSeconds) * time.Second,
+			MaxEnsureRetries:  cfg.Neo4jEnsureMaxRetries,
+			EnsureRetryDelay:  time.Duration(cfg.Neo4jEnsureRetryDelaySeconds) * time.Second,
+		},
+	)
 	if err != nil {
 		log.Fatalf("failed to create neo4j driver: %v", err)
 	}
