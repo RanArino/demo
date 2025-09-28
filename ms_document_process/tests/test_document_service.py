@@ -43,6 +43,7 @@ class TestDocumentProcessService(unittest.TestCase):
         mock_convert.return_value = markdown_content
         self.mock_insights_service.generate_insights.return_value.summary = "summary"
         self.mock_insights_service.generate_insights.return_value.keywords = ["kw1", "kw2"]
+        self.mock_document_repository.upload_processed_document.return_value = object_key
 
         self.service.process_document(event)
 
@@ -51,6 +52,9 @@ class TestDocumentProcessService(unittest.TestCase):
         self.mock_document_repository.upload_processed_document.assert_called_once_with(
             object_key, markdown_content.encode('utf-8')
         )
+        self.mock_kafka_producer.produce_document_processed_event.assert_called_once()
+        produced_event = self.mock_kafka_producer.produce_document_processed_event.call_args[0][0]
+        self.assertEqual(produced_event.processed_object_key, object_key)
 
         self.mock_insights_service.generate_insights.assert_called_once_with(document_text=markdown_content, title="Test Document")
 
@@ -59,6 +63,7 @@ class TestDocumentProcessService(unittest.TestCase):
         self.assertIsInstance(produced_event, DocumentProcessedEvent)
         self.assertEqual(produced_event.status, "PROCESSED")
         self.assertEqual(produced_event.processed_blob_hash, processed_hash)
+        self.assertEqual(produced_event.processed_object_key, object_key)
         self.assertEqual(produced_event.summary, "summary")
         self.assertEqual(produced_event.keywords, ["kw1", "kw2"])
 
@@ -77,6 +82,7 @@ class TestDocumentProcessService(unittest.TestCase):
             title="Test Document",
         )
         self.mock_document_repository.download_source_document.side_effect = Exception("Download failed")
+        self.mock_document_repository.upload_processed_document.return_value = object_key
 
         self.service.process_document(event)
 
@@ -128,6 +134,7 @@ class TestDocumentProcessService(unittest.TestCase):
 
         self.mock_document_repository.download_source_document.return_value = document_content
         mock_convert.return_value = markdown_content
+        self.mock_document_repository.upload_processed_document.return_value = object_key
 
         service.process_document(event)
 
@@ -135,6 +142,7 @@ class TestDocumentProcessService(unittest.TestCase):
         self.assertIsNone(produced_event.summary)
         self.assertIsNone(produced_event.keywords)
         self.assertEqual(produced_event.processed_blob_hash, processed_hash)
+        self.assertEqual(produced_event.processed_object_key, object_key)
 
 
 if __name__ == '__main__':
