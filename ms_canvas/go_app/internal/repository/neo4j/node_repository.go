@@ -307,6 +307,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 }
 
 // CreateContentNodes creates or updates ContentNodes in batch.
+// Ensures uniqueness by content_source_id through constraint and upsert logic.
 func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.ContentNode) error {
 	if len(contents) == 0 {
 		return nil
@@ -314,6 +315,14 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
+		_, err := tx.Run(ctx, `
+			CREATE CONSTRAINT contentnode_unique_content_source IF NOT EXISTS 
+			FOR (n:ContentNode) REQUIRE n.content_source_id IS UNIQUE
+		`, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create unique constraint: %v", err)
+		}
+
 		params := map[string]interface{}{
 			"items": make([]map[string]interface{}, 0, len(contents)),
 		}
@@ -326,17 +335,21 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 			}
 			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
-		_, err := tx.Run(ctx, `
+
+		_, err = tx.Run(ctx, `
 			UNWIND $items AS item
 			MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
 			ON CREATE SET
 				n.id = item.id,
-				n.created_at = datetime(item.now),
-				n.updated_at = datetime(item.now)
-			ON MATCH SET
+				n.created_at = datetime(item.now)
+			SET
+				n.id = item.id,
 				n.updated_at = datetime(item.now)
 		`, params)
-		return nil, err
+		if err != nil {
+			return nil, fmt.Errorf("failed to create content nodes: %v", err)
+		}
+		return nil, nil
 	})
 	return err
 }
