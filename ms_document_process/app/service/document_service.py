@@ -2,6 +2,7 @@ import hashlib
 import logging
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
+from pathlib import PurePosixPath
 from typing import Dict, Optional
 
 from app.domain.events import DocumentProcessedEvent, DocumentUploadedEvent
@@ -174,19 +175,20 @@ class DocumentProcessService:
         timings: Dict[str, float],
     ) -> tuple[str, str]:
         markdown_content = conversion_future.result()
+        processed_object_key = self._build_processed_object_key(source_key)
 
         def upload_operation():
             return self.document_repository.upload_processed_document(
-                source_key, markdown_content.encode(ENCODING)
+                processed_object_key, markdown_content.encode(ENCODING)
             )
 
         upload_start = time.perf_counter()
-        processed_object_key = self._retry_with_backoff(
+        uploaded_object_key = self._retry_with_backoff(
             "upload_processed_document",
             upload_operation,
         )
         timings["upload"] = time.perf_counter() - upload_start
-        return markdown_content, processed_object_key
+        return markdown_content, uploaded_object_key
 
     def _insights_after_conversion(
         self,
@@ -199,3 +201,16 @@ class DocumentProcessService:
         insights = self._generate_insights_safe(markdown_content, title)
         timings["insights"] = time.perf_counter() - insights_start
         return insights
+
+    def _build_processed_object_key(self, source_key: str) -> str:
+        path = PurePosixPath(source_key)
+        suffix = path.suffix.lower()
+        if suffix in {".txt", ".text"}:
+            return str(path.with_suffix(".txt"))
+        if suffix == ".md":
+            return str(path.with_suffix(".md"))
+
+        if suffix == "":
+            return f"{path}.md"
+
+        return str(path.with_suffix(".md"))
