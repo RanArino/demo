@@ -204,9 +204,11 @@ func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event ev
 		log.Printf("Invalid ProcessStatus in event, status %v, error %v", event.Status, err)
 		return err
 	}
-	processedHash := ""
-	if event.ProcessedBlobHash != nil {
-		processedHash = *event.ProcessedBlobHash
+	processedKey := ""
+	if event.ProcessedObjectKey != nil {
+		processedKey = *event.ProcessedObjectKey
+	} else if event.ProcessedBlobHash != nil {
+		processedKey = *event.ProcessedBlobHash
 	}
 
 	ownerID, err := h.svc.GetContentOwner(ctx, event.ContentSourceID)
@@ -215,6 +217,6 @@ func (h *processedHandler) HandleDocumentProcessed(ctx context.Context, event ev
 	}
 	ctxWithOwner := context.WithValue(ctx, domain.OwnerIDKey, ownerID.String())
 
-	_, err = h.svc.UpdateContentSourceStatus(ctxWithOwner, event.ContentSourceID, status, processedHash, event.ErrorMessage, event.SummaryPtr(), event.KeywordsPtr(), event.TitlePtr())
+	_, err = h.svc.UpdateContentSourceStatus(ctxWithOwner, event.ContentSourceID, status, processedKey, event.ErrorMessage, event.SummaryPtr(), event.KeywordsPtr(), event.TitlePtr())
 	return err
 }
