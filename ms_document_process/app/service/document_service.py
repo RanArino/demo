@@ -1,9 +1,8 @@
 import hashlib
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Optional
-from uuid import UUID
 
 from app.domain.events import DocumentProcessedEvent, DocumentUploadedEvent
 from app.domain.insights import DocumentInsights
@@ -66,45 +65,32 @@ class DocumentProcessService:
                 lambda: self.document_repository.download_source_document(source_key),
             )
 
-            markdown_content = self._retry_with_backoff(
-                "convert_document_to_markdown",
-                lambda: convert_document_to_markdown(document_content, "pdf"),
-            )
+            conversion_workers = 2 + int(self.insights_service is not None)
 
-            processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
-
-            insights: Optional[DocumentInsights] = None
-
-            def upload_operation():
-                return self.document_repository.upload_processed_document(
-                    source_key, markdown_content.encode(ENCODING)
+            with ThreadPoolExecutor(max_workers=conversion_workers) as executor:
+                conversion_future = executor.submit(
+                    self._retry_with_backoff,
+                    "convert_document_to_markdown",
+                    lambda: convert_document_to_markdown(document_content, "pdf"),
                 )
 
-            if self.insights_service is not None:
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    futures = {
-                        executor.submit(
-                            self._retry_with_backoff,
-                            "upload_processed_document",
-                            upload_operation,
-                        ): "upload",
-                        executor.submit(
-                            self._generate_insights_safe,
-                            markdown_content,
-                            event.title,
-                        ): "insights",
-                    }
-                    for future in as_completed(futures):
-                        tag = futures[future]
-                        if tag == "upload":
-                            future.result()
-                        else:
-                            insights = future.result()
-            else:
-                self._retry_with_backoff(
-                    "upload_processed_document",
-                    upload_operation,
+                upload_future = executor.submit(
+                    self._upload_after_conversion,
+                    conversion_future,
+                    source_key,
                 )
+
+                insights_future: Optional[Future[Optional[DocumentInsights]]] = None
+                if self.insights_service is not None:
+                    insights_future = executor.submit(
+                        self._insights_after_conversion,
+                        conversion_future,
+                        event.title,
+                    )
+
+                markdown_content = upload_future.result()
+                processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
+                insights = insights_future.result() if insights_future is not None else None
 
             processed_event = DocumentProcessedEvent(
                 content_source_id=event.content_source_id,
@@ -145,3 +131,29 @@ class DocumentProcessService:
         except Exception:
             logger.warning("Failed to generate document insights", exc_info=True)
             return None
+
+    def _upload_after_conversion(
+        self,
+        conversion_future: Future[str],
+        source_key: str,
+    ) -> str:
+        markdown_content = conversion_future.result()
+
+        def upload_operation():
+            return self.document_repository.upload_processed_document(
+                source_key, markdown_content.encode(ENCODING)
+            )
+
+        self._retry_with_backoff(
+            "upload_processed_document",
+            upload_operation,
+        )
+        return markdown_content
+
+    def _insights_after_conversion(
+        self,
+        conversion_future: Future[str],
+        title: Optional[str],
+    ) -> Optional[DocumentInsights]:
+        markdown_content = conversion_future.result()
+        return self._generate_insights_safe(markdown_content, title)
