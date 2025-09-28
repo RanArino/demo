@@ -193,11 +193,13 @@ func TestDocumentWorkflowIntegration_EventHandling(t *testing.T) {
 	}
 
 	// Test successful processing event
+	successKey := "processed-object-key"
 	successEvent := events.DocumentProcessedEvent{
-		ContentSourceID:   content.ID,
-		ProcessedBlobHash: stringPtr("processed-hash-123"),
-		Status:            events.ProcessStatusProcessed,
-		Title:             "Test Doc",
+		ContentSourceID:    content.ID,
+		ProcessedBlobHash:  stringPtr("processed-hash-123"),
+		ProcessedObjectKey: &successKey,
+		Status:             events.ProcessStatusProcessed,
+		Title:              "Test Doc",
 	}
 
 	err := handler.HandleDocumentProcessed(ctxOwner, successEvent)
@@ -405,13 +407,15 @@ func (h *DocumentProcessedHandler) HandleDocumentProcessed(ctx context.Context, 
 	}
 
 	// Extract processed blob hash
-	processedHash := ""
-	if event.ProcessedBlobHash != nil {
-		processedHash = *event.ProcessedBlobHash
+	processedKey := ""
+	if event.ProcessedObjectKey != nil {
+		processedKey = *event.ProcessedObjectKey
+	} else if event.ProcessedBlobHash != nil {
+		processedKey = *event.ProcessedBlobHash
 	}
 
 	// Update content source status
-	_, err := h.contentSvc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedHash, event.ErrorMessage, nil, nil, &event.Title)
+	_, err := h.contentSvc.UpdateContentSourceStatus(ctx, event.ContentSourceID, status, processedKey, event.ErrorMessage, nil, nil, &event.Title)
 	if err != nil {
 		return fmt.Errorf("failed to update content source status: %w", err)
 	}
