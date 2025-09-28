@@ -8,6 +8,7 @@ class DocumentUploadedEvent(BaseModel):
     space_id: UUID
     original_object_key: Optional[str] = None
     title: Optional[str] = None
+    source: Optional[str] = None
 
 class DocumentProcessedEvent(BaseModel):
     content_source_id: UUID
