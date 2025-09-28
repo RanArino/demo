@@ -31,7 +31,7 @@ def _setup_tracing():
     trace.set_tracer_provider(provider)
 
 
-class CanvasInternalServicer(canvas_pb2_grpc.CanvasInternalServicer):
+class CanvasInternalServicer(canvas_pb2_grpc.CanvasMLServicer):
     def EmbedQuery(self, request, context):
         try:
             config = EmbeddingConfig(
@@ -161,7 +161,7 @@ def main():
         ],
     )
 
-    canvas_pb2_grpc.add_CanvasInternalServicer_to_server(CanvasInternalServicer(), server)
+    canvas_pb2_grpc.add_CanvasMLServicer_to_server(CanvasInternalServicer(), server)
 
     server.add_insecure_port(f"{host}:{port}")
     logging.info("Python gRPC server listening on %s:%s", host, port)
