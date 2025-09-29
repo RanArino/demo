@@ -28,6 +28,8 @@ RUN pip3 install --break-system-packages poetry && \
         --pyi_out=app \
         proto/private/v1/canvas_private.proto && \
     sed -i 's/from proto\.private\.v1/from app.proto.private.v1/g' app/proto/private/v1/canvas_private_pb2_grpc.py && \
+    poetry run python -m spacy download en_core_web_sm && \
+    poetry run python -m spacy download xx_sent_ud_sm && \
     poetry build && \
     poetry run pip install dist/*.whl; \
     fi
