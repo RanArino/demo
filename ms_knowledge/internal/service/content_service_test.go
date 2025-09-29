@@ -130,14 +130,14 @@ func TestUpdateContentSourceStatus(t *testing.T) {
 	summary := "Summary text"
 	keywords := []string{"keyword1", "keyword2"}
 	newTitle := "Updated Title"
-	res, err := svc.UpdateContentSourceStatus(ctx, item.ID, domain.ContentStatusProcessed, "processed-hash", "", &summary, &keywords, &newTitle)
+	res, err := svc.UpdateContentSourceStatus(ctx, item.ID, domain.ContentStatusProcessed, "processed-object-key", "", &summary, &keywords, &newTitle)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if res.Status != domain.ContentStatusProcessed {
 		t.Fatalf("expected status PROCESSED, got %s", res.Status)
 	}
-	if res.ProcessedBlobHash == nil || *res.ProcessedBlobHash != "processed-hash" {
+	if res.ProcessedBlobHash == nil || *res.ProcessedBlobHash != "processed-object-key" {
 		t.Fatalf("expected processed hash to be set")
 	}
 	if res.ContentSummary == nil || *res.ContentSummary != summary {
