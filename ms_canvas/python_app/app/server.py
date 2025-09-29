@@ -35,8 +35,8 @@ class CanvasInternalServicer(canvas_pb2_grpc.CanvasMLServicer):
     def EmbedQuery(self, request, context):
         try:
             config = EmbeddingConfig(
-                provider=request.config.provider or "huggingface",
-                model_id=request.config.model_id or "all-MiniLM-L6-v2",
+                provider=request.config.provider or "gemini",
+                model_id=request.config.model_id or "gemini-embedding-001",
                 model_version=request.config.model_version or ""
             )
             
@@ -70,8 +70,8 @@ class CanvasInternalServicer(canvas_pb2_grpc.CanvasMLServicer):
                 tokenizer=request.chunking.tokenizer or settings.CANVAS_TOKENIZER,
             )
             embed_cfg = EmbeddingConfig(
-                provider=request.embedding.provider or "huggingface",
-                model_id=request.embedding.model_id or "all-MiniLM-L6-v2",
+                provider=request.embedding.provider or "gemini",
+                model_id=request.embedding.model_id or "gemini-embedding-001",
                 model_version=request.embedding.model_version or "",
             )
 
