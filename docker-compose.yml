@@ -73,7 +73,7 @@ services:
   ms_canvas:
     build:
       context: ./ms_canvas
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "50055:50055"
       - "8082:8080"
