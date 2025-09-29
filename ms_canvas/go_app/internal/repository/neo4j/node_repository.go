@@ -312,17 +312,15 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 	if len(contents) == 0 {
 		return nil
 	}
+
+	// Ensure constraint exists in a separate transaction to avoid schema/write conflicts.
+	if err := r.ensureContentNodeConstraint(ctx); err != nil {
+		return err
+	}
+
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
-		_, err := tx.Run(ctx, `
-			CREATE CONSTRAINT contentnode_unique_content_source IF NOT EXISTS 
-			FOR (n:ContentNode) REQUIRE n.content_source_id IS UNIQUE
-		`, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create unique constraint: %v", err)
-		}
-
 		params := map[string]interface{}{
 			"items": make([]map[string]interface{}, 0, len(contents)),
 		}
@@ -351,7 +349,7 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
 
-		_, err = tx.Run(ctx, `
+		_, err := tx.Run(ctx, `
             UNWIND $items AS item
             MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
             ON CREATE SET
@@ -383,6 +381,23 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 		return nil, nil
 	})
 	return err
+}
+
+// ensureContentNodeConstraint creates a uniqueness constraint in its own transaction.
+func (r *NodeRepo) ensureContentNodeConstraint(ctx context.Context) error {
+	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
+	defer sess.Close(ctx)
+	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
+		_, err := tx.Run(ctx, `
+			CREATE CONSTRAINT contentnode_unique_content_source IF NOT EXISTS 
+			FOR (n:ContentNode) REQUIRE n.content_source_id IS UNIQUE
+		`, nil)
+		return nil, err
+	})
+	if err != nil {
+		return fmt.Errorf("failed to ensure unique constraint for ContentNode: %w", err)
+	}
+	return nil
 }
 
 // CreateClusterNodes creates or updates ClusterNodes in batch.
