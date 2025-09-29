@@ -19,7 +19,15 @@ RUN pip3 install --break-system-packages poetry && \
     cd python_app && \
     rm -rf .venv && \
     poetry config virtualenvs.in-project true && \
+    poetry lock && \
     poetry install && \
+    poetry run python -m grpc_tools.protoc \
+        -I .. \
+        --python_out=app \
+        --grpc_python_out=app \
+        --pyi_out=app \
+        proto/private/v1/canvas_private.proto && \
+    sed -i 's/from proto\.private\.v1/from app.proto.private.v1/g' app/proto/private/v1/canvas_private_pb2_grpc.py && \
     poetry build && \
     poetry run pip install dist/*.whl; \
     fi
