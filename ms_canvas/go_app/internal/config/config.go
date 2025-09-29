@@ -30,6 +30,11 @@ type Config struct {
 	Topics                        Topics
 	PythonService                 PythonServiceConfig
 	R2Config                      R2Config
+
+	// OpenAI embedding configuration for Neo4j GenAI
+	OpenAIAPIKey         string
+	OpenAIEmbeddingModel string
+	OpenAIEmbeddingDim   int
 }
 
 type R2Config struct {
@@ -98,5 +103,10 @@ func Load() Config {
 			AccountID:       getEnv("R2_ACCOUNT_ID", ""),
 			BucketProcessed: getEnv("R2_BUCKET_PROCESSED", ""),
 		},
+
+		// OpenAI embedding configuration
+		OpenAIAPIKey:         getEnv("OPENAI_API_KEY", ""),
+		OpenAIEmbeddingModel: getEnv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
+		OpenAIEmbeddingDim:   getEnvInt("OPENAI_EMBEDDING_DIM", 0),
 	}
 }

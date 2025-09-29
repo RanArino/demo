@@ -50,7 +50,7 @@ func main() {
 		log.Printf("[Main] Warning: failed to ensure Neo4j constraints: %v", err)
 	}
 
-	nodeRepo := neo4j.NewNodeRepo(drv)
+	nodeRepo := neo4j.NewNodeRepoWithConfig(drv, cfg)
 	linkRepo := neo4j.NewLinkRepo(drv)
 	searchRepo := neo4j.NewSearchRepo(drv)
 
