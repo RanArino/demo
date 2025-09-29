@@ -7,6 +7,7 @@ import (
 	"time"
 
 	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
+	"demo/ms_canvas/go_app/internal/config"
 
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -14,9 +15,15 @@ import (
 
 type NodeRepo struct {
 	driver *Driver
+	cfg    config.Config
 }
 
 func NewNodeRepo(driver *Driver) *NodeRepo { return &NodeRepo{driver: driver} }
+
+// NewNodeRepoWithConfig allows injecting service config (preferred for avoiding os.Getenv).
+func NewNodeRepoWithConfig(driver *Driver, cfg config.Config) *NodeRepo {
+	return &NodeRepo{driver: driver, cfg: cfg}
+}
 
 // GetNodes retrieves nodes by their IDs with optional filtering.
 func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.NodeFilter) ([]*canvasv1.Node, error) {
@@ -318,11 +325,18 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 		return err
 	}
 
+	// Prepare OpenAI configuration once and pass into the Cypher transaction (from config, not env).
+	openAIConfig := map[string]interface{}{"token": r.cfg.OpenAIAPIKey, "model": r.cfg.OpenAIEmbeddingModel}
+	if r.cfg.OpenAIEmbeddingDim > 0 {
+		openAIConfig["dimensions"] = r.cfg.OpenAIEmbeddingDim
+	}
+
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"items": make([]map[string]interface{}, 0, len(contents)),
+			"items":         make([]map[string]interface{}, 0, len(contents)),
+			"openai_config": openAIConfig,
 		}
 		now := time.Now().UTC().Format(time.RFC3339)
 		for _, content := range contents {
@@ -341,6 +355,9 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 				if content.Base.ChatContent != nil {
 					item["chat_content"] = *content.Base.ChatContent
 				}
+				if len(content.Base.Embedding) > 0 {
+					item["embedding"] = content.Base.Embedding
+				}
 			}
 			if content.Title != nil {
 				item["title"] = *content.Title
@@ -349,6 +366,7 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
 
+		// Single atomic query handling create/update and conditional embedding generation server-side.
 		_, err := tx.Run(ctx, `
             UNWIND $items AS item
             MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
@@ -361,22 +379,32 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
                 n.space_id = item.space_id,
                 n.updated_at = datetime(item.now)
             SET
-                n.updated_at = datetime(item.now)
+                n.updated_at = datetime(item.now),
+                n.title = CASE WHEN item.title IS NOT NULL THEN item.title ELSE n.title END,
+                n.keywords = CASE WHEN item.keywords IS NOT NULL THEN item.keywords ELSE n.keywords END,
+                n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END
+
+            WITH n, item,
+                CASE WHEN item.chat_content IS NOT NULL AND item.chat_content <> '' THEN item.chat_content
+                     WHEN item.title IS NOT NULL AND item.title <> '' THEN item.title
+                     ELSE NULL END AS textToEmbed,
+                $openai_config AS openaiConfig
+
+            // Generate embedding server-side only when necessary
+            FOREACH (_ IN CASE WHEN item.embedding IS NULL AND n.embedding IS NULL AND textToEmbed IS NOT NULL THEN [1] ELSE [] END |
+                SET n.embedding = genai.vector.encode(textToEmbed, 'OpenAI', openaiConfig)
+            )
+
+            // If an embedding was provided in the item, set it (overrides nothing if nil)
+            FOREACH (_ IN CASE WHEN item.embedding IS NOT NULL THEN [1] ELSE [] END |
+                SET n.embedding = item.embedding
+            )
+
+            RETURN count(n)
         `, params)
 
-		// Handle optional fields (title, keywords, chat_content) in a separate query
-		// so we don't overwrite existing values with NULL when items lack those fields.
-		if len(contents) > 0 && (contents[0].Title != nil || (contents[0].Base != nil && (contents[0].Base.ChatContent != nil || len(contents[0].Base.Keywords) > 0))) {
-			_, err = tx.Run(ctx, `
-                UNWIND $items AS item
-                MATCH (n:ContentNode {content_source_id: item.content_source_id})
-                SET n.title = CASE WHEN item.title IS NOT NULL THEN item.title ELSE n.title END,
-                    n.keywords = CASE WHEN item.keywords IS NOT NULL THEN item.keywords ELSE n.keywords END,
-                    n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END
-            `, params)
-		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to create content nodes: %v", err)
+			return nil, fmt.Errorf("failed to create/update content nodes: %w", err)
 		}
 		return nil, nil
 	})
@@ -389,7 +417,7 @@ func (r *NodeRepo) ensureContentNodeConstraint(ctx context.Context) error {
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		_, err := tx.Run(ctx, `
-			CREATE CONSTRAINT contentnode_unique_content_source IF NOT EXISTS 
+			CREATE CONSTRAINT contentnode_unique_content_source IF NOT EXISTS
 			FOR (n:ContentNode) REQUIRE n.content_source_id IS UNIQUE
 		`, nil)
 		return nil, err
