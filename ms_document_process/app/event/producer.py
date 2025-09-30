@@ -1,6 +1,5 @@
 import json
 import logging
-import threading
 import time
 from uuid import UUID
 from datetime import datetime
@@ -41,35 +40,25 @@ class KafkaProducer:
         ).encode('utf-8')
 
         delivery_error = None
-        delivery_event = threading.Event()
 
         def delivery_report(err, msg):
             nonlocal delivery_error
             if err is not None:
                 delivery_error = err
-            delivery_event.set()
 
         max_retries = 3
         backoff = 0.5
-        delivery_timeout_seconds = 3.0
         for attempt in range(1, max_retries + 1):
             delivery_error = None  # Reset error state before each attempt
-            delivery_event.clear()
             try:
                 self.producer.produce(self.topic, value=message, on_delivery=delivery_report)
-                elapsed = 0.0
-                poll_interval = 0.2
-                while elapsed < delivery_timeout_seconds:
-                    self.producer.poll(int(poll_interval * 1000))
-                    if delivery_event.wait(timeout=0):
-                        break
-                    elapsed += poll_interval
-                if not delivery_event.is_set():
-                    raise TimeoutError("Kafka delivery callback timed out")
-                if delivery_error is not None:
+                self.producer.poll(0)
+                self.producer.flush(5000)
+                if delivery_error is None:
+                    logger.info(f"Produced message to topic {self.topic}")
+                    return
+                else:
                     raise RuntimeError(str(delivery_error))
-                logger.info(f"Produced message to topic {self.topic}")
-                return
             except Exception:
                 if attempt >= max_retries:
                     logger.error(
@@ -83,6 +72,3 @@ class KafkaProducer:
                 )
                 time.sleep(backoff)
                 backoff *= 2
-            finally:
-                # Ensure producer queue is drained to avoid buildup when retrying
-                self.producer.poll(0)
