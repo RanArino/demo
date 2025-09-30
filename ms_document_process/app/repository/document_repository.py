@@ -17,9 +17,8 @@ class DocumentRepository:
         """
         return self.r2_client.download_file(self.source_bucket, object_key)
 
-    def upload_processed_document(self, object_key: str, data: bytes, content_type: str = 'text/markdown') -> str:
+    def upload_processed_document(self, object_key: str, data: bytes, content_type: str = 'text/markdown') -> None:
         """
         Uploads the processed document (e.g., Markdown) to the processed bucket.
         """
         self.r2_client.upload_file(self.processed_bucket, object_key, data, content_type)
-        return object_key
