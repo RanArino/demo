@@ -46,8 +46,8 @@ services:
       - app-network
   ms_document_process:
     build:
-      context: ./ms_document_process
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms_document_process/Dockerfile
     ports:
       - "50053:50053"
     env_file:
