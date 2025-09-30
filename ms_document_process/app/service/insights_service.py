@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import json
 import logging
-from typing import Iterable, Optional
+from typing import Optional
 
-import google.generativeai as genai
-from google.api_core.exceptions import GoogleAPIError
-from google.generativeai import types as genai_types
+from pkg.llm import LLMProvider, LLMProviderConfig, LLMProviderFactory, LLMProviderType
 
 from app.config.config import settings
 from app.domain.insights import DocumentInsights
@@ -16,100 +13,61 @@ logger = logging.getLogger(__name__)
 
 class DocumentInsightsService:
     def __init__(self) -> None:
-        if not settings.gemini_api_key:
-            raise ValueError("gemini_api_key must be configured to enable document insights")
+        """Initialize DocumentInsightsService with configured LLM provider."""
+        self._provider = self._create_provider()
+        # Backward compatibility: use legacy settings if new ones aren't set
+        self._summary_tokens = settings.llm_summary_tokens or settings.gemini_summary_tokens
+        self._keyword_count = settings.llm_keyword_count or settings.gemini_keyword_count
 
-        genai.configure(api_key=settings.gemini_api_key)
-        self._model = genai.GenerativeModel(settings.gemini_model)
-
-    def generate_insights(self, document_text: str, title: Optional[str] = None) -> DocumentInsights:
+    def _create_provider(self) -> LLMProvider:
+        """Create LLM provider based on configuration."""
         try:
-            response = self._model.generate_content(
-                contents=self._build_prompt(document_text, title),
-                generation_config=genai_types.GenerationConfig(
-                    temperature=0.2,
-                    top_p=0.95,
-                    response_mime_type="application/json",
-                    response_schema={
-                        "type": "object",
-                        "properties": {
-                            "summary": {"type": "string"},
-                            "keywords": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "min_items": min(3, settings.gemini_keyword_count),
-                                "max_items": settings.gemini_keyword_count,
-                            },
-                        },
-                        "required": ["summary", "keywords"],
-                    },
-                ),
+            provider_type = LLMProviderType(settings.llm_provider.lower())
+        except ValueError:
+            logger.warning(
+                f"Invalid provider '{settings.llm_provider}', falling back to openai"
             )
-        except GoogleAPIError as err:
-            logger.warning("Gemini API error while generating insights", exc_info=True)
-            raise RuntimeError("failed to generate document insights") from err
+            provider_type = LLMProviderType.OPENAI
 
-        return self._parse_response(response)
-
-    def _build_prompt(self, document_text: str, title: Optional[str]) -> str:
-        heading = f"Title: {title}\n" if title else ""
-        instructions = (
-            "You are an assistant that summarizes documents and extracts concise keywords.\n"
-            "Analyse the provided document and respond strictly with valid JSON matching the schema:\n"
-            "{\"summary\": string, \"keywords\": string[]}.\n"
-            "Guidelines:\n"
-            f"- The summary should be around {settings.gemini_summary_tokens} tokens and cover essential points.\n"
-            f"- Return between 3 and {settings.gemini_keyword_count} informative keywords.\n"
-            "- Do not include markdown or explanations outside the JSON object.\n"
+        config = LLMProviderConfig(
+            provider_type=provider_type,
+            openai_api_key=settings.openai_api_key,
+            openai_model=settings.openai_model,
+            vertex_project_id=settings.vertex_project_id,
+            vertex_location=settings.vertex_location,
+            vertex_model=settings.vertex_model,
+            gemini_api_key=settings.gemini_api_key,
+            gemini_model=settings.gemini_model,
+            temperature=settings.llm_temperature,
+            top_p=settings.llm_top_p,
         )
-        return f"{instructions}{heading}\nDocument:\n{document_text}"
 
-    def _parse_response(self, response: genai.types.Generation) -> DocumentInsights:
-        try:
-            parsed = getattr(response, "parsed", None)
-            if isinstance(parsed, dict):
-                summary = parsed.get("summary", "")
-                keywords = parsed.get("keywords", [])
-                return DocumentInsights.from_generation(summary, keywords)
-            raw_text = self._extract_text(response)
-            if not raw_text or not raw_text.strip():
-                logger.warning("Received empty or whitespace-only response from Gemini API")
-                return DocumentInsights(summary="", keywords=[])
-            payload = json.loads(raw_text)
-            summary = payload.get("summary", "") if isinstance(payload, dict) else ""
-            keywords = payload.get("keywords", []) if isinstance(payload, dict) else []
-            return DocumentInsights.from_generation(summary, keywords)
-        except Exception:
-            logger.warning("Failed to parse Gemini insights response", exc_info=True)
-            return DocumentInsights(summary="", keywords=[])
+        return LLMProviderFactory.create_provider(config)
 
-    @staticmethod
-    def _extract_text(response: genai.types.Generation) -> str:
+    def generate_insights(
+        self, document_text: str, title: Optional[str] = None
+    ) -> DocumentInsights:
+        """
+        Generate insights from document text using configured LLM provider.
+
+        Args:
+            document_text: The document text to analyze
+            title: Optional document title for context
+
+        Returns:
+            DocumentInsights containing summary and keywords
+
+        Raises:
+            RuntimeError: If insight generation fails
+        """
         try:
-            text_value = getattr(response, "text")
-        except (AttributeError, ValueError):
-            text_value = None
-        if text_value:
-            return text_value
-        candidates = getattr(response, "candidates", None)
-        if candidates:
-            for candidate in candidates:
-                content = getattr(candidate, "content", None)
-                if content:
-                    for part in getattr(content, "parts", []):
-                        text = getattr(part, "text", None)
-                        if text:
-                            return text
-                        if hasattr(part, "function_response"):
-                            function_response = getattr(part, "function_response")
-                            if function_response and function_response.response:
-                                try:
-                                    return json.dumps(function_response.response)
-                                except (TypeError, ValueError):
-                                    logger.debug("Unable to serialize function response part", exc_info=True)
-                        if hasattr(part, "parsed") and part.parsed:
-                            try:
-                                return json.dumps(part.parsed)
-                            except (TypeError, ValueError):
-                                logger.debug("Unable to serialize parsed part", exc_info=True)
-        return str(response)
+            response = self._provider.generate_insights(
+                document_text=document_text,
+                title=title,
+                summary_tokens=self._summary_tokens,
+                keyword_count=self._keyword_count,
+            )
+            return DocumentInsights.from_generation(response.summary, response.keywords)
+        except Exception as err:
+            logger.warning("Failed to generate document insights", exc_info=True)
+            raise RuntimeError("Failed to generate document insights") from err

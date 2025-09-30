@@ -1,9 +1,9 @@
 import hashlib
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Optional
-from uuid import UUID
+from concurrent.futures import Future, ThreadPoolExecutor
+from pathlib import PurePosixPath
+from typing import Dict, Optional
 
 from app.domain.events import DocumentProcessedEvent, DocumentUploadedEvent
 from app.domain.insights import DocumentInsights
@@ -53,6 +53,15 @@ class DocumentProcessService:
 
     def process_document(self, event: DocumentUploadedEvent):
         logger.info(f"Processing document for content_source_id: {event.content_source_id}")
+        timings: Dict[str, float] = {}
+        status = "FAILED"
+        overall_start = time.perf_counter()
+
+        def produce_with_timing(processed_event: DocumentProcessedEvent) -> None:
+            produce_start = time.perf_counter()
+            self.kafka_producer.produce_document_processed_event(processed_event)
+            timings["event_emit"] = time.perf_counter() - produce_start
+
         try:
             if not event.original_object_key:
                 logger.error("Missing original_object_key for content_source_id: %s", event.content_source_id)
@@ -61,62 +70,62 @@ class DocumentProcessService:
                 )
             source_key = event.original_object_key
 
+            download_start = time.perf_counter()
             document_content = self._retry_with_backoff(
                 "download_source_document",
                 lambda: self.document_repository.download_source_document(source_key),
             )
+            timings["download"] = time.perf_counter() - download_start
 
-            markdown_content = self._retry_with_backoff(
-                "convert_document_to_markdown",
-                lambda: convert_document_to_markdown(document_content, "pdf"),
-            )
+            conversion_workers = 2 + int(self.insights_service is not None)
 
-            processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
+            with ThreadPoolExecutor(max_workers=conversion_workers) as executor:
+                def convert_with_timing() -> str:
+                    conversion_start = time.perf_counter()
+                    result = convert_document_to_markdown(document_content, "pdf")
+                    timings["conversion"] = time.perf_counter() - conversion_start
+                    return result
 
-            insights: Optional[DocumentInsights] = None
-
-            def upload_operation():
-                return self.document_repository.upload_processed_document(
-                    source_key, markdown_content.encode(ENCODING)
+                conversion_future = executor.submit(
+                    self._retry_with_backoff,
+                    "convert_document_to_markdown",
+                    convert_with_timing,
                 )
 
-            if self.insights_service is not None:
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    futures = {
-                        executor.submit(
-                            self._retry_with_backoff,
-                            "upload_processed_document",
-                            upload_operation,
-                        ): "upload",
-                        executor.submit(
-                            self._generate_insights_safe,
-                            markdown_content,
-                            event.title,
-                        ): "insights",
-                    }
-                    for future in as_completed(futures):
-                        tag = futures[future]
-                        if tag == "upload":
-                            future.result()
-                        else:
-                            insights = future.result()
-            else:
-                self._retry_with_backoff(
-                    "upload_processed_document",
-                    upload_operation,
+                upload_future = executor.submit(
+                    self._upload_after_conversion,
+                    conversion_future,
+                    source_key,
+                    timings,
                 )
+
+                insights_future: Optional[Future[Optional[DocumentInsights]]] = None
+                if self.insights_service is not None:
+                    insights_future = executor.submit(
+                        self._insights_after_conversion,
+                        conversion_future,
+                        event.title,
+                        timings,
+                    )
+
+                markdown_content, processed_object_key = upload_future.result()
+                processed_blob_hash = hashlib.sha256(markdown_content.encode(ENCODING)).hexdigest()
+                insights = insights_future.result() if insights_future is not None else None
 
             processed_event = DocumentProcessedEvent(
                 content_source_id=event.content_source_id,
                 space_id=event.space_id,
                 processed_blob_hash=processed_blob_hash,
+                processed_object_key=processed_object_key,
                 status="PROCESSED",
                 error_message=None,
                 title=event.title,
                 summary=insights.summary if insights else None,
                 keywords=insights.keywords if insights else None,
+                # source= # TODO: Assign source either one of upload|gdrive|web|onedrive|paste
             )
-            self.kafka_producer.produce_document_processed_event(processed_event)
+            produce_with_timing(processed_event)
+            status = "PROCESSED"
             logger.info("Successfully processed document for content_source_id: %s", event.content_source_id)
 
         except Exception as e:
@@ -131,7 +140,20 @@ class DocumentProcessService:
                 summary=None,
                 keywords=None,
             )
-            self.kafka_producer.produce_document_processed_event(failed_event)
+            produce_with_timing(failed_event)
+        finally:
+            total_duration = time.perf_counter() - overall_start
+            logger.info(
+                "Document processing timings for content_source_id=%s (status=%s): download=%.3fs, conversion=%.3fs, upload=%.3fs, insights=%.3fs, event_emit=%.3fs, total=%.3fs",
+                event.content_source_id,
+                status,
+                timings.get("download", 0.0),
+                timings.get("conversion", 0.0),
+                timings.get("upload", 0.0),
+                timings.get("insights", 0.0),
+                timings.get("event_emit", 0.0),
+                total_duration,
+            )
 
     def _generate_insights_safe(
         self,
@@ -145,3 +167,50 @@ class DocumentProcessService:
         except Exception:
             logger.warning("Failed to generate document insights", exc_info=True)
             return None
+
+    def _upload_after_conversion(
+        self,
+        conversion_future: Future[str],
+        source_key: str,
+        timings: Dict[str, float],
+    ) -> tuple[str, str]:
+        markdown_content = conversion_future.result()
+        processed_object_key = self._build_processed_object_key(source_key)
+
+        def upload_operation():
+            return self.document_repository.upload_processed_document(
+                processed_object_key, markdown_content.encode(ENCODING)
+            )
+
+        upload_start = time.perf_counter()
+        uploaded_object_key = self._retry_with_backoff(
+            "upload_processed_document",
+            upload_operation,
+        )
+        timings["upload"] = time.perf_counter() - upload_start
+        return markdown_content, uploaded_object_key
+
+    def _insights_after_conversion(
+        self,
+        conversion_future: Future[str],
+        title: Optional[str],
+        timings: Dict[str, float],
+    ) -> Optional[DocumentInsights]:
+        markdown_content = conversion_future.result()
+        insights_start = time.perf_counter()
+        insights = self._generate_insights_safe(markdown_content, title)
+        timings["insights"] = time.perf_counter() - insights_start
+        return insights
+
+    def _build_processed_object_key(self, source_key: str) -> str:
+        path = PurePosixPath(source_key)
+        suffix = path.suffix.lower()
+        if suffix in {".txt", ".text"}:
+            return str(path.with_suffix(".txt"))
+        if suffix == ".md":
+            return str(path.with_suffix(".md"))
+
+        if suffix == "":
+            return f"{path}.md"
+
+        return str(path.with_suffix(".md"))
