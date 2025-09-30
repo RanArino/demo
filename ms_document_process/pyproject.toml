@@ -16,6 +16,9 @@ pypdf = ">=4.2.0,<5.0.0"
 markitdown = { version = "~=0.1.2", extras = ["pdf"] }
 grpcio = "^1.64.1"
 grpcio-tools = "^1.64.1"
+# LLM providers
+openai = "^1.50.0"
+google-cloud-aiplatform = "^1.70.0"
 google-generativeai = "^0.8.5"
 
 [tool.poetry.group.dev.dependencies]
