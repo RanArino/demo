@@ -11,6 +11,7 @@ import (
 	"demo/ms_canvas/go_app/internal/events"
 	"demo/ms_canvas/go_app/internal/gateway/python"
 	"demo/ms_canvas/go_app/internal/infra"
+	"demo/ms_canvas/go_app/internal/metrics"
 	"demo/ms_canvas/go_app/internal/repository"
 
 	"github.com/google/uuid"
@@ -105,6 +106,15 @@ func (e *EventOrchestrator) HandleDocumentProcessed(event events.DocumentProcess
 		if updateErr := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_FAILED, err.Error()); updateErr != nil {
 			log.Printf("[EventOrchestrator] Warning: failed to update chunking status to FAILED: %v", updateErr)
 		}
+
+		// Schedule automatic retry if under max retry limit
+		retryCount := e.getRetryCountForEvent(event)
+		if retryCount < 3 { // Max 3 retries
+			log.Printf("[EventOrchestrator] Scheduling retry %d/3 for ContentNode: %s", retryCount+1, contentNodeID)
+			go e.retryChunkingAfterDelay(ctx, contentNodeID, event, retryCount)
+		} else {
+			log.Printf("[EventOrchestrator] Max retries (3) exceeded for ContentNode: %s", contentNodeID)
+		}
 		// Don't fail the entire process - the content node was successfully created
 	} else {
 		// Update status to COMPLETED on success
@@ -198,6 +208,11 @@ func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.
 
 // triggerChunkingEmbedding triggers the chunking and embedding workflow
 func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, contentNodeID string, event events.DocumentProcessedEvent) error {
+	start := time.Now()
+	defer func() {
+		metrics.ChunkingDuration.Observe(time.Since(start).Seconds())
+	}()
+
 	log.Printf("[EventOrchestrator] Triggering chunking/embedding workflow for ContentNode: %s", contentNodeID)
 
 	if e.r2Client == nil {
@@ -224,6 +239,7 @@ func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, conten
 	log.Printf("[EventOrchestrator] Fetching processed document from R2: %s", downloadKey)
 	documentContent, err := e.r2Client.DownloadFile(downloadKey)
 	if err != nil {
+		metrics.ChunkingTotal.WithLabelValues("failed").Inc()
 		return fmt.Errorf("failed to fetch processed document from R2: %w", err)
 	}
 
@@ -232,6 +248,7 @@ func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, conten
 	log.Printf("[EventOrchestrator] Calling Python chunking service...")
 	chunkingResponse, err := e.pythonGateway.ChunkDocument(ctx, documentContent, contentNodeID)
 	if err != nil {
+		metrics.ChunkingTotal.WithLabelValues("failed").Inc()
 		return fmt.Errorf("failed to chunk document: %w", err)
 	}
 
@@ -240,12 +257,14 @@ func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, conten
 	if len(chunkingResponse.Chunks) > 0 {
 		err = e.createChunkNodes(ctx, chunkingResponse.Chunks, contentNodeID, event.ContentSourceID.String(), event)
 		if err != nil {
+			metrics.ChunkingTotal.WithLabelValues("failed").Inc()
 			return fmt.Errorf("failed to create chunk nodes: %w", err)
 		}
 		log.Printf("[EventOrchestrator] Successfully created %d chunk nodes", len(chunkingResponse.Chunks))
 	}
 
 	log.Printf("[EventOrchestrator] Chunking/embedding workflow completed successfully")
+	metrics.ChunkingTotal.WithLabelValues("completed").Inc()
 	return nil
 }
 
@@ -322,4 +341,54 @@ func (e *EventOrchestrator) updateChunkingStatus(ctx context.Context, contentNod
 
 	log.Printf("[EventOrchestrator] Updated ContentNode %s chunking status to %s", contentNodeID, status.String())
 	return nil
+}
+
+// retryChunkingAfterDelay schedules automatic retry for failed chunking with exponential backoff
+func (e *EventOrchestrator) retryChunkingAfterDelay(ctx context.Context, contentNodeID string, event events.DocumentProcessedEvent, retryCount int) {
+	// Exponential backoff: 30s, 60s, 120s
+	delay := time.Duration(30*(1<<retryCount)) * time.Second
+	log.Printf("[EventOrchestrator] Waiting %v before retry %d for ContentNode: %s", delay, retryCount+1, contentNodeID)
+
+	// Sleep for backoff duration
+	time.Sleep(delay)
+
+	// Increment retry metrics
+	metrics.ChunkingRetries.Inc()
+
+	// Update status to PROCESSING before retry
+	if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_PROCESSING, ""); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to update status before retry: %v", err)
+	}
+
+	// Retry chunking
+	log.Printf("[EventOrchestrator] Attempting retry %d/3 for ContentNode: %s", retryCount+1, contentNodeID)
+	if err := e.triggerChunkingEmbedding(ctx, contentNodeID, event); err != nil {
+		log.Printf("[EventOrchestrator] Retry %d failed for ContentNode %s: %v", retryCount+1, contentNodeID, err)
+
+		// Update status to FAILED
+		if updateErr := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_FAILED, err.Error()); updateErr != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update status after retry failure: %v", updateErr)
+		}
+
+		// Schedule next retry if under limit
+		if retryCount+1 < 3 {
+			log.Printf("[EventOrchestrator] Scheduling retry %d/3 for ContentNode: %s", retryCount+2, contentNodeID)
+			go e.retryChunkingAfterDelay(ctx, contentNodeID, event, retryCount+1)
+		} else {
+			log.Printf("[EventOrchestrator] Max retries (3) reached for ContentNode: %s", contentNodeID)
+		}
+	} else {
+		// Success! Update status to COMPLETED
+		log.Printf("[EventOrchestrator] Retry %d succeeded for ContentNode: %s", retryCount+1, contentNodeID)
+		if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED, ""); err != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update status after retry success: %v", err)
+		}
+	}
+}
+
+// getRetryCountForEvent extracts retry count from event metadata (always 0 for initial events)
+func (e *EventOrchestrator) getRetryCountForEvent(event events.DocumentProcessedEvent) int {
+	// Initial events don't have retry count, so always return 0
+	// Retry count is tracked internally in the goroutine chain
+	return 0
 }
