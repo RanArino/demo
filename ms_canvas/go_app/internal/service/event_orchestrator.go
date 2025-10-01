@@ -197,17 +197,16 @@ func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, conten
 		return nil
 	}
 
-	downloadKey := ""
-	if event.ProcessedObjectKey != nil && *event.ProcessedObjectKey != "" {
-		downloadKey = *event.ProcessedObjectKey
-	} else if event.ProcessedBlobHash != nil && *event.ProcessedBlobHash != "" {
-		downloadKey = *event.ProcessedBlobHash
+	// Validate that ProcessedObjectKey is available for R2 download
+	// Note: ProcessedBlobHash is a SHA256 hash, not an R2 object key, so we cannot use it for downloads
+	if event.ProcessedObjectKey == nil || *event.ProcessedObjectKey == "" {
+		log.Printf("[EventOrchestrator] Error: Missing processed_object_key for content_source_id=%s, cannot proceed with chunking workflow",
+			event.ContentSourceID)
+		return fmt.Errorf("processed_object_key is required for chunking workflow but was missing for content_source_id=%s",
+			event.ContentSourceID)
 	}
 
-	if downloadKey == "" {
-		log.Printf("[EventOrchestrator] Warning: No processed object key available, skipping chunking workflow")
-		return nil
-	}
+	downloadKey := *event.ProcessedObjectKey
 
 	log.Printf("[EventOrchestrator] Fetching processed document from R2: %s", downloadKey)
 	documentContent, err := e.r2Client.DownloadFile(downloadKey)
