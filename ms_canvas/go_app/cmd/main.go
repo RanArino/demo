@@ -22,9 +22,42 @@ import (
 	"google.golang.org/grpc"
 )
 
+func validateR2Configuration(cfg config.Config) error {
+	r2 := cfg.R2Config
+	if r2.Endpoint == "" || r2.AccessKeyID == "" || r2.SecretAccessKey == "" ||
+		r2.AccountID == "" || r2.BucketProcessed == "" {
+		return fmt.Errorf(
+			"R2 configuration incomplete: endpoint=%q, access_key_id=%s, secret_access_key=%s, account_id=%q, bucket_processed=%q. "+
+				"Please check your .env.local file and ensure all R2 credentials are set",
+			r2.Endpoint,
+			maskString(r2.AccessKeyID),
+			maskString(r2.SecretAccessKey),
+			r2.AccountID,
+			r2.BucketProcessed,
+		)
+	}
+	log.Printf("[Main] R2 configuration validated successfully (bucket: %s)", r2.BucketProcessed)
+	return nil
+}
+
+func maskString(s string) string {
+	if s == "" {
+		return "<empty>"
+	}
+	if len(s) <= 8 {
+		return "***"
+	}
+	return s[:4] + "***" + s[len(s)-4:]
+}
+
 func main() {
 	cfg := config.Load()
 	log.Printf("[Main] Starting ms_canvas service with Kafka consumer for event-streaming")
+
+	// Validate R2 configuration early to fail fast
+	if err := validateR2Configuration(cfg); err != nil {
+		log.Fatalf("[Main] Configuration validation failed: %v", err)
+	}
 
 	// Initialize Neo4j driver and repositories
 	drv, err := neo4j.NewDriver(
