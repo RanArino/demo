@@ -19,6 +19,7 @@ import (
 	"demo/ms_canvas/go_app/internal/server"
 	"demo/ms_canvas/go_app/internal/service"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -160,6 +161,9 @@ func main() {
 			http.Error(w, "not ready", http.StatusServiceUnavailable)
 		}
 	})
+
+	// Set up Prometheus metrics endpoint
+	http.Handle("/metrics", promhttp.Handler())
 
 	httpPort := ":8080"
 	log.Printf("[Main] ms_canvas service starting - gRPC on %s, HTTP health checks on %s", grpcAddr, httpPort)
