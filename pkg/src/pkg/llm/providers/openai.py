@@ -19,8 +19,8 @@ class OpenAIProvider(LLMProvider):
         self,
         api_key: str,
         model: str = "gpt-5-mini-2025-08-07",
-        temperature: float = 0.2,
-        top_p: float = 0.95,
+        temperature: float = 1.0,
+        top_p: float = 1.0,
     ):
         """
         Initialize OpenAI provider.
@@ -28,8 +28,8 @@ class OpenAIProvider(LLMProvider):
         Args:
             api_key: OpenAI API key
             model: Model name (default: gpt-5-mini-2025-08-07)
-            temperature: Sampling temperature (default: 0.2)
-            top_p: Nucleus sampling parameter (default: 0.95)
+            temperature: Sampling temperature (default: 1.0)
+            top_p: Nucleus sampling parameter (default: 1.0)
         """
         if not api_key:
             raise ValueError("api_key is required for OpenAI provider")
@@ -48,9 +48,10 @@ class OpenAIProvider(LLMProvider):
     ) -> InsightResponse:
         """Generate insights using OpenAI Chat Completions API."""
         try:
-            response: ChatCompletion = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
+            # Build kwargs for the API call
+            kwargs = {
+                "model": self.model,
+                "messages": [
                     {
                         "role": "system",
                         "content": "You are a helpful assistant that generates document summaries and keywords in JSON format.",
@@ -62,10 +63,17 @@ class OpenAIProvider(LLMProvider):
                         ),
                     },
                 ],
-                temperature=self.temperature,
-                top_p=self.top_p,
-                response_format={"type": "json_object"},
-            )
+                "response_format": {"type": "json_object"},
+            }
+
+            # Only add temperature/top_p if not using default value of 1.0
+            # (gpt-5-mini-2025-08-07 only supports temperature=1)
+            if self.temperature != 1.0:
+                kwargs["temperature"] = self.temperature
+            if self.top_p != 1.0:
+                kwargs["top_p"] = self.top_p
+
+            response: ChatCompletion = self.client.chat.completions.create(**kwargs)
 
             return self._parse_response(response)
 
