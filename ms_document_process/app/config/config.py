@@ -20,8 +20,8 @@ class Settings(BaseSettings):
 
     # LLM Provider Configuration
     llm_provider: str = "openai"  # openai | vertex | gemini
-    llm_temperature: float = 0.2
-    llm_top_p: float = 0.95
+    llm_temperature: float = 1.0
+    llm_top_p: float = 1.0
     llm_summary_tokens: int = 512
     llm_keyword_count: int = 10
 
