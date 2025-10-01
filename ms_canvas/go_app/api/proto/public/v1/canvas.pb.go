@@ -7,13 +7,14 @@
 package canvaspublicv1
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -57,11 +58,11 @@ func (x Direction) String() string {
 }
 
 func (Direction) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_public_v1_canvas_proto_enumTypes[0].Descriptor()
+	return file_public_v1_canvas_proto_enumTypes[0].Descriptor()
 }
 
 func (Direction) Type() protoreflect.EnumType {
-	return &file_proto_public_v1_canvas_proto_enumTypes[0]
+	return &file_public_v1_canvas_proto_enumTypes[0]
 }
 
 func (x Direction) Number() protoreflect.EnumNumber {
@@ -70,7 +71,7 @@ func (x Direction) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Direction.Descriptor instead.
 func (Direction) EnumDescriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{0}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{0}
 }
 
 type NodeType int32
@@ -109,11 +110,11 @@ func (x NodeType) String() string {
 }
 
 func (NodeType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_public_v1_canvas_proto_enumTypes[1].Descriptor()
+	return file_public_v1_canvas_proto_enumTypes[1].Descriptor()
 }
 
 func (NodeType) Type() protoreflect.EnumType {
-	return &file_proto_public_v1_canvas_proto_enumTypes[1]
+	return &file_public_v1_canvas_proto_enumTypes[1]
 }
 
 func (x NodeType) Number() protoreflect.EnumNumber {
@@ -122,7 +123,7 @@ func (x NodeType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use NodeType.Descriptor instead.
 func (NodeType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{1}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{1}
 }
 
 // Connection Type Enums
@@ -162,11 +163,11 @@ func (x HierarchicalConnectionType) String() string {
 }
 
 func (HierarchicalConnectionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_public_v1_canvas_proto_enumTypes[2].Descriptor()
+	return file_public_v1_canvas_proto_enumTypes[2].Descriptor()
 }
 
 func (HierarchicalConnectionType) Type() protoreflect.EnumType {
-	return &file_proto_public_v1_canvas_proto_enumTypes[2]
+	return &file_public_v1_canvas_proto_enumTypes[2]
 }
 
 func (x HierarchicalConnectionType) Number() protoreflect.EnumNumber {
@@ -175,7 +176,7 @@ func (x HierarchicalConnectionType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HierarchicalConnectionType.Descriptor instead.
 func (HierarchicalConnectionType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{2}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{2}
 }
 
 type SemanticConnectionType int32
@@ -217,11 +218,11 @@ func (x SemanticConnectionType) String() string {
 }
 
 func (SemanticConnectionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_public_v1_canvas_proto_enumTypes[3].Descriptor()
+	return file_public_v1_canvas_proto_enumTypes[3].Descriptor()
 }
 
 func (SemanticConnectionType) Type() protoreflect.EnumType {
-	return &file_proto_public_v1_canvas_proto_enumTypes[3]
+	return &file_public_v1_canvas_proto_enumTypes[3]
 }
 
 func (x SemanticConnectionType) Number() protoreflect.EnumNumber {
@@ -230,7 +231,7 @@ func (x SemanticConnectionType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SemanticConnectionType.Descriptor instead.
 func (SemanticConnectionType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{3}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{3}
 }
 
 type StructuralConnectionType int32
@@ -270,11 +271,11 @@ func (x StructuralConnectionType) String() string {
 }
 
 func (StructuralConnectionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_public_v1_canvas_proto_enumTypes[4].Descriptor()
+	return file_public_v1_canvas_proto_enumTypes[4].Descriptor()
 }
 
 func (StructuralConnectionType) Type() protoreflect.EnumType {
-	return &file_proto_public_v1_canvas_proto_enumTypes[4]
+	return &file_public_v1_canvas_proto_enumTypes[4]
 }
 
 func (x StructuralConnectionType) Number() protoreflect.EnumNumber {
@@ -283,7 +284,7 @@ func (x StructuralConnectionType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use StructuralConnectionType.Descriptor instead.
 func (StructuralConnectionType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{4}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{4}
 }
 
 type LinkType int32
@@ -322,11 +323,11 @@ func (x LinkType) String() string {
 }
 
 func (LinkType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_public_v1_canvas_proto_enumTypes[5].Descriptor()
+	return file_public_v1_canvas_proto_enumTypes[5].Descriptor()
 }
 
 func (LinkType) Type() protoreflect.EnumType {
-	return &file_proto_public_v1_canvas_proto_enumTypes[5]
+	return &file_public_v1_canvas_proto_enumTypes[5]
 }
 
 func (x LinkType) Number() protoreflect.EnumNumber {
@@ -335,7 +336,62 @@ func (x LinkType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use LinkType.Descriptor instead.
 func (LinkType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{5}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{5}
+}
+
+type ChunkingStatus int32
+
+const (
+	ChunkingStatus_CHUNKING_STATUS_UNSPECIFIED ChunkingStatus = 0
+	ChunkingStatus_CHUNKING_STATUS_PENDING     ChunkingStatus = 1 // Waiting for chunking to start
+	ChunkingStatus_CHUNKING_STATUS_PROCESSING  ChunkingStatus = 2 // Currently being chunked
+	ChunkingStatus_CHUNKING_STATUS_COMPLETED   ChunkingStatus = 3 // Successfully chunked
+	ChunkingStatus_CHUNKING_STATUS_FAILED      ChunkingStatus = 4 // Chunking failed
+)
+
+// Enum value maps for ChunkingStatus.
+var (
+	ChunkingStatus_name = map[int32]string{
+		0: "CHUNKING_STATUS_UNSPECIFIED",
+		1: "CHUNKING_STATUS_PENDING",
+		2: "CHUNKING_STATUS_PROCESSING",
+		3: "CHUNKING_STATUS_COMPLETED",
+		4: "CHUNKING_STATUS_FAILED",
+	}
+	ChunkingStatus_value = map[string]int32{
+		"CHUNKING_STATUS_UNSPECIFIED": 0,
+		"CHUNKING_STATUS_PENDING":     1,
+		"CHUNKING_STATUS_PROCESSING":  2,
+		"CHUNKING_STATUS_COMPLETED":   3,
+		"CHUNKING_STATUS_FAILED":      4,
+	}
+)
+
+func (x ChunkingStatus) Enum() *ChunkingStatus {
+	p := new(ChunkingStatus)
+	*p = x
+	return p
+}
+
+func (x ChunkingStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ChunkingStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_public_v1_canvas_proto_enumTypes[6].Descriptor()
+}
+
+func (ChunkingStatus) Type() protoreflect.EnumType {
+	return &file_public_v1_canvas_proto_enumTypes[6]
+}
+
+func (x ChunkingStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ChunkingStatus.Descriptor instead.
+func (ChunkingStatus) EnumDescriptor() ([]byte, []int) {
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{6}
 }
 
 // Core Data Structures
@@ -351,7 +407,7 @@ type MLInfo struct {
 
 func (x *MLInfo) Reset() {
 	*x = MLInfo{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[0]
+	mi := &file_public_v1_canvas_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +419,7 @@ func (x *MLInfo) String() string {
 func (*MLInfo) ProtoMessage() {}
 
 func (x *MLInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[0]
+	mi := &file_public_v1_canvas_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +432,7 @@ func (x *MLInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MLInfo.ProtoReflect.Descriptor instead.
 func (*MLInfo) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{0}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MLInfo) GetClusteringModelVersionId() string {
@@ -418,7 +474,7 @@ type SpatialCoordinates struct {
 
 func (x *SpatialCoordinates) Reset() {
 	*x = SpatialCoordinates{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[1]
+	mi := &file_public_v1_canvas_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -430,7 +486,7 @@ func (x *SpatialCoordinates) String() string {
 func (*SpatialCoordinates) ProtoMessage() {}
 
 func (x *SpatialCoordinates) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[1]
+	mi := &file_public_v1_canvas_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -443,7 +499,7 @@ func (x *SpatialCoordinates) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpatialCoordinates.ProtoReflect.Descriptor instead.
 func (*SpatialCoordinates) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{1}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SpatialCoordinates) GetX() int32 {
@@ -479,7 +535,7 @@ type DisplayProps struct {
 
 func (x *DisplayProps) Reset() {
 	*x = DisplayProps{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[2]
+	mi := &file_public_v1_canvas_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -491,7 +547,7 @@ func (x *DisplayProps) String() string {
 func (*DisplayProps) ProtoMessage() {}
 
 func (x *DisplayProps) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[2]
+	mi := &file_public_v1_canvas_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -504,7 +560,7 @@ func (x *DisplayProps) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisplayProps.ProtoReflect.Descriptor instead.
 func (*DisplayProps) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{2}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *DisplayProps) GetSize() int32 {
@@ -546,7 +602,7 @@ type EngagementScore struct {
 
 func (x *EngagementScore) Reset() {
 	*x = EngagementScore{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[3]
+	mi := &file_public_v1_canvas_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -558,7 +614,7 @@ func (x *EngagementScore) String() string {
 func (*EngagementScore) ProtoMessage() {}
 
 func (x *EngagementScore) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[3]
+	mi := &file_public_v1_canvas_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -571,7 +627,7 @@ func (x *EngagementScore) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EngagementScore.ProtoReflect.Descriptor instead.
 func (*EngagementScore) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{3}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EngagementScore) GetCanvasScore() float64 {
@@ -621,7 +677,7 @@ type BaseNode struct {
 
 func (x *BaseNode) Reset() {
 	*x = BaseNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[4]
+	mi := &file_public_v1_canvas_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -633,7 +689,7 @@ func (x *BaseNode) String() string {
 func (*BaseNode) ProtoMessage() {}
 
 func (x *BaseNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[4]
+	mi := &file_public_v1_canvas_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,7 +702,7 @@ func (x *BaseNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseNode.ProtoReflect.Descriptor instead.
 func (*BaseNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{4}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *BaseNode) GetId() string {
@@ -791,7 +847,7 @@ type ChunkNode struct {
 
 func (x *ChunkNode) Reset() {
 	*x = ChunkNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[5]
+	mi := &file_public_v1_canvas_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -803,7 +859,7 @@ func (x *ChunkNode) String() string {
 func (*ChunkNode) ProtoMessage() {}
 
 func (x *ChunkNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[5]
+	mi := &file_public_v1_canvas_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -816,7 +872,7 @@ func (x *ChunkNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkNode.ProtoReflect.Descriptor instead.
 func (*ChunkNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{5}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ChunkNode) GetBase() *BaseNode {
@@ -884,13 +940,15 @@ type ContentNode struct {
 	Source          *string                `protobuf:"bytes,5,opt,name=source,proto3,oneof" json:"source,omitempty"`
 	TokenCount      *int32                 `protobuf:"varint,6,opt,name=token_count,json=tokenCount,proto3,oneof" json:"token_count,omitempty"`
 	ActionData      *structpb.Struct       `protobuf:"bytes,7,opt,name=action_data,json=actionData,proto3,oneof" json:"action_data,omitempty"`
+	ChunkingStatus  *ChunkingStatus        `protobuf:"varint,8,opt,name=chunking_status,json=chunkingStatus,proto3,enum=canvas.public.v1.ChunkingStatus,oneof" json:"chunking_status,omitempty"` // Track chunking workflow status
+	ChunkingError   *string                `protobuf:"bytes,9,opt,name=chunking_error,json=chunkingError,proto3,oneof" json:"chunking_error,omitempty"`                                          // Error message if chunking failed
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ContentNode) Reset() {
 	*x = ContentNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[6]
+	mi := &file_public_v1_canvas_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -902,7 +960,7 @@ func (x *ContentNode) String() string {
 func (*ContentNode) ProtoMessage() {}
 
 func (x *ContentNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[6]
+	mi := &file_public_v1_canvas_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -915,7 +973,7 @@ func (x *ContentNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContentNode.ProtoReflect.Descriptor instead.
 func (*ContentNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{6}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ContentNode) GetBase() *BaseNode {
@@ -967,6 +1025,20 @@ func (x *ContentNode) GetActionData() *structpb.Struct {
 	return nil
 }
 
+func (x *ContentNode) GetChunkingStatus() ChunkingStatus {
+	if x != nil && x.ChunkingStatus != nil {
+		return *x.ChunkingStatus
+	}
+	return ChunkingStatus_CHUNKING_STATUS_UNSPECIFIED
+}
+
+func (x *ContentNode) GetChunkingError() string {
+	if x != nil && x.ChunkingError != nil {
+		return *x.ChunkingError
+	}
+	return ""
+}
+
 type ClusterNode struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Base          *BaseNode              `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
@@ -980,7 +1052,7 @@ type ClusterNode struct {
 
 func (x *ClusterNode) Reset() {
 	*x = ClusterNode{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[7]
+	mi := &file_public_v1_canvas_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -992,7 +1064,7 @@ func (x *ClusterNode) String() string {
 func (*ClusterNode) ProtoMessage() {}
 
 func (x *ClusterNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[7]
+	mi := &file_public_v1_canvas_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,7 +1077,7 @@ func (x *ClusterNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClusterNode.ProtoReflect.Descriptor instead.
 func (*ClusterNode) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{7}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ClusterNode) GetBase() *BaseNode {
@@ -1060,7 +1132,7 @@ type BaseLink struct {
 
 func (x *BaseLink) Reset() {
 	*x = BaseLink{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[8]
+	mi := &file_public_v1_canvas_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1144,7 @@ func (x *BaseLink) String() string {
 func (*BaseLink) ProtoMessage() {}
 
 func (x *BaseLink) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[8]
+	mi := &file_public_v1_canvas_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +1157,7 @@ func (x *BaseLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseLink.ProtoReflect.Descriptor instead.
 func (*BaseLink) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{8}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *BaseLink) GetId() string {
@@ -1155,7 +1227,7 @@ type HierarchicalLink struct {
 
 func (x *HierarchicalLink) Reset() {
 	*x = HierarchicalLink{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[9]
+	mi := &file_public_v1_canvas_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1167,7 +1239,7 @@ func (x *HierarchicalLink) String() string {
 func (*HierarchicalLink) ProtoMessage() {}
 
 func (x *HierarchicalLink) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[9]
+	mi := &file_public_v1_canvas_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1252,7 @@ func (x *HierarchicalLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HierarchicalLink.ProtoReflect.Descriptor instead.
 func (*HierarchicalLink) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{9}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *HierarchicalLink) GetBase() *BaseLink {
@@ -1220,7 +1292,7 @@ type SemanticLink struct {
 
 func (x *SemanticLink) Reset() {
 	*x = SemanticLink{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[10]
+	mi := &file_public_v1_canvas_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1232,7 +1304,7 @@ func (x *SemanticLink) String() string {
 func (*SemanticLink) ProtoMessage() {}
 
 func (x *SemanticLink) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[10]
+	mi := &file_public_v1_canvas_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1245,7 +1317,7 @@ func (x *SemanticLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticLink.ProtoReflect.Descriptor instead.
 func (*SemanticLink) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{10}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SemanticLink) GetBase() *BaseLink {
@@ -1318,7 +1390,7 @@ type StructuralLink struct {
 
 func (x *StructuralLink) Reset() {
 	*x = StructuralLink{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[11]
+	mi := &file_public_v1_canvas_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1330,7 +1402,7 @@ func (x *StructuralLink) String() string {
 func (*StructuralLink) ProtoMessage() {}
 
 func (x *StructuralLink) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[11]
+	mi := &file_public_v1_canvas_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1343,7 +1415,7 @@ func (x *StructuralLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLink.ProtoReflect.Descriptor instead.
 func (*StructuralLink) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{11}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *StructuralLink) GetBase() *BaseLink {
@@ -1403,7 +1475,7 @@ type Node struct {
 
 func (x *Node) Reset() {
 	*x = Node{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[12]
+	mi := &file_public_v1_canvas_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1415,7 +1487,7 @@ func (x *Node) String() string {
 func (*Node) ProtoMessage() {}
 
 func (x *Node) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[12]
+	mi := &file_public_v1_canvas_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1428,7 +1500,7 @@ func (x *Node) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Node.ProtoReflect.Descriptor instead.
 func (*Node) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{12}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Node) GetNode() isNode_Node {
@@ -1501,7 +1573,7 @@ type Link struct {
 
 func (x *Link) Reset() {
 	*x = Link{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[13]
+	mi := &file_public_v1_canvas_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1513,7 +1585,7 @@ func (x *Link) String() string {
 func (*Link) ProtoMessage() {}
 
 func (x *Link) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[13]
+	mi := &file_public_v1_canvas_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1526,7 +1598,7 @@ func (x *Link) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Link.ProtoReflect.Descriptor instead.
 func (*Link) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{13}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Link) GetLink() isLink_Link {
@@ -1599,7 +1671,7 @@ type SemanticSearchRequest struct {
 
 func (x *SemanticSearchRequest) Reset() {
 	*x = SemanticSearchRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[14]
+	mi := &file_public_v1_canvas_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1611,7 +1683,7 @@ func (x *SemanticSearchRequest) String() string {
 func (*SemanticSearchRequest) ProtoMessage() {}
 
 func (x *SemanticSearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[14]
+	mi := &file_public_v1_canvas_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +1696,7 @@ func (x *SemanticSearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticSearchRequest.ProtoReflect.Descriptor instead.
 func (*SemanticSearchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{14}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SemanticSearchRequest) GetSpaceId() string {
@@ -1665,7 +1737,7 @@ type SearchResult struct {
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[15]
+	mi := &file_public_v1_canvas_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1677,7 +1749,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[15]
+	mi := &file_public_v1_canvas_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1690,7 +1762,7 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{15}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SearchResult) GetNode() *Node {
@@ -1716,7 +1788,7 @@ type SemanticSearchResponse struct {
 
 func (x *SemanticSearchResponse) Reset() {
 	*x = SemanticSearchResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[16]
+	mi := &file_public_v1_canvas_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1728,7 +1800,7 @@ func (x *SemanticSearchResponse) String() string {
 func (*SemanticSearchResponse) ProtoMessage() {}
 
 func (x *SemanticSearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[16]
+	mi := &file_public_v1_canvas_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1741,7 +1813,7 @@ func (x *SemanticSearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticSearchResponse.ProtoReflect.Descriptor instead.
 func (*SemanticSearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{16}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *SemanticSearchResponse) GetResults() []*SearchResult {
@@ -1762,7 +1834,7 @@ type GetNodesRequest struct {
 
 func (x *GetNodesRequest) Reset() {
 	*x = GetNodesRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[17]
+	mi := &file_public_v1_canvas_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1774,7 +1846,7 @@ func (x *GetNodesRequest) String() string {
 func (*GetNodesRequest) ProtoMessage() {}
 
 func (x *GetNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[17]
+	mi := &file_public_v1_canvas_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1787,7 +1859,7 @@ func (x *GetNodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNodesRequest.ProtoReflect.Descriptor instead.
 func (*GetNodesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{17}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetNodesRequest) GetIds() []string {
@@ -1806,7 +1878,7 @@ type GetNodesResponse struct {
 
 func (x *GetNodesResponse) Reset() {
 	*x = GetNodesResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[18]
+	mi := &file_public_v1_canvas_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1818,7 +1890,7 @@ func (x *GetNodesResponse) String() string {
 func (*GetNodesResponse) ProtoMessage() {}
 
 func (x *GetNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[18]
+	mi := &file_public_v1_canvas_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1831,7 +1903,7 @@ func (x *GetNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNodesResponse.ProtoReflect.Descriptor instead.
 func (*GetNodesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{18}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetNodesResponse) GetNodes() []*Node {
@@ -1854,7 +1926,7 @@ type Neighbor struct {
 
 func (x *Neighbor) Reset() {
 	*x = Neighbor{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[19]
+	mi := &file_public_v1_canvas_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1866,7 +1938,7 @@ func (x *Neighbor) String() string {
 func (*Neighbor) ProtoMessage() {}
 
 func (x *Neighbor) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[19]
+	mi := &file_public_v1_canvas_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1879,7 +1951,7 @@ func (x *Neighbor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Neighbor.ProtoReflect.Descriptor instead.
 func (*Neighbor) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{19}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Neighbor) GetNode() *Node {
@@ -1913,7 +1985,7 @@ type NeighborsList struct {
 
 func (x *NeighborsList) Reset() {
 	*x = NeighborsList{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[20]
+	mi := &file_public_v1_canvas_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1925,7 +1997,7 @@ func (x *NeighborsList) String() string {
 func (*NeighborsList) ProtoMessage() {}
 
 func (x *NeighborsList) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[20]
+	mi := &file_public_v1_canvas_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1938,7 +2010,7 @@ func (x *NeighborsList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NeighborsList.ProtoReflect.Descriptor instead.
 func (*NeighborsList) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{20}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *NeighborsList) GetNeighbors() []*Neighbor {
@@ -1961,7 +2033,7 @@ type GetNeighborsRequest struct {
 
 func (x *GetNeighborsRequest) Reset() {
 	*x = GetNeighborsRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[21]
+	mi := &file_public_v1_canvas_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1973,7 +2045,7 @@ func (x *GetNeighborsRequest) String() string {
 func (*GetNeighborsRequest) ProtoMessage() {}
 
 func (x *GetNeighborsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[21]
+	mi := &file_public_v1_canvas_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1986,7 +2058,7 @@ func (x *GetNeighborsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNeighborsRequest.ProtoReflect.Descriptor instead.
 func (*GetNeighborsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{21}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetNeighborsRequest) GetIds() []string {
@@ -2034,7 +2106,7 @@ type GetNeighborsResponse struct {
 
 func (x *GetNeighborsResponse) Reset() {
 	*x = GetNeighborsResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[22]
+	mi := &file_public_v1_canvas_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2046,7 +2118,7 @@ func (x *GetNeighborsResponse) String() string {
 func (*GetNeighborsResponse) ProtoMessage() {}
 
 func (x *GetNeighborsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[22]
+	mi := &file_public_v1_canvas_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2059,7 +2131,7 @@ func (x *GetNeighborsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNeighborsResponse.ProtoReflect.Descriptor instead.
 func (*GetNeighborsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{22}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetNeighborsResponse) GetResults() map[string]*NeighborsList {
@@ -2081,7 +2153,7 @@ type SpatialBoundingBox struct {
 
 func (x *SpatialBoundingBox) Reset() {
 	*x = SpatialBoundingBox{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[23]
+	mi := &file_public_v1_canvas_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2093,7 +2165,7 @@ func (x *SpatialBoundingBox) String() string {
 func (*SpatialBoundingBox) ProtoMessage() {}
 
 func (x *SpatialBoundingBox) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[23]
+	mi := &file_public_v1_canvas_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2106,7 +2178,7 @@ func (x *SpatialBoundingBox) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpatialBoundingBox.ProtoReflect.Descriptor instead.
 func (*SpatialBoundingBox) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{23}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SpatialBoundingBox) GetMinCoords() *SpatialCoordinates {
@@ -2134,7 +2206,7 @@ type SearchNodesRequest struct {
 
 func (x *SearchNodesRequest) Reset() {
 	*x = SearchNodesRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[24]
+	mi := &file_public_v1_canvas_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2146,7 +2218,7 @@ func (x *SearchNodesRequest) String() string {
 func (*SearchNodesRequest) ProtoMessage() {}
 
 func (x *SearchNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[24]
+	mi := &file_public_v1_canvas_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2159,7 +2231,7 @@ func (x *SearchNodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchNodesRequest.ProtoReflect.Descriptor instead.
 func (*SearchNodesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{24}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SearchNodesRequest) GetFilter() *NodeFilter {
@@ -2192,7 +2264,7 @@ type SearchNodesResponse struct {
 
 func (x *SearchNodesResponse) Reset() {
 	*x = SearchNodesResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[25]
+	mi := &file_public_v1_canvas_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2204,7 +2276,7 @@ func (x *SearchNodesResponse) String() string {
 func (*SearchNodesResponse) ProtoMessage() {}
 
 func (x *SearchNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[25]
+	mi := &file_public_v1_canvas_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2217,7 +2289,7 @@ func (x *SearchNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchNodesResponse.ProtoReflect.Descriptor instead.
 func (*SearchNodesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{25}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SearchNodesResponse) GetNodes() []*Node {
@@ -2239,7 +2311,7 @@ type UpdateNodesRequest struct {
 
 func (x *UpdateNodesRequest) Reset() {
 	*x = UpdateNodesRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[26]
+	mi := &file_public_v1_canvas_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2251,7 +2323,7 @@ func (x *UpdateNodesRequest) String() string {
 func (*UpdateNodesRequest) ProtoMessage() {}
 
 func (x *UpdateNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[26]
+	mi := &file_public_v1_canvas_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2264,7 +2336,7 @@ func (x *UpdateNodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNodesRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNodesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{26}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateNodesRequest) GetNodes() []*Node {
@@ -2283,7 +2355,7 @@ type UpdateNodesResponse struct {
 
 func (x *UpdateNodesResponse) Reset() {
 	*x = UpdateNodesResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[27]
+	mi := &file_public_v1_canvas_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2295,7 +2367,7 @@ func (x *UpdateNodesResponse) String() string {
 func (*UpdateNodesResponse) ProtoMessage() {}
 
 func (x *UpdateNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[27]
+	mi := &file_public_v1_canvas_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2308,7 +2380,7 @@ func (x *UpdateNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNodesResponse.ProtoReflect.Descriptor instead.
 func (*UpdateNodesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{27}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateNodesResponse) GetNodes() []*Node {
@@ -2333,7 +2405,7 @@ type GetLinksRequest struct {
 
 func (x *GetLinksRequest) Reset() {
 	*x = GetLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[28]
+	mi := &file_public_v1_canvas_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2345,7 +2417,7 @@ func (x *GetLinksRequest) String() string {
 func (*GetLinksRequest) ProtoMessage() {}
 
 func (x *GetLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[28]
+	mi := &file_public_v1_canvas_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2358,7 +2430,7 @@ func (x *GetLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLinksRequest.ProtoReflect.Descriptor instead.
 func (*GetLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{28}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetLinksRequest) GetQueries() []*LinkQuery {
@@ -2385,7 +2457,7 @@ type GetLinksResponse struct {
 
 func (x *GetLinksResponse) Reset() {
 	*x = GetLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[29]
+	mi := &file_public_v1_canvas_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2397,7 +2469,7 @@ func (x *GetLinksResponse) String() string {
 func (*GetLinksResponse) ProtoMessage() {}
 
 func (x *GetLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[29]
+	mi := &file_public_v1_canvas_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2410,7 +2482,7 @@ func (x *GetLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLinksResponse.ProtoReflect.Descriptor instead.
 func (*GetLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{29}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetLinksResponse) GetLinks() []*Link {
@@ -2445,7 +2517,7 @@ type NodeFilter struct {
 
 func (x *NodeFilter) Reset() {
 	*x = NodeFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[30]
+	mi := &file_public_v1_canvas_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2457,7 +2529,7 @@ func (x *NodeFilter) String() string {
 func (*NodeFilter) ProtoMessage() {}
 
 func (x *NodeFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[30]
+	mi := &file_public_v1_canvas_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2470,7 +2542,7 @@ func (x *NodeFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeFilter.ProtoReflect.Descriptor instead.
 func (*NodeFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{30}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *NodeFilter) GetSpaceId() string {
@@ -2599,7 +2671,7 @@ type ContentNodeFilter struct {
 
 func (x *ContentNodeFilter) Reset() {
 	*x = ContentNodeFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[31]
+	mi := &file_public_v1_canvas_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2611,7 +2683,7 @@ func (x *ContentNodeFilter) String() string {
 func (*ContentNodeFilter) ProtoMessage() {}
 
 func (x *ContentNodeFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[31]
+	mi := &file_public_v1_canvas_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2624,7 +2696,7 @@ func (x *ContentNodeFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContentNodeFilter.ProtoReflect.Descriptor instead.
 func (*ContentNodeFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{31}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ContentNodeFilter) GetContentSourceId() string {
@@ -2687,7 +2759,7 @@ type ChunkNodeFilter struct {
 
 func (x *ChunkNodeFilter) Reset() {
 	*x = ChunkNodeFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[32]
+	mi := &file_public_v1_canvas_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2699,7 +2771,7 @@ func (x *ChunkNodeFilter) String() string {
 func (*ChunkNodeFilter) ProtoMessage() {}
 
 func (x *ChunkNodeFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[32]
+	mi := &file_public_v1_canvas_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2712,7 +2784,7 @@ func (x *ChunkNodeFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkNodeFilter.ProtoReflect.Descriptor instead.
 func (*ChunkNodeFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{32}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ChunkNodeFilter) GetContentSourceId() string {
@@ -2799,7 +2871,7 @@ type ClusterNodeFilter struct {
 
 func (x *ClusterNodeFilter) Reset() {
 	*x = ClusterNodeFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[33]
+	mi := &file_public_v1_canvas_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2811,7 +2883,7 @@ func (x *ClusterNodeFilter) String() string {
 func (*ClusterNodeFilter) ProtoMessage() {}
 
 func (x *ClusterNodeFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[33]
+	mi := &file_public_v1_canvas_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2824,7 +2896,7 @@ func (x *ClusterNodeFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClusterNodeFilter.ProtoReflect.Descriptor instead.
 func (*ClusterNodeFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{33}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ClusterNodeFilter) GetClusterScope() string {
@@ -2886,7 +2958,7 @@ type BaseLinkFilter struct {
 
 func (x *BaseLinkFilter) Reset() {
 	*x = BaseLinkFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[34]
+	mi := &file_public_v1_canvas_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2898,7 +2970,7 @@ func (x *BaseLinkFilter) String() string {
 func (*BaseLinkFilter) ProtoMessage() {}
 
 func (x *BaseLinkFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[34]
+	mi := &file_public_v1_canvas_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2911,7 +2983,7 @@ func (x *BaseLinkFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BaseLinkFilter.ProtoReflect.Descriptor instead.
 func (*BaseLinkFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{34}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *BaseLinkFilter) GetSourceId() string {
@@ -2987,7 +3059,7 @@ type HierarchicalLinkFilter struct {
 
 func (x *HierarchicalLinkFilter) Reset() {
 	*x = HierarchicalLinkFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[35]
+	mi := &file_public_v1_canvas_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2999,7 +3071,7 @@ func (x *HierarchicalLinkFilter) String() string {
 func (*HierarchicalLinkFilter) ProtoMessage() {}
 
 func (x *HierarchicalLinkFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[35]
+	mi := &file_public_v1_canvas_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3012,7 +3084,7 @@ func (x *HierarchicalLinkFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HierarchicalLinkFilter.ProtoReflect.Descriptor instead.
 func (*HierarchicalLinkFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{35}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *HierarchicalLinkFilter) GetBase() *BaseLinkFilter {
@@ -3046,7 +3118,7 @@ type SemanticLinkFilter struct {
 
 func (x *SemanticLinkFilter) Reset() {
 	*x = SemanticLinkFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[36]
+	mi := &file_public_v1_canvas_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3058,7 +3130,7 @@ func (x *SemanticLinkFilter) String() string {
 func (*SemanticLinkFilter) ProtoMessage() {}
 
 func (x *SemanticLinkFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[36]
+	mi := &file_public_v1_canvas_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3071,7 +3143,7 @@ func (x *SemanticLinkFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticLinkFilter.ProtoReflect.Descriptor instead.
 func (*SemanticLinkFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{36}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SemanticLinkFilter) GetBase() *BaseLinkFilter {
@@ -3152,7 +3224,7 @@ type StructuralLinkFilter struct {
 
 func (x *StructuralLinkFilter) Reset() {
 	*x = StructuralLinkFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[37]
+	mi := &file_public_v1_canvas_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3164,7 +3236,7 @@ func (x *StructuralLinkFilter) String() string {
 func (*StructuralLinkFilter) ProtoMessage() {}
 
 func (x *StructuralLinkFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[37]
+	mi := &file_public_v1_canvas_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3177,7 +3249,7 @@ func (x *StructuralLinkFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkFilter.ProtoReflect.Descriptor instead.
 func (*StructuralLinkFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{37}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *StructuralLinkFilter) GetBase() *BaseLinkFilter {
@@ -3245,7 +3317,7 @@ type LinkFilter struct {
 
 func (x *LinkFilter) Reset() {
 	*x = LinkFilter{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[38]
+	mi := &file_public_v1_canvas_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3257,7 +3329,7 @@ func (x *LinkFilter) String() string {
 func (*LinkFilter) ProtoMessage() {}
 
 func (x *LinkFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[38]
+	mi := &file_public_v1_canvas_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3270,7 +3342,7 @@ func (x *LinkFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkFilter.ProtoReflect.Descriptor instead.
 func (*LinkFilter) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{38}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *LinkFilter) GetFilter() isLinkFilter_Filter {
@@ -3358,7 +3430,7 @@ type LinkQuery struct {
 
 func (x *LinkQuery) Reset() {
 	*x = LinkQuery{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[39]
+	mi := &file_public_v1_canvas_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3370,7 +3442,7 @@ func (x *LinkQuery) String() string {
 func (*LinkQuery) ProtoMessage() {}
 
 func (x *LinkQuery) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[39]
+	mi := &file_public_v1_canvas_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3383,7 +3455,7 @@ func (x *LinkQuery) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkQuery.ProtoReflect.Descriptor instead.
 func (*LinkQuery) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{39}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *LinkQuery) GetLinkTypes() []LinkType {
@@ -3417,7 +3489,7 @@ type StructuralLinkCreate struct {
 
 func (x *StructuralLinkCreate) Reset() {
 	*x = StructuralLinkCreate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[40]
+	mi := &file_public_v1_canvas_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3429,7 +3501,7 @@ func (x *StructuralLinkCreate) String() string {
 func (*StructuralLinkCreate) ProtoMessage() {}
 
 func (x *StructuralLinkCreate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[40]
+	mi := &file_public_v1_canvas_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3442,7 +3514,7 @@ func (x *StructuralLinkCreate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkCreate.ProtoReflect.Descriptor instead.
 func (*StructuralLinkCreate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{40}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *StructuralLinkCreate) GetSourceId() string {
@@ -3517,7 +3589,7 @@ type CreateStructuralLinksRequest struct {
 
 func (x *CreateStructuralLinksRequest) Reset() {
 	*x = CreateStructuralLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[41]
+	mi := &file_public_v1_canvas_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3529,7 +3601,7 @@ func (x *CreateStructuralLinksRequest) String() string {
 func (*CreateStructuralLinksRequest) ProtoMessage() {}
 
 func (x *CreateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[41]
+	mi := &file_public_v1_canvas_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3542,7 +3614,7 @@ func (x *CreateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStructuralLinksRequest.ProtoReflect.Descriptor instead.
 func (*CreateStructuralLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{41}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *CreateStructuralLinksRequest) GetLinks() []*StructuralLinkCreate {
@@ -3561,7 +3633,7 @@ type CreateStructuralLinksResponse struct {
 
 func (x *CreateStructuralLinksResponse) Reset() {
 	*x = CreateStructuralLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[42]
+	mi := &file_public_v1_canvas_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3573,7 +3645,7 @@ func (x *CreateStructuralLinksResponse) String() string {
 func (*CreateStructuralLinksResponse) ProtoMessage() {}
 
 func (x *CreateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[42]
+	mi := &file_public_v1_canvas_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3586,7 +3658,7 @@ func (x *CreateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStructuralLinksResponse.ProtoReflect.Descriptor instead.
 func (*CreateStructuralLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{42}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *CreateStructuralLinksResponse) GetLinks() []*StructuralLink {
@@ -3614,7 +3686,7 @@ type StructuralLinkUpdate struct {
 
 func (x *StructuralLinkUpdate) Reset() {
 	*x = StructuralLinkUpdate{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[43]
+	mi := &file_public_v1_canvas_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3626,7 +3698,7 @@ func (x *StructuralLinkUpdate) String() string {
 func (*StructuralLinkUpdate) ProtoMessage() {}
 
 func (x *StructuralLinkUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[43]
+	mi := &file_public_v1_canvas_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3639,7 +3711,7 @@ func (x *StructuralLinkUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkUpdate.ProtoReflect.Descriptor instead.
 func (*StructuralLinkUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{43}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *StructuralLinkUpdate) GetSourceId() string {
@@ -3707,7 +3779,7 @@ type UpdateStructuralLinksRequest struct {
 
 func (x *UpdateStructuralLinksRequest) Reset() {
 	*x = UpdateStructuralLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[44]
+	mi := &file_public_v1_canvas_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3719,7 +3791,7 @@ func (x *UpdateStructuralLinksRequest) String() string {
 func (*UpdateStructuralLinksRequest) ProtoMessage() {}
 
 func (x *UpdateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[44]
+	mi := &file_public_v1_canvas_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3732,7 +3804,7 @@ func (x *UpdateStructuralLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStructuralLinksRequest.ProtoReflect.Descriptor instead.
 func (*UpdateStructuralLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{44}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *UpdateStructuralLinksRequest) GetUpdates() []*StructuralLinkUpdate {
@@ -3751,7 +3823,7 @@ type UpdateStructuralLinksResponse struct {
 
 func (x *UpdateStructuralLinksResponse) Reset() {
 	*x = UpdateStructuralLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[45]
+	mi := &file_public_v1_canvas_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3763,7 +3835,7 @@ func (x *UpdateStructuralLinksResponse) String() string {
 func (*UpdateStructuralLinksResponse) ProtoMessage() {}
 
 func (x *UpdateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[45]
+	mi := &file_public_v1_canvas_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3776,7 +3848,7 @@ func (x *UpdateStructuralLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStructuralLinksResponse.ProtoReflect.Descriptor instead.
 func (*UpdateStructuralLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{45}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *UpdateStructuralLinksResponse) GetLinks() []*StructuralLink {
@@ -3798,7 +3870,7 @@ type StructuralLinkIdentifier struct {
 
 func (x *StructuralLinkIdentifier) Reset() {
 	*x = StructuralLinkIdentifier{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[46]
+	mi := &file_public_v1_canvas_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3810,7 +3882,7 @@ func (x *StructuralLinkIdentifier) String() string {
 func (*StructuralLinkIdentifier) ProtoMessage() {}
 
 func (x *StructuralLinkIdentifier) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[46]
+	mi := &file_public_v1_canvas_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3823,7 +3895,7 @@ func (x *StructuralLinkIdentifier) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLinkIdentifier.ProtoReflect.Descriptor instead.
 func (*StructuralLinkIdentifier) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{46}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *StructuralLinkIdentifier) GetSourceId() string {
@@ -3849,7 +3921,7 @@ type DeleteStructuralLinksRequest struct {
 
 func (x *DeleteStructuralLinksRequest) Reset() {
 	*x = DeleteStructuralLinksRequest{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[47]
+	mi := &file_public_v1_canvas_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3861,7 +3933,7 @@ func (x *DeleteStructuralLinksRequest) String() string {
 func (*DeleteStructuralLinksRequest) ProtoMessage() {}
 
 func (x *DeleteStructuralLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[47]
+	mi := &file_public_v1_canvas_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3874,7 +3946,7 @@ func (x *DeleteStructuralLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteStructuralLinksRequest.ProtoReflect.Descriptor instead.
 func (*DeleteStructuralLinksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{47}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *DeleteStructuralLinksRequest) GetLinkIds() []*StructuralLinkIdentifier {
@@ -3893,7 +3965,7 @@ type DeleteStructuralLinksResponse struct {
 
 func (x *DeleteStructuralLinksResponse) Reset() {
 	*x = DeleteStructuralLinksResponse{}
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[48]
+	mi := &file_public_v1_canvas_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3905,7 +3977,7 @@ func (x *DeleteStructuralLinksResponse) String() string {
 func (*DeleteStructuralLinksResponse) ProtoMessage() {}
 
 func (x *DeleteStructuralLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_public_v1_canvas_proto_msgTypes[48]
+	mi := &file_public_v1_canvas_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3918,7 +3990,7 @@ func (x *DeleteStructuralLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteStructuralLinksResponse.ProtoReflect.Descriptor instead.
 func (*DeleteStructuralLinksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_public_v1_canvas_proto_rawDescGZIP(), []int{48}
+	return file_public_v1_canvas_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *DeleteStructuralLinksResponse) GetDeletedCount() int32 {
@@ -3928,11 +4000,11 @@ func (x *DeleteStructuralLinksResponse) GetDeletedCount() int32 {
 	return 0
 }
 
-var File_proto_public_v1_canvas_proto protoreflect.FileDescriptor
+var File_public_v1_canvas_proto protoreflect.FileDescriptor
 
-const file_proto_public_v1_canvas_proto_rawDesc = "" +
+const file_public_v1_canvas_proto_rawDesc = "" +
 	"\n" +
-	"\x1cproto/public/v1/canvas.proto\x12\x10canvas.public.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x01\n" +
+	"\x16public/v1/canvas.proto\x12\x10canvas.public.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x01\n" +
 	"\x06MLInfo\x12=\n" +
 	"\x1bclustering_model_version_id\x18\x01 \x01(\tR\x18clusteringModelVersionId\x12-\n" +
 	"\x13dr_model_version_id\x18\x02 \x01(\tR\x10drModelVersionId\x12,\n" +
@@ -4002,7 +4074,7 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\acontent\x18\b \x01(\tR\acontentB\x11\n" +
 	"\x0f_start_positionB\x0f\n" +
 	"\r_end_positionB\x0e\n" +
-	"\f_token_count\"\xee\x02\n" +
+	"\f_token_count\"\x91\x04\n" +
 	"\vContentNode\x12.\n" +
 	"\x04base\x18\x01 \x01(\v2\x1a.canvas.public.v1.BaseNodeR\x04base\x12*\n" +
 	"\x11content_source_id\x18\x02 \x01(\tR\x0fcontentSourceId\x12\x19\n" +
@@ -4013,12 +4085,16 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\vtoken_count\x18\x06 \x01(\x05H\x03R\n" +
 	"tokenCount\x88\x01\x01\x12=\n" +
 	"\vaction_data\x18\a \x01(\v2\x17.google.protobuf.StructH\x04R\n" +
-	"actionData\x88\x01\x01B\b\n" +
+	"actionData\x88\x01\x01\x12N\n" +
+	"\x0fchunking_status\x18\b \x01(\x0e2 .canvas.public.v1.ChunkingStatusH\x05R\x0echunkingStatus\x88\x01\x01\x12*\n" +
+	"\x0echunking_error\x18\t \x01(\tH\x06R\rchunkingError\x88\x01\x01B\b\n" +
 	"\x06_titleB\r\n" +
 	"\v_media_typeB\t\n" +
 	"\a_sourceB\x0e\n" +
 	"\f_token_countB\x0e\n" +
-	"\f_action_data\"\xff\x01\n" +
+	"\f_action_dataB\x12\n" +
+	"\x10_chunking_statusB\x11\n" +
+	"\x0f_chunking_error\"\xff\x01\n" +
 	"\vClusterNode\x12.\n" +
 	"\x04base\x18\x01 \x01(\v2\x1a.canvas.public.v1.BaseNodeR\x04base\x12#\n" +
 	"\rcluster_scope\x18\x02 \x01(\tR\fclusterScope\x12\x19\n" +
@@ -4359,7 +4435,13 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\x15LINK_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16LINK_TYPE_HIERARCHICAL\x10\x01\x12\x16\n" +
 	"\x12LINK_TYPE_SEMANTIC\x10\x02\x12\x18\n" +
-	"\x14LINK_TYPE_STRUCTURAL\x10\x032\x9e\a\n" +
+	"\x14LINK_TYPE_STRUCTURAL\x10\x03*\xa9\x01\n" +
+	"\x0eChunkingStatus\x12\x1f\n" +
+	"\x1bCHUNKING_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17CHUNKING_STATUS_PENDING\x10\x01\x12\x1e\n" +
+	"\x1aCHUNKING_STATUS_PROCESSING\x10\x02\x12\x1d\n" +
+	"\x19CHUNKING_STATUS_COMPLETED\x10\x03\x12\x1a\n" +
+	"\x16CHUNKING_STATUS_FAILED\x10\x042\x9e\a\n" +
 	"\fCanvasPublic\x12c\n" +
 	"\x0eSemanticSearch\x12'.canvas.public.v1.SemanticSearchRequest\x1a(.canvas.public.v1.SemanticSearchResponse\x12Q\n" +
 	"\bGetNodes\x12!.canvas.public.v1.GetNodesRequest\x1a\".canvas.public.v1.GetNodesResponse\x12]\n" +
@@ -4372,234 +4454,236 @@ const file_proto_public_v1_canvas_proto_rawDesc = "" +
 	"\x15DeleteStructuralLinks\x12..canvas.public.v1.DeleteStructuralLinksRequest\x1a/.canvas.public.v1.DeleteStructuralLinksResponseB:Z8demo/ms_canvas/go_app/api/proto/public/v1;canvaspublicv1b\x06proto3"
 
 var (
-	file_proto_public_v1_canvas_proto_rawDescOnce sync.Once
-	file_proto_public_v1_canvas_proto_rawDescData []byte
+	file_public_v1_canvas_proto_rawDescOnce sync.Once
+	file_public_v1_canvas_proto_rawDescData []byte
 )
 
-func file_proto_public_v1_canvas_proto_rawDescGZIP() []byte {
-	file_proto_public_v1_canvas_proto_rawDescOnce.Do(func() {
-		file_proto_public_v1_canvas_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_public_v1_canvas_proto_rawDesc), len(file_proto_public_v1_canvas_proto_rawDesc)))
+func file_public_v1_canvas_proto_rawDescGZIP() []byte {
+	file_public_v1_canvas_proto_rawDescOnce.Do(func() {
+		file_public_v1_canvas_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_public_v1_canvas_proto_rawDesc), len(file_public_v1_canvas_proto_rawDesc)))
 	})
-	return file_proto_public_v1_canvas_proto_rawDescData
+	return file_public_v1_canvas_proto_rawDescData
 }
 
-var file_proto_public_v1_canvas_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_proto_public_v1_canvas_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
-var file_proto_public_v1_canvas_proto_goTypes = []any{
+var file_public_v1_canvas_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_public_v1_canvas_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
+var file_public_v1_canvas_proto_goTypes = []any{
 	(Direction)(0),                        // 0: canvas.public.v1.Direction
 	(NodeType)(0),                         // 1: canvas.public.v1.NodeType
 	(HierarchicalConnectionType)(0),       // 2: canvas.public.v1.HierarchicalConnectionType
 	(SemanticConnectionType)(0),           // 3: canvas.public.v1.SemanticConnectionType
 	(StructuralConnectionType)(0),         // 4: canvas.public.v1.StructuralConnectionType
 	(LinkType)(0),                         // 5: canvas.public.v1.LinkType
-	(*MLInfo)(nil),                        // 6: canvas.public.v1.MLInfo
-	(*SpatialCoordinates)(nil),            // 7: canvas.public.v1.SpatialCoordinates
-	(*DisplayProps)(nil),                  // 8: canvas.public.v1.DisplayProps
-	(*EngagementScore)(nil),               // 9: canvas.public.v1.EngagementScore
-	(*BaseNode)(nil),                      // 10: canvas.public.v1.BaseNode
-	(*ChunkNode)(nil),                     // 11: canvas.public.v1.ChunkNode
-	(*ContentNode)(nil),                   // 12: canvas.public.v1.ContentNode
-	(*ClusterNode)(nil),                   // 13: canvas.public.v1.ClusterNode
-	(*BaseLink)(nil),                      // 14: canvas.public.v1.BaseLink
-	(*HierarchicalLink)(nil),              // 15: canvas.public.v1.HierarchicalLink
-	(*SemanticLink)(nil),                  // 16: canvas.public.v1.SemanticLink
-	(*StructuralLink)(nil),                // 17: canvas.public.v1.StructuralLink
-	(*Node)(nil),                          // 18: canvas.public.v1.Node
-	(*Link)(nil),                          // 19: canvas.public.v1.Link
-	(*SemanticSearchRequest)(nil),         // 20: canvas.public.v1.SemanticSearchRequest
-	(*SearchResult)(nil),                  // 21: canvas.public.v1.SearchResult
-	(*SemanticSearchResponse)(nil),        // 22: canvas.public.v1.SemanticSearchResponse
-	(*GetNodesRequest)(nil),               // 23: canvas.public.v1.GetNodesRequest
-	(*GetNodesResponse)(nil),              // 24: canvas.public.v1.GetNodesResponse
-	(*Neighbor)(nil),                      // 25: canvas.public.v1.Neighbor
-	(*NeighborsList)(nil),                 // 26: canvas.public.v1.NeighborsList
-	(*GetNeighborsRequest)(nil),           // 27: canvas.public.v1.GetNeighborsRequest
-	(*GetNeighborsResponse)(nil),          // 28: canvas.public.v1.GetNeighborsResponse
-	(*SpatialBoundingBox)(nil),            // 29: canvas.public.v1.SpatialBoundingBox
-	(*SearchNodesRequest)(nil),            // 30: canvas.public.v1.SearchNodesRequest
-	(*SearchNodesResponse)(nil),           // 31: canvas.public.v1.SearchNodesResponse
-	(*UpdateNodesRequest)(nil),            // 32: canvas.public.v1.UpdateNodesRequest
-	(*UpdateNodesResponse)(nil),           // 33: canvas.public.v1.UpdateNodesResponse
-	(*GetLinksRequest)(nil),               // 34: canvas.public.v1.GetLinksRequest
-	(*GetLinksResponse)(nil),              // 35: canvas.public.v1.GetLinksResponse
-	(*NodeFilter)(nil),                    // 36: canvas.public.v1.NodeFilter
-	(*ContentNodeFilter)(nil),             // 37: canvas.public.v1.ContentNodeFilter
-	(*ChunkNodeFilter)(nil),               // 38: canvas.public.v1.ChunkNodeFilter
-	(*ClusterNodeFilter)(nil),             // 39: canvas.public.v1.ClusterNodeFilter
-	(*BaseLinkFilter)(nil),                // 40: canvas.public.v1.BaseLinkFilter
-	(*HierarchicalLinkFilter)(nil),        // 41: canvas.public.v1.HierarchicalLinkFilter
-	(*SemanticLinkFilter)(nil),            // 42: canvas.public.v1.SemanticLinkFilter
-	(*StructuralLinkFilter)(nil),          // 43: canvas.public.v1.StructuralLinkFilter
-	(*LinkFilter)(nil),                    // 44: canvas.public.v1.LinkFilter
-	(*LinkQuery)(nil),                     // 45: canvas.public.v1.LinkQuery
-	(*StructuralLinkCreate)(nil),          // 46: canvas.public.v1.StructuralLinkCreate
-	(*CreateStructuralLinksRequest)(nil),  // 47: canvas.public.v1.CreateStructuralLinksRequest
-	(*CreateStructuralLinksResponse)(nil), // 48: canvas.public.v1.CreateStructuralLinksResponse
-	(*StructuralLinkUpdate)(nil),          // 49: canvas.public.v1.StructuralLinkUpdate
-	(*UpdateStructuralLinksRequest)(nil),  // 50: canvas.public.v1.UpdateStructuralLinksRequest
-	(*UpdateStructuralLinksResponse)(nil), // 51: canvas.public.v1.UpdateStructuralLinksResponse
-	(*StructuralLinkIdentifier)(nil),      // 52: canvas.public.v1.StructuralLinkIdentifier
-	(*DeleteStructuralLinksRequest)(nil),  // 53: canvas.public.v1.DeleteStructuralLinksRequest
-	(*DeleteStructuralLinksResponse)(nil), // 54: canvas.public.v1.DeleteStructuralLinksResponse
-	nil,                                   // 55: canvas.public.v1.GetNeighborsResponse.ResultsEntry
-	(*timestamppb.Timestamp)(nil),         // 56: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),               // 57: google.protobuf.Struct
+	(ChunkingStatus)(0),                   // 6: canvas.public.v1.ChunkingStatus
+	(*MLInfo)(nil),                        // 7: canvas.public.v1.MLInfo
+	(*SpatialCoordinates)(nil),            // 8: canvas.public.v1.SpatialCoordinates
+	(*DisplayProps)(nil),                  // 9: canvas.public.v1.DisplayProps
+	(*EngagementScore)(nil),               // 10: canvas.public.v1.EngagementScore
+	(*BaseNode)(nil),                      // 11: canvas.public.v1.BaseNode
+	(*ChunkNode)(nil),                     // 12: canvas.public.v1.ChunkNode
+	(*ContentNode)(nil),                   // 13: canvas.public.v1.ContentNode
+	(*ClusterNode)(nil),                   // 14: canvas.public.v1.ClusterNode
+	(*BaseLink)(nil),                      // 15: canvas.public.v1.BaseLink
+	(*HierarchicalLink)(nil),              // 16: canvas.public.v1.HierarchicalLink
+	(*SemanticLink)(nil),                  // 17: canvas.public.v1.SemanticLink
+	(*StructuralLink)(nil),                // 18: canvas.public.v1.StructuralLink
+	(*Node)(nil),                          // 19: canvas.public.v1.Node
+	(*Link)(nil),                          // 20: canvas.public.v1.Link
+	(*SemanticSearchRequest)(nil),         // 21: canvas.public.v1.SemanticSearchRequest
+	(*SearchResult)(nil),                  // 22: canvas.public.v1.SearchResult
+	(*SemanticSearchResponse)(nil),        // 23: canvas.public.v1.SemanticSearchResponse
+	(*GetNodesRequest)(nil),               // 24: canvas.public.v1.GetNodesRequest
+	(*GetNodesResponse)(nil),              // 25: canvas.public.v1.GetNodesResponse
+	(*Neighbor)(nil),                      // 26: canvas.public.v1.Neighbor
+	(*NeighborsList)(nil),                 // 27: canvas.public.v1.NeighborsList
+	(*GetNeighborsRequest)(nil),           // 28: canvas.public.v1.GetNeighborsRequest
+	(*GetNeighborsResponse)(nil),          // 29: canvas.public.v1.GetNeighborsResponse
+	(*SpatialBoundingBox)(nil),            // 30: canvas.public.v1.SpatialBoundingBox
+	(*SearchNodesRequest)(nil),            // 31: canvas.public.v1.SearchNodesRequest
+	(*SearchNodesResponse)(nil),           // 32: canvas.public.v1.SearchNodesResponse
+	(*UpdateNodesRequest)(nil),            // 33: canvas.public.v1.UpdateNodesRequest
+	(*UpdateNodesResponse)(nil),           // 34: canvas.public.v1.UpdateNodesResponse
+	(*GetLinksRequest)(nil),               // 35: canvas.public.v1.GetLinksRequest
+	(*GetLinksResponse)(nil),              // 36: canvas.public.v1.GetLinksResponse
+	(*NodeFilter)(nil),                    // 37: canvas.public.v1.NodeFilter
+	(*ContentNodeFilter)(nil),             // 38: canvas.public.v1.ContentNodeFilter
+	(*ChunkNodeFilter)(nil),               // 39: canvas.public.v1.ChunkNodeFilter
+	(*ClusterNodeFilter)(nil),             // 40: canvas.public.v1.ClusterNodeFilter
+	(*BaseLinkFilter)(nil),                // 41: canvas.public.v1.BaseLinkFilter
+	(*HierarchicalLinkFilter)(nil),        // 42: canvas.public.v1.HierarchicalLinkFilter
+	(*SemanticLinkFilter)(nil),            // 43: canvas.public.v1.SemanticLinkFilter
+	(*StructuralLinkFilter)(nil),          // 44: canvas.public.v1.StructuralLinkFilter
+	(*LinkFilter)(nil),                    // 45: canvas.public.v1.LinkFilter
+	(*LinkQuery)(nil),                     // 46: canvas.public.v1.LinkQuery
+	(*StructuralLinkCreate)(nil),          // 47: canvas.public.v1.StructuralLinkCreate
+	(*CreateStructuralLinksRequest)(nil),  // 48: canvas.public.v1.CreateStructuralLinksRequest
+	(*CreateStructuralLinksResponse)(nil), // 49: canvas.public.v1.CreateStructuralLinksResponse
+	(*StructuralLinkUpdate)(nil),          // 50: canvas.public.v1.StructuralLinkUpdate
+	(*UpdateStructuralLinksRequest)(nil),  // 51: canvas.public.v1.UpdateStructuralLinksRequest
+	(*UpdateStructuralLinksResponse)(nil), // 52: canvas.public.v1.UpdateStructuralLinksResponse
+	(*StructuralLinkIdentifier)(nil),      // 53: canvas.public.v1.StructuralLinkIdentifier
+	(*DeleteStructuralLinksRequest)(nil),  // 54: canvas.public.v1.DeleteStructuralLinksRequest
+	(*DeleteStructuralLinksResponse)(nil), // 55: canvas.public.v1.DeleteStructuralLinksResponse
+	nil,                                   // 56: canvas.public.v1.GetNeighborsResponse.ResultsEntry
+	(*timestamppb.Timestamp)(nil),         // 57: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),               // 58: google.protobuf.Struct
 }
-var file_proto_public_v1_canvas_proto_depIdxs = []int32{
-	7,  // 0: canvas.public.v1.BaseNode.position_3d:type_name -> canvas.public.v1.SpatialCoordinates
-	8,  // 1: canvas.public.v1.BaseNode.display_props:type_name -> canvas.public.v1.DisplayProps
-	9,  // 2: canvas.public.v1.BaseNode.engagement_score:type_name -> canvas.public.v1.EngagementScore
-	6,  // 3: canvas.public.v1.BaseNode.ml_info:type_name -> canvas.public.v1.MLInfo
-	56, // 4: canvas.public.v1.BaseNode.created_at:type_name -> google.protobuf.Timestamp
-	56, // 5: canvas.public.v1.BaseNode.updated_at:type_name -> google.protobuf.Timestamp
-	56, // 6: canvas.public.v1.BaseNode.deleted_at:type_name -> google.protobuf.Timestamp
-	10, // 7: canvas.public.v1.ChunkNode.base:type_name -> canvas.public.v1.BaseNode
-	10, // 8: canvas.public.v1.ContentNode.base:type_name -> canvas.public.v1.BaseNode
-	57, // 9: canvas.public.v1.ContentNode.action_data:type_name -> google.protobuf.Struct
-	10, // 10: canvas.public.v1.ClusterNode.base:type_name -> canvas.public.v1.BaseNode
-	57, // 11: canvas.public.v1.BaseLink.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 12: canvas.public.v1.BaseLink.style_metadata:type_name -> google.protobuf.Struct
-	56, // 13: canvas.public.v1.BaseLink.created_at:type_name -> google.protobuf.Timestamp
-	56, // 14: canvas.public.v1.BaseLink.updated_at:type_name -> google.protobuf.Timestamp
-	56, // 15: canvas.public.v1.BaseLink.deleted_at:type_name -> google.protobuf.Timestamp
-	14, // 16: canvas.public.v1.HierarchicalLink.base:type_name -> canvas.public.v1.BaseLink
-	2,  // 17: canvas.public.v1.HierarchicalLink.connection_type:type_name -> canvas.public.v1.HierarchicalConnectionType
-	14, // 18: canvas.public.v1.SemanticLink.base:type_name -> canvas.public.v1.BaseLink
-	3,  // 19: canvas.public.v1.SemanticLink.connection_type:type_name -> canvas.public.v1.SemanticConnectionType
-	14, // 20: canvas.public.v1.StructuralLink.base:type_name -> canvas.public.v1.BaseLink
-	4,  // 21: canvas.public.v1.StructuralLink.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	12, // 22: canvas.public.v1.Node.content:type_name -> canvas.public.v1.ContentNode
-	11, // 23: canvas.public.v1.Node.chunk:type_name -> canvas.public.v1.ChunkNode
-	13, // 24: canvas.public.v1.Node.cluster:type_name -> canvas.public.v1.ClusterNode
-	15, // 25: canvas.public.v1.Link.hierarchical:type_name -> canvas.public.v1.HierarchicalLink
-	16, // 26: canvas.public.v1.Link.semantic:type_name -> canvas.public.v1.SemanticLink
-	17, // 27: canvas.public.v1.Link.structural:type_name -> canvas.public.v1.StructuralLink
-	1,  // 28: canvas.public.v1.SemanticSearchRequest.node_types:type_name -> canvas.public.v1.NodeType
-	18, // 29: canvas.public.v1.SearchResult.node:type_name -> canvas.public.v1.Node
-	21, // 30: canvas.public.v1.SemanticSearchResponse.results:type_name -> canvas.public.v1.SearchResult
-	18, // 31: canvas.public.v1.GetNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	18, // 32: canvas.public.v1.Neighbor.node:type_name -> canvas.public.v1.Node
-	5,  // 33: canvas.public.v1.Neighbor.link_type:type_name -> canvas.public.v1.LinkType
-	19, // 34: canvas.public.v1.Neighbor.link:type_name -> canvas.public.v1.Link
-	25, // 35: canvas.public.v1.NeighborsList.neighbors:type_name -> canvas.public.v1.Neighbor
-	0,  // 36: canvas.public.v1.GetNeighborsRequest.direction:type_name -> canvas.public.v1.Direction
-	45, // 37: canvas.public.v1.GetNeighborsRequest.query:type_name -> canvas.public.v1.LinkQuery
-	55, // 38: canvas.public.v1.GetNeighborsResponse.results:type_name -> canvas.public.v1.GetNeighborsResponse.ResultsEntry
-	7,  // 39: canvas.public.v1.SpatialBoundingBox.min_coords:type_name -> canvas.public.v1.SpatialCoordinates
-	7,  // 40: canvas.public.v1.SpatialBoundingBox.max_coords:type_name -> canvas.public.v1.SpatialCoordinates
-	36, // 41: canvas.public.v1.SearchNodesRequest.filter:type_name -> canvas.public.v1.NodeFilter
-	29, // 42: canvas.public.v1.SearchNodesRequest.spatial_bbox:type_name -> canvas.public.v1.SpatialBoundingBox
-	18, // 43: canvas.public.v1.SearchNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	18, // 44: canvas.public.v1.UpdateNodesRequest.nodes:type_name -> canvas.public.v1.Node
-	18, // 45: canvas.public.v1.UpdateNodesResponse.nodes:type_name -> canvas.public.v1.Node
-	45, // 46: canvas.public.v1.GetLinksRequest.queries:type_name -> canvas.public.v1.LinkQuery
-	19, // 47: canvas.public.v1.GetLinksResponse.links:type_name -> canvas.public.v1.Link
-	37, // 48: canvas.public.v1.NodeFilter.content_filter:type_name -> canvas.public.v1.ContentNodeFilter
-	38, // 49: canvas.public.v1.NodeFilter.chunk_filter:type_name -> canvas.public.v1.ChunkNodeFilter
-	39, // 50: canvas.public.v1.NodeFilter.cluster_filter:type_name -> canvas.public.v1.ClusterNodeFilter
-	57, // 51: canvas.public.v1.BaseLinkFilter.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 52: canvas.public.v1.BaseLinkFilter.style_metadata:type_name -> google.protobuf.Struct
-	40, // 53: canvas.public.v1.HierarchicalLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	40, // 54: canvas.public.v1.SemanticLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	40, // 55: canvas.public.v1.StructuralLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	4,  // 56: canvas.public.v1.StructuralLinkFilter.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	40, // 57: canvas.public.v1.LinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
-	41, // 58: canvas.public.v1.LinkFilter.hierarchical:type_name -> canvas.public.v1.HierarchicalLinkFilter
-	42, // 59: canvas.public.v1.LinkFilter.semantic:type_name -> canvas.public.v1.SemanticLinkFilter
-	43, // 60: canvas.public.v1.LinkFilter.structural:type_name -> canvas.public.v1.StructuralLinkFilter
-	5,  // 61: canvas.public.v1.LinkQuery.link_types:type_name -> canvas.public.v1.LinkType
-	44, // 62: canvas.public.v1.LinkQuery.filter:type_name -> canvas.public.v1.LinkFilter
-	4,  // 63: canvas.public.v1.StructuralLinkCreate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	57, // 64: canvas.public.v1.StructuralLinkCreate.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 65: canvas.public.v1.StructuralLinkCreate.style_metadata:type_name -> google.protobuf.Struct
-	46, // 66: canvas.public.v1.CreateStructuralLinksRequest.links:type_name -> canvas.public.v1.StructuralLinkCreate
-	17, // 67: canvas.public.v1.CreateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
-	4,  // 68: canvas.public.v1.StructuralLinkUpdate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
-	57, // 69: canvas.public.v1.StructuralLinkUpdate.exploration_metadata:type_name -> google.protobuf.Struct
-	57, // 70: canvas.public.v1.StructuralLinkUpdate.style_metadata:type_name -> google.protobuf.Struct
-	49, // 71: canvas.public.v1.UpdateStructuralLinksRequest.updates:type_name -> canvas.public.v1.StructuralLinkUpdate
-	17, // 72: canvas.public.v1.UpdateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
-	52, // 73: canvas.public.v1.DeleteStructuralLinksRequest.link_ids:type_name -> canvas.public.v1.StructuralLinkIdentifier
-	26, // 74: canvas.public.v1.GetNeighborsResponse.ResultsEntry.value:type_name -> canvas.public.v1.NeighborsList
-	20, // 75: canvas.public.v1.CanvasPublic.SemanticSearch:input_type -> canvas.public.v1.SemanticSearchRequest
-	23, // 76: canvas.public.v1.CanvasPublic.GetNodes:input_type -> canvas.public.v1.GetNodesRequest
-	27, // 77: canvas.public.v1.CanvasPublic.GetNeighbors:input_type -> canvas.public.v1.GetNeighborsRequest
-	30, // 78: canvas.public.v1.CanvasPublic.SearchNodes:input_type -> canvas.public.v1.SearchNodesRequest
-	32, // 79: canvas.public.v1.CanvasPublic.UpdateNodes:input_type -> canvas.public.v1.UpdateNodesRequest
-	34, // 80: canvas.public.v1.CanvasPublic.GetLinks:input_type -> canvas.public.v1.GetLinksRequest
-	47, // 81: canvas.public.v1.CanvasPublic.CreateStructuralLinks:input_type -> canvas.public.v1.CreateStructuralLinksRequest
-	50, // 82: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:input_type -> canvas.public.v1.UpdateStructuralLinksRequest
-	53, // 83: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:input_type -> canvas.public.v1.DeleteStructuralLinksRequest
-	22, // 84: canvas.public.v1.CanvasPublic.SemanticSearch:output_type -> canvas.public.v1.SemanticSearchResponse
-	24, // 85: canvas.public.v1.CanvasPublic.GetNodes:output_type -> canvas.public.v1.GetNodesResponse
-	28, // 86: canvas.public.v1.CanvasPublic.GetNeighbors:output_type -> canvas.public.v1.GetNeighborsResponse
-	31, // 87: canvas.public.v1.CanvasPublic.SearchNodes:output_type -> canvas.public.v1.SearchNodesResponse
-	33, // 88: canvas.public.v1.CanvasPublic.UpdateNodes:output_type -> canvas.public.v1.UpdateNodesResponse
-	35, // 89: canvas.public.v1.CanvasPublic.GetLinks:output_type -> canvas.public.v1.GetLinksResponse
-	48, // 90: canvas.public.v1.CanvasPublic.CreateStructuralLinks:output_type -> canvas.public.v1.CreateStructuralLinksResponse
-	51, // 91: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:output_type -> canvas.public.v1.UpdateStructuralLinksResponse
-	54, // 92: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:output_type -> canvas.public.v1.DeleteStructuralLinksResponse
-	84, // [84:93] is the sub-list for method output_type
-	75, // [75:84] is the sub-list for method input_type
-	75, // [75:75] is the sub-list for extension type_name
-	75, // [75:75] is the sub-list for extension extendee
-	0,  // [0:75] is the sub-list for field type_name
+var file_public_v1_canvas_proto_depIdxs = []int32{
+	8,  // 0: canvas.public.v1.BaseNode.position_3d:type_name -> canvas.public.v1.SpatialCoordinates
+	9,  // 1: canvas.public.v1.BaseNode.display_props:type_name -> canvas.public.v1.DisplayProps
+	10, // 2: canvas.public.v1.BaseNode.engagement_score:type_name -> canvas.public.v1.EngagementScore
+	7,  // 3: canvas.public.v1.BaseNode.ml_info:type_name -> canvas.public.v1.MLInfo
+	57, // 4: canvas.public.v1.BaseNode.created_at:type_name -> google.protobuf.Timestamp
+	57, // 5: canvas.public.v1.BaseNode.updated_at:type_name -> google.protobuf.Timestamp
+	57, // 6: canvas.public.v1.BaseNode.deleted_at:type_name -> google.protobuf.Timestamp
+	11, // 7: canvas.public.v1.ChunkNode.base:type_name -> canvas.public.v1.BaseNode
+	11, // 8: canvas.public.v1.ContentNode.base:type_name -> canvas.public.v1.BaseNode
+	58, // 9: canvas.public.v1.ContentNode.action_data:type_name -> google.protobuf.Struct
+	6,  // 10: canvas.public.v1.ContentNode.chunking_status:type_name -> canvas.public.v1.ChunkingStatus
+	11, // 11: canvas.public.v1.ClusterNode.base:type_name -> canvas.public.v1.BaseNode
+	58, // 12: canvas.public.v1.BaseLink.exploration_metadata:type_name -> google.protobuf.Struct
+	58, // 13: canvas.public.v1.BaseLink.style_metadata:type_name -> google.protobuf.Struct
+	57, // 14: canvas.public.v1.BaseLink.created_at:type_name -> google.protobuf.Timestamp
+	57, // 15: canvas.public.v1.BaseLink.updated_at:type_name -> google.protobuf.Timestamp
+	57, // 16: canvas.public.v1.BaseLink.deleted_at:type_name -> google.protobuf.Timestamp
+	15, // 17: canvas.public.v1.HierarchicalLink.base:type_name -> canvas.public.v1.BaseLink
+	2,  // 18: canvas.public.v1.HierarchicalLink.connection_type:type_name -> canvas.public.v1.HierarchicalConnectionType
+	15, // 19: canvas.public.v1.SemanticLink.base:type_name -> canvas.public.v1.BaseLink
+	3,  // 20: canvas.public.v1.SemanticLink.connection_type:type_name -> canvas.public.v1.SemanticConnectionType
+	15, // 21: canvas.public.v1.StructuralLink.base:type_name -> canvas.public.v1.BaseLink
+	4,  // 22: canvas.public.v1.StructuralLink.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	13, // 23: canvas.public.v1.Node.content:type_name -> canvas.public.v1.ContentNode
+	12, // 24: canvas.public.v1.Node.chunk:type_name -> canvas.public.v1.ChunkNode
+	14, // 25: canvas.public.v1.Node.cluster:type_name -> canvas.public.v1.ClusterNode
+	16, // 26: canvas.public.v1.Link.hierarchical:type_name -> canvas.public.v1.HierarchicalLink
+	17, // 27: canvas.public.v1.Link.semantic:type_name -> canvas.public.v1.SemanticLink
+	18, // 28: canvas.public.v1.Link.structural:type_name -> canvas.public.v1.StructuralLink
+	1,  // 29: canvas.public.v1.SemanticSearchRequest.node_types:type_name -> canvas.public.v1.NodeType
+	19, // 30: canvas.public.v1.SearchResult.node:type_name -> canvas.public.v1.Node
+	22, // 31: canvas.public.v1.SemanticSearchResponse.results:type_name -> canvas.public.v1.SearchResult
+	19, // 32: canvas.public.v1.GetNodesResponse.nodes:type_name -> canvas.public.v1.Node
+	19, // 33: canvas.public.v1.Neighbor.node:type_name -> canvas.public.v1.Node
+	5,  // 34: canvas.public.v1.Neighbor.link_type:type_name -> canvas.public.v1.LinkType
+	20, // 35: canvas.public.v1.Neighbor.link:type_name -> canvas.public.v1.Link
+	26, // 36: canvas.public.v1.NeighborsList.neighbors:type_name -> canvas.public.v1.Neighbor
+	0,  // 37: canvas.public.v1.GetNeighborsRequest.direction:type_name -> canvas.public.v1.Direction
+	46, // 38: canvas.public.v1.GetNeighborsRequest.query:type_name -> canvas.public.v1.LinkQuery
+	56, // 39: canvas.public.v1.GetNeighborsResponse.results:type_name -> canvas.public.v1.GetNeighborsResponse.ResultsEntry
+	8,  // 40: canvas.public.v1.SpatialBoundingBox.min_coords:type_name -> canvas.public.v1.SpatialCoordinates
+	8,  // 41: canvas.public.v1.SpatialBoundingBox.max_coords:type_name -> canvas.public.v1.SpatialCoordinates
+	37, // 42: canvas.public.v1.SearchNodesRequest.filter:type_name -> canvas.public.v1.NodeFilter
+	30, // 43: canvas.public.v1.SearchNodesRequest.spatial_bbox:type_name -> canvas.public.v1.SpatialBoundingBox
+	19, // 44: canvas.public.v1.SearchNodesResponse.nodes:type_name -> canvas.public.v1.Node
+	19, // 45: canvas.public.v1.UpdateNodesRequest.nodes:type_name -> canvas.public.v1.Node
+	19, // 46: canvas.public.v1.UpdateNodesResponse.nodes:type_name -> canvas.public.v1.Node
+	46, // 47: canvas.public.v1.GetLinksRequest.queries:type_name -> canvas.public.v1.LinkQuery
+	20, // 48: canvas.public.v1.GetLinksResponse.links:type_name -> canvas.public.v1.Link
+	38, // 49: canvas.public.v1.NodeFilter.content_filter:type_name -> canvas.public.v1.ContentNodeFilter
+	39, // 50: canvas.public.v1.NodeFilter.chunk_filter:type_name -> canvas.public.v1.ChunkNodeFilter
+	40, // 51: canvas.public.v1.NodeFilter.cluster_filter:type_name -> canvas.public.v1.ClusterNodeFilter
+	58, // 52: canvas.public.v1.BaseLinkFilter.exploration_metadata:type_name -> google.protobuf.Struct
+	58, // 53: canvas.public.v1.BaseLinkFilter.style_metadata:type_name -> google.protobuf.Struct
+	41, // 54: canvas.public.v1.HierarchicalLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	41, // 55: canvas.public.v1.SemanticLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	41, // 56: canvas.public.v1.StructuralLinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	4,  // 57: canvas.public.v1.StructuralLinkFilter.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	41, // 58: canvas.public.v1.LinkFilter.base:type_name -> canvas.public.v1.BaseLinkFilter
+	42, // 59: canvas.public.v1.LinkFilter.hierarchical:type_name -> canvas.public.v1.HierarchicalLinkFilter
+	43, // 60: canvas.public.v1.LinkFilter.semantic:type_name -> canvas.public.v1.SemanticLinkFilter
+	44, // 61: canvas.public.v1.LinkFilter.structural:type_name -> canvas.public.v1.StructuralLinkFilter
+	5,  // 62: canvas.public.v1.LinkQuery.link_types:type_name -> canvas.public.v1.LinkType
+	45, // 63: canvas.public.v1.LinkQuery.filter:type_name -> canvas.public.v1.LinkFilter
+	4,  // 64: canvas.public.v1.StructuralLinkCreate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	58, // 65: canvas.public.v1.StructuralLinkCreate.exploration_metadata:type_name -> google.protobuf.Struct
+	58, // 66: canvas.public.v1.StructuralLinkCreate.style_metadata:type_name -> google.protobuf.Struct
+	47, // 67: canvas.public.v1.CreateStructuralLinksRequest.links:type_name -> canvas.public.v1.StructuralLinkCreate
+	18, // 68: canvas.public.v1.CreateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
+	4,  // 69: canvas.public.v1.StructuralLinkUpdate.connection_type:type_name -> canvas.public.v1.StructuralConnectionType
+	58, // 70: canvas.public.v1.StructuralLinkUpdate.exploration_metadata:type_name -> google.protobuf.Struct
+	58, // 71: canvas.public.v1.StructuralLinkUpdate.style_metadata:type_name -> google.protobuf.Struct
+	50, // 72: canvas.public.v1.UpdateStructuralLinksRequest.updates:type_name -> canvas.public.v1.StructuralLinkUpdate
+	18, // 73: canvas.public.v1.UpdateStructuralLinksResponse.links:type_name -> canvas.public.v1.StructuralLink
+	53, // 74: canvas.public.v1.DeleteStructuralLinksRequest.link_ids:type_name -> canvas.public.v1.StructuralLinkIdentifier
+	27, // 75: canvas.public.v1.GetNeighborsResponse.ResultsEntry.value:type_name -> canvas.public.v1.NeighborsList
+	21, // 76: canvas.public.v1.CanvasPublic.SemanticSearch:input_type -> canvas.public.v1.SemanticSearchRequest
+	24, // 77: canvas.public.v1.CanvasPublic.GetNodes:input_type -> canvas.public.v1.GetNodesRequest
+	28, // 78: canvas.public.v1.CanvasPublic.GetNeighbors:input_type -> canvas.public.v1.GetNeighborsRequest
+	31, // 79: canvas.public.v1.CanvasPublic.SearchNodes:input_type -> canvas.public.v1.SearchNodesRequest
+	33, // 80: canvas.public.v1.CanvasPublic.UpdateNodes:input_type -> canvas.public.v1.UpdateNodesRequest
+	35, // 81: canvas.public.v1.CanvasPublic.GetLinks:input_type -> canvas.public.v1.GetLinksRequest
+	48, // 82: canvas.public.v1.CanvasPublic.CreateStructuralLinks:input_type -> canvas.public.v1.CreateStructuralLinksRequest
+	51, // 83: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:input_type -> canvas.public.v1.UpdateStructuralLinksRequest
+	54, // 84: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:input_type -> canvas.public.v1.DeleteStructuralLinksRequest
+	23, // 85: canvas.public.v1.CanvasPublic.SemanticSearch:output_type -> canvas.public.v1.SemanticSearchResponse
+	25, // 86: canvas.public.v1.CanvasPublic.GetNodes:output_type -> canvas.public.v1.GetNodesResponse
+	29, // 87: canvas.public.v1.CanvasPublic.GetNeighbors:output_type -> canvas.public.v1.GetNeighborsResponse
+	32, // 88: canvas.public.v1.CanvasPublic.SearchNodes:output_type -> canvas.public.v1.SearchNodesResponse
+	34, // 89: canvas.public.v1.CanvasPublic.UpdateNodes:output_type -> canvas.public.v1.UpdateNodesResponse
+	36, // 90: canvas.public.v1.CanvasPublic.GetLinks:output_type -> canvas.public.v1.GetLinksResponse
+	49, // 91: canvas.public.v1.CanvasPublic.CreateStructuralLinks:output_type -> canvas.public.v1.CreateStructuralLinksResponse
+	52, // 92: canvas.public.v1.CanvasPublic.UpdateStructuralLinks:output_type -> canvas.public.v1.UpdateStructuralLinksResponse
+	55, // 93: canvas.public.v1.CanvasPublic.DeleteStructuralLinks:output_type -> canvas.public.v1.DeleteStructuralLinksResponse
+	85, // [85:94] is the sub-list for method output_type
+	76, // [76:85] is the sub-list for method input_type
+	76, // [76:76] is the sub-list for extension type_name
+	76, // [76:76] is the sub-list for extension extendee
+	0,  // [0:76] is the sub-list for field type_name
 }
 
-func init() { file_proto_public_v1_canvas_proto_init() }
-func file_proto_public_v1_canvas_proto_init() {
-	if File_proto_public_v1_canvas_proto != nil {
+func init() { file_public_v1_canvas_proto_init() }
+func file_public_v1_canvas_proto_init() {
+	if File_public_v1_canvas_proto != nil {
 		return
 	}
-	file_proto_public_v1_canvas_proto_msgTypes[4].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[5].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[6].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[7].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[8].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[10].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[11].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[12].OneofWrappers = []any{
+	file_public_v1_canvas_proto_msgTypes[4].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[5].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[6].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[7].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[8].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[10].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[11].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[12].OneofWrappers = []any{
 		(*Node_Content)(nil),
 		(*Node_Chunk)(nil),
 		(*Node_Cluster)(nil),
 	}
-	file_proto_public_v1_canvas_proto_msgTypes[13].OneofWrappers = []any{
+	file_public_v1_canvas_proto_msgTypes[13].OneofWrappers = []any{
 		(*Link_Hierarchical)(nil),
 		(*Link_Semantic)(nil),
 		(*Link_Structural)(nil),
 	}
-	file_proto_public_v1_canvas_proto_msgTypes[30].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[31].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[32].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[33].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[34].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[35].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[36].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[37].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[38].OneofWrappers = []any{
+	file_public_v1_canvas_proto_msgTypes[30].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[31].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[32].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[33].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[34].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[35].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[36].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[37].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[38].OneofWrappers = []any{
 		(*LinkFilter_Base)(nil),
 		(*LinkFilter_Hierarchical)(nil),
 		(*LinkFilter_Semantic)(nil),
 		(*LinkFilter_Structural)(nil),
 	}
-	file_proto_public_v1_canvas_proto_msgTypes[40].OneofWrappers = []any{}
-	file_proto_public_v1_canvas_proto_msgTypes[43].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[40].OneofWrappers = []any{}
+	file_public_v1_canvas_proto_msgTypes[43].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_public_v1_canvas_proto_rawDesc), len(file_proto_public_v1_canvas_proto_rawDesc)),
-			NumEnums:      6,
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_public_v1_canvas_proto_rawDesc), len(file_public_v1_canvas_proto_rawDesc)),
+			NumEnums:      7,
 			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_public_v1_canvas_proto_goTypes,
-		DependencyIndexes: file_proto_public_v1_canvas_proto_depIdxs,
-		EnumInfos:         file_proto_public_v1_canvas_proto_enumTypes,
-		MessageInfos:      file_proto_public_v1_canvas_proto_msgTypes,
+		GoTypes:           file_public_v1_canvas_proto_goTypes,
+		DependencyIndexes: file_public_v1_canvas_proto_depIdxs,
+		EnumInfos:         file_public_v1_canvas_proto_enumTypes,
+		MessageInfos:      file_public_v1_canvas_proto_msgTypes,
 	}.Build()
-	File_proto_public_v1_canvas_proto = out.File
-	file_proto_public_v1_canvas_proto_goTypes = nil
-	file_proto_public_v1_canvas_proto_depIdxs = nil
+	File_public_v1_canvas_proto = out.File
+	file_public_v1_canvas_proto_goTypes = nil
+	file_public_v1_canvas_proto_depIdxs = nil
 }
