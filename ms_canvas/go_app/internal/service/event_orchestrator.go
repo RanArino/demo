@@ -94,14 +94,23 @@ func (e *EventOrchestrator) HandleDocumentProcessed(event events.DocumentProcess
 	log.Printf("[EventOrchestrator] Created ContentNode with ID: %s", contentNodeID)
 
 	// Step 2: Trigger chunking and embedding workflow
-	// Note: This is a placeholder for now - actual implementation will depend on
-	// the specific requirements. For now, we create an empty task structure
-	// that can be extended later without changing the core orchestration.
+	// Update status to PROCESSING before starting
+	if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_PROCESSING, ""); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to update chunking status to PROCESSING: %v", err)
+	}
 
 	if err := e.triggerChunkingEmbedding(ctx, contentNodeID, event); err != nil {
-		log.Printf("[EventOrchestrator] Warning: chunking/embedding workflow failed: %v", err)
-		// Don't fail the entire process for workflow issues
-		// The content node was successfully created
+		log.Printf("[EventOrchestrator] Error: chunking/embedding workflow failed: %v", err)
+		// Update status to FAILED with error message
+		if updateErr := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_FAILED, err.Error()); updateErr != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update chunking status to FAILED: %v", updateErr)
+		}
+		// Don't fail the entire process - the content node was successfully created
+	} else {
+		// Update status to COMPLETED on success
+		if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED, ""); err != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update chunking status to COMPLETED: %v", err)
+		}
 	}
 
 	// TODO: Future operations can be added here if needed:
@@ -130,9 +139,13 @@ func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.
 		baseNode.ChatContent = &event.Summary
 	}
 
+	// Set initial chunking status to PENDING
+	chunkingStatus := v1.ChunkingStatus_CHUNKING_STATUS_PENDING
+
 	contentNode := &v1.ContentNode{
 		Base:            baseNode,
 		ContentSourceId: event.ContentSourceID.String(),
+		ChunkingStatus:  &chunkingStatus,
 	}
 
 	if event.Title != "" {
@@ -273,5 +286,40 @@ func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []pytho
 	}
 
 	log.Printf("[EventOrchestrator] Successfully created %d chunk nodes", len(chunkNodes))
+	return nil
+}
+
+// updateChunkingStatus updates the chunking status of a ContentNode
+func (e *EventOrchestrator) updateChunkingStatus(ctx context.Context, contentNodeID string, status v1.ChunkingStatus, errorMsg string) error {
+	// Fetch the existing content node first
+	nodes, err := e.nodeRepo.GetNodes(ctx, []string{contentNodeID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to fetch content node for status update: %w", err)
+	}
+
+	if len(nodes) == 0 {
+		return fmt.Errorf("content node not found: %s", contentNodeID)
+	}
+
+	node := nodes[0]
+	contentNode, ok := node.Node.(*v1.Node_Content)
+	if !ok {
+		return fmt.Errorf("node is not a content node: %s", contentNodeID)
+	}
+
+	// Update chunking status
+	contentNode.Content.ChunkingStatus = &status
+	if errorMsg != "" {
+		contentNode.Content.ChunkingError = &errorMsg
+	} else {
+		contentNode.Content.ChunkingError = nil
+	}
+
+	// Update the node in the database
+	if err := e.nodeRepo.UpdateContentNode(ctx, contentNode.Content); err != nil {
+		return fmt.Errorf("failed to update content node status: %w", err)
+	}
+
+	log.Printf("[EventOrchestrator] Updated ContentNode %s chunking status to %s", contentNodeID, status.String())
 	return nil
 }

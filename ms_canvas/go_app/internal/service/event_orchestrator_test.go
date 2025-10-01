@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
@@ -188,6 +189,9 @@ func TestEventOrchestrator_HandleDocumentProcessed(t *testing.T) {
 
 	// Setup mock expectations
 	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.Anything).Return(nil)
+	// Mock for status updates (will be called but R2/Python gateway not available so chunking will be skipped)
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{}, nil).Maybe()
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil).Maybe()
 
 	// Create EventOrchestrator (python gateway not required for this test)
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
@@ -222,6 +226,10 @@ func TestEventOrchestrator_HandleDocumentProcessed_SkipsNonProcessed(t *testing.
 		},
 	}
 
+	// Mock status updates in case they're called (but shouldn't be for non-PROCESSED events)
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{}, nil).Maybe()
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil).Maybe()
+
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
 
 	// Create test event with non-PROCESSED status
@@ -252,6 +260,9 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithBlobHash(t *testing.T) {
 	}
 
 	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.Anything).Return(nil)
+	// Mock status updates
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{}, nil).Maybe()
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil).Maybe()
 
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
 
@@ -325,11 +336,17 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithChunkCreation(t *testing.
 
 	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.Anything).Return(nil)
 	mockNodeRepo.On("CreateChunkNodes", mock.Anything, mock.Anything).Return(nil)
+	// Mock status updates
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{
+		{Node: &v1.Node_Content{Content: &v1.ContentNode{}}},
+	}, nil)
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil)
 
 	gateway := new(MockPythonGateway)
 	r2 := new(MockR2Client)
 
-	r2.On("DownloadFile", "blob-hash").Return([]byte("dummy"), nil)
+	objKey := "owner/spaces/space/content/content.md"
+	r2.On("DownloadFile", objKey).Return([]byte("dummy"), nil)
 	gateway.On("ChunkDocument", mock.Anything, mock.Anything, mock.Anything).Return(&python.ChunkDocumentResponse{Chunks: []python.ChunkInfo{chunk}}, nil)
 
 	orchestrator := &EventOrchestrator{
@@ -341,16 +358,13 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithChunkCreation(t *testing.
 	}
 
 	event := events.DocumentProcessedEvent{
-		ContentSourceID: uuid.New(),
-		SpaceID:         uuid.New(),
-		Status:          events.ProcessStatusProcessed,
-		ProcessedBlobHash: func() *string {
-			val := "blob-hash"
-			return &val
-		}(),
-		Title:    "Doc Title",
-		Summary:  "Doc Summary",
-		Keywords: []string{"kw1", "kw2"},
+		ContentSourceID:    uuid.New(),
+		SpaceID:            uuid.New(),
+		Status:             events.ProcessStatusProcessed,
+		ProcessedObjectKey: &objKey,
+		Title:              "Doc Title",
+		Summary:            "Doc Summary",
+		Keywords:           []string{"kw1", "kw2"},
 	}
 
 	err := orchestrator.HandleDocumentProcessed(event)
@@ -364,6 +378,129 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithChunkCreation(t *testing.
 		return n.Base.SpaceId == event.SpaceID.String() &&
 			n.Base.Keywords != nil && len(n.Base.Keywords) == len(event.Keywords)
 	}))
+}
+
+func TestEventOrchestrator_HandleDocumentProcessed_ChunkingStatusTracking(t *testing.T) {
+	mockNodeRepo := new(MockNodeRepository)
+	mockLinkRepo := new(MockLinkRepository)
+
+	cfg := config.Config{
+		Topics: config.Topics{
+			DocumentProcessed: "document.processed",
+		},
+		R2Config: config.R2Config{Endpoint: "test"},
+	}
+
+	// Mock successful chunking workflow
+	chunk := python.ChunkInfo{
+		ID:            "chunk-1",
+		Content:       "chunk content",
+		SequenceIndex: 1,
+		StartPosition: 0,
+		EndPosition:   10,
+	}
+
+	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.MatchedBy(func(nodes []*v1.ContentNode) bool {
+		// Verify initial status is PENDING
+		return len(nodes) == 1 &&
+			nodes[0].ChunkingStatus != nil &&
+			*nodes[0].ChunkingStatus == v1.ChunkingStatus_CHUNKING_STATUS_PENDING
+	})).Return(nil)
+
+	// Mock GetNodes for status updates (PROCESSING, then COMPLETED)
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{
+		{Node: &v1.Node_Content{Content: &v1.ContentNode{}}},
+	}, nil)
+
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.MatchedBy(func(node *v1.ContentNode) bool {
+		// Should be called twice: PROCESSING, then COMPLETED
+		return node.ChunkingStatus != nil &&
+			(*node.ChunkingStatus == v1.ChunkingStatus_CHUNKING_STATUS_PROCESSING ||
+			 *node.ChunkingStatus == v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED)
+	})).Return(nil).Times(2)
+
+	mockNodeRepo.On("CreateChunkNodes", mock.Anything, mock.Anything).Return(nil)
+
+	gateway := new(MockPythonGateway)
+	r2 := new(MockR2Client)
+
+	objKey := "owner/spaces/space/content/content.md"
+	r2.On("DownloadFile", objKey).Return([]byte("dummy markdown"), nil)
+	gateway.On("ChunkDocument", mock.Anything, mock.Anything, mock.Anything).Return(&python.ChunkDocumentResponse{Chunks: []python.ChunkInfo{chunk}}, nil)
+
+	orchestrator := &EventOrchestrator{
+		config:        cfg,
+		nodeRepo:      mockNodeRepo,
+		linkRepo:      mockLinkRepo,
+		pythonGateway: gateway,
+		r2Client:      r2,
+	}
+
+	event := events.DocumentProcessedEvent{
+		ContentSourceID:    uuid.New(),
+		SpaceID:            uuid.New(),
+		Status:             events.ProcessStatusProcessed,
+		ProcessedObjectKey: &objKey,
+		Title:              "Test Doc",
+		Summary:            "Test Summary",
+	}
+
+	err := orchestrator.HandleDocumentProcessed(event)
+
+	assert.NoError(t, err)
+	mockNodeRepo.AssertExpectations(t)
+}
+
+func TestEventOrchestrator_HandleDocumentProcessed_ChunkingStatusFailure(t *testing.T) {
+	mockNodeRepo := new(MockNodeRepository)
+	mockLinkRepo := new(MockLinkRepository)
+
+	cfg := config.Config{
+		Topics: config.Topics{
+			DocumentProcessed: "document.processed",
+		},
+		R2Config: config.R2Config{Endpoint: "test"},
+	}
+
+	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.Anything).Return(nil)
+
+	// Mock GetNodes for status updates
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{
+		{Node: &v1.Node_Content{Content: &v1.ContentNode{}}},
+	}, nil)
+
+	// Should be called twice: PROCESSING, then FAILED
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.MatchedBy(func(node *v1.ContentNode) bool {
+		return node.ChunkingStatus != nil
+	})).Return(nil).Times(2)
+
+	gateway := new(MockPythonGateway)
+	r2 := new(MockR2Client)
+
+	objKey := "owner/spaces/space/content/content.md"
+	// Simulate R2 download failure
+	r2.On("DownloadFile", objKey).Return([]byte(nil), fmt.Errorf("R2 download failed"))
+
+	orchestrator := &EventOrchestrator{
+		config:        cfg,
+		nodeRepo:      mockNodeRepo,
+		linkRepo:      mockLinkRepo,
+		pythonGateway: gateway,
+		r2Client:      r2,
+	}
+
+	event := events.DocumentProcessedEvent{
+		ContentSourceID:    uuid.New(),
+		SpaceID:            uuid.New(),
+		Status:             events.ProcessStatusProcessed,
+		ProcessedObjectKey: &objKey,
+	}
+
+	err := orchestrator.HandleDocumentProcessed(event)
+
+	// Should not fail the entire process
+	assert.NoError(t, err)
+	mockNodeRepo.AssertExpectations(t)
 }
 
 // Additional task-related tests are implemented in the task executor test suite.
