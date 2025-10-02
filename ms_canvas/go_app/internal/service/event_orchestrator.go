@@ -345,8 +345,8 @@ func (e *EventOrchestrator) updateChunkingStatus(ctx context.Context, contentNod
 
 // retryChunkingAfterDelay schedules automatic retry for failed chunking with exponential backoff
 func (e *EventOrchestrator) retryChunkingAfterDelay(ctx context.Context, contentNodeID string, event events.DocumentProcessedEvent, retryCount int) {
-	// Exponential backoff: 30s, 60s, 120s
-	delay := time.Duration(30*(1<<retryCount)) * time.Second
+	// Exponential backoff: 1s, 2s, 4s
+	delay := time.Duration(1<<retryCount) * time.Second
 	log.Printf("[EventOrchestrator] Waiting %v before retry %d for ContentNode: %s", delay, retryCount+1, contentNodeID)
 
 	// Sleep for backoff duration
