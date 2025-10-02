@@ -103,13 +103,21 @@ export default function SpacesClientPage({
   const fetchSpaces = useCallback(async (filters: SpaceFilters) => {
     setLoading(true);
     try {
-      const result = await searchSpaces(filters);
+      // Convert SpaceFilters to plain object to avoid serialization issues
+      const plainFilters = {
+        q: filters.q || '',
+        keywords: filters.keywords || [],
+        sortBy: filters.sortBy || 'created',
+        sortOrder: filters.sortOrder || 'desc',
+      };
+
+      const result = await searchSpaces(plainFilters as unknown as SpaceFilters);
       if (result.ok && result.data) {
         setSpaces(result.data.spaces);
         setTotal(Number(result.data.totalCount));
         lastAppliedFiltersRef.current = {
-          q: filters.q ?? '',
-          keywords: filters.keywords ?? [],
+          q: plainFilters.q,
+          keywords: plainFilters.keywords,
         };
       } else {
         toast({
@@ -142,7 +150,14 @@ export default function SpacesClientPage({
       const next = { q: filters.q ?? '', keywords: filters.keywords ?? [] };
       if (areFiltersSame(lastAppliedFiltersRef.current, next)) return;
       updateURL(filters);
-      fetchSpaces(filters);
+      // Use plain object instead of SpaceFilters for server action
+      const plainFilters = {
+        q: filters.q || '',
+        keywords: filters.keywords || [],
+        sortBy: filters.sortBy || 'created',
+        sortOrder: filters.sortOrder || 'desc',
+      };
+      fetchSpaces(plainFilters as unknown as SpaceFilters);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -164,7 +179,14 @@ export default function SpacesClientPage({
     const next = { q: filters.q ?? '', keywords: filters.keywords ?? [] };
     if (areFiltersSame(lastAppliedFiltersRef.current, next)) return;
     updateURL(filters);
-    fetchSpaces(filters);
+    // Use plain object instead of SpaceFilters for server action
+    const plainFilters = {
+      q: filters.q || '',
+      keywords: filters.keywords || [],
+      sortBy: filters.sortBy || 'created',
+      sortOrder: filters.sortOrder || 'desc',
+    };
+    fetchSpaces(plainFilters as unknown as SpaceFilters);
   }, [isReady, selectedKeywords, sortBy, sortOrder, page]);
 
   // Handle space selection
@@ -215,12 +237,14 @@ export default function SpacesClientPage({
     clearFilters();
     lastAppliedFiltersRef.current = { q: '', keywords: [] };
     router.replace('/spaces');
-    fetchSpaces(new SpaceFilters({
+    // Use plain object instead of SpaceFilters for server action
+    const plainFilters = {
       q: '',
       keywords: [],
       sortBy: 'created',
       sortOrder: 'desc',
-    }));
+    };
+    fetchSpaces(plainFilters as unknown as SpaceFilters);
   };
 
   // View components based on view mode
@@ -364,12 +388,13 @@ export default function SpacesClientPage({
           onSuccess={(newSpace) => {
             setShowCreateDialog(false);
             // Refresh the spaces list
-            fetchSpaces(new SpaceFilters({
+            const plainFilters = {
               q: searchTerm,
               keywords: selectedKeywords,
               sortBy: 'created',
               sortOrder: 'desc',
-            }));
+            };
+            fetchSpaces(plainFilters as unknown as SpaceFilters);
           }}
         />
       )}

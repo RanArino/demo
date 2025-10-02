@@ -64,6 +64,30 @@ class KafkaConsumer:
         logger.info("Closing Kafka consumer.")
         self.consumer.close()
 
+def validate_r2_configuration():
+    """
+    Validates that all required R2 configuration is present before starting the consumer.
+    Raises ValueError if any required configuration is missing.
+    """
+    required_configs = {
+        'R2_ENDPOINT': settings.r2_endpoint,
+        'R2_ACCESS_KEY_ID': settings.r2_access_key_id,
+        'R2_SECRET_ACCESS_KEY': settings.r2_secret_access_key,
+        'R2_ACCOUNT_ID': settings.r2_account_id,
+        'R2_BUCKET_SOURCE_NAME': settings.r2_bucket_source_name,
+        'R2_BUCKET_PROCESSED_NAME': settings.r2_bucket_processed_name,
+    }
+
+    missing = [name for name, value in required_configs.items() if not value]
+
+    if missing:
+        raise ValueError(
+            f"R2 configuration incomplete. Missing required environment variables: {', '.join(missing)}. "
+            f"Please check your .env.local file and ensure all R2 credentials are set."
+        )
+
+    logger.info("R2 configuration validated successfully")
+
 def start_consumer():
     """
     Initializes all dependencies and starts the Kafka consumer.
@@ -71,6 +95,13 @@ def start_consumer():
     """
     logging.basicConfig(level=logging.INFO)
     logger.info("Initializing consumer dependencies...")
+
+    # Validate R2 configuration early to fail fast
+    try:
+        validate_r2_configuration()
+    except ValueError as e:
+        logger.critical(f"Configuration validation failed: {e}")
+        return  # Exit early if configuration is invalid
 
     # Initialize dependencies
     try:

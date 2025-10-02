@@ -3,8 +3,10 @@ package neo4j
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	neo4j "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -302,4 +304,69 @@ func TestDriver_PerformanceConsiderations(t *testing.T) {
 		assert.Greater(t, dimensions, 100, "Should support high-dimensional embeddings")
 		assert.LessOrEqual(t, dimensions, 1536, "Should be within reasonable bounds for modern embeddings")
 	})
+}
+
+// TestDriver_IntegrationIntegration attempts a real connection to a Neo4j instance
+// when the following environment variables are set:
+// NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD, NEO4J_DATABASE
+// If any are missing the test will be skipped.
+func TestDriver_IntegrationConnection(t *testing.T) {
+	uri := getEnvOrSkip(t, "NEO4J_URI")
+	user := getEnvOrSkip(t, "NEO4J_USERNAME")
+	pass := getEnvOrSkip(t, "NEO4J_PASSWORD")
+	db := getEnvOrSkip(t, "NEO4J_DATABASE")
+
+	// Attempt to create a real driver (will fail the test if connection cannot be established)
+	drv, err := NewDriver(uri, user, pass, db, nil)
+	if err != nil {
+		t.Fatalf("failed to create neo4j driver: %v", err)
+	}
+	defer func() {
+		if err := drv.Close(context.Background()); err != nil {
+			t.Logf("warning: error closing driver: %v", err)
+		}
+	}()
+
+	// Run a lightweight read query to verify basic connectivity
+	sess := drv.NewSession(context.Background(), neo4j.SessionConfig{DatabaseName: db})
+	defer sess.Close(context.Background())
+
+	_, err = sess.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		// simple return of 1
+		rec, err := tx.Run(context.Background(), "RETURN 1", nil)
+		if err != nil {
+			return nil, err
+		}
+		if rec.Next(context.Background()) {
+			return rec.Record().Values, nil
+		}
+		return nil, rec.Err()
+	})
+	if err != nil {
+		t.Fatalf("neo4j connectivity check failed: %v", err)
+	}
+}
+
+// getEnvOrSkip reads an env var and skips the test if it's empty.
+func getEnvOrSkip(t *testing.T, key string) string {
+	t.Helper()
+	v := ""
+	if vv, ok := lookupEnv(key); ok {
+		v = vv
+	}
+	if v == "" {
+		t.Skipf("skipping integration test; %s not set", key)
+	}
+	return v
+}
+
+// lookupEnv is a thin wrapper to allow easier testing/mocking if needed.
+func lookupEnv(key string) (string, bool) {
+	return lookupEnvImpl(key)
+}
+
+// platform-specific implementation delegated to a weak symbol-style variable so tests
+// can override if necessary. The default uses os.LookupEnv.
+var lookupEnvImpl = func(key string) (string, bool) {
+	return os.LookupEnv(key)
 }

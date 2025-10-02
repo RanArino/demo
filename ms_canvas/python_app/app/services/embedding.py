@@ -11,7 +11,6 @@ try:
     from ..providers import (
         GeminiEmbeddingProvider,
         OpenAIEmbeddingProvider,
-        LocalEmbeddingProvider,
         BaseEmbeddingProvider
     )
     PROVIDERS_AVAILABLE = True
@@ -20,7 +19,6 @@ except ImportError as e:
     PROVIDERS_AVAILABLE = False
     GeminiEmbeddingProvider = None
     OpenAIEmbeddingProvider = None
-    LocalEmbeddingProvider = None
     BaseEmbeddingProvider = None
 
 
@@ -59,9 +57,6 @@ def _get_embedder(config: EmbeddingConfig):
             model=config.model_id,
             api_key=os.getenv("OPENAI_API_KEY")
         )
-    elif config.provider in ["huggingface", "local"]:
-        # Use local embeddings provider
-        return LocalEmbeddingProvider(model_name=config.model_id)
     else:
         raise ValueError(f"Unsupported embedding provider: {config.provider}")
 

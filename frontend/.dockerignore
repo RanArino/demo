@@ -16,3 +16,6 @@ coverage
 *.tgz
 .vscode
 *.log
+.eslintcache
+*.tsbuildinfo
+.swc

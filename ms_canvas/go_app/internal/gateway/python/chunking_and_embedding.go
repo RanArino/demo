@@ -38,7 +38,6 @@ type ChunkDocumentResponse struct {
 type ChunkInfo struct {
 	ID            string
 	Content       string
-	Embedding     []float32
 	SequenceIndex int32
 	StartPosition int64
 	EndPosition   int64
@@ -49,14 +48,14 @@ func (g *Gateway) ChunkDocument(ctx context.Context, documentContent []byte, con
 	// Convert document content to string
 	contentStr := string(documentContent)
 
-	// Create chunk embed request using text source
+	// Create chunk embed request using text source (no embedding config needed)
 	req := &privpb.ChunkEmbedRequest{
 		SpaceId:       contentNodeID, // Use content node ID as space ID for now
 		ContentNodeId: contentNodeID,
 		Source:        &privpb.ChunkEmbedRequest_Text{Text: contentStr},
 		Chunking:      DefaultChunkingConfig(),
-		Embedding:     DefaultGeminiEmbeddingConfig(),
-		BatchSize:     0, // Default batch size
+		// Embedding will be done server-side in Neo4j, not in Python
+		BatchSize: 0, // Default batch size
 	}
 
 	// Call the Python service
@@ -65,13 +64,12 @@ func (g *Gateway) ChunkDocument(ctx context.Context, documentContent []byte, con
 		return nil, fmt.Errorf("failed to chunk document: %w", err)
 	}
 
-	// Convert response to our format
+	// Convert response to our format (no embedding - will be generated in Neo4j)
 	chunks := make([]ChunkInfo, len(resp.Results))
 	for i, chunkEmbedding := range resp.Results {
 		chunks[i] = ChunkInfo{
 			ID:            chunkEmbedding.Chunk.Id,
 			Content:       chunkEmbedding.Chunk.Content,
-			Embedding:     chunkEmbedding.Vector,
 			SequenceIndex: chunkEmbedding.Chunk.SequenceIndex,
 			StartPosition: chunkEmbedding.Chunk.StartPosition,
 			EndPosition:   chunkEmbedding.Chunk.EndPosition,

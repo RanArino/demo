@@ -35,8 +35,8 @@ class LLMProviderConfig:
         gemini_api_key: Optional[str] = None,
         gemini_model: str = "models/gemini-1.5-flash",
         # Common config
-        temperature: float = 0.2,
-        top_p: float = 0.95,
+        temperature: float = 1.0,
+        top_p: float = 1.0,
     ):
         """
         Initialize LLM provider configuration.

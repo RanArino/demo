@@ -131,6 +131,14 @@ message ChunkNode {
   string content = 8;
 }
 
+enum ChunkingStatus {
+  CHUNKING_STATUS_UNSPECIFIED = 0;
+  CHUNKING_STATUS_PENDING = 1;      // Waiting for chunking to start
+  CHUNKING_STATUS_PROCESSING = 2;   // Currently being chunked
+  CHUNKING_STATUS_COMPLETED = 3;    // Successfully chunked
+  CHUNKING_STATUS_FAILED = 4;       // Chunking failed
+}
+
 message ContentNode {
   BaseNode base = 1;
   string content_source_id = 2;
@@ -139,6 +147,8 @@ message ContentNode {
   optional string source = 5;
   optional int32 token_count = 6;
   optional google.protobuf.Struct action_data = 7;
+  optional ChunkingStatus chunking_status = 8;  // Track chunking workflow status
+  optional string chunking_error = 9;           // Error message if chunking failed
 }
 
 message ClusterNode {

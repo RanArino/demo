@@ -11,9 +11,11 @@ import (
 	"demo/ms_canvas/go_app/internal/events"
 	"demo/ms_canvas/go_app/internal/gateway/python"
 	"demo/ms_canvas/go_app/internal/infra"
+	"demo/ms_canvas/go_app/internal/metrics"
 	"demo/ms_canvas/go_app/internal/repository"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -22,25 +24,32 @@ type EventOrchestrator struct {
 	config        config.Config
 	nodeRepo      repository.NodeRepository
 	linkRepo      repository.LinkRepository
-	pythonGateway *python.Gateway
-	r2Client      *infra.R2Client
+	pythonGateway ChunkingGateway
+	r2Client      R2Client
 }
 
 // EventOrchestrator is focused ONLY on consuming events from other microservices
 // It does NOT produce events or use complex task management
 // All Task/TaskManager functionality is in task_executor.go for future use when needed
 
+type ChunkingGateway interface {
+	ChunkDocument(ctx context.Context, documentContent []byte, contentNodeID string) (*python.ChunkDocumentResponse, error)
+}
+
+type R2Client interface {
+	DownloadFile(key string) ([]byte, error)
+}
+
 // NewEventOrchestrator creates a new event orchestrator with dependencies
 func NewEventOrchestrator(
 	config config.Config,
 	nodeRepo repository.NodeRepository,
 	linkRepo repository.LinkRepository,
-	pythonGateway *python.Gateway,
+	pythonGateway ChunkingGateway,
 ) EventHandler {
-	// Initialize R2 client
-	var r2Client *infra.R2Client
+	var r2Client R2Client
+	var err error
 	if r2Config := config.R2Config; r2Config.Endpoint != "" {
-		var err error
 		r2Client, err = infra.NewR2Client(r2Config)
 		if err != nil {
 			log.Printf("[EventOrchestrator] Warning: Failed to initialize R2 client: %v", err)
@@ -49,6 +58,10 @@ func NewEventOrchestrator(
 		}
 	} else {
 		log.Printf("[EventOrchestrator] R2 client not initialized - missing configuration")
+	}
+
+	if pythonGateway == nil {
+		pythonGateway = &python.Gateway{}
 	}
 
 	return &EventOrchestrator{
@@ -82,14 +95,32 @@ func (e *EventOrchestrator) HandleDocumentProcessed(event events.DocumentProcess
 	log.Printf("[EventOrchestrator] Created ContentNode with ID: %s", contentNodeID)
 
 	// Step 2: Trigger chunking and embedding workflow
-	// Note: This is a placeholder for now - actual implementation will depend on
-	// the specific requirements. For now, we create an empty task structure
-	// that can be extended later without changing the core orchestration.
+	// Update status to PROCESSING before starting
+	if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_PROCESSING, ""); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to update chunking status to PROCESSING: %v", err)
+	}
 
 	if err := e.triggerChunkingEmbedding(ctx, contentNodeID, event); err != nil {
-		log.Printf("[EventOrchestrator] Warning: chunking/embedding workflow failed: %v", err)
-		// Don't fail the entire process for workflow issues
-		// The content node was successfully created
+		log.Printf("[EventOrchestrator] Error: chunking/embedding workflow failed: %v", err)
+		// Update status to FAILED with error message
+		if updateErr := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_FAILED, err.Error()); updateErr != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update chunking status to FAILED: %v", updateErr)
+		}
+
+		// Schedule automatic retry if under max retry limit
+		retryCount := e.getRetryCountForEvent(event)
+		if retryCount < 3 { // Max 3 retries
+			log.Printf("[EventOrchestrator] Scheduling retry %d/3 for ContentNode: %s", retryCount+1, contentNodeID)
+			go e.retryChunkingAfterDelay(ctx, contentNodeID, event, retryCount)
+		} else {
+			log.Printf("[EventOrchestrator] Max retries (3) exceeded for ContentNode: %s", contentNodeID)
+		}
+		// Don't fail the entire process - the content node was successfully created
+	} else {
+		// Update status to COMPLETED on success
+		if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED, ""); err != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update chunking status to COMPLETED: %v", err)
+		}
 	}
 
 	// TODO: Future operations can be added here if needed:
@@ -103,35 +134,72 @@ func (e *EventOrchestrator) HandleDocumentProcessed(event events.DocumentProcess
 
 // createContentNode creates a ContentNode in the database with proper metadata
 func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.DocumentProcessedEvent) (string, error) {
-	// Generate new UUID for the content node
 	contentNodeID := uuid.New().String()
-
-	// Create ContentNode with current timestamp
 	now := timestamppb.New(time.Now())
 
-	// Create BaseNode with required fields
 	baseNode := &v1.BaseNode{
 		Id:        contentNodeID,
+		SpaceId:   event.SpaceID.String(),
 		CreatedAt: now,
 		UpdatedAt: now,
+		Keywords:  event.Keywords,
 	}
 
-	// Create ContentNode
+	if event.Summary != "" {
+		baseNode.ChatContent = &event.Summary
+	}
+
+	// Set initial chunking status to PENDING
+	chunkingStatus := v1.ChunkingStatus_CHUNKING_STATUS_PENDING
+
 	contentNode := &v1.ContentNode{
 		Base:            baseNode,
 		ContentSourceId: event.ContentSourceID.String(),
+		ChunkingStatus:  &chunkingStatus,
 	}
 
-	// Add optional fields if provided in the event
+	if event.Title != "" {
+		contentNode.Title = &event.Title
+	}
+
+	// if event.Source != "" {
+	// 	contentNode.Source = &event.Source
+	// }
+
+	if len(event.Keywords) > 0 {
+		keywords := make([]interface{}, len(event.Keywords))
+		for i, kw := range event.Keywords {
+			keywords[i] = kw
+		}
+		actionData, err := structpb.NewStruct(map[string]interface{}{
+			"keywords": keywords,
+		})
+		if err == nil {
+			contentNode.ActionData = actionData
+		} else {
+			log.Printf("[EventOrchestrator] Warning: failed to build action data: %v", err)
+		}
+	}
+
+	if event.ProcessedObjectKey != nil {
+		if contentNode.ActionData == nil {
+			contentNode.ActionData, _ = structpb.NewStruct(map[string]interface{}{})
+		}
+		if contentNode.ActionData != nil {
+			contentNode.ActionData.Fields["processed_object_key"] = structpb.NewStringValue(*event.ProcessedObjectKey)
+		}
+	}
+
 	if event.ProcessedBlobHash != nil {
-		// TODO: Store blob hash in ActionData field as a simple key-value structure
-		// For now, we have R2 client available but will implement proper storage later
-		log.Printf("[EventOrchestrator] Blob hash available: %s (R2 client ready for document fetching)", *event.ProcessedBlobHash)
+		if contentNode.ActionData == nil {
+			contentNode.ActionData, _ = structpb.NewStruct(map[string]interface{}{})
+		}
+		if contentNode.ActionData != nil {
+			contentNode.ActionData.Fields["processed_blob_hash"] = structpb.NewStringValue(*event.ProcessedBlobHash)
+		}
 	}
 
-	// Persist to database
-	contentNodes := []*v1.ContentNode{contentNode}
-	if err := e.nodeRepo.CreateContentNodes(ctx, contentNodes); err != nil {
+	if err := e.nodeRepo.CreateContentNodes(ctx, []*v1.ContentNode{contentNode}); err != nil {
 		return "", fmt.Errorf("failed to create content node: %w", err)
 	}
 
@@ -140,9 +208,13 @@ func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.
 
 // triggerChunkingEmbedding triggers the chunking and embedding workflow
 func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, contentNodeID string, event events.DocumentProcessedEvent) error {
+	start := time.Now()
+	defer func() {
+		metrics.ChunkingDuration.Observe(time.Since(start).Seconds())
+	}()
+
 	log.Printf("[EventOrchestrator] Triggering chunking/embedding workflow for ContentNode: %s", contentNodeID)
 
-	// Check if we have the required components
 	if e.r2Client == nil {
 		log.Printf("[EventOrchestrator] Warning: R2 client not available, skipping chunking workflow")
 		return nil
@@ -153,66 +225,71 @@ func (e *EventOrchestrator) triggerChunkingEmbedding(ctx context.Context, conten
 		return nil
 	}
 
-	if event.ProcessedBlobHash == nil || *event.ProcessedBlobHash == "" {
-		log.Printf("[EventOrchestrator] Warning: No processed blob hash available, skipping chunking workflow")
-		return nil
+	// Validate that ProcessedObjectKey is available for R2 download
+	// Note: ProcessedBlobHash is a SHA256 hash, not an R2 object key, so we cannot use it for downloads
+	if event.ProcessedObjectKey == nil || *event.ProcessedObjectKey == "" {
+		log.Printf("[EventOrchestrator] Error: Missing processed_object_key for content_source_id=%s, cannot proceed with chunking workflow",
+			event.ContentSourceID)
+		return fmt.Errorf("processed_object_key is required for chunking workflow but was missing for content_source_id=%s",
+			event.ContentSourceID)
 	}
 
-	// Step 1: Fetch processed document from R2 storage
-	log.Printf("[EventOrchestrator] Fetching processed document from R2: %s", *event.ProcessedBlobHash)
-	documentContent, err := e.r2Client.DownloadFile(*event.ProcessedBlobHash)
+	downloadKey := *event.ProcessedObjectKey
+
+	log.Printf("[EventOrchestrator] Fetching processed document from R2: %s", downloadKey)
+	documentContent, err := e.r2Client.DownloadFile(downloadKey)
 	if err != nil {
+		metrics.ChunkingTotal.WithLabelValues("failed").Inc()
 		return fmt.Errorf("failed to fetch processed document from R2: %w", err)
 	}
 
 	log.Printf("[EventOrchestrator] Successfully fetched document (%d bytes)", len(documentContent))
 
-	// Step 2: Call Python chunking service
 	log.Printf("[EventOrchestrator] Calling Python chunking service...")
 	chunkingResponse, err := e.pythonGateway.ChunkDocument(ctx, documentContent, contentNodeID)
 	if err != nil {
+		metrics.ChunkingTotal.WithLabelValues("failed").Inc()
 		return fmt.Errorf("failed to chunk document: %w", err)
 	}
 
 	log.Printf("[EventOrchestrator] Python service returned %d chunks", len(chunkingResponse.Chunks))
 
-	// Step 3: Create ChunkNodes in database
 	if len(chunkingResponse.Chunks) > 0 {
-		err = e.createChunkNodes(ctx, chunkingResponse.Chunks, contentNodeID, event.ContentSourceID.String())
+		err = e.createChunkNodes(ctx, chunkingResponse.Chunks, contentNodeID, event.ContentSourceID.String(), event)
 		if err != nil {
+			metrics.ChunkingTotal.WithLabelValues("failed").Inc()
 			return fmt.Errorf("failed to create chunk nodes: %w", err)
 		}
 		log.Printf("[EventOrchestrator] Successfully created %d chunk nodes", len(chunkingResponse.Chunks))
 	}
 
-	// Step 4: Create hierarchical links between ContentNode and ChunkNodes
-	// Note: This would be implemented when we have the actual chunk node IDs
-	// For now, we log that this step is ready to be implemented
-
 	log.Printf("[EventOrchestrator] Chunking/embedding workflow completed successfully")
+	metrics.ChunkingTotal.WithLabelValues("completed").Inc()
 	return nil
 }
 
 // createChunkNodes creates ChunkNodes from chunking results
-func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []python.ChunkInfo, contentNodeID string, contentSourceID string) error {
+func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []python.ChunkInfo, contentNodeID string, contentSourceID string, event events.DocumentProcessedEvent) error {
 	log.Printf("[EventOrchestrator] Creating %d chunk nodes for ContentNode: %s", len(chunks), contentNodeID)
 
-	// Create ChunkNode instances
 	chunkNodes := make([]*v1.ChunkNode, len(chunks))
 	now := timestamppb.New(time.Now())
 
 	for i, chunk := range chunks {
-		// Generate new UUID for the chunk node
 		chunkNodeID := uuid.New().String()
 
-		// Create BaseNode with required fields
 		baseNode := &v1.BaseNode{
 			Id:        chunkNodeID,
+			SpaceId:   event.SpaceID.String(),
 			CreatedAt: now,
 			UpdatedAt: now,
+			Keywords:  event.Keywords,
 		}
 
-		// Create ChunkNode
+		if event.Title != "" {
+			baseNode.ContextType = event.Title
+		}
+
 		chunkNodes[i] = &v1.ChunkNode{
 			Base:            baseNode,
 			ContentSourceId: contentSourceID,
@@ -223,11 +300,101 @@ func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []pytho
 		}
 	}
 
-	// Persist to database
 	if err := e.nodeRepo.CreateChunkNodes(ctx, chunkNodes); err != nil {
 		return fmt.Errorf("failed to create chunk nodes: %w", err)
 	}
 
 	log.Printf("[EventOrchestrator] Successfully created %d chunk nodes", len(chunkNodes))
 	return nil
+}
+
+// updateChunkingStatus updates the chunking status of a ContentNode
+func (e *EventOrchestrator) updateChunkingStatus(ctx context.Context, contentNodeID string, status v1.ChunkingStatus, errorMsg string) error {
+	// Fetch the existing content node first
+	nodes, err := e.nodeRepo.GetNodes(ctx, []string{contentNodeID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to fetch content node for status update: %w", err)
+	}
+
+	if len(nodes) == 0 {
+		return fmt.Errorf("content node not found: %s", contentNodeID)
+	}
+
+	node := nodes[0]
+	contentNode, ok := node.Node.(*v1.Node_Content)
+	if !ok {
+		return fmt.Errorf("node is not a content node: %s", contentNodeID)
+	}
+
+	// Update chunking status
+	contentNode.Content.ChunkingStatus = &status
+	if errorMsg != "" {
+		contentNode.Content.ChunkingError = &errorMsg
+	} else {
+		contentNode.Content.ChunkingError = nil
+	}
+
+	// Update the node in the database
+	if err := e.nodeRepo.UpdateContentNode(ctx, contentNode.Content); err != nil {
+		return fmt.Errorf("failed to update content node status: %w", err)
+	}
+
+	log.Printf("[EventOrchestrator] Updated ContentNode %s chunking status to %s", contentNodeID, status.String())
+	return nil
+}
+
+// retryChunkingAfterDelay schedules automatic retry for failed chunking with exponential backoff
+func (e *EventOrchestrator) retryChunkingAfterDelay(ctx context.Context, contentNodeID string, event events.DocumentProcessedEvent, retryCount int) {
+	// Exponential backoff: 1s, 2s, 4s
+	delay := time.Duration(1<<retryCount) * time.Second
+	log.Printf("[EventOrchestrator] Waiting %v before retry %d for ContentNode: %s", delay, retryCount+1, contentNodeID)
+
+	// Wait for backoff duration or context cancellation
+	select {
+	case <-time.After(delay):
+		// continue with retry
+	case <-ctx.Done():
+		log.Printf("[EventOrchestrator] Retry for ContentNode %s cancelled due to context done", contentNodeID)
+		return
+	}
+
+	// Increment retry metrics
+	metrics.ChunkingRetries.Inc()
+
+	// Update status to PROCESSING before retry
+	if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_PROCESSING, ""); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to update status before retry: %v", err)
+	}
+
+	// Retry chunking
+	log.Printf("[EventOrchestrator] Attempting retry %d/3 for ContentNode: %s", retryCount+1, contentNodeID)
+	if err := e.triggerChunkingEmbedding(ctx, contentNodeID, event); err != nil {
+		log.Printf("[EventOrchestrator] Retry %d failed for ContentNode %s: %v", retryCount+1, contentNodeID, err)
+
+		// Update status to FAILED
+		if updateErr := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_FAILED, err.Error()); updateErr != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update status after retry failure: %v", updateErr)
+		}
+
+		// Schedule next retry if under limit
+		if retryCount+1 < 3 {
+			log.Printf("[EventOrchestrator] Scheduling retry %d/3 for ContentNode: %s", retryCount+2, contentNodeID)
+			go e.retryChunkingAfterDelay(ctx, contentNodeID, event, retryCount+1)
+		} else {
+			log.Printf("[EventOrchestrator] Max retries (3) reached for ContentNode: %s", contentNodeID)
+		}
+	} else {
+		// Success! Update status to COMPLETED
+		log.Printf("[EventOrchestrator] Retry %d succeeded for ContentNode: %s", retryCount+1, contentNodeID)
+		if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED, ""); err != nil {
+			log.Printf("[EventOrchestrator] Warning: failed to update status after retry success: %v", err)
+		}
+	}
+}
+
+// getRetryCountForEvent extracts retry count from event metadata (always 0 for initial events)
+func (e *EventOrchestrator) getRetryCountForEvent(event events.DocumentProcessedEvent) int {
+	// Initial events don't have retry count, so always return 0
+	// Retry count is tracked internally in the goroutine chain
+	return 0
 }

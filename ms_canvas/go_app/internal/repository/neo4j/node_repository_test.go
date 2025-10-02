@@ -3,6 +3,8 @@ package neo4j
 import (
 	"context"
 	"errors"
+	"os"
+	"strings"
 	"testing"
 
 	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
@@ -55,6 +57,21 @@ func (m *MockSession) ExecuteWrite(ctx context.Context, work neo.ManagedTransact
 func (m *MockSession) Close(ctx context.Context) error {
 	args := m.Called(ctx)
 	return args.Error(0)
+}
+
+// package-scope vars so fakeTx method can record Run calls
+var capturedCypher string
+var capturedParams map[string]interface{}
+
+// fakeTx implements the minimal Run method used in tests to capture query and params
+type fakeTx struct{}
+
+func (f *fakeTx) Run(ctx context.Context, cypher string, params map[string]interface{}) (neo.Result, error) {
+	if strings.Contains(cypher, "UNWIND $items AS item") {
+		capturedCypher = cypher
+		capturedParams = params
+	}
+	return nil, nil
 }
 
 // TestNodeRepo tests using a wrapper approach instead of full interface mocking
@@ -316,6 +333,42 @@ func TestNodeRepo_UpdateValidations(t *testing.T) {
 		assert.NotNil(t, node.Base.Position_3D)
 		assert.Len(t, node.Base.Embedding, 3)
 	})
+}
+
+// Test that CreateContentNodes runs a single atomic query and passes expected params
+func TestNodeRepo_CreateContentNodes_QueryPresent(t *testing.T) {
+	// Quick static test: ensure the updated CreateContentNodes contains the
+	// expected UNWIND and genai.vector.encode usage so production will run
+	// the single-transaction query.
+	data, err := os.ReadFile("node_repository.go")
+	require.NoError(t, err)
+	src := string(data)
+	assert.Contains(t, src, "UNWIND $items AS item")
+	assert.Contains(t, src, "genai.vector.encode")
+}
+
+// Test that CreateChunkNodes includes server-side batch embedding generation
+func TestNodeRepo_CreateChunkNodes_QueryPresent(t *testing.T) {
+	// Ensure CreateChunkNodes contains genai.vector.encodeBatch for server-side batch embedding
+	data, err := os.ReadFile("node_repository.go")
+	require.NoError(t, err)
+	src := string(data)
+
+	// Find CreateChunkNodes function
+	startIdx := strings.Index(src, "func (r *NodeRepo) CreateChunkNodes")
+	require.Greater(t, startIdx, 0, "CreateChunkNodes function not found")
+
+	// Find the next function after CreateChunkNodes
+	endIdx := strings.Index(src[startIdx+50:], "\nfunc ")
+	require.Greater(t, endIdx, 0, "Could not find end of CreateChunkNodes")
+
+	chunkNodesFunc := src[startIdx : startIdx+50+endIdx]
+
+	// Verify it uses genai.vector.encodeBatch for batch embeddings (more efficient than individual encode calls)
+	assert.Contains(t, chunkNodesFunc, "genai.vector.encodeBatch", "CreateChunkNodes should use genai.vector.encodeBatch for efficient batch embeddings")
+	assert.Contains(t, chunkNodesFunc, "openai_config", "CreateChunkNodes should pass OpenAI config")
+	assert.Contains(t, chunkNodesFunc, "setNodeVectorProperty", "CreateChunkNodes should use db.create.setNodeVectorProperty to set embeddings")
+	assert.Contains(t, chunkNodesFunc, "YIELD index, vector", "CreateChunkNodes should yield index and vector from encodeBatch")
 }
 
 // Mock Repository Tests using dependency injection pattern

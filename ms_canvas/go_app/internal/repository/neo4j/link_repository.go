@@ -42,8 +42,8 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
 				"dst":                  link.Base.TargetId,
 				"connection_type":      link.ConnectionType,
 				"hierarchy_depth":      link.HierarchyDepth,
-				"exploration_metadata": link.Base.ExplorationMetadata,
-				"style_metadata":       link.Base.StyleMetadata,
+				"exploration_metadata": structToMap(link.Base.ExplorationMetadata),
+				"style_metadata":       structToMap(link.Base.StyleMetadata),
 				"created_at":           createdAt,
 				"updated_at":           updatedAt,
 				"deleted_at":           link.Base.DeletedAt.AsTime(),
@@ -52,10 +52,10 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
 		params := map[string]any{
 			"items": items,
 		}
-		_, err := tx.Run(ctx, `
+		query := `
             UNWIND $items AS item
-            MATCH (s {id: item.src})
-            MATCH (t {id: item.dst})
+            MATCH (s:Node {id: item.src})
+            MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)
             SET r.connection_type = item.connection_type,
                 r.hierarchy_depth = item.hierarchy_depth,
@@ -64,7 +64,8 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
                 r.created_at = datetime(item.created_at),
                 r.updated_at = datetime(item.updated_at),
                 r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
-        `, params)
+        `
+		_, err := tx.Run(ctx, query, params)
 		return nil, err
 	})
 	return err
@@ -78,51 +79,55 @@ func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*canvasv1.Se
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (any, error) {
-		params := map[string]any{"items": make([]map[string]any, 0, len(links))}
-		for _, l := range links {
-			createdAt := l.Base.CreatedAt.AsTime()
+		items := make([]map[string]any, 0, len(links))
+		for _, link := range links {
+			createdAt := link.Base.CreatedAt.AsTime()
 			if createdAt.IsZero() {
 				createdAt = time.Now().UTC()
 			}
-			updatedAt := l.Base.UpdatedAt.AsTime()
+			updatedAt := link.Base.UpdatedAt.AsTime()
 			if updatedAt.IsZero() {
 				updatedAt = createdAt
 			}
-			params["items"] = append(params["items"].([]map[string]any), map[string]any{
-				"src":                  l.Base.SourceId,
-				"dst":                  l.Base.TargetId,
-				"connection_type":      l.ConnectionType,
-				"strength_score":       l.StrengthScore,
-				"similarity_score":     l.SimilarityScore,
-				"abstraction_bridge":   l.AbstractionBridge,
-				"hierarchical_bridge":  l.HierarchicalBridge,
-				"exploration_metadata": l.Base.ExplorationMetadata,
-				"semantic_tags":        l.SemanticTags,
-				"style_metadata":       l.Base.StyleMetadata,
-				"description":          l.Description,
+			items = append(items, map[string]any{
+				"src":                  link.Base.SourceId,
+				"dst":                  link.Base.TargetId,
+				"connection_type":      link.ConnectionType,
+				"strength_score":       link.StrengthScore,
+				"similarity_score":     link.SimilarityScore,
+				"abstraction_bridge":   link.AbstractionBridge,
+				"hierarchical_bridge":  link.HierarchicalBridge,
+				"semantic_tags":        link.SemanticTags,
+				"description":          link.Description,
+				"exploration_metadata": structToMap(link.Base.ExplorationMetadata),
+				"style_metadata":       structToMap(link.Base.StyleMetadata),
 				"created_at":           createdAt,
 				"updated_at":           updatedAt,
-				"deleted_at":           l.Base.DeletedAt.AsTime(),
+				"deleted_at":           link.Base.DeletedAt.AsTime(),
 			})
 		}
-		_, err := tx.Run(ctx, `
+		params := map[string]any{
+			"items": items,
+		}
+		query := `
             UNWIND $items AS item
-            MATCH (s {id: item.src})
-            MATCH (t {id: item.dst})
+            MATCH (s:Node {id: item.src})
+            MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:SEMANTIC_LINK]->(t)
             SET r.connection_type = item.connection_type,
                 r.strength_score = item.strength_score,
                 r.similarity_score = item.similarity_score,
                 r.abstraction_bridge = item.abstraction_bridge,
                 r.hierarchical_bridge = item.hierarchical_bridge,
-                r.exploration_metadata = item.exploration_metadata,
                 r.semantic_tags = item.semantic_tags,
-                r.style_metadata = item.style_metadata,
                 r.description = item.description,
+                r.exploration_metadata = item.exploration_metadata,
+                r.style_metadata = item.style_metadata,
                 r.created_at = datetime(item.created_at),
                 r.updated_at = datetime(item.updated_at),
                 r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
-        `, params)
+        `
+		_, err := tx.Run(ctx, query, params)
 		return nil, err
 	})
 	return err
@@ -136,48 +141,61 @@ func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*canvasv1.
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (any, error) {
-		params := map[string]any{"items": make([]map[string]any, 0, len(links))}
-		for _, l := range links {
-			createdAt := l.Base.CreatedAt.AsTime()
+		items := make([]map[string]any, 0, len(links))
+		for _, link := range links {
+			createdAt := link.Base.CreatedAt.AsTime()
 			if createdAt.IsZero() {
 				createdAt = time.Now().UTC()
 			}
-			updatedAt := l.Base.UpdatedAt.AsTime()
+			updatedAt := link.Base.UpdatedAt.AsTime()
 			if updatedAt.IsZero() {
 				updatedAt = createdAt
 			}
-			params["items"] = append(params["items"].([]map[string]any), map[string]any{
-				"src":                  l.Base.SourceId,
-				"dst":                  l.Base.TargetId,
-				"connection_type":      l.ConnectionType,
-				"confidence_score":     l.ConfidenceScore,
-				"description":          l.Description,
-				"exploration_metadata": l.Base.ExplorationMetadata,
-				"style_metadata":       l.Base.StyleMetadata,
-				"created_by":           l.CreatedBy,
+			items = append(items, map[string]any{
+				"src":                  link.Base.SourceId,
+				"dst":                  link.Base.TargetId,
+				"connection_type":      link.ConnectionType,
+				"custom_connection":    link.CustomConnectionType,
+				"confidence_score":     link.ConfidenceScore,
+				"description":          link.Description,
+				"created_by":           link.CreatedBy,
+				"exploration_metadata": structToMap(link.Base.ExplorationMetadata),
+				"style_metadata":       structToMap(link.Base.StyleMetadata),
 				"created_at":           createdAt,
 				"updated_at":           updatedAt,
-				"deleted_at":           l.Base.DeletedAt.AsTime(),
+				"deleted_at":           link.Base.DeletedAt.AsTime(),
 			})
 		}
-		_, err := tx.Run(ctx, `
+		params := map[string]any{
+			"items": items,
+		}
+		query := `
             UNWIND $items AS item
-            MATCH (s {id: item.src})
-            MATCH (t {id: item.dst})
+            MATCH (s:Node {id: item.src})
+            MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:STRUCTURAL_LINK]->(t)
             SET r.connection_type = item.connection_type,
+                r.custom_connection_type = item.custom_connection,
                 r.confidence_score = item.confidence_score,
                 r.description = item.description,
+                r.created_by = item.created_by,
                 r.exploration_metadata = item.exploration_metadata,
                 r.style_metadata = item.style_metadata,
-                r.created_by = item.created_by,
                 r.created_at = datetime(item.created_at),
                 r.updated_at = datetime(item.updated_at),
                 r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
-        `, params)
+        `
+		_, err := tx.Run(ctx, query, params)
 		return nil, err
 	})
 	return err
+}
+
+func structToMap(s *structpb.Struct) map[string]any {
+	if s == nil {
+		return nil
+	}
+	return s.AsMap()
 }
 
 // GetLinks returns links by IDs with optional filtering.

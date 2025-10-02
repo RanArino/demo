@@ -8,6 +8,7 @@ package canvaspublicv1
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -435,5 +436,5 @@ var CanvasPublic_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/public/v1/canvas.proto",
+	Metadata: "public/v1/canvas.proto",
 }

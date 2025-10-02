@@ -10,9 +10,8 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from .config import settings
-from .services.chunking import ChunkingConfig
+from .services.chunking import ChunkingConfig, chunk_text
 from .services.embedding import embed_query, EmbeddingConfig
-from .pipelines.chunk_and_embed import chunk_and_embed, chunk_and_embed_batched
 from .proto.private.v1 import (
     canvas_private_pb2 as canvas_pb2,
     canvas_private_pb2_grpc as canvas_pb2_grpc,
@@ -31,12 +30,12 @@ def _setup_tracing():
     trace.set_tracer_provider(provider)
 
 
-class CanvasInternalServicer(canvas_pb2_grpc.CanvasInternalServicer):
+class CanvasInternalServicer(canvas_pb2_grpc.CanvasMLServicer):
     def EmbedQuery(self, request, context):
         try:
             config = EmbeddingConfig(
-                provider=request.config.provider or "huggingface",
-                model_id=request.config.model_id or "all-MiniLM-L6-v2",
+                provider=request.config.provider or "gemini",
+                model_id=request.config.model_id or "gemini-embedding-001",
                 model_version=request.config.model_version or ""
             )
             
@@ -69,11 +68,6 @@ class CanvasInternalServicer(canvas_pb2_grpc.CanvasInternalServicer):
                 overlap_percent=request.chunking.overlap_percent or settings.CANVAS_CHUNK_OVERLAP_PERCENT,
                 tokenizer=request.chunking.tokenizer or settings.CANVAS_TOKENIZER,
             )
-            embed_cfg = EmbeddingConfig(
-                provider=request.embedding.provider or "huggingface",
-                model_id=request.embedding.model_id or "all-MiniLM-L6-v2",
-                model_version=request.embedding.model_version or "",
-            )
 
             text = None
             blob_url = None
@@ -82,53 +76,18 @@ class CanvasInternalServicer(canvas_pb2_grpc.CanvasInternalServicer):
             elif request.WhichOneof('source') == 'blob_url':
                 blob_url = request.blob_url
 
-            # Check if batch_size is provided in request
-            batch_size = request.batch_size if request.batch_size > 0 else settings.CANVAS_BATCH_SIZE
+            # Perform chunking only (no embedding)
+            chunks = chunk_text(text=text, blob_url=blob_url, config=chunk_cfg)
 
-            # For demo phase, use regular unary response but structure for future batching
-            if batch_size and batch_size < 1000:  # Use batching for reasonable batch sizes
-                # For now, collect all batches into single response (demo phase)
-                all_results = []
-                dims = 0
-                model_id = ""
-                model_version = ""
-
-                for batch_result in chunk_and_embed_batched(
-                    text=text, blob_url=blob_url,
-                    chunk_cfg=chunk_cfg, embed_cfg=embed_cfg,
-                    batch_size=batch_size
-                ):
-                    all_results.extend(batch_result.results)
-                    dims = batch_result.dims
-                    model_id = batch_result.model_id
-                    model_version = batch_result.model_version
-
-                response = canvas_pb2.ChunkEmbedResponse()
-                response.dims = dims
-                response.model_id = model_id
-                response.model_version = model_version
-                for item in all_results:
-                    res = response.results.add()
-                    res.chunk.sequence_index = item.chunk.position
-                    res.chunk.start_position = item.chunk.start_position
-                    res.chunk.end_position = item.chunk.end_position
-                    res.chunk.content = item.chunk.content
-                    res.vector.extend(item.vector)
-            else:
-                # Use original non-batched approach for large batch sizes or when not specified
-                result = chunk_and_embed(text=text, blob_url=blob_url, chunk_cfg=chunk_cfg, embed_cfg=embed_cfg)
-
-                response = canvas_pb2.ChunkEmbedResponse()
-                response.dims = result.dims
-                response.model_id = result.model_id
-                response.model_version = result.model_version
-                for item in result.results:
-                    res = response.results.add()
-                    res.chunk.sequence_index = item.chunk.position
-                    res.chunk.start_position = item.chunk.start_position
-                    res.chunk.end_position = item.chunk.end_position
-                    res.chunk.content = item.chunk.content
-                    res.vector.extend(item.vector)
+            response = canvas_pb2.ChunkEmbedResponse()
+            # No longer populate dims, model_id, model_version as we're not doing embedding
+            for chunk in chunks:
+                res = response.results.add()
+                res.chunk.sequence_index = chunk.position
+                res.chunk.start_position = chunk.start_position
+                res.chunk.end_position = chunk.end_position
+                res.chunk.content = chunk.content
+                # Do NOT populate res.vector - embedding will be done in Neo4j
 
             return response
         except Exception as e:
@@ -161,7 +120,7 @@ def main():
         ],
     )
 
-    canvas_pb2_grpc.add_CanvasInternalServicer_to_server(CanvasInternalServicer(), server)
+    canvas_pb2_grpc.add_CanvasMLServicer_to_server(CanvasInternalServicer(), server)
 
     server.add_insecure_port(f"{host}:{port}")
     logging.info("Python gRPC server listening on %s:%s", host, port)

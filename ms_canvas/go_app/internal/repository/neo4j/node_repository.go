@@ -7,6 +7,7 @@ import (
 	"time"
 
 	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
+	"demo/ms_canvas/go_app/internal/config"
 
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -14,9 +15,15 @@ import (
 
 type NodeRepo struct {
 	driver *Driver
+	cfg    config.Config
 }
 
 func NewNodeRepo(driver *Driver) *NodeRepo { return &NodeRepo{driver: driver} }
+
+// NewNodeRepoWithConfig allows injecting service config (preferred for avoiding os.Getenv).
+func NewNodeRepoWithConfig(driver *Driver, cfg config.Config) *NodeRepo {
+	return &NodeRepo{driver: driver, cfg: cfg}
+}
 
 // GetNodes retrieves nodes by their IDs with optional filtering.
 func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.NodeFilter) ([]*canvasv1.Node, error) {
@@ -249,15 +256,24 @@ func (r *NodeRepo) nodeWithinBounds(node *canvasv1.Node, spatialBBox *canvasv1.S
 }
 
 // CreateChunkNodes creates chunk nodes (idempotent on id/content_source_id via MERGE).
+// Embeddings are generated server-side using OpenAI via genai.vector.encode.
 func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.ChunkNode) error {
 	if len(chunks) == 0 {
 		return nil
 	}
+
+	// Prepare OpenAI configuration once and pass into the Cypher transaction (from config, not env).
+	openAIConfig := map[string]interface{}{"token": r.cfg.OpenAIAPIKey, "model": r.cfg.OpenAIEmbeddingModel}
+	if r.cfg.OpenAIEmbeddingDim > 0 {
+		openAIConfig["dimensions"] = r.cfg.OpenAIEmbeddingDim
+	}
+
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"items": make([]map[string]interface{}, 0, len(chunks)),
+			"items":         make([]map[string]interface{}, 0, len(chunks)),
+			"openai_config": openAIConfig,
 		}
 		now := time.Now().UTC().Format(time.RFC3339)
 		for _, c := range chunks {
@@ -300,6 +316,13 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 				n.location = item.location,
 				n.sequence_index = item.sequence_index,
 				n.updated_at = datetime(item.now)
+
+			WITH collect(n) AS nodes, collect(item.content) AS contents, $openai_config AS openaiConfig
+
+			// Generate embeddings in batch for all chunks at once
+			CALL genai.vector.encodeBatch(contents, 'OpenAI', openaiConfig)
+			YIELD index, vector
+			CALL db.create.setNodeVectorProperty(nodes[index], 'embedding', vector)
 		`, params)
 		return nil, err
 	})
@@ -307,15 +330,29 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 }
 
 // CreateContentNodes creates or updates ContentNodes in batch.
+// Ensures uniqueness by content_source_id through constraint and upsert logic.
 func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.ContentNode) error {
 	if len(contents) == 0 {
 		return nil
 	}
+
+	// Ensure constraint exists in a separate transaction to avoid schema/write conflicts.
+	if err := r.ensureContentNodeConstraint(ctx); err != nil {
+		return err
+	}
+
+	// Prepare OpenAI configuration once and pass into the Cypher transaction (from config, not env).
+	openAIConfig := map[string]interface{}{"token": r.cfg.OpenAIAPIKey, "model": r.cfg.OpenAIEmbeddingModel}
+	if r.cfg.OpenAIEmbeddingDim > 0 {
+		openAIConfig["dimensions"] = r.cfg.OpenAIEmbeddingDim
+	}
+
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"items": make([]map[string]interface{}, 0, len(contents)),
+			"items":         make([]map[string]interface{}, 0, len(contents)),
+			"openai_config": openAIConfig,
 		}
 		now := time.Now().UTC().Format(time.RFC3339)
 		for _, content := range contents {
@@ -324,21 +361,87 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 				"content_source_id": content.ContentSourceId,
 				"now":               now,
 			}
+
+			// Add base/optional fields when available
+			if content.Base != nil {
+				item["space_id"] = content.Base.SpaceId
+				if len(content.Base.Keywords) > 0 {
+					item["keywords"] = content.Base.Keywords
+				}
+				if content.Base.ChatContent != nil {
+					item["chat_content"] = *content.Base.ChatContent
+				}
+				if len(content.Base.Embedding) > 0 {
+					item["embedding"] = content.Base.Embedding
+				}
+			}
+			if content.Title != nil {
+				item["title"] = *content.Title
+			}
+
 			params["items"] = append(params["items"].([]map[string]interface{}), item)
 		}
+
+		// Single atomic query handling create/update and conditional embedding generation server-side.
 		_, err := tx.Run(ctx, `
-			UNWIND $items AS item
-			MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
-			ON CREATE SET
-				n.id = item.id,
-				n.created_at = datetime(item.now),
-				n.updated_at = datetime(item.now)
-			ON MATCH SET
-				n.updated_at = datetime(item.now)
-		`, params)
-		return nil, err
+            UNWIND $items AS item
+            MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
+            ON CREATE SET
+                n.id = item.id,
+                n.space_id = item.space_id,
+                n.created_at = datetime(item.now)
+            ON MATCH SET
+                n.id = item.id,
+                n.space_id = item.space_id,
+                n.updated_at = datetime(item.now)
+            SET
+                n.updated_at = datetime(item.now),
+                n.title = CASE WHEN item.title IS NOT NULL THEN item.title ELSE n.title END,
+                n.keywords = CASE WHEN item.keywords IS NOT NULL THEN item.keywords ELSE n.keywords END,
+                n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END
+
+            WITH n, item,
+                CASE WHEN item.chat_content IS NOT NULL AND item.chat_content <> '' THEN item.chat_content
+                     WHEN item.title IS NOT NULL AND item.title <> '' THEN item.title
+                     ELSE NULL END AS textToEmbed,
+                $openai_config AS openaiConfig
+
+            // Generate embedding server-side only when necessary
+            FOREACH (_ IN CASE WHEN item.embedding IS NULL AND n.embedding IS NULL AND textToEmbed IS NOT NULL THEN [1] ELSE [] END |
+                SET n.embedding = genai.vector.encode(textToEmbed, 'OpenAI', openaiConfig)
+            )
+
+            // If an embedding was provided in the item, set it (overrides nothing if nil)
+            FOREACH (_ IN CASE WHEN item.embedding IS NOT NULL THEN [1] ELSE [] END |
+                SET n.embedding = item.embedding
+            )
+
+            RETURN count(n)
+        `, params)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to create/update content nodes: %w", err)
+		}
+		return nil, nil
 	})
 	return err
+}
+
+// ensureContentNodeConstraint creates a uniqueness constraint in its own transaction.
+func (r *NodeRepo) ensureContentNodeConstraint(ctx context.Context) error {
+	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
+	defer sess.Close(ctx)
+	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
+		_, err := tx.Run(ctx, `
+			CREATE CONSTRAINT contentnode_unique_content_source IF NOT EXISTS
+			FOR (n:ContentNode) REQUIRE n.content_source_id IS UNIQUE
+		`, nil)
+		return nil, err
+	})
+	if err != nil {
+		return fmt.Errorf("failed to ensure unique constraint for ContentNode: %w", err)
+	}
+	return nil
 }
 
 // CreateClusterNodes creates or updates ClusterNodes in batch.

@@ -73,14 +73,14 @@ services:
   ms_canvas:
     build:
       context: ./ms_canvas
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
-      - "50054:50051"
+      - "50055:50055"
       - "8082:8080"
     env_file:
       - ./ms_canvas/.env.local
     environment:
-      - GRPC_PORT=50054
+      - GRPC_PORT=50055
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
       - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
@@ -115,6 +115,7 @@ services:
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/profile/setup
       - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
       - MS_KNOWLEDGE_GRPC_URL_INTERNAL=ms_knowledge:50052
+      - MS_CANVAS_GRPC_URL_INTERNAL=ms_canvas:50055
     depends_on:
       - ms_user
     restart: unless-stopped
