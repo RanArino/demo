@@ -40,16 +40,42 @@ type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: ApiError };
 
+type HeaderResult =
+  | { success: true; headers: Headers }
+  | { success: false; error: ApiError };
+
+async function buildCanvasHeaders(userId: string): Promise<HeaderResult> {
+  const headers = await createAuthHeaders();
+
+  // Ensure auth token is present before proceeding
+  const hasAuthToken = headers.has('authorization') || !!headers.get('Authorization');
+  if (!hasAuthToken) {
+    return {
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication token not available for current user.',
+      },
+    };
+  }
+
+  headers.set('x-user-id', userId);
+
+  return {
+    success: true,
+    headers,
+  };
+}
+
 // ===== Server Actions =====
 
 /**
- * Server action to get nodes by their IDs
+ * Core implementation for get nodes (without caching, with headers)
  */
-async function getNodesCore(ids: string[]): Promise<ActionResult<{ nodes: Node[] }>> {
+async function getNodesCore(ids: string[], headers: Headers): Promise<ActionResult<{ nodes: Node[] }>> {
   try {
     const client = getCanvasServiceClient();
     const request = new GetNodesRequest({ ids });
-    const headers = await createAuthHeaders();
 
     const response = await client.getNodes(request, { headers }) as GetNodesResponse;
 
@@ -60,12 +86,14 @@ async function getNodesCore(ids: string[]): Promise<ActionResult<{ nodes: Node[]
       }
     };
   } catch (error) {
+    console.error('[getNodesCore] Error:', error);
     return { success: false, error: sanitizeError(error) };
   }
 }
 
-const getNodesMemoized = cache(async (ids: string[]) => getNodesCore(ids));
-
+/**
+ * Server action to get nodes by their IDs
+ */
 export async function getNodes(ids: string[]): Promise<ActionResult<{ nodes: Node[] }>> {
   try {
     const { userId } = await auth();
@@ -77,11 +105,18 @@ export async function getNodes(ids: string[]): Promise<ActionResult<{ nodes: Nod
       return { success: false, error: { code: 'INVALID_ARGUMENT', message: 'Node IDs are required' } };
     }
 
+    // Get auth headers BEFORE caching
+    const headerResult = await buildCanvasHeaders(userId);
+    if (!headerResult.success) {
+      return headerResult;
+    }
+    const { headers } = headerResult;
+
     // Create stable cache key from sorted IDs
     const sortedIds = [...ids].sort();
-    const key = [`canvas-getNodes-${sortedIds.join(',')}`];
+    const key = [`canvas-getNodes-${userId}-${sortedIds.join(',')}`];
 
-    const fetcher = () => getNodesMemoized(sortedIds);
+    const fetcher = () => getNodesCore(sortedIds, headers);
     return await unstable_cache(fetcher, key, { tags: ['canvas-nodes'], revalidate: 300 })();
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -92,17 +127,16 @@ export async function getNodes(ids: string[]): Promise<ActionResult<{ nodes: Nod
 }
 
 /**
- * Core implementation for semantic search (without caching)
+ * Core implementation for semantic search (without caching, with headers)
  */
 async function semanticSearchCore(input: {
   query: string;
   spaceId: string;
   topK?: number;
   nodeTypes?: number[];
-}): Promise<ActionResult<SemanticSearchResponse>> {
+}, headers: Headers): Promise<ActionResult<SemanticSearchResponse>> {
   try {
     const client = getCanvasServiceClient();
-    const headers = await createAuthHeaders();
 
     const request = new SemanticSearchRequest({
       query: input.query.trim(),
@@ -118,19 +152,13 @@ async function semanticSearchCore(input: {
       data: response
     };
   } catch (error) {
+    console.error('[semanticSearchCore] Error:', error);
     if (isUnauthorizedError(error)) {
       logAuthFailure('semanticSearch', error);
     }
     return { success: false, error: sanitizeError(error) };
   }
 }
-
-const semanticSearchMemoized = cache(async (input: {
-  query: string;
-  spaceId: string;
-  topK?: number;
-  nodeTypes?: number[];
-}) => semanticSearchCore(input));
 
 /**
  * Server action to perform semantic search
@@ -155,6 +183,13 @@ export async function semanticSearch(input: {
       return { success: false, error: { code: 'INVALID_ARGUMENT', message: 'Space ID is required' } };
     }
 
+    // Get auth headers BEFORE caching
+    const headerResult = await buildCanvasHeaders(userId);
+    if (!headerResult.success) {
+      return headerResult;
+    }
+    const { headers } = headerResult;
+
     // Create stable cache key
     const normalizedInput = {
       query: input.query.trim(),
@@ -162,9 +197,9 @@ export async function semanticSearch(input: {
       topK: input.topK || 25,
       nodeTypes: input.nodeTypes || []
     };
-    const key = [`canvas-semanticSearch-${JSON.stringify(normalizedInput)}`];
+    const key = [`canvas-semanticSearch-${userId}-${JSON.stringify(normalizedInput)}`];
 
-    const fetcher = () => semanticSearchMemoized(normalizedInput);
+    const fetcher = () => semanticSearchCore(normalizedInput, headers);
     return await unstable_cache(fetcher, key, { tags: ['canvas-semantic-search'], revalidate: 300 })();
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -175,7 +210,7 @@ export async function semanticSearch(input: {
 }
 
 /**
- * Core implementation for search nodes (without caching)
+ * Core implementation for search nodes (without caching, with headers)
  */
 async function searchNodesCore(input: {
   filter?: {
@@ -190,10 +225,9 @@ async function searchNodesCore(input: {
     maxCoords?: { x?: number; y?: number; z?: number };
   };
   limit?: number;
-}): Promise<ActionResult<SearchNodesResponse>> {
+}, headers: Headers): Promise<ActionResult<SearchNodesResponse>> {
   try {
     const client = getCanvasServiceClient();
-    const headers = await createAuthHeaders();
 
     // Build NodeFilter if provided
     let nodeFilter: NodeFilter | undefined;
@@ -229,27 +263,13 @@ async function searchNodesCore(input: {
       data: response
     };
   } catch (error) {
+    console.error('[searchNodesCore] Error:', error);
     if (isUnauthorizedError(error)) {
       logAuthFailure('searchNodes', error);
     }
     return { success: false, error: sanitizeError(error) };
   }
 }
-
-const searchNodesMemoized = cache(async (input: {
-  filter?: {
-    spaceId?: string;
-    abstractionLevelMin?: number;
-    abstractionLevelMax?: number;
-    contextType?: string;
-    keywords?: string[];
-  };
-  spatialBbox?: {
-    minCoords?: { x?: number; y?: number; z?: number };
-    maxCoords?: { x?: number; y?: number; z?: number };
-  };
-  limit?: number;
-}) => searchNodesCore(input));
 
 /**
  * Server action to search nodes using filters and spatial bounds
@@ -274,15 +294,22 @@ export async function searchNodes(input: {
       return { success: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
     }
 
+    // Get auth headers BEFORE caching
+    const headerResult = await buildCanvasHeaders(userId);
+    if (!headerResult.success) {
+      return headerResult;
+    }
+    const { headers } = headerResult;
+
     // Create stable cache key
     const normalizedInput = {
       filter: input.filter || {},
       spatialBbox: input.spatialBbox || {},
       limit: input.limit || 100
     };
-    const key = [`canvas-searchNodes-${JSON.stringify(normalizedInput)}`];
+    const key = [`canvas-searchNodes-${userId}-${JSON.stringify(normalizedInput)}`];
 
-    const fetcher = () => searchNodesMemoized(normalizedInput);
+    const fetcher = () => searchNodesCore(normalizedInput, headers);
     return await unstable_cache(fetcher, key, { tags: ['canvas-nodes'], revalidate: 300 })();
   } catch (error) {
     if (isUnauthorizedError(error)) {
