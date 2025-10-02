@@ -20,19 +20,32 @@ import {
   SearchNodesResponse,
   NodeFilter,
   SpatialBoundingBox,
+  Node,
 } from '../generated/v1/canvas_pb';
 import {
   createAuthHeaders,
   sanitizeError,
   isUnauthorizedError,
   logAuthFailure,
-  sanitizeProtobufForJson,
 } from './utils';
+
+// ===== Type Definitions =====
+
+type ApiError = {
+  code?: string;
+  message: string;
+};
+
+type ActionResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: ApiError };
+
+// ===== Server Actions =====
 
 /**
  * Server action to get nodes by their IDs
  */
-async function getNodesCore(ids: string[]): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+async function getNodesCore(ids: string[]): Promise<ActionResult<{ nodes: Node[] }>> {
   try {
     const client = getCanvasServiceClient();
     const request = new GetNodesRequest({ ids });
@@ -43,7 +56,7 @@ async function getNodesCore(ids: string[]): Promise<{ success: boolean; data?: u
     return {
       success: true,
       data: {
-        nodes: response.nodes?.map(node => sanitizeProtobufForJson(node)) || []
+        nodes: response.nodes || []
       }
     };
   } catch (error) {
@@ -53,7 +66,7 @@ async function getNodesCore(ids: string[]): Promise<{ success: boolean; data?: u
 
 const getNodesMemoized = cache(async (ids: string[]) => getNodesCore(ids));
 
-export async function getNodes(ids: string[]): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+export async function getNodes(ids: string[]): Promise<ActionResult<{ nodes: Node[] }>> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -86,7 +99,7 @@ async function semanticSearchCore(input: {
   spaceId: string;
   topK?: number;
   nodeTypes?: number[];
-}): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+}): Promise<ActionResult<SemanticSearchResponse>> {
   try {
     const client = getCanvasServiceClient();
     const headers = await createAuthHeaders();
@@ -102,12 +115,7 @@ async function semanticSearchCore(input: {
 
     return {
       success: true,
-      data: {
-        results: response.results?.map(result => ({
-          node: sanitizeProtobufForJson(result.node),
-          score: result.score
-        })) || []
-      }
+      data: response
     };
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -132,7 +140,7 @@ export async function semanticSearch(input: {
   spaceId: string;
   topK?: number;
   nodeTypes?: number[];
-}): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+}): Promise<ActionResult<SemanticSearchResponse>> {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -182,7 +190,7 @@ async function searchNodesCore(input: {
     maxCoords?: { x?: number; y?: number; z?: number };
   };
   limit?: number;
-}): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+}): Promise<ActionResult<SearchNodesResponse>> {
   try {
     const client = getCanvasServiceClient();
     const headers = await createAuthHeaders();
@@ -218,9 +226,7 @@ async function searchNodesCore(input: {
 
     return {
       success: true,
-      data: {
-        nodes: response.nodes?.map(node => sanitizeProtobufForJson(node)) || []
-      }
+      data: response
     };
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -261,7 +267,7 @@ export async function searchNodes(input: {
     maxCoords?: { x?: number; y?: number; z?: number };
   };
   limit?: number;
-}): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+}): Promise<ActionResult<SearchNodesResponse>> {
   try {
     const { userId } = await auth();
     if (!userId) {
