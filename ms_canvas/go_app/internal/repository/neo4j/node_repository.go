@@ -256,15 +256,24 @@ func (r *NodeRepo) nodeWithinBounds(node *canvasv1.Node, spatialBBox *canvasv1.S
 }
 
 // CreateChunkNodes creates chunk nodes (idempotent on id/content_source_id via MERGE).
+// Embeddings are generated server-side using OpenAI via genai.vector.encode.
 func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.ChunkNode) error {
 	if len(chunks) == 0 {
 		return nil
 	}
+
+	// Prepare OpenAI configuration once and pass into the Cypher transaction (from config, not env).
+	openAIConfig := map[string]interface{}{"token": r.cfg.OpenAIAPIKey, "model": r.cfg.OpenAIEmbeddingModel}
+	if r.cfg.OpenAIEmbeddingDim > 0 {
+		openAIConfig["dimensions"] = r.cfg.OpenAIEmbeddingDim
+	}
+
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 	_, err := sess.ExecuteWrite(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{
-			"items": make([]map[string]interface{}, 0, len(chunks)),
+			"items":         make([]map[string]interface{}, 0, len(chunks)),
+			"openai_config": openAIConfig,
 		}
 		now := time.Now().UTC().Format(time.RFC3339)
 		for _, c := range chunks {
@@ -307,6 +316,13 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 				n.location = item.location,
 				n.sequence_index = item.sequence_index,
 				n.updated_at = datetime(item.now)
+
+			WITH collect(n) AS nodes, collect(item.content) AS contents, $openai_config AS openaiConfig
+
+			// Generate embeddings in batch for all chunks at once
+			CALL genai.vector.encodeBatch(contents, 'OpenAI', openaiConfig)
+			YIELD index, vector
+			CALL db.create.setNodeVectorProperty(nodes[index], 'embedding', vector)
 		`, params)
 		return nil, err
 	})

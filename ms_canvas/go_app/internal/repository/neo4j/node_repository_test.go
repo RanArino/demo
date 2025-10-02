@@ -340,11 +340,35 @@ func TestNodeRepo_CreateContentNodes_QueryPresent(t *testing.T) {
 	// Quick static test: ensure the updated CreateContentNodes contains the
 	// expected UNWIND and genai.vector.encode usage so production will run
 	// the single-transaction query.
-	data, err := os.ReadFile("ms_canvas/go_app/internal/repository/neo4j/node_repository.go")
+	data, err := os.ReadFile("node_repository.go")
 	require.NoError(t, err)
 	src := string(data)
 	assert.Contains(t, src, "UNWIND $items AS item")
 	assert.Contains(t, src, "genai.vector.encode")
+}
+
+// Test that CreateChunkNodes includes server-side batch embedding generation
+func TestNodeRepo_CreateChunkNodes_QueryPresent(t *testing.T) {
+	// Ensure CreateChunkNodes contains genai.vector.encodeBatch for server-side batch embedding
+	data, err := os.ReadFile("node_repository.go")
+	require.NoError(t, err)
+	src := string(data)
+
+	// Find CreateChunkNodes function
+	startIdx := strings.Index(src, "func (r *NodeRepo) CreateChunkNodes")
+	require.Greater(t, startIdx, 0, "CreateChunkNodes function not found")
+
+	// Find the next function after CreateChunkNodes
+	endIdx := strings.Index(src[startIdx+50:], "\nfunc ")
+	require.Greater(t, endIdx, 0, "Could not find end of CreateChunkNodes")
+
+	chunkNodesFunc := src[startIdx : startIdx+50+endIdx]
+
+	// Verify it uses genai.vector.encodeBatch for batch embeddings (more efficient than individual encode calls)
+	assert.Contains(t, chunkNodesFunc, "genai.vector.encodeBatch", "CreateChunkNodes should use genai.vector.encodeBatch for efficient batch embeddings")
+	assert.Contains(t, chunkNodesFunc, "openai_config", "CreateChunkNodes should pass OpenAI config")
+	assert.Contains(t, chunkNodesFunc, "setNodeVectorProperty", "CreateChunkNodes should use db.create.setNodeVectorProperty to set embeddings")
+	assert.Contains(t, chunkNodesFunc, "YIELD index, vector", "CreateChunkNodes should yield index and vector from encodeBatch")
 }
 
 // Mock Repository Tests using dependency injection pattern
