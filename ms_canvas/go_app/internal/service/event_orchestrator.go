@@ -349,8 +349,14 @@ func (e *EventOrchestrator) retryChunkingAfterDelay(ctx context.Context, content
 	delay := time.Duration(1<<retryCount) * time.Second
 	log.Printf("[EventOrchestrator] Waiting %v before retry %d for ContentNode: %s", delay, retryCount+1, contentNodeID)
 
-	// Sleep for backoff duration
-	time.Sleep(delay)
+	// Wait for backoff duration or context cancellation
+	select {
+	case <-time.After(delay):
+		// continue with retry
+	case <-ctx.Done():
+		log.Printf("[EventOrchestrator] Retry for ContentNode %s cancelled due to context done", contentNodeID)
+		return
+	}
 
 	// Increment retry metrics
 	metrics.ChunkingRetries.Inc()
