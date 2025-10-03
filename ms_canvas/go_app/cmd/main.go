@@ -83,10 +83,13 @@ func main() {
 	if err := drv.EnsureConstraints(context.Background()); err != nil {
 		log.Printf("[Main] Warning: failed to ensure Neo4j constraints: %v", err)
 	}
+	if err := drv.EnsureIndexes(context.Background()); err != nil {
+		log.Printf("[Main] Warning: failed to ensure Neo4j indexes: %v", err)
+	}
 
 	nodeRepo := neo4j.NewNodeRepoWithConfig(drv, cfg)
 	linkRepo := neo4j.NewLinkRepo(drv)
-	searchRepo := neo4j.NewSearchRepo(drv)
+	searchRepo := neo4j.NewSearchRepoWithConfig(drv, cfg)
 
 	// Initialize Python gateway for ML operations
 	gatewayFactory := python.NewGatewayFactory(cfg)
@@ -105,7 +108,7 @@ func main() {
 	)
 
 	// Initialize services for gRPC server
-	searchService := service.NewSearchService(pythonGateway, searchRepo)
+	searchService := service.NewSearchService(searchRepo)
 	nodeService := service.NewNodeService(nodeRepo, linkRepo)
 	linkService := service.NewLinkService(linkRepo)
 
