@@ -82,6 +82,7 @@ tmp/
 ms_*/app
 ms_*/server
 ms_*/test_app
+ms_canvas/go_app/main
 
 # Allow source directories with these names (only ignore binaries/files)
 !ms_*/app/

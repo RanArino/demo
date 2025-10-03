@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
-	"demo/ms_canvas/go_app/internal/gateway/python"
 	"demo/ms_canvas/go_app/internal/repository/neo4j"
 
 	"github.com/google/uuid"
@@ -17,15 +16,13 @@ import (
 
 // searchServiceImpl implements SearchService
 type searchServiceImpl struct {
-	pythonGateway *python.Gateway
-	searchRepo    *neo4j.SearchRepo
+	searchRepo *neo4j.SearchRepo
 }
 
 // NewSearchService creates a new SearchService with dependencies
-func NewSearchService(pythonGateway *python.Gateway, searchRepo *neo4j.SearchRepo) SearchService {
+func NewSearchService(searchRepo *neo4j.SearchRepo) SearchService {
 	return &searchServiceImpl{
-		pythonGateway: pythonGateway,
-		searchRepo:    searchRepo,
+		searchRepo: searchRepo,
 	}
 }
 
@@ -52,24 +49,14 @@ func (s *searchServiceImpl) SemanticSearch(ctx context.Context, req *v1.Semantic
 
 	log.Printf("Performing semantic search for query: '%s' in space: '%s' with topK: %d", req.Query, req.SpaceId, topK)
 
-	// Step 1: Embed the query using Python service
-	_ = ctx // Context is available for future use
-	embeddingConfig := python.DefaultEmbeddingConfig()
-	embedResp, err := s.pythonGateway.EmbedQuery(ctx, req.Query, embeddingConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to embed query: %w", err)
-	}
-
-	log.Printf("Query embedded successfully, embedding dimension: %d", len(embedResp.Vector))
-
-	// Step 2: Search for nodes in the specified space using vector search
-	// Use multi-hop search for real-time results at each abstraction level
-	nodes, scores, err := s.searchRepo.VectorSearch(ctx, spaceUUID, embedResp.Vector, topK, req.NodeTypes)
+	// Search for nodes in the specified space using vector search
+	// Embedding is generated in-database using Neo4j's genai.vector.encode
+	nodes, scores, err := s.searchRepo.VectorSearch(ctx, spaceUUID, req.Query, topK, req.NodeTypes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform vector search: %w", err)
 	}
 
-	// Step 3: Convert nodes to search results with actual scores from vector search
+	// Convert nodes to search results with actual scores from vector search
 	results := make([]*v1.SearchResult, 0, len(nodes))
 	for i, node := range nodes {
 		var score float64

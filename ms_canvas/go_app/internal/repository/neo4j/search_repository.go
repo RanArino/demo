@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	canvasv1 "demo/ms_canvas/go_app/api/proto/public/v1"
+	"demo/ms_canvas/go_app/internal/config"
 
 	"github.com/google/uuid"
 	neo "github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -13,16 +14,23 @@ import (
 
 type SearchRepo struct {
 	driver *Driver
+	cfg    config.Config
 }
 
 func NewSearchRepo(driver *Driver) *SearchRepo {
 	return &SearchRepo{driver: driver}
 }
 
+// NewSearchRepoWithConfig allows injecting service config (preferred for avoiding os.Getenv).
+func NewSearchRepoWithConfig(driver *Driver, cfg config.Config) *SearchRepo {
+	return &SearchRepo{driver: driver, cfg: cfg}
+}
+
 // VectorSearch performs semantic search using Neo4j's native vector search
 // If nodeTypes is empty or nil, searches across all node types (ClusterNode, ContentNode, ChunkNode)
 // using their respective vector indexes. If nodeTypes is specified, only searches the specified types.
-func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, []float64, error) {
+// The query string is converted to an embedding in-database using genai.vector.encode with OpenAI provider.
+func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, query string, topK int32, nodeTypes []canvasv1.NodeType) ([]*canvasv1.Node, []float64, error) {
 	sess := r.driver.NewSession(ctx, neo.SessionConfig{DatabaseName: r.driver.dbName})
 	defer sess.Close(ctx)
 
@@ -42,6 +50,15 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 		}
 	}
 
+	// Prepare OpenAI configuration
+	openAIConfig := map[string]interface{}{
+		"token": r.cfg.OpenAIAPIKey,
+		"model": r.cfg.OpenAIEmbeddingModel,
+	}
+	if r.cfg.OpenAIEmbeddingDim > 0 {
+		openAIConfig["dimensions"] = r.cfg.OpenAIEmbeddingDim
+	}
+
 	result, err := sess.ExecuteRead(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		// Build dynamic query based on node types
 		var queryParts []string
@@ -50,27 +67,36 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 		if len(nodeTypes) == 0 {
 			// Search all three indexes and combine results
 			queryParts = append(queryParts, `
+				// Generate query embedding using OpenAI
+				WITH genai.vector.encode($query, 'OpenAI', $openai_config) AS queryEmbedding
+
 				// Search ClusterNode index
-				CALL db.index.vector.queryNodes('clusternode_embedding', $topK, $queryEmbedding)
+				CALL db.index.vector.queryNodes('clusternode_embedding', $topK, queryEmbedding)
 				YIELD node AS clusterNode, score AS clusterScore
 				WHERE clusterNode.space_id = $spaceID
-				RETURN clusterNode, clusterScore, 'ClusterNode' as nodeType
+				RETURN clusterNode AS node, clusterScore AS score, 'ClusterNode' as nodeType
 
 				UNION ALL
+
+				// Generate query embedding using OpenAI
+				WITH genai.vector.encode($query, 'OpenAI', $openai_config) AS queryEmbedding
 
 				// Search ContentNode index
-				CALL db.index.vector.queryNodes('contentnode_embedding', $topK, $queryEmbedding)
+				CALL db.index.vector.queryNodes('contentnode_embedding', $topK, queryEmbedding)
 				YIELD node AS contentNode, score AS contentScore
 				WHERE contentNode.space_id = $spaceID
-				RETURN contentNode, contentScore, 'ContentNode' as nodeType
+				RETURN contentNode AS node, contentScore AS score, 'ContentNode' as nodeType
 
 				UNION ALL
 
+				// Generate query embedding using OpenAI
+				WITH genai.vector.encode($query, 'OpenAI', $openai_config) AS queryEmbedding
+
 				// Search ChunkNode index
-				CALL db.index.vector.queryNodes('chunknode_embedding', $topK, $queryEmbedding)
+				CALL db.index.vector.queryNodes('chunknode_embedding', $topK, queryEmbedding)
 				YIELD node AS chunkNode, score AS chunkScore
 				WHERE chunkNode.space_id = $spaceID
-				RETURN chunkNode, chunkScore, 'ChunkNode' as nodeType
+				RETURN chunkNode AS node, chunkScore AS score, 'ChunkNode' as nodeType
 			`)
 		} else {
 			// Specific node types requested - search only requested types
@@ -78,24 +104,33 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 				switch nodeType {
 				case canvasv1.NodeType_NODE_TYPE_CLUSTER:
 					queryParts = append(queryParts, `
-						CALL db.index.vector.queryNodes('clusternode_embedding', $topK, $queryEmbedding)
+						// Generate query embedding using OpenAI
+						WITH genai.vector.encode($query, 'OpenAI', $openai_config) AS queryEmbedding
+
+						CALL db.index.vector.queryNodes('clusternode_embedding', $topK, queryEmbedding)
 						YIELD node AS clusterNode, score AS clusterScore
 						WHERE clusterNode.space_id = $spaceID AND 'ClusterNode' IN $labels
-						RETURN clusterNode, clusterScore, 'ClusterNode' as nodeType
+						RETURN clusterNode AS node, clusterScore AS score, 'ClusterNode' as nodeType
 					`)
 				case canvasv1.NodeType_NODE_TYPE_CONTENT:
 					queryParts = append(queryParts, `
-						CALL db.index.vector.queryNodes('contentnode_embedding', $topK, $queryEmbedding)
+						// Generate query embedding using OpenAI
+						WITH genai.vector.encode($query, 'OpenAI', $openai_config) AS queryEmbedding
+
+						CALL db.index.vector.queryNodes('contentnode_embedding', $topK, queryEmbedding)
 						YIELD node AS contentNode, score AS contentScore
 						WHERE contentNode.space_id = $spaceID AND 'ContentNode' IN $labels
-						RETURN contentNode, contentScore, 'ContentNode' as nodeType
+						RETURN contentNode AS node, contentScore AS score, 'ContentNode' as nodeType
 					`)
 				case canvasv1.NodeType_NODE_TYPE_CHUNK:
 					queryParts = append(queryParts, `
-						CALL db.index.vector.queryNodes('chunknode_embedding', $topK, $queryEmbedding)
+						// Generate query embedding using OpenAI
+						WITH genai.vector.encode($query, 'OpenAI', $openai_config) AS queryEmbedding
+
+						CALL db.index.vector.queryNodes('chunknode_embedding', $topK, queryEmbedding)
 						YIELD node AS chunkNode, score AS chunkScore
 						WHERE chunkNode.space_id = $spaceID AND 'ChunkNode' IN $labels
-						RETURN chunkNode, chunkScore, 'ChunkNode' as nodeType
+						RETURN chunkNode AS node, chunkScore AS score, 'ChunkNode' as nodeType
 					`)
 				}
 			}
@@ -105,16 +140,17 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 			}
 		}
 
-		query := strings.Join(queryParts, " UNION ALL ") + `
+		cypherQuery := strings.Join(queryParts, " UNION ALL ") + `
 			ORDER BY score DESC
 			LIMIT $topK
 		`
 
-		// Prepare parameters - only include labels if nodeTypes were specified
+		// Prepare parameters
 		params := map[string]interface{}{
-			"queryEmbedding": queryEmbedding,
-			"spaceID":        spaceID.String(),
-			"topK":           topK,
+			"query":         query,
+			"openai_config": openAIConfig,
+			"spaceID":       spaceID.String(),
+			"topK":          topK,
 		}
 
 		if len(nodeTypes) > 0 {
@@ -124,7 +160,7 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 		var nodes []*canvasv1.Node
 		var scores []float64
 
-		result, err := tx.Run(ctx, query, params)
+		result, err := tx.Run(ctx, cypherQuery, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute vector search query: %w", err)
 		}
@@ -164,7 +200,7 @@ func (r *SearchRepo) VectorSearch(ctx context.Context, spaceID uuid.UUID, queryE
 // MultiHopSearch performs real-time multi-hop search across abstraction levels
 // Returns results at each level immediately for progressive user interaction
 // DRAFT: Basic implementation - will be enhanced later
-func (r *SearchRepo) MultiHopSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32) (*MultiHopSearchResponse, error) {
+func (r *SearchRepo) MultiHopSearch(ctx context.Context, spaceID uuid.UUID, query string, topK int32) (*MultiHopSearchResponse, error) {
 	// TODO: Implement proper response structure for multi-hop results
 	// This should return results at each abstraction level immediately
 
@@ -179,17 +215,17 @@ func (r *SearchRepo) MultiHopSearch(ctx context.Context, spaceID uuid.UUID, quer
 	// This provides real-time results at each abstraction level
 
 	// Step 1: Search ClusterNodes
-	if clusters, _, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CLUSTER}); err == nil {
+	if clusters, _, err := r.VectorSearch(ctx, spaceID, query, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CLUSTER}); err == nil {
 		response.ClusterResults = clusters
 	}
 
 	// Step 2: Search ContentNodes
-	if contents, _, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CONTENT}); err == nil {
+	if contents, _, err := r.VectorSearch(ctx, spaceID, query, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CONTENT}); err == nil {
 		response.ContentResults = contents
 	}
 
 	// Step 3: Search ChunkNodes
-	if chunks, _, err := r.VectorSearch(ctx, spaceID, queryEmbedding, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CHUNK}); err == nil {
+	if chunks, _, err := r.VectorSearch(ctx, spaceID, query, topK, []canvasv1.NodeType{canvasv1.NodeType_NODE_TYPE_CHUNK}); err == nil {
 		response.ChunkResults = chunks
 	}
 

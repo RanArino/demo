@@ -1,8 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 
 export default function CanvasTestPage() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
   const [nodeIds, setNodeIds] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [spaceId, setSpaceId] = useState('');
@@ -12,6 +16,16 @@ export default function CanvasTestPage() {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      router.replace('/sign-in');
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const clearResults = () => {
     setResults(null);
@@ -29,13 +43,18 @@ export default function CanvasTestPage() {
         throw new Error('Please enter at least one node ID');
       }
 
+      console.log('[fetchNodes] Calling getNodes with IDs:', idsArray);
       const result = await getNodes(idsArray);
+      console.log('[fetchNodes] Result:', result);
       setResults(result);
 
       if (!result.success) {
-        setError((result.error as any)?.message || 'Failed to fetch nodes');
+        const errMsg = (result.error as any)?.message || 'Failed to fetch nodes';
+        console.error('[fetchNodes] Error:', errMsg);
+        setError(errMsg);
       }
     } catch (err) {
+      console.error('[fetchNodes] Caught exception:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch nodes';
       setError(errorMessage);
       setResults({ success: false, error: errorMessage });
@@ -57,19 +76,25 @@ export default function CanvasTestPage() {
         throw new Error('Please enter a space ID');
       }
 
-      const result = await semanticSearch({
+      const params = {
         query: searchQuery.trim(),
         spaceId: spaceId.trim(),
         topK: parseInt(topK) || 10,
         nodeTypes: [], // Can be extended to allow user input
-      });
+      };
 
+      console.log('[performSemanticSearch] Calling semanticSearch with params:', params);
+      const result = await semanticSearch(params);
+      console.log('[performSemanticSearch] Result:', result);
       setResults(result);
 
       if (!result.success) {
-        setError((result.error as any)?.message || 'Failed to perform semantic search');
+        const errMsg = (result.error as any)?.message || 'Failed to perform semantic search';
+        console.error('[performSemanticSearch] Error:', errMsg);
+        setError(errMsg);
       }
     } catch (err) {
+      console.error('[performSemanticSearch] Caught exception:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to perform semantic search';
       setError(errorMessage);
       setResults({ success: false, error: errorMessage });
@@ -83,25 +108,49 @@ export default function CanvasTestPage() {
     try {
       const { searchNodes } = await import('../../api/actions/canvasActions');
 
-      const result = await searchNodes({
+      const params = {
         filter: filterSpaceId.trim() ? {
           spaceId: filterSpaceId.trim(),
         } : undefined,
         limit: parseInt(limit) || 25,
-      });
+      };
 
+      console.log('[performSearchNodes] Calling searchNodes with params:', params);
+      const result = await searchNodes(params);
+      console.log('[performSearchNodes] Result:', result);
       setResults(result);
 
       if (!result.success) {
-        setError((result.error as any)?.message || 'Failed to search nodes');
+        const errMsg = (result.error as any)?.message || 'Failed to search nodes';
+        console.error('[performSearchNodes] Error:', errMsg);
+        setError(errMsg);
       }
     } catch (err) {
+      console.error('[performSearchNodes] Caught exception:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to search nodes';
       setError(errorMessage);
       setResults({ success: false, error: errorMessage });
     }
     setLoading(false);
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Canvas Service Test</h1>
+        <p>Loading authentication status...</p>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Canvas Service Test</h1>
+        <p>You must be signed in to test canvas actions.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
