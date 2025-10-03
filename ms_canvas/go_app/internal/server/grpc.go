@@ -88,12 +88,9 @@ func (s *canvasPublicServer) SearchNodes(ctx context.Context, req *canvasv1.Sear
 		return nil, status.Error(codes.InvalidArgument, "filter is required for SearchNodes")
 	}
 
-	if req.SpatialBbox == nil {
-		return nil, status.Error(codes.InvalidArgument, "spatial_bbox is required for SearchNodes")
-	}
+	// spatial_bbox is optional - when not provided, returns all nodes matching filter without spatial constraints
+	// When provided, it's used for viewport-based pagination on the canvas
 
-	// TODO: Implement the actual search logic using the service layer
-	// For now, return empty result to avoid breaking the build
 	nodes, err := s.nodeService.SearchNodes(ctx, req.Filter, req.SpatialBbox, req.Limit)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to search nodes: %v", err)
