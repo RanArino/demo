@@ -118,9 +118,9 @@ func (d *Driver) EnsureIndexes(ctx context.Context) error {
 		}
 
 		vectorIndexQueries := []string{
-			fmt.Sprintf("CREATE VECTOR INDEX clusternode_embedding IF NOT EXISTS FOR (n:ClusterNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
-			fmt.Sprintf("CREATE VECTOR INDEX contentnode_embedding IF NOT EXISTS FOR (n:ContentNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
-			fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) WITH {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
+			fmt.Sprintf("CREATE VECTOR INDEX clusternode_embedding IF NOT EXISTS FOR (n:ClusterNode) ON (n.embedding) OPTIONS {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
+			fmt.Sprintf("CREATE VECTOR INDEX contentnode_embedding IF NOT EXISTS FOR (n:ContentNode) ON (n.embedding) OPTIONS {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
+			fmt.Sprintf("CREATE VECTOR INDEX chunknode_embedding IF NOT EXISTS FOR (n:ChunkNode) ON (n.embedding) OPTIONS {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}", d.vectorDim),
 		}
 
 		for _, query := range vectorIndexQueries {
