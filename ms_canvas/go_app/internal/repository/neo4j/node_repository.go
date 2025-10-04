@@ -192,9 +192,13 @@ func (r *NodeRepo) SearchNodes(ctx context.Context, filter *canvasv1.NodeFilter,
 		return nil, err
 	}
 
-	// Apply spatial filtering if spatial bounding box is provided
-	if spatialBBox != nil {
+	// Apply spatial filtering only when a complete bounding box is provided.
+	//  zero/empty fields; treat that as "no spatial filter" to avoid
+	if spatialBBox != nil && spatialBBox.MinCoords != nil && spatialBBox.MaxCoords != nil {
 		nodes = r.applySpatialFilter(nodes, spatialBBox)
+	} else if spatialBBox != nil {
+		// Log incomplete bbox for diagnostics but do not apply filtering
+		log.Printf("SearchNodes: received incomplete spatialBBox; skipping spatial filter. spatialBBox=%v", spatialBBox)
 	}
 
 	// Apply limit if specified
