@@ -137,7 +137,6 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 				n.chunk_type as chunk_type,
 				n.start_position as start_position,
 				n.end_position as end_position,
-				n.content as content,
 				// ClusterNode specific
 				n.cluster_scope as cluster_scope,
 				n.member_count as member_count,
@@ -296,8 +295,12 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 				"sequence_index":    c.SequenceIndex,
 				"start_position":    c.StartPosition,
 				"end_position":      c.EndPosition,
-				"content":           c.Content,
+				"context_type":      "chunk",
 				"now":               now,
+			}
+
+			if c.Base != nil && c.Base.ChatContent != nil {
+				item["chat_content"] = *c.Base.ChatContent
 			}
 
 			// Add location only if Position_3D is not nil
@@ -321,17 +324,19 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 				n.location = item.location,
 				n.start_position = item.start_position,
 				n.end_position = item.end_position,
-				n.content = item.content,
+				n.context_type = item.context_type,
+				n.chat_content = item.chat_content,
 				n.created_at = datetime(item.now),
 				n.updated_at = datetime(item.now)
 			ON MATCH SET
-				n.content = item.content,
 				n.location = item.location,
 				n.space_id = COALESCE(item.space_id, n.space_id),
 				n.sequence_index = item.sequence_index,
+				n.context_type = item.context_type,
+				n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END,
 				n.updated_at = datetime(item.now)
 
-			WITH collect(n) AS nodes, collect(item.content) AS contents, $openai_config AS openaiConfig
+			WITH collect(n) AS nodes, [x IN collect(item.chat_content) WHERE x IS NOT NULL AND x <> ""] AS contents, $openai_config AS openaiConfig
 
 			// Generate embeddings in batch for all chunks at once
 			CALL genai.vector.encodeBatch(contents, 'OpenAI', openaiConfig)
@@ -634,9 +639,9 @@ func (r *NodeRepo) UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNo
 		setClauses = append(setClauses, baseClauses...)
 
 		// Add ChunkNode-specific clauses
-		if update.Content != "" {
-			params["content"] = update.Content
-			setClauses = append(setClauses, "n.content = $content")
+		if update.Base.ChatContent != nil {
+			params["chat_content"] = *update.Base.ChatContent
+			setClauses = append(setClauses, "n.chat_content = $chat_content")
 		}
 		// Note: Cannot distinguish between "update to 0" vs "don't update" for SequenceIndex
 		// since it's not an optional field (*int32) in the protobuf. If you need to set
@@ -839,17 +844,11 @@ func (r *NodeRepo) buildChunkNode(record *neo.Record) *canvasv1.Node {
 	}
 
 	sequenceIndex, _ := r.safeGetInt64(record, "sequence_index")
-	content, _ := r.safeGetString(record, "content")
-	if content == "" {
-		return nil // Required field missing
-	}
-
 	// Build ChunkNode
 	chunkNode := &canvasv1.ChunkNode{
 		Base:            base,
 		ContentSourceId: contentSourceId,
 		SequenceIndex:   int32(sequenceIndex),
-		Content:         content,
 	}
 
 	// Add optional fields if they exist
