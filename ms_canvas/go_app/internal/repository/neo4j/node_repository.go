@@ -3,6 +3,7 @@ package neo4j
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ func NewNodeRepoWithConfig(driver *Driver, cfg config.Config) *NodeRepo {
 
 // GetNodes retrieves nodes by their IDs with optional filtering.
 func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.NodeFilter) ([]*canvasv1.Node, error) {
-	if len(ids) == 0 {
+	if len(ids) == 0 && filter == nil {
 		return []*canvasv1.Node{}, nil
 	}
 
@@ -35,17 +36,23 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 	defer sess.Close(ctx)
 
 	result, err := sess.ExecuteRead(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
-		params := map[string]interface{}{
-			"ids": ids,
+		params := map[string]interface{}{}
+
+		// Build WHERE clause for filtering and decide MATCH clause for efficiency
+		var whereConditions []string
+		matchClause := "MATCH (n:Node)"
+
+		// Add ID filter only if IDs are provided
+		if len(ids) > 0 {
+			params["ids"] = ids
+			whereConditions = append(whereConditions, "n.id IN $ids")
 		}
 
-		// Build WHERE clause for filtering
-		whereConditions := []string{"n.id IN $ids"}
-
 		if filter != nil {
-			if filter.SpaceId != nil {
+			if filter.SpaceId != nil && *filter.SpaceId != "" {
 				params["space_id"] = *filter.SpaceId
-				whereConditions = append(whereConditions, "n.space_id = $space_id")
+				// Use property binding in MATCH for index-friendly lookup and to exclude nodes lacking space_id
+				matchClause = "MATCH (n:Node {space_id: $space_id})"
 			}
 			if filter.AbstractionLevelMin != nil {
 				params["abstraction_level_min"] = *filter.AbstractionLevelMin
@@ -103,7 +110,7 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 		}
 
 		query := `
-			MATCH (n:Node)
+            ` + matchClause + `
 			` + whereClause + `
 			RETURN
 				n.id as id,
@@ -192,9 +199,13 @@ func (r *NodeRepo) SearchNodes(ctx context.Context, filter *canvasv1.NodeFilter,
 		return nil, err
 	}
 
-	// Apply spatial filtering if spatial bounding box is provided
-	if spatialBBox != nil {
+	// Apply spatial filtering only when a complete bounding box is provided.
+	//  zero/empty fields; treat that as "no spatial filter" to avoid
+	if spatialBBox != nil && spatialBBox.MinCoords != nil && spatialBBox.MaxCoords != nil {
 		nodes = r.applySpatialFilter(nodes, spatialBBox)
+	} else if spatialBBox != nil {
+		// Log incomplete bbox for diagnostics but do not apply filtering
+		log.Printf("SearchNodes: received incomplete spatialBBox; skipping spatial filter. spatialBBox=%v", spatialBBox)
 	}
 
 	// Apply limit if specified
@@ -281,6 +292,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			item := map[string]interface{}{
 				"id":                id,
 				"content_source_id": c.ContentSourceId,
+				"space_id":          c.Base.SpaceId,
 				"sequence_index":    c.SequenceIndex,
 				"start_position":    c.StartPosition,
 				"end_position":      c.EndPosition,
@@ -304,6 +316,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			MERGE (n:ChunkNode:Node {id: item.id})
 			ON CREATE SET
 				n.content_source_id = item.content_source_id,
+				n.space_id = item.space_id,
 				n.sequence_index = item.sequence_index,
 				n.location = item.location,
 				n.start_position = item.start_position,
@@ -314,6 +327,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			ON MATCH SET
 				n.content = item.content,
 				n.location = item.location,
+				n.space_id = COALESCE(item.space_id, n.space_id),
 				n.sequence_index = item.sequence_index,
 				n.updated_at = datetime(item.now)
 
@@ -638,6 +652,10 @@ func (r *NodeRepo) UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNo
 				"z": update.Base.Position_3D.Z,
 			}
 			setClauses = append(setClauses, "n.location = $location")
+		}
+		if update.Base.SpaceId != "" {
+			params["space_id"] = update.Base.SpaceId
+			setClauses = append(setClauses, "n.space_id = $space_id")
 		}
 		if update.StartPosition != nil {
 			params["start_position"] = *update.StartPosition
