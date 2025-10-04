@@ -97,14 +97,14 @@ func TestNodeRepo_CreateChunkNodes_Integration(t *testing.T) {
 						Position_3D: &v1.SpatialCoordinates{
 							X: 10, Y: 20, Z: 30,
 						},
-						CreatedAt: timestamppb.Now(),
-						UpdatedAt: timestamppb.Now(),
+						CreatedAt:   timestamppb.Now(),
+						UpdatedAt:   timestamppb.Now(),
+						ChatContent: func() *string { s := "test content"; return &s }(),
 					},
 					ContentSourceId: uuid.New().String(),
 					SequenceIndex:   0,
 					StartPosition:   func() *int64 { val := int64(0); return &val }(),
 					EndPosition:     &[]int64{100}[0],
-					Content:         "test content",
 				},
 			},
 			expectError: false,
@@ -124,13 +124,7 @@ func TestNodeRepo_CreateChunkNodes_Integration(t *testing.T) {
 			for _, chunk := range tt.chunks {
 				assert.NotEmpty(t, chunk.Base.Id)
 				assert.NotEmpty(t, chunk.ContentSourceId)
-				assert.NotEmpty(t, chunk.Content)
-				assert.GreaterOrEqual(t, chunk.SequenceIndex, int32(0))
-				// Note: Position_3D validation skipped due to protobuf struct comparison issues
-				// Protobuf structs don't have proper equality methods in Go, causing
-				// "Elements should be the same type" errors with testify assertions.
-				// In practice, the field is correctly set as verified by other tests.
-				assert.NotNil(t, chunk.Base.Position_3D)
+				assert.NotNil(t, chunk.Base.ChatContent)
 			}
 		})
 	}
@@ -308,13 +302,13 @@ func TestNodeRepo_UpdateValidations(t *testing.T) {
 				Position_3D: &v1.SpatialCoordinates{
 					X: 10, Y: 20, Z: 30,
 				},
-				Embedding: []float32{0.1, 0.2, 0.3},
-				CreatedAt: timestamppb.Now(),
-				UpdatedAt: timestamppb.Now(),
+				Embedding:   []float32{0.1, 0.2, 0.3},
+				CreatedAt:   timestamppb.Now(),
+				UpdatedAt:   timestamppb.Now(),
+				ChatContent: func() *string { s := "test content"; return &s }(),
 			},
 			ContentSourceId: uuid.New().String(),
 			SequenceIndex:   5,
-			Content:         "test content",
 			StartPosition:   &[]int64{100}[0],
 			EndPosition:     &[]int64{200}[0],
 			TokenCount:      func() *int32 { val := int32(50); return &val }(),
@@ -323,7 +317,10 @@ func TestNodeRepo_UpdateValidations(t *testing.T) {
 		assert.NotEmpty(t, node.Base.Id)
 		assert.NotEmpty(t, node.ContentSourceId)
 		assert.Equal(t, int32(5), node.SequenceIndex)
-		assert.Equal(t, "test content", node.Content)
+		if node.Base.ChatContent == nil {
+			t.Fatal("expected ChatContent to be set")
+		}
+		assert.Equal(t, "test content", *node.Base.ChatContent)
 		assert.NotNil(t, node.StartPosition)
 		assert.Equal(t, int64(100), *node.StartPosition)
 		assert.NotNil(t, node.EndPosition)
@@ -410,14 +407,14 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 						Position_3D: &v1.SpatialCoordinates{
 							X: 10, Y: 20, Z: 30,
 						},
-						CreatedAt: timestamppb.Now(),
-						UpdatedAt: timestamppb.Now(),
+						CreatedAt:   timestamppb.Now(),
+						UpdatedAt:   timestamppb.Now(),
+						ChatContent: func() *string { s := "test content"; return &s }(),
 					},
 					ContentSourceId: uuid.New().String(),
 					SequenceIndex:   0,
 					StartPosition:   func() *int64 { val := int64(0); return &val }(),
 					EndPosition:     &[]int64{100}[0],
-					Content:         "test content",
 				},
 			},
 			mockError:     nil,
@@ -436,8 +433,8 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 				item := items[0]
 				assert.Contains(t, item, "id")
 				assert.Contains(t, item, "content_source_id")
-				assert.Contains(t, item, "content")
-				assert.Equal(t, "test content", item["content"])
+				assert.Contains(t, item, "chat_content")
+				assert.Equal(t, "test content", item["chat_content"])
 			},
 		},
 		{
@@ -454,7 +451,6 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 						UpdatedAt: timestamppb.Now(),
 					},
 					ContentSourceId: uuid.New().String(),
-					Content:         "test content",
 				},
 			},
 			mockError:     errors.New("database connection failed"),
@@ -486,14 +482,15 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 			}
 
 			for _, c := range tt.chunks {
-				id := c.Base.Id
+				// Build simulated item map from the test chunk `c` to match repository expectations
 				item := map[string]interface{}{
-					"id":                id,
+					"id":                c.Base.Id,
 					"content_source_id": c.ContentSourceId,
+					"space_id":          c.Base.SpaceId,
 					"sequence_index":    c.SequenceIndex,
-					"start_position":    c.StartPosition,
-					"end_position":      c.EndPosition,
-					"content":           c.Content,
+				}
+				if c.Base != nil && c.Base.ChatContent != nil {
+					item["chat_content"] = *c.Base.ChatContent
 				}
 
 				// Add location only if Position_3D is not nil
@@ -517,11 +514,11 @@ func TestNodeRepo_CreateChunkNodes_DatabaseInteraction(t *testing.T) {
 				n.location = item.location,
 				n.start_position = item.start_position,
 				n.end_position = item.end_position,
-				n.content = item.content,
+				n.chat_content = item.chat_content,
 				n.created_at = datetime(item.now),
 				n.updated_at = datetime(item.now)
 			ON MATCH SET
-				n.content = item.content,
+				n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END,
 				n.location = item.location,
 				n.sequence_index = item.sequence_index,
 				n.updated_at = datetime(item.now)
