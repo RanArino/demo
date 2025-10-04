@@ -128,7 +128,6 @@ message ChunkNode {
   optional int64 start_position = 5;
   optional int64 end_position = 6;
   optional int32 token_count = 7;
-  string content = 8;
 }
 
 enum ChunkingStatus {

@@ -225,6 +225,52 @@ proto3.util.setEnumType(LinkType, "canvas.public.v1.LinkType", [
 ]);
 
 /**
+ * @generated from enum canvas.public.v1.ChunkingStatus
+ */
+export enum ChunkingStatus {
+  /**
+   * @generated from enum value: CHUNKING_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Waiting for chunking to start
+   *
+   * @generated from enum value: CHUNKING_STATUS_PENDING = 1;
+   */
+  PENDING = 1,
+
+  /**
+   * Currently being chunked
+   *
+   * @generated from enum value: CHUNKING_STATUS_PROCESSING = 2;
+   */
+  PROCESSING = 2,
+
+  /**
+   * Successfully chunked
+   *
+   * @generated from enum value: CHUNKING_STATUS_COMPLETED = 3;
+   */
+  COMPLETED = 3,
+
+  /**
+   * Chunking failed
+   *
+   * @generated from enum value: CHUNKING_STATUS_FAILED = 4;
+   */
+  FAILED = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ChunkingStatus)
+proto3.util.setEnumType(ChunkingStatus, "canvas.public.v1.ChunkingStatus", [
+  { no: 0, name: "CHUNKING_STATUS_UNSPECIFIED" },
+  { no: 1, name: "CHUNKING_STATUS_PENDING" },
+  { no: 2, name: "CHUNKING_STATUS_PROCESSING" },
+  { no: 3, name: "CHUNKING_STATUS_COMPLETED" },
+  { no: 4, name: "CHUNKING_STATUS_FAILED" },
+]);
+
+/**
  * Core Data Structures
  *
  * @generated from message canvas.public.v1.MLInfo
@@ -612,11 +658,6 @@ export class ChunkNode extends Message<ChunkNode> {
    */
   tokenCount?: number;
 
-  /**
-   * @generated from field: string content = 8;
-   */
-  content = "";
-
   constructor(data?: PartialMessage<ChunkNode>) {
     super();
     proto3.util.initPartial(data, this);
@@ -632,7 +673,6 @@ export class ChunkNode extends Message<ChunkNode> {
     { no: 5, name: "start_position", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
     { no: 6, name: "end_position", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
     { no: 7, name: "token_count", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
-    { no: 8, name: "content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChunkNode {
@@ -691,6 +731,20 @@ export class ContentNode extends Message<ContentNode> {
    */
   actionData?: Struct;
 
+  /**
+   * Track chunking workflow status
+   *
+   * @generated from field: optional canvas.public.v1.ChunkingStatus chunking_status = 8;
+   */
+  chunkingStatus?: ChunkingStatus;
+
+  /**
+   * Error message if chunking failed
+   *
+   * @generated from field: optional string chunking_error = 9;
+   */
+  chunkingError?: string;
+
   constructor(data?: PartialMessage<ContentNode>) {
     super();
     proto3.util.initPartial(data, this);
@@ -706,6 +760,8 @@ export class ContentNode extends Message<ContentNode> {
     { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 6, name: "token_count", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
     { no: 7, name: "action_data", kind: "message", T: Struct, opt: true },
+    { no: 8, name: "chunking_status", kind: "enum", T: proto3.getEnumType(ChunkingStatus), opt: true },
+    { no: 9, name: "chunking_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ContentNode {
