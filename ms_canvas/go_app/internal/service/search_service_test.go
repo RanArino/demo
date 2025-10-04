@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Helper functions to create test data
@@ -35,11 +36,42 @@ func createTestNode(nodeType v1.NodeType, id string, content string) *v1.Node {
 		return &v1.Node{
 			Node: &v1.Node_Chunk{
 				Chunk: &v1.ChunkNode{
-					Base:            base,
-					ContentSourceId: "test-source-id",
-					Content:         content,
+					Base: &v1.BaseNode{
+						Id:               uuid.New().String(),
+						SpaceId:          "test-space",
+						AbstractionLevel: 2,
+						ContextType:      "chunk",
+						Keywords:         []string{"test", "chunk"},
+						DisplayContent:   stringPtr("Test Chunk Content"),
+						SemanticDensity:  float64Ptr(0.9),
+						Position_3D: &v1.SpatialCoordinates{
+							X: 15,
+							Y: 25,
+							Z: 35,
+						},
+						IsPositionLocked: boolPtr(true),
+						Visibility:       boolPtr(false),
+						DisplayProps: &v1.DisplayProps{
+							Size:    50,
+							Opacity: 0.8,
+							Shape:   "square",
+							Color:   "#00ff00",
+						},
+						EngagementScore: &v1.EngagementScore{
+							CanvasScore:  0.8,
+							ChatScore:    0.7,
+							OverallScore: 0.75,
+						},
+						CreatedAt:   timestamppb.Now(),
+						UpdatedAt:   timestamppb.Now(),
+						ChatContent: stringPtr(content),
+					},
+					ContentSourceId: "source-456",
 					SequenceIndex:   1,
-					ChunkType:       "sentence",
+					ChunkType:       "paragraph",
+					StartPosition:   int64Ptr(0),
+					EndPosition:     int64Ptr(100),
+					TokenCount:      int32Ptr(50),
 				},
 			},
 		}

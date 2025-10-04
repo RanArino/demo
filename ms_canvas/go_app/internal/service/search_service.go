@@ -109,7 +109,12 @@ func (s *searchServiceImpl) calculateSimilarityScore(query string, node *v1.Node
 		}
 	case *v1.Node_Chunk:
 		chunkNode := n.Chunk
-		content := strings.ToLower(chunkNode.Content)
+		var content string
+		if chunkNode.Base != nil && chunkNode.Base.ChatContent != nil {
+			content = strings.ToLower(*chunkNode.Base.ChatContent)
+		} else {
+			content = ""
+		}
 
 		terms := strings.Fields(queryLower)
 		matches := 0
