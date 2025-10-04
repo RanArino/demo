@@ -371,6 +371,15 @@ func TestNodeRepo_CreateChunkNodes_QueryPresent(t *testing.T) {
 	assert.Contains(t, chunkNodesFunc, "YIELD index, vector", "CreateChunkNodes should yield index and vector from encodeBatch")
 }
 
+func TestNodeRepo_GetNodes_UsesMatchPropertyBindingForSpaceID(t *testing.T) {
+	data, err := os.ReadFile("node_repository.go")
+	require.NoError(t, err)
+	src := string(data)
+
+	// When space_id filter is applied, we should use property binding in MATCH
+	assert.Contains(t, src, "matchClause = \"MATCH (n:Node {space_id: $space_id})\"")
+}
+
 // Mock Repository Tests using dependency injection pattern
 type TestableNodeRepo struct {
 	executeWriteFunc func(cypher string, params map[string]interface{}) error

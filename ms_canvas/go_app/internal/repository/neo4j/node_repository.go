@@ -3,6 +3,7 @@ package neo4j
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ func NewNodeRepoWithConfig(driver *Driver, cfg config.Config) *NodeRepo {
 
 // GetNodes retrieves nodes by their IDs with optional filtering.
 func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.NodeFilter) ([]*canvasv1.Node, error) {
-	if len(ids) == 0 {
+	if len(ids) == 0 && filter == nil {
 		return []*canvasv1.Node{}, nil
 	}
 
@@ -35,17 +36,23 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 	defer sess.Close(ctx)
 
 	result, err := sess.ExecuteRead(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
-		params := map[string]interface{}{
-			"ids": ids,
+		params := map[string]interface{}{}
+
+		// Build WHERE clause for filtering and decide MATCH clause for efficiency
+		var whereConditions []string
+		matchClause := "MATCH (n:Node)"
+
+		// Add ID filter only if IDs are provided
+		if len(ids) > 0 {
+			params["ids"] = ids
+			whereConditions = append(whereConditions, "n.id IN $ids")
 		}
 
-		// Build WHERE clause for filtering
-		whereConditions := []string{"n.id IN $ids"}
-
 		if filter != nil {
-			if filter.SpaceId != nil {
+			if filter.SpaceId != nil && *filter.SpaceId != "" {
 				params["space_id"] = *filter.SpaceId
-				whereConditions = append(whereConditions, "n.space_id = $space_id")
+				// Use property binding in MATCH for index-friendly lookup and to exclude nodes lacking space_id
+				matchClause = "MATCH (n:Node {space_id: $space_id})"
 			}
 			if filter.AbstractionLevelMin != nil {
 				params["abstraction_level_min"] = *filter.AbstractionLevelMin
@@ -103,7 +110,7 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 		}
 
 		query := `
-			MATCH (n:Node)
+            ` + matchClause + `
 			` + whereClause + `
 			RETURN
 				n.id as id,
