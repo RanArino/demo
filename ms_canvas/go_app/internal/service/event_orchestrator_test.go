@@ -374,9 +374,10 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithChunkCreation(t *testing.
 		if len(nodes) != 1 {
 			return false
 		}
-		n := nodes[0]
-		return n.Base.SpaceId == event.SpaceID.String() &&
-			n.Base.Keywords != nil && len(n.Base.Keywords) == len(event.Keywords)
+		if nodes[0].Base == nil || nodes[0].Base.ChatContent == nil {
+			return false
+		}
+		return *nodes[0].Base.ChatContent == "chunk content"
 	}))
 }
 
@@ -416,7 +417,7 @@ func TestEventOrchestrator_HandleDocumentProcessed_ChunkingStatusTracking(t *tes
 		// Should be called twice: PROCESSING, then COMPLETED
 		return node.ChunkingStatus != nil &&
 			(*node.ChunkingStatus == v1.ChunkingStatus_CHUNKING_STATUS_PROCESSING ||
-			 *node.ChunkingStatus == v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED)
+				*node.ChunkingStatus == v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED)
 	})).Return(nil).Times(2)
 
 	mockNodeRepo.On("CreateChunkNodes", mock.Anything, mock.Anything).Return(nil)

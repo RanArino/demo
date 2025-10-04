@@ -279,21 +279,22 @@ func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []pytho
 		chunkNodeID := uuid.New().String()
 
 		baseNode := &v1.BaseNode{
-			Id:        chunkNodeID,
-			SpaceId:   event.SpaceID.String(),
-			CreatedAt: now,
-			UpdatedAt: now,
-			Keywords:  event.Keywords,
+			Id:          chunkNodeID,
+			SpaceId:     event.SpaceID.String(),
+			CreatedAt:   now,
+			UpdatedAt:   now,
+			Keywords:    event.Keywords,
+			ContextType: "chunk",
 		}
 
-		if event.Title != "" {
-			baseNode.ContextType = event.Title
+		// store chunk text on BaseNode.chat_content
+		if chunk.Content != "" {
+			baseNode.ChatContent = &chunk.Content
 		}
 
 		chunkNodes[i] = &v1.ChunkNode{
 			Base:            baseNode,
 			ContentSourceId: contentSourceID,
-			Content:         chunk.Content,
 			SequenceIndex:   chunk.SequenceIndex,
 			StartPosition:   &chunk.StartPosition,
 			EndPosition:     &chunk.EndPosition,
