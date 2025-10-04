@@ -281,6 +281,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			item := map[string]interface{}{
 				"id":                id,
 				"content_source_id": c.ContentSourceId,
+				"space_id":          c.Base.SpaceId,
 				"sequence_index":    c.SequenceIndex,
 				"start_position":    c.StartPosition,
 				"end_position":      c.EndPosition,
@@ -304,6 +305,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			MERGE (n:ChunkNode:Node {id: item.id})
 			ON CREATE SET
 				n.content_source_id = item.content_source_id,
+				n.space_id = item.space_id,
 				n.sequence_index = item.sequence_index,
 				n.location = item.location,
 				n.start_position = item.start_position,
@@ -314,6 +316,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			ON MATCH SET
 				n.content = item.content,
 				n.location = item.location,
+				n.space_id = COALESCE(item.space_id, n.space_id),
 				n.sequence_index = item.sequence_index,
 				n.updated_at = datetime(item.now)
 
@@ -638,6 +641,10 @@ func (r *NodeRepo) UpdateChunkNode(ctx context.Context, update *canvasv1.ChunkNo
 				"z": update.Base.Position_3D.Z,
 			}
 			setClauses = append(setClauses, "n.location = $location")
+		}
+		if update.Base.SpaceId != "" {
+			params["space_id"] = update.Base.SpaceId
+			setClauses = append(setClauses, "n.space_id = $space_id")
 		}
 		if update.StartPosition != nil {
 			params["start_position"] = *update.StartPosition
