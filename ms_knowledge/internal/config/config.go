@@ -4,13 +4,13 @@ import (
 	"context"
 	"demo/ms_knowledge/internal/secrets"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-// Config holds the application configuration.
 type Config struct {
 	Database struct {
 		Driver string
@@ -42,7 +42,6 @@ type Config struct {
 	}
 }
 
-// SecretKeys defines the keys needed from the secret manager
 var SecretKeys = []string{
 	"DATABASE_URL",
 	"KAFKA_BROKERS",
@@ -60,25 +59,23 @@ var SecretKeys = []string{
 	"MS_USER_GRPC_URL_INTERNAL",
 }
 
-// Load loads the configuration from the secret manager with fallback to environment variables.
 func Load() (*Config, error) {
 	cfg := &Config{}
 
-	// Database configuration
 	cfg.Database.Driver = "postgres"
-	cfg.Database.DSN = getEnvOrDefault("DATABASE_URL", "postgres://user:password@localhost:5432/knowledge?sslmode=disable")
+	dsn, err := ensureSimpleProtocol(getEnvOrDefault("DATABASE_URL", "postgres://user:password@localhost:5432/knowledge?sslmode=disable"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare DSN: %w", err)
+	}
+	cfg.Database.DSN = dsn
 
-	// Server configuration
 	cfg.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
 
-
-	// Kafka configuration
 	cfg.Kafka.Brokers = getEnvOrDefault("KAFKA_BROKERS", "localhost:9092")
 	cfg.Kafka.SaslUsername = getEnvOrDefault("KAFKA_SASL_USERNAME", "")
 	cfg.Kafka.SaslPassword = getEnvOrDefault("KAFKA_SASL_PASSWORD", "")
 	cfg.Kafka.SecurityProtocol = getEnvOrDefault("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 
-	// R2 configuration
 	cfg.R2.AccessKeyID = getEnvOrDefault("R2_ACCESS_KEY_ID", "")
 	cfg.R2.SecretAccessKey = getEnvOrDefault("R2_SECRET_ACCESS_KEY", "")
 	cfg.R2.AccountID = getEnvOrDefault("R2_ACCOUNT_ID", "")
@@ -87,27 +84,20 @@ func Load() (*Config, error) {
 	cfg.R2.BucketSourceName = getEnvOrDefault("R2_BUCKET_SOURCE_NAME", "knowledge-source")
 	cfg.R2.BucketProcessedName = getEnvOrDefault("R2_BUCKET_PROCESSED_NAME", "knowledge-processed")
 
-	// Auth configuration
 	cfg.Auth.ClerkSecretKey = getEnvOrDefault("CLERK_SECRET_KEY", "")
 
-	// Services configuration
 	cfg.Services.UserGRPCAddr = getEnvOrDefault("MS_USER_GRPC_URL_INTERNAL", "localhost:50051")
 
 	return cfg, nil
 }
 
-// LoadWithContext loads the configuration with a specific context
 func LoadWithContext(ctx context.Context) (*Config, error) {
-	// Try to load from secret manager first
 	if cfg, err := loadFromSecretManager(ctx); err == nil {
 		return cfg, nil
 	}
-
-	// Fallback to environment variables
 	return loadFromEnv()
 }
 
-// loadFromSecretManager loads configuration from cloud secret managers
 func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	secretManager, err := secrets.NewSecretManagerFromEnv(ctx)
 	if err != nil {
@@ -115,7 +105,6 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	}
 	defer secretManager.Close()
 
-	// Get required secrets
 	secretValues, err := secretManager.GetSecrets(ctx, SecretKeys)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get secrets: %w", err)
@@ -125,19 +114,19 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 
 	// Database configuration
 	config.Database.Driver = "postgres"
-	config.Database.DSN = secretValues["DATABASE_URL"]
+	dsn, err := ensureSimpleProtocol(secretValues["DATABASE_URL"])
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare DSN: %w", err)
+	}
+	config.Database.DSN = dsn
 
-	// Server configuration
 	config.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
 
-
-	// Kafka configuration
 	config.Kafka.Brokers = secretValues["KAFKA_BROKERS"]
 	config.Kafka.SaslUsername = secretValues["KAFKA_SASL_USERNAME"]
 	config.Kafka.SaslPassword = secretValues["KAFKA_SASL_PASSWORD"]
 	config.Kafka.SecurityProtocol = secretValues["KAFKA_SECURITY_PROTOCOL"]
 
-	// R2 configuration
 	config.R2.AccessKeyID = secretValues["R2_ACCESS_KEY_ID"]
 	config.R2.SecretAccessKey = secretValues["R2_SECRET_ACCESS_KEY"]
 	config.R2.AccountID = secretValues["R2_ACCOUNT_ID"]
@@ -146,34 +135,30 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	config.R2.BucketSourceName = secretValues["R2_BUCKET_SOURCE_NAME"]
 	config.R2.BucketProcessedName = secretValues["R2_BUCKET_PROCESSED_NAME"]
 
-	// Auth configuration
 	config.Auth.ClerkSecretKey = secretValues["CLERK_SECRET_KEY"]
 
-	// Services configuration
 	config.Services.UserGRPCAddr = secretValues["MS_USER_GRPC_URL_INTERNAL"]
 
 	return config, nil
 }
 
-// loadFromEnv loads configuration from environment variables (fallback)
 func loadFromEnv() (*Config, error) {
 	config := &Config{}
 
-	// Database configuration
 	config.Database.Driver = "postgres"
-	config.Database.DSN = os.Getenv("DATABASE_URL")
+	dsn, err := ensureSimpleProtocol(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare DSN: %w", err)
+	}
+	config.Database.DSN = dsn
 
-	// Server configuration
 	config.Server.Port = int(getEnvOrDefaultInt64("GRPC_PORT", 50052))
 
-
-	// Kafka configuration
 	config.Kafka.Brokers = os.Getenv("KAFKA_BROKERS")
 	config.Kafka.SaslUsername = os.Getenv("KAFKA_SASL_USERNAME")
 	config.Kafka.SaslPassword = os.Getenv("KAFKA_SASL_PASSWORD")
 	config.Kafka.SecurityProtocol = os.Getenv("KAFKA_SECURITY_PROTOCOL")
 
-	// R2 configuration
 	config.R2.AccessKeyID = os.Getenv("R2_ACCESS_KEY_ID")
 	config.R2.SecretAccessKey = os.Getenv("R2_SECRET_ACCESS_KEY")
 	config.R2.AccountID = os.Getenv("R2_ACCOUNT_ID")
@@ -182,16 +167,13 @@ func loadFromEnv() (*Config, error) {
 	config.R2.BucketSourceName = os.Getenv("R2_BUCKET_SOURCE_NAME")
 	config.R2.BucketProcessedName = os.Getenv("R2_BUCKET_PROCESSED_NAME")
 
-	// Auth configuration
 	config.Auth.ClerkSecretKey = os.Getenv("CLERK_SECRET_KEY")
 
-	// Services configuration
 	config.Services.UserGRPCAddr = getEnvOrDefault("MS_USER_GRPC_URL_INTERNAL", "localhost:50051")
 
 	return config, nil
 }
 
-// LoadFromFile loads configuration from a .env file (for development)
 func LoadFromFile(filename string) (*Config, error) {
 	if err := loadEnvFile(filename); err != nil {
 		return nil, fmt.Errorf("failed to load env file: %w", err)
@@ -199,37 +181,27 @@ func LoadFromFile(filename string) (*Config, error) {
 	return loadFromEnv()
 }
 
-// LoadForDevelopment loads configuration with development-specific logic
 func LoadForDevelopment() (*Config, error) {
-	// Try to load from .env.local first
 	if err := loadEnvFile(".env.local"); err == nil {
 		return loadFromEnv()
 	}
-
-	// Try to load from .env
 	if err := loadEnvFile(".env"); err == nil {
 		return loadFromEnv()
 	}
-
-	// Fallback to regular loading process
 	return Load()
 }
 
-// IsProduction determines if the application is running in production
 func IsProduction() bool {
 	env := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	return env == "production" || env == "prod"
 }
 
-// IsDevelopment determines if the application is running in development
 func IsDevelopment() bool {
 	env := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	return env == "development" || env == "dev" || env == ""
 }
 
-// loadEnvFile loads environment variables from a file
 func loadEnvFile(filename string) error {
-	// Resolve filename by searching upwards from CWD so tests in subdirs can find project-root .env files
 	resolved := filename
 	if _, err := os.Stat(resolved); os.IsNotExist(err) {
 		cwd, err := os.Getwd()
@@ -243,7 +215,7 @@ func loadEnvFile(filename string) error {
 				break
 			}
 			parent := filepath.Dir(dir)
-			if parent == dir { // reached root
+			if parent == dir {
 				break
 			}
 		}
@@ -269,7 +241,6 @@ func loadEnvFile(filename string) error {
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
 
-		// Remove quotes if present
 		if (strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) ||
 			(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
 			value = value[1 : len(value)-1]
@@ -281,9 +252,7 @@ func loadEnvFile(filename string) error {
 	return nil
 }
 
-// Helper functions
-
-func getEnvOrDefault(key, defaultValue string) string {
+func getEnvOrDefault(key, defaultValue string) string{
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
@@ -297,4 +266,29 @@ func getEnvOrDefaultInt64(key string, defaultValue int64) int64 {
 		}
 	}
 	return defaultValue
+}
+
+// GetPostgresDSN returns the PostgreSQL DSN string with error handling
+func (c *Config) GetPostgresDSN() (string, error) {
+	if c.Database.DSN == "" {
+		return "", fmt.Errorf("DSN is empty")
+	}
+	return c.Database.DSN, nil
+}
+
+func ensureSimpleProtocol(dsn string) (string, error) {
+	if dsn == "" {
+		return "", fmt.Errorf("DSN is empty")
+	}
+
+	parsedURL, err := url.Parse(dsn)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse DSN URL: %w", err)
+	}
+
+	q := parsedURL.Query()
+	q.Set("prefer_simple_protocol", "1")
+	parsedURL.RawQuery = q.Encode()
+
+	return parsedURL.String(), nil
 }
