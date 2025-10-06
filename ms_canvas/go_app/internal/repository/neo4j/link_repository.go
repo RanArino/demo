@@ -57,11 +57,19 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
             MATCH (s:Node {id: item.src})
             MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)
-            SET r.connection_type = item.connection_type,
+            ON CREATE SET 
+                r.connection_type = item.connection_type,
                 r.hierarchy_depth = item.hierarchy_depth,
                 r.exploration_metadata = item.exploration_metadata,
                 r.style_metadata = item.style_metadata,
                 r.created_at = datetime(item.created_at),
+                r.updated_at = datetime(item.updated_at),
+                r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
+            ON MATCH SET 
+                r.connection_type = item.connection_type,
+                r.hierarchy_depth = item.hierarchy_depth,
+                r.exploration_metadata = item.exploration_metadata,
+                r.style_metadata = item.style_metadata,
                 r.updated_at = datetime(item.updated_at),
                 r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
         `
