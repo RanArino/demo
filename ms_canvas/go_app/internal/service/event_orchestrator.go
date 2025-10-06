@@ -117,6 +117,12 @@ func (e *EventOrchestrator) HandleDocumentProcessed(event events.DocumentProcess
 		}
 		// Don't fail the entire process - the content node was successfully created
 	} else {
+		// Verify hierarchical links were created successfully before marking as completed
+		if err := e.verifyHierarchicalLinksIntegrity(ctx, contentNodeID); err != nil {
+			log.Printf("[EventOrchestrator] Warning: hierarchical links verification failed for ContentNode %s: %v", contentNodeID, err)
+			// Don't fail the process, but log the issue for monitoring
+		}
+
 		// Update status to COMPLETED on success
 		if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED, ""); err != nil {
 			log.Printf("[EventOrchestrator] Warning: failed to update chunking status to COMPLETED: %v", err)
@@ -321,11 +327,14 @@ func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []pytho
 }
 
 // createHierarchicalLinks creates hierarchical links between a ContentNode and its ChunkNodes
+// This method is idempotent and handles retry scenarios gracefully by using MERGE operations
 func (e *EventOrchestrator) createHierarchicalLinks(ctx context.Context, contentNodeID string, chunkNodeIDs []string) error {
 	if len(chunkNodeIDs) == 0 {
 		log.Printf("[EventOrchestrator] No chunk nodes to link for ContentNode: %s", contentNodeID)
 		return nil
 	}
+
+	log.Printf("[EventOrchestrator] Creating hierarchical links for ContentNode %s with %d chunk nodes", contentNodeID, len(chunkNodeIDs))
 
 	now := timestamppb.New(time.Now())
 	links := make([]*v1.HierarchicalLink, len(chunkNodeIDs))
@@ -346,11 +355,15 @@ func (e *EventOrchestrator) createHierarchicalLinks(ctx context.Context, content
 		}
 	}
 
+	// Use repository's MERGE-based operation for idempotent link creation
+	// This ensures that duplicate links are handled gracefully during retries
 	if err := e.linkRepo.CreateHierarchicalLinks(ctx, links); err != nil {
-		return fmt.Errorf("failed to create hierarchical links: %w", err)
+		// Log detailed error information for troubleshooting
+		log.Printf("[EventOrchestrator] Error creating hierarchical links for ContentNode %s: %v", contentNodeID, err)
+		return fmt.Errorf("failed to create hierarchical links for ContentNode %s: %w", contentNodeID, err)
 	}
 
-	log.Printf("[EventOrchestrator] Created %d hierarchical links for ContentNode: %s", len(links), contentNodeID)
+	log.Printf("[EventOrchestrator] Successfully created/updated %d hierarchical links for ContentNode: %s", len(links), contentNodeID)
 	return nil
 }
 
@@ -412,6 +425,13 @@ func (e *EventOrchestrator) retryChunkingAfterDelay(ctx context.Context, content
 		log.Printf("[EventOrchestrator] Warning: failed to update status before retry: %v", err)
 	}
 
+	// Clean up any existing chunk nodes and hierarchical links before retry
+	// This ensures idempotency and prevents duplicate nodes/links
+	if err := e.cleanupExistingChunkData(ctx, contentNodeID); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to cleanup existing chunk data before retry: %v", err)
+		// Continue with retry even if cleanup fails
+	}
+
 	// Retry chunking
 	log.Printf("[EventOrchestrator] Attempting retry %d/3 for ContentNode: %s", retryCount+1, contentNodeID)
 	if err := e.triggerChunkingEmbedding(ctx, contentNodeID, event); err != nil {
@@ -430,12 +450,123 @@ func (e *EventOrchestrator) retryChunkingAfterDelay(ctx context.Context, content
 			log.Printf("[EventOrchestrator] Max retries (3) reached for ContentNode: %s", contentNodeID)
 		}
 	} else {
-		// Success! Update status to COMPLETED
+		// Success! Verify hierarchical links before marking as completed
+		if err := e.verifyHierarchicalLinksIntegrity(ctx, contentNodeID); err != nil {
+			log.Printf("[EventOrchestrator] Warning: hierarchical links verification failed after retry %d for ContentNode %s: %v", retryCount+1, contentNodeID, err)
+		}
+
 		log.Printf("[EventOrchestrator] Retry %d succeeded for ContentNode: %s", retryCount+1, contentNodeID)
 		if err := e.updateChunkingStatus(ctx, contentNodeID, v1.ChunkingStatus_CHUNKING_STATUS_COMPLETED, ""); err != nil {
 			log.Printf("[EventOrchestrator] Warning: failed to update status after retry success: %v", err)
 		}
 	}
+}
+
+// cleanupExistingChunkData removes existing chunk nodes and their hierarchical links
+// for a ContentNode to ensure idempotency during retries
+func (e *EventOrchestrator) cleanupExistingChunkData(ctx context.Context, contentNodeID string) error {
+	log.Printf("[EventOrchestrator] Cleaning up existing chunk data for ContentNode: %s", contentNodeID)
+
+	// First, get the ContentNode to find its content_source_id
+	contentNodes, err := e.nodeRepo.GetNodes(ctx, []string{contentNodeID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get ContentNode for cleanup: %w", err)
+	}
+	if len(contentNodes) == 0 {
+		log.Printf("[EventOrchestrator] ContentNode %s not found during cleanup", contentNodeID)
+		return nil
+	}
+
+	contentNode, ok := contentNodes[0].Node.(*v1.Node_Content)
+	if !ok {
+		return fmt.Errorf("node %s is not a ContentNode", contentNodeID)
+	}
+
+	contentSourceID := contentNode.Content.ContentSourceId
+
+	// Find existing chunk nodes for this content source
+	chunkFilter := &v1.NodeFilter{
+		ChunkFilter: &v1.ChunkNodeFilter{
+			ContentSourceId: &contentSourceID,
+		},
+	}
+
+	existingChunkNodes, err := e.nodeRepo.SearchNodes(ctx, chunkFilter, nil, 1000) // Use high limit to get all chunks
+	if err != nil {
+		return fmt.Errorf("failed to search existing chunk nodes: %w", err)
+	}
+
+	if len(existingChunkNodes) == 0 {
+		log.Printf("[EventOrchestrator] No existing chunk nodes found for ContentNode: %s", contentNodeID)
+		return nil
+	}
+
+	// Extract chunk node IDs
+	chunkNodeIDs := make([]string, len(existingChunkNodes))
+	for i, node := range existingChunkNodes {
+		if chunkNode := node.GetChunk(); chunkNode != nil {
+			chunkNodeIDs[i] = chunkNode.Base.Id
+		}
+	}
+
+	log.Printf("[EventOrchestrator] Found %d existing chunk nodes to cleanup for ContentNode: %s", len(chunkNodeIDs), contentNodeID)
+
+	// Delete hierarchical links first (this will also clean up any existing hierarchical links)
+	if err := e.linkRepo.DeleteLinksForNodes(ctx, chunkNodeIDs); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to delete links for chunk nodes: %v", err)
+		// Continue with node deletion even if link deletion fails
+	}
+
+	// Soft delete the chunk nodes
+	if err := e.nodeRepo.SoftDeleteNodes(ctx, chunkNodeIDs); err != nil {
+		return fmt.Errorf("failed to soft delete existing chunk nodes: %w", err)
+	}
+
+	log.Printf("[EventOrchestrator] Successfully cleaned up %d chunk nodes and their links for ContentNode: %s", len(chunkNodeIDs), contentNodeID)
+	return nil
+}
+
+// verifyHierarchicalLinksIntegrity checks that hierarchical links exist between
+// a ContentNode and its ChunkNodes to ensure the chunking process completed successfully
+func (e *EventOrchestrator) verifyHierarchicalLinksIntegrity(ctx context.Context, contentNodeID string) error {
+	log.Printf("[EventOrchestrator] Verifying hierarchical links integrity for ContentNode: %s", contentNodeID)
+
+	// Get hierarchical links from this ContentNode
+	linkQuery := &v1.LinkQuery{
+		LinkTypes: []v1.LinkType{v1.LinkType_LINK_TYPE_HIERARCHICAL},
+		Filter: &v1.LinkFilter{
+			Filter: &v1.LinkFilter_Hierarchical{
+				Hierarchical: &v1.HierarchicalLinkFilter{
+					Base: &v1.BaseLinkFilter{
+						SourceId: &contentNodeID,
+					},
+				},
+			},
+		},
+	}
+
+	links, err := e.linkRepo.GetLinksByNodes(ctx, []string{contentNodeID}, v1.Direction_DIRECTION_OUTGOING, linkQuery)
+	if err != nil {
+		return fmt.Errorf("failed to get hierarchical links for verification: %w", err)
+	}
+
+	hierarchicalLinkCount := 0
+	for _, link := range links {
+		if hierarchicalLink := link.GetHierarchical(); hierarchicalLink != nil {
+			if hierarchicalLink.ConnectionType == v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION {
+				hierarchicalLinkCount++
+			}
+		}
+	}
+
+	log.Printf("[EventOrchestrator] Found %d hierarchical abstraction links for ContentNode: %s", hierarchicalLinkCount, contentNodeID)
+
+	// If no hierarchical links found, this might indicate an issue
+	if hierarchicalLinkCount == 0 {
+		return fmt.Errorf("no hierarchical abstraction links found for ContentNode %s", contentNodeID)
+	}
+
+	return nil
 }
 
 // getRetryCountForEvent extracts retry count from event metadata (always 0 for initial events)

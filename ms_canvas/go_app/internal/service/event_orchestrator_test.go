@@ -192,6 +192,8 @@ func TestEventOrchestrator_HandleDocumentProcessed(t *testing.T) {
 	// Mock for status updates (will be called but R2/Python gateway not available so chunking will be skipped)
 	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{}, nil).Maybe()
 	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil).Maybe()
+	// Mock for hierarchical links verification (will be called even when no chunks are created)
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{}, nil).Maybe()
 
 	// Create EventOrchestrator (python gateway not required for this test)
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
@@ -229,6 +231,8 @@ func TestEventOrchestrator_HandleDocumentProcessed_SkipsNonProcessed(t *testing.
 	// Mock status updates in case they're called (but shouldn't be for non-PROCESSED events)
 	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{}, nil).Maybe()
 	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil).Maybe()
+	// Mock for hierarchical links verification
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{}, nil).Maybe()
 
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
 
@@ -263,6 +267,8 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithBlobHash(t *testing.T) {
 	// Mock status updates
 	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{}, nil).Maybe()
 	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil).Maybe()
+	// Mock for hierarchical links verification
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{}, nil).Maybe()
 
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
 
@@ -296,6 +302,8 @@ func TestEventOrchestrator_HandleDocumentProcessed_CreateContentNodeError(t *tes
 	}
 
 	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.Anything).Return(assert.AnError)
+	// Mock for hierarchical links verification (won't be called due to early failure)
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{}, nil).Maybe()
 
 	orchestrator := NewEventOrchestrator(scfg, mockNodeRepo, mockLinkRepo, nil)
 
@@ -341,6 +349,13 @@ func TestEventOrchestrator_HandleDocumentProcessed_WithChunkCreation(t *testing.
 		{Node: &v1.Node_Content{Content: &v1.ContentNode{}}},
 	}, nil)
 	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil)
+	// Mock hierarchical links creation and verification
+	mockLinkRepo.On("CreateHierarchicalLinks", mock.Anything, mock.Anything).Return(nil)
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{
+		{Link: &v1.Link_Hierarchical{Hierarchical: &v1.HierarchicalLink{
+			ConnectionType: v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION,
+		}}},
+	}, nil)
 
 	gateway := new(MockPythonGateway)
 	r2 := new(MockR2Client)
@@ -420,6 +435,14 @@ func TestEventOrchestrator_HandleDocumentProcessed_ChunkingStatusTracking(t *tes
 	})).Return(nil).Times(2)
 
 	mockNodeRepo.On("CreateChunkNodes", mock.Anything, mock.Anything).Return(nil)
+	
+	// Mock hierarchical links creation and verification
+	mockLinkRepo.On("CreateHierarchicalLinks", mock.Anything, mock.Anything).Return(nil)
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{
+		{Link: &v1.Link_Hierarchical{Hierarchical: &v1.HierarchicalLink{
+			ConnectionType: v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION,
+		}}},
+	}, nil)
 
 	gateway := new(MockPythonGateway)
 	r2 := new(MockR2Client)
@@ -473,6 +496,9 @@ func TestEventOrchestrator_HandleDocumentProcessed_ChunkingStatusFailure(t *test
 	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.MatchedBy(func(node *v1.ContentNode) bool {
 		return node.ChunkingStatus != nil
 	})).Return(nil).Times(2)
+	
+	// Mock for hierarchical links verification (won't be called due to failure)
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{}, nil).Maybe()
 
 	gateway := new(MockPythonGateway)
 	r2 := new(MockR2Client)
@@ -501,6 +527,183 @@ func TestEventOrchestrator_HandleDocumentProcessed_ChunkingStatusFailure(t *test
 	// Should not fail the entire process
 	assert.NoError(t, err)
 	mockNodeRepo.AssertExpectations(t)
+}
+
+// Test hierarchical links creation during normal processing
+func TestEventOrchestrator_HierarchicalLinksCreation(t *testing.T) {
+	mockNodeRepo := new(MockNodeRepository)
+	mockLinkRepo := new(MockLinkRepository)
+
+	cfg := config.Config{
+		Topics: config.Topics{
+			DocumentProcessed: "document.processed",
+		},
+		R2Config: config.R2Config{Endpoint: "test"},
+	}
+
+	// Mock successful chunking workflow
+	chunk := python.ChunkInfo{
+		ID:            "chunk-1",
+		Content:       "chunk content",
+		SequenceIndex: 1,
+		StartPosition: 0,
+		EndPosition:   10,
+	}
+
+	mockNodeRepo.On("CreateContentNodes", mock.Anything, mock.Anything).Return(nil)
+	mockNodeRepo.On("CreateChunkNodes", mock.Anything, mock.Anything).Return(nil)
+
+	// Mock status updates
+	mockNodeRepo.On("GetNodes", mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Node{
+		{Node: &v1.Node_Content{Content: &v1.ContentNode{ContentSourceId: "test-source-id"}}},
+	}, nil)
+	mockNodeRepo.On("UpdateContentNode", mock.Anything, mock.Anything).Return(nil)
+
+	// Mock link operations - should handle duplicates gracefully
+	mockLinkRepo.On("CreateHierarchicalLinks", mock.Anything, mock.Anything).Return(nil)
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*v1.Link{
+		{Link: &v1.Link_Hierarchical{Hierarchical: &v1.HierarchicalLink{
+			ConnectionType: v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION,
+		}}},
+	}, nil)
+
+	gateway := new(MockPythonGateway)
+	r2 := new(MockR2Client)
+
+	objKey := "owner/spaces/space/content/content.md"
+	r2.On("DownloadFile", objKey).Return([]byte("dummy markdown"), nil)
+	gateway.On("ChunkDocument", mock.Anything, mock.Anything, mock.Anything).Return(&python.ChunkDocumentResponse{Chunks: []python.ChunkInfo{chunk}}, nil)
+
+	orchestrator := &EventOrchestrator{
+		config:        cfg,
+		nodeRepo:      mockNodeRepo,
+		linkRepo:      mockLinkRepo,
+		pythonGateway: gateway,
+		r2Client:      r2,
+	}
+
+	event := events.DocumentProcessedEvent{
+		ContentSourceID:    uuid.New(),
+		SpaceID:            uuid.New(),
+		Status:             events.ProcessStatusProcessed,
+		ProcessedObjectKey: &objKey,
+		Title:              "Test Doc",
+		Summary:            "Test Summary",
+	}
+
+	// Test initial processing
+	err := orchestrator.HandleDocumentProcessed(event)
+	assert.NoError(t, err)
+
+	// Verify hierarchical links were created
+	mockLinkRepo.AssertCalled(t, "CreateHierarchicalLinks", mock.Anything, mock.MatchedBy(func(links []*v1.HierarchicalLink) bool {
+		return len(links) == 1 &&
+			links[0].ConnectionType == v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION &&
+			links[0].HierarchyDepth == 1
+	}))
+
+	mockNodeRepo.AssertExpectations(t)
+	mockLinkRepo.AssertExpectations(t)
+}
+
+func TestEventOrchestrator_CleanupExistingChunkData(t *testing.T) {
+	mockNodeRepo := new(MockNodeRepository)
+	mockLinkRepo := new(MockLinkRepository)
+
+	cfg := config.Config{}
+
+	orchestrator := &EventOrchestrator{
+		config:   cfg,
+		nodeRepo: mockNodeRepo,
+		linkRepo: mockLinkRepo,
+	}
+
+	contentNodeID := "test-content-node"
+	contentSourceID := "test-source-id"
+
+	// Mock getting the ContentNode
+	mockNodeRepo.On("GetNodes", mock.Anything, []string{contentNodeID}, mock.Anything).Return([]*v1.Node{
+		{Node: &v1.Node_Content{Content: &v1.ContentNode{ContentSourceId: contentSourceID}}},
+	}, nil)
+
+	// Mock finding existing chunk nodes
+	mockNodeRepo.On("SearchNodes", mock.Anything, mock.MatchedBy(func(filter *v1.NodeFilter) bool {
+		return filter.ChunkFilter != nil && 
+			filter.ChunkFilter.ContentSourceId != nil &&
+			*filter.ChunkFilter.ContentSourceId == contentSourceID
+	}), mock.Anything, int32(1000)).Return([]*v1.Node{
+		{Node: &v1.Node_Chunk{Chunk: &v1.ChunkNode{Base: &v1.BaseNode{Id: "chunk-1"}}}},
+		{Node: &v1.Node_Chunk{Chunk: &v1.ChunkNode{Base: &v1.BaseNode{Id: "chunk-2"}}}},
+	}, nil)
+
+	// Mock cleanup operations
+	mockLinkRepo.On("DeleteLinksForNodes", mock.Anything, []string{"chunk-1", "chunk-2"}).Return(nil)
+	mockNodeRepo.On("SoftDeleteNodes", mock.Anything, []string{"chunk-1", "chunk-2"}).Return(nil)
+
+	// Execute cleanup
+	err := orchestrator.cleanupExistingChunkData(context.Background(), contentNodeID)
+
+	// Assert
+	assert.NoError(t, err)
+	mockNodeRepo.AssertExpectations(t)
+	mockLinkRepo.AssertExpectations(t)
+}
+
+func TestEventOrchestrator_VerifyHierarchicalLinksIntegrity(t *testing.T) {
+	mockNodeRepo := new(MockNodeRepository)
+	mockLinkRepo := new(MockLinkRepository)
+
+	cfg := config.Config{}
+
+	orchestrator := &EventOrchestrator{
+		config:   cfg,
+		nodeRepo: mockNodeRepo,
+		linkRepo: mockLinkRepo,
+	}
+
+	contentNodeID := "test-content-node"
+
+	// Mock successful verification - hierarchical links exist
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, []string{contentNodeID}, v1.Direction_DIRECTION_OUTGOING, mock.MatchedBy(func(query *v1.LinkQuery) bool {
+		return len(query.LinkTypes) == 1 && query.LinkTypes[0] == v1.LinkType_LINK_TYPE_HIERARCHICAL
+	})).Return([]*v1.Link{
+		{Link: &v1.Link_Hierarchical{Hierarchical: &v1.HierarchicalLink{
+			ConnectionType: v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION,
+		}}},
+	}, nil)
+
+	// Execute verification
+	err := orchestrator.verifyHierarchicalLinksIntegrity(context.Background(), contentNodeID)
+
+	// Assert
+	assert.NoError(t, err)
+	mockLinkRepo.AssertExpectations(t)
+}
+
+func TestEventOrchestrator_VerifyHierarchicalLinksIntegrity_NoLinks(t *testing.T) {
+	mockNodeRepo := new(MockNodeRepository)
+	mockLinkRepo := new(MockLinkRepository)
+
+	cfg := config.Config{}
+
+	orchestrator := &EventOrchestrator{
+		config:   cfg,
+		nodeRepo: mockNodeRepo,
+		linkRepo: mockLinkRepo,
+	}
+
+	contentNodeID := "test-content-node"
+
+	// Mock verification failure - no hierarchical links found
+	mockLinkRepo.On("GetLinksByNodes", mock.Anything, []string{contentNodeID}, v1.Direction_DIRECTION_OUTGOING, mock.Anything).Return([]*v1.Link{}, nil)
+
+	// Execute verification
+	err := orchestrator.verifyHierarchicalLinksIntegrity(context.Background(), contentNodeID)
+
+	// Assert - should return error when no links found
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no hierarchical abstraction links found")
+	mockLinkRepo.AssertExpectations(t)
 }
 
 // Additional task-related tests are implemented in the task executor test suite.
