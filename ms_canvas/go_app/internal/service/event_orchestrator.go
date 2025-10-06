@@ -305,7 +305,53 @@ func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []pytho
 		return fmt.Errorf("failed to create chunk nodes: %w", err)
 	}
 
+	// Extract chunk node IDs for hierarchical linking
+	chunkNodeIDs := make([]string, len(chunkNodes))
+	for i, chunkNode := range chunkNodes {
+		chunkNodeIDs[i] = chunkNode.Base.Id
+	}
+
+	// Create hierarchical links between ContentNode and ChunkNodes
+	if err := e.createHierarchicalLinks(ctx, contentNodeID, chunkNodeIDs); err != nil {
+		log.Printf("[EventOrchestrator] Warning: failed to create hierarchical links for ContentNode %s: %v", contentNodeID, err)
+		// Don't fail the entire process - chunks were successfully created
+	}
+
 	log.Printf("[EventOrchestrator] Successfully created %d chunk nodes", len(chunkNodes))
+	return nil
+}
+
+// createHierarchicalLinks creates hierarchical links between a ContentNode and its ChunkNodes
+func (e *EventOrchestrator) createHierarchicalLinks(ctx context.Context, contentNodeID string, chunkNodeIDs []string) error {
+	if len(chunkNodeIDs) == 0 {
+		log.Printf("[EventOrchestrator] No chunk nodes to link for ContentNode: %s", contentNodeID)
+		return nil
+	}
+
+	now := timestamppb.New(time.Now())
+	links := make([]*v1.HierarchicalLink, len(chunkNodeIDs))
+
+	for i, chunkNodeID := range chunkNodeIDs {
+		linkID := uuid.New().String()
+		
+		links[i] = &v1.HierarchicalLink{
+			Base: &v1.BaseLink{
+				Id:        linkID,
+				SourceId:  contentNodeID,
+				TargetId:  chunkNodeID,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			ConnectionType: v1.HierarchicalConnectionType_HIERARCHICAL_CONNECTION_TYPE_ABSTRACTION,
+			HierarchyDepth: 1,
+		}
+	}
+
+	if err := e.linkRepo.CreateHierarchicalLinks(ctx, links); err != nil {
+		return fmt.Errorf("failed to create hierarchical links: %w", err)
+	}
+
+	log.Printf("[EventOrchestrator] Created %d hierarchical links for ContentNode: %s", len(links), contentNodeID)
 	return nil
 }
 
