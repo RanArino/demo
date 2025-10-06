@@ -342,7 +342,7 @@ func (e *EventOrchestrator) createHierarchicalLinks(ctx context.Context, content
 
 	for i, chunkNodeID := range chunkNodeIDs {
 		linkID := uuid.New().String()
-		
+
 		links[i] = &v1.HierarchicalLink{
 			Base: &v1.BaseLink{
 				Id:        linkID,
