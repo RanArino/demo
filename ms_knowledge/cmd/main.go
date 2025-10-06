@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"log/slog"
@@ -23,52 +24,51 @@ import (
 
 	userv1 "demo/ms_user/api/proto/v1"
 
-	_ "github.com/lib/pq"
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	// Initialize structured logger
 	handler := slog.NewTextHandler(os.Stdout, nil)
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
 
-	// Create a context that can be cancelled.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Initialize database connection
-	client, err := ent.Open(cfg.Database.Driver, cfg.Database.DSN)
+	db, err := connectDB(cfg)
 	if err != nil {
 		slog.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
 	}
+	defer db.Close()
+
+	drv := entsql.OpenDB(dialect.Postgres, db)
+	client := ent.NewClient(ent.Driver(drv))
 	defer client.Close()
 
-	// Run database migrations
 	if err := client.Schema.Create(ctx); err != nil {
 		slog.Error("Failed to run database migrations", "error", err)
 		os.Exit(1)
 	}
 
-	// Initialize repositories
 	spaceRepo := repository.NewSpaceRepository(client)
 	contentRepo := repository.NewContentRepository(client)
 
-	// Initialize services
 	contentLogger := slog.NewLogLogger(handler, slog.LevelInfo)
 	spaceService := service.NewSpaceService(spaceRepo, contentRepo)
 
-	// Initialize R2 storage client
 	r2Client, err := storager2.NewClient(ctx, storager2.Config{
 		Endpoint:        cfg.R2.Endpoint,
 		Region:          cfg.R2.Region,
@@ -81,7 +81,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize Kafka producer and consumer for events
 	producer, err := events.NewProducer(cfg)
 	if err != nil {
 		slog.Error("Failed to create Kafka producer", "error", err)
@@ -91,10 +90,8 @@ func main() {
 
 	r2Storage := storager2.NewAdapter(r2Client)
 	contentService := service.NewContentService(contentRepo, spaceRepo, r2Storage, producer, cfg, contentLogger)
-	// Initialize gRPC server
 	grpcServer := server.NewGRPCServer(spaceService, contentService)
 
-	// Initialize User service client for authentication
 	var userClient userv1.UserServiceClient
 	var userConn *grpc.ClientConn
 	userSvcAddr := cfg.Services.UserGRPCAddr
@@ -112,14 +109,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Wire user service client for server-side identity resolution
 	grpcServer = grpcServer.WithUserClient(userClient)
 
-	// Create gRPC server with authentication
 	clerkKey := cfg.Auth.ClerkSecretKey
 	var serverOpts []grpc.ServerOption
 	if clerkKey != "" {
-		// Create auth interceptor with User service client dependency
 		authI := kmw.NewAuthInterceptor(clerkKey, userClient)
 		serverOpts = append(serverOpts, grpc.UnaryInterceptor(authI.Unary()))
 		slog.Info("Authentication interceptor enabled", "clerk_configured", true, "user_service_configured", true)
@@ -130,10 +124,8 @@ func main() {
 	srv := grpc.NewServer(serverOpts...)
 	knowledgev1.RegisterKnowledgeServiceServer(srv, grpcServer)
 
-	// Enable reflection for development
 	reflection.Register(srv)
 
-	// Start document.processed consumer in background
 	consumer, err := events.NewConsumer(cfg, "ms_knowledge-processed-group", &processedHandler{svc: contentService})
 	if err != nil {
 		slog.Error("Failed to create Kafka consumer", "error", err)
@@ -142,7 +134,6 @@ func main() {
 	defer consumer.Close()
 	go consumer.Run(ctx)
 
-	// Start gRPC server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.Port))
 	if err != nil {
 		slog.Error("Failed to listen", "error", err)
@@ -157,17 +148,14 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	// Shutdown
 	slog.Info("Shutting down server...")
-	cancel() // Cancel context for consumer
+	cancel()
 	srv.GracefulStop()
 
-	// Close User service connection
 	if userConn != nil {
 		if err := userConn.Close(); err != nil {
 			slog.Warn("Failed to close User service connection", "error", err)
@@ -177,7 +165,28 @@ func main() {
 	slog.Info("Server stopped")
 }
 
-// mapProcessStatusToContentStatus safely maps events.ProcessStatus to domain.ContentStatus.
+func connectDB(cfg *config.Config) (*sql.DB, error) {
+	dsn, err := cfg.GetPostgresDSN()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DSN: %w", err)
+	}
+
+	pgxConfig, err := pgx.ParseConfig(dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse DSN: %w", err)
+	}
+
+	pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	db := stdlib.OpenDB(*pgxConfig)
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	slog.Info("Successfully connected to database", "host", pgxConfig.Host, "port", pgxConfig.Port)
+	return db, nil
+}
+
 func mapProcessStatusToContentStatus(status events.ProcessStatus) (domain.ContentStatus, error) {
 	switch status {
 	case events.ProcessStatusPending:
@@ -193,7 +202,6 @@ func mapProcessStatusToContentStatus(status events.ProcessStatus) (domain.Conten
 	}
 }
 
-// processedHandler adapts the consumer callback to the service method.
 type processedHandler struct {
 	svc *service.ContentService
 }
