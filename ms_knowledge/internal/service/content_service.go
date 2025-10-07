@@ -106,12 +106,13 @@ func (s *ContentService) CreateUploadURL(ctx context.Context, spaceID uuid.UUID,
 		return nil, "", "", time.Time{}, fmt.Errorf("mime_type is required")
 	}
 
-	// Check if space exists
-	exists, err := s.spaceRepo.Exists(ctx, spaceID)
+	// Check if space exists AND is owned by the caller
+	space, err := s.spaceRepo.GetByID(ctx, spaceID)
 	if err != nil {
-		return nil, "", "", time.Time{}, fmt.Errorf("failed to check space existence: %w", err)
+		return nil, "", "", time.Time{}, fmt.Errorf("space not found")
 	}
-	if !exists {
+	// Verify the space belongs to the caller
+	if err := EnforceOwner(ctx, space.OwnerID); err != nil {
 		return nil, "", "", time.Time{}, fmt.Errorf("space not found")
 	}
 
@@ -231,13 +232,14 @@ func (s *ContentService) ListContentSources(ctx context.Context, filter domain.C
 		return nil, err
 	}
 
-	// If filtering by specific space, validate it exists
+	// If filtering by specific space, validate it exists AND is owned by the caller
 	if filter.SpaceID != uuid.Nil {
-		exists, err := s.spaceRepo.Exists(ctx, filter.SpaceID)
+		space, err := s.spaceRepo.GetByID(ctx, filter.SpaceID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to check space existence: %w", err)
+			return nil, fmt.Errorf("space not found: %s", filter.SpaceID)
 		}
-		if !exists {
+		// Verify the space belongs to the caller
+		if err := EnforceOwner(ctx, space.OwnerID); err != nil {
 			return nil, fmt.Errorf("space not found: %s", filter.SpaceID)
 		}
 	}
