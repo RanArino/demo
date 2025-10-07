@@ -41,9 +41,7 @@ func (r *entUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	entUser, err := r.client.User.
 		Query().
 		Where(user.ID(id)).
-		WithPreferences(func(q *ent.UserPreferencesQuery) {
-			q.WithUser()
-		}).
+		WithPreferences().
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -55,9 +53,7 @@ func (r *entUserRepository) GetByClerkID(ctx context.Context, clerkID string) (*
 	entUser, err := r.client.User.
 		Query().
 		Where(user.ClerkUserID(clerkID)).
-		WithPreferences(func(q *ent.UserPreferencesQuery) {
-			q.WithUser()
-		}).
+		WithPreferences().
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -146,18 +142,17 @@ func (r *entUserRepository) UpdatePreferences(ctx context.Context, userID uuid.U
 		return nil, err
 	}
 
-	// Reload the entity to ensure all edges are loaded, especially the User edge.
+	// Reload the entity to ensure all fields are loaded
 	entPrefs, err = r.client.UserPreferences.
 		Query().
 		Where(userpreferences.ID(entPrefs.ID)).
-		WithUser().
 		Only(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return toDomainUserPreferences(entPrefs), nil
+	return toDomainUserPreferences(entPrefs, userID), nil
 }
 
 // --- Conversion Helpers ---
@@ -182,20 +177,20 @@ func toDomainUser(entUser *ent.User) *domain.User {
 	}
 
 	if entUser.Edges.Preferences != nil {
-		domainUser.Preferences = toDomainUserPreferences(entUser.Edges.Preferences)
+		domainUser.Preferences = toDomainUserPreferences(entUser.Edges.Preferences, entUser.ID)
 	}
 
 	return domainUser
 }
 
-func toDomainUserPreferences(entPrefs *ent.UserPreferences) *domain.UserPreferences {
+func toDomainUserPreferences(entPrefs *ent.UserPreferences, userID uuid.UUID) *domain.UserPreferences {
 	if entPrefs == nil {
 		return nil
 	}
 
 	return &domain.UserPreferences{
 		ID:                    entPrefs.ID,
-		UserID:                entPrefs.Edges.User.ID,
+		UserID:                userID,
 		Theme:                 entPrefs.Theme,
 		Language:              entPrefs.Language,
 		Timezone:              entPrefs.Timezone,

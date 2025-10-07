@@ -11,9 +11,6 @@ services:
     environment:
       - GRPC_PORT=50051
       - WEBHOOK_PORT=8081
-      - DATABASE_URL=${DATABASE_URL}
-      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
-      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
     restart: unless-stopped
     networks:
       - app-network
@@ -29,18 +26,6 @@ services:
     environment:
       - GRPC_PORT=50052
       - MS_USER_GRPC_URL_INTERNAL=ms_user:50051
-      - DATABASE_URL=${DATABASE_URL}
-      - KAFKA_BROKERS=${KAFKA_BROKERS}
-      - KAFKA_SASL_USERNAME=${KAFKA_SASL_USERNAME}
-      - KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
-      - KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL}
-      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
-      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
-      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-      - R2_ENDPOINT=${R2_ENDPOINT}
-      - R2_REGION=${R2_REGION}
-      - R2_BUCKET_SOURCE_NAME=${R2_BUCKET_SOURCE_NAME}
-      - R2_BUCKET_PROCESSED_NAME=${R2_BUCKET_PROCESSED_NAME}
     restart: unless-stopped
     networks:
       - app-network

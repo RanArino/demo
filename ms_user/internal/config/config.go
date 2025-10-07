@@ -4,12 +4,12 @@ import (
 	"context"
 	"demo/ms_user/internal/secrets"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
 )
 
-// Config holds the application configuration.
 type Config struct {
 	ClerkSecretKey        string
 	ClerkWebhookSecret    string
@@ -20,30 +20,23 @@ type Config struct {
 	DefaultStorageQuotaGB int64
 }
 
-// SecretKeys defines the keys needed from the secret manager
 var SecretKeys = []string{
 	"CLERK_SECRET_KEY",
 	"CLERK_WEBHOOK_SECRET",
 	"DATABASE_URL",
 }
 
-// Load loads the configuration from the secret manager with fallback to environment variables.
 func Load() (*Config, error) {
 	return LoadWithContext(context.Background())
 }
 
-// LoadWithContext loads the configuration with a specific context
 func LoadWithContext(ctx context.Context) (*Config, error) {
-	// Try to load from secret manager first
 	if cfg, err := loadFromSecretManager(ctx); err == nil {
 		return cfg, nil
 	}
-
-	// Fallback to environment variables
 	return loadFromEnv()
 }
 
-// loadFromSecretManager loads configuration from cloud secret managers
 func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	secretManager, err := secrets.NewSecretManagerFromEnv(ctx)
 	if err != nil {
@@ -51,23 +44,26 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	}
 	defer secretManager.Close()
 
-	// Get required secrets
 	secretValues, err := secretManager.GetSecrets(ctx, SecretKeys)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get secrets: %w", err)
 	}
 
-	// Validate required secrets
-	for _, key := range SecretKeys[:1] { // Only CLERK_SECRET_KEY is required
+	for _, key := range SecretKeys[:1] {
 		if secretValues[key] == "" {
 			return nil, fmt.Errorf("required secret %s is empty", key)
 		}
 	}
 
+	dsn, err := ensureSimpleProtocol(secretValues["DATABASE_URL"])
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare DSN: %w", err)
+	}
+
 	config := &Config{
 		ClerkSecretKey:        secretValues["CLERK_SECRET_KEY"],
 		ClerkWebhookSecret:    secretValues["CLERK_WEBHOOK_SECRET"],
-		DSN:                   secretValues["DATABASE_URL"],
+		DSN:                   dsn,
 		GRPCServerPort:        getEnvOrDefault("GRPC_PORT", "50051"),
 		WebhookServerPort:     getEnvOrDefault("WEBHOOK_PORT", "8081"),
 		WebhookMaxBodySize:    getEnvOrDefaultInt64("WEBHOOK_MAX_BODY_SIZE_MB", 1) << 20,
@@ -77,7 +73,6 @@ func loadFromSecretManager(ctx context.Context) (*Config, error) {
 	return config, nil
 }
 
-// loadFromEnv loads configuration from environment variables (fallback)
 func loadFromEnv() (*Config, error) {
 	secretKey := os.Getenv("CLERK_SECRET_KEY")
 	if secretKey == "" {
@@ -89,9 +84,14 @@ func loadFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("CLERK_WEBHOOK_SECRET not set")
 	}
 
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
+	rawDSN := os.Getenv("DATABASE_URL")
+	if rawDSN == "" {
 		return nil, fmt.Errorf("DATABASE_URL environment variable is required")
+	}
+
+	dsn, err := ensureSimpleProtocol(rawDSN)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare DSN: %w", err)
 	}
 
 	return &Config{
@@ -105,7 +105,6 @@ func loadFromEnv() (*Config, error) {
 	}, nil
 }
 
-// LoadFromFile loads configuration from a .env file (for development)
 func LoadFromFile(filename string) (*Config, error) {
 	if err := loadEnvFile(filename); err != nil {
 		return nil, fmt.Errorf("failed to load env file: %w", err)
@@ -113,35 +112,26 @@ func LoadFromFile(filename string) (*Config, error) {
 	return loadFromEnv()
 }
 
-// LoadForDevelopment loads configuration with development-specific logic
 func LoadForDevelopment() (*Config, error) {
-	// Try to load from .env.local first
 	if err := loadEnvFile(".env.local"); err == nil {
 		return loadFromEnv()
 	}
-
-	// Try to load from .env
 	if err := loadEnvFile(".env"); err == nil {
 		return loadFromEnv()
 	}
-
-	// Fallback to regular loading process
 	return Load()
 }
 
-// IsProduction determines if the application is running in production
 func IsProduction() bool {
 	env := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	return env == "production" || env == "prod"
 }
 
-// IsDevelopment determines if the application is running in development
 func IsDevelopment() bool {
 	env := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	return env == "development" || env == "dev" || env == ""
 }
 
-// loadEnvFile loads environment variables from a file
 func loadEnvFile(filename string) error {
 	file, err := os.ReadFile(filename)
 	if err != nil {
@@ -163,7 +153,6 @@ func loadEnvFile(filename string) error {
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
 
-		// Remove quotes if present
 		if (strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) ||
 			(strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`)) {
 			value = value[1 : len(value)-1]
@@ -174,8 +163,6 @@ func loadEnvFile(filename string) error {
 
 	return nil
 }
-
-// Helper functions
 
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
@@ -191,4 +178,29 @@ func getEnvOrDefaultInt64(key string, defaultValue int64) int64 {
 		}
 	}
 	return defaultValue
+}
+
+// GetPostgresDSN returns the PostgreSQL DSN string with error handling
+func (c *Config) GetPostgresDSN() (string, error) {
+	if c.DSN == "" {
+		return "", fmt.Errorf("DSN is empty")
+	}
+	return c.DSN, nil
+}
+
+func ensureSimpleProtocol(dsn string) (string, error) {
+	if dsn == "" {
+		return "", fmt.Errorf("DSN is empty")
+	}
+
+	parsedURL, err := url.Parse(dsn)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse DSN URL: %w", err)
+	}
+
+	q := parsedURL.Query()
+	q.Set("prefer_simple_protocol", "1")
+	parsedURL.RawQuery = q.Encode()
+
+	return parsedURL.String(), nil
 }

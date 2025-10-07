@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	userv1 "demo/ms_user/api/proto/v1"
 	"demo/ms_user/ent"
 	"demo/ms_user/internal/config"
@@ -13,54 +14,53 @@ import (
 	"log"
 	"net"
 
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/client"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	// Initialize Clerk backend globally for the SDK
 	clerk.SetBackend(clerk.NewBackend(&clerk.BackendConfig{
 		HTTPClient: nil,
 		Key:        &cfg.ClerkSecretKey,
 	}))
 
-	// Initialize Clerk client
 	clerkClient := client.NewClient(&clerk.ClientConfig{
 		BackendConfig: clerk.BackendConfig{
 			Key: &cfg.ClerkSecretKey,
 		},
 	})
 
-	// Create Ent client
-	entClient, err := ent.Open("postgres", cfg.DSN)
+	db, err := connectDB(cfg)
 	if err != nil {
-		log.Fatalf("failed opening connection to postgres: %v", err)
+		log.Fatalf("failed to connect to database: %v", err)
 	}
+	defer db.Close()
+
+	drv := entsql.OpenDB(dialect.Postgres, db)
+	entClient := ent.NewClient(ent.Driver(drv))
 	defer entClient.Close()
 
-	// Run the auto migration tool.
 	if err := entClient.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
-	// Initialize layers
 	userRepo := repository.NewEntUserRepository(entClient)
 	userService := service.NewUserService(userRepo, clerkClient, cfg.DefaultStorageQuotaGB)
 	authInterceptor := middleware.NewAuthInterceptor(clerkClient, cfg.ClerkSecretKey)
 	grpcServer := server.NewGRPCServer(userService)
 
-	// Start HTTP server for webhooks in a separate goroutine
 	go server.StartHTTPServer(cfg.WebhookServerPort, userService, cfg.ClerkWebhookSecret)
 
-	// Start gRPC server
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCServerPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -73,4 +73,26 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func connectDB(cfg *config.Config) (*sql.DB, error) {
+	dsn, err := cfg.GetPostgresDSN()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DSN: %w", err)
+	}
+
+	pgxConfig, err := pgx.ParseConfig(dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse DSN: %w", err)
+	}
+
+	pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	db := stdlib.OpenDB(*pgxConfig)
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	log.Printf("Successfully connected to database at %s:%d", pgxConfig.Host, pgxConfig.Port)
+	return db, nil
 }
