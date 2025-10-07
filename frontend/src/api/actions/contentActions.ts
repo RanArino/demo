@@ -15,7 +15,6 @@ import {
   DownloadObjectKind,
 } from '../generated/v1/knowledge_pb';
 import { ActionResult } from '@/lib/types';
-import { Timestamp } from '@bufbuild/protobuf';
 import { createAuthHeaders, sanitizeError, sanitizeProtobufForJson, isUnauthorizedError, logAuthFailure } from './utils';
 import { cache } from 'react';
 import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
@@ -30,7 +29,8 @@ async function listContentSourcesCore(
   try {
     const client = getKnowledgeServiceClient();
 
-    const request: Partial<ListContentSourcesRequest> = { spaceId };
+    // Properly construct the request object instead of using Partial
+    const requestData: { spaceId: string; status?: ContentStatus } = { spaceId };
     if (status) {
       const statusMap = {
         uploading: ContentStatus.UPLOADING,
@@ -40,10 +40,11 @@ async function listContentSourcesCore(
         failed: ContentStatus.FAILED,
       };
       if (status in statusMap) {
-        request.status = statusMap[status as keyof typeof statusMap];
+        requestData.status = statusMap[status as keyof typeof statusMap];
       }
     }
 
+    const request = new ListContentSourcesRequest(requestData);
     const response = await client.listContentSources(request, { headers });
     const { normalizeContentSourceForClient } = await import('./utils');
     const sanitizedItems = response.items
@@ -111,7 +112,8 @@ export async function listContentSourcesUncached(
     const headers = await createAuthHeaders();
     const client = getKnowledgeServiceClient();
 
-    const request: Partial<ListContentSourcesRequest> = { spaceId };
+    // Properly construct the request object instead of using Partial
+    const requestData: { spaceId: string; status?: ContentStatus } = { spaceId };
     if (status) {
       const statusMap = {
         uploading: ContentStatus.UPLOADING,
@@ -121,11 +123,12 @@ export async function listContentSourcesUncached(
         failed: ContentStatus.FAILED,
       };
       if (status in statusMap) {
-        request.status = statusMap[status as keyof typeof statusMap];
+        requestData.status = statusMap[status as keyof typeof statusMap];
       }
     }
 
-    const response = await client.listContentSources(request as ListContentSourcesRequest, { headers });
+    const request = new ListContentSourcesRequest(requestData);
+    const response = await client.listContentSources(request, { headers });
     const { normalizeContentSourceForClient } = await import('./utils');
     const sanitizedItems = response.items
       .map(item => sanitizeProtobufForJson(item))

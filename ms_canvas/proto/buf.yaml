@@ -1,0 +1,8 @@
+version: v1
+name: buf.build/demo/canvas
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
