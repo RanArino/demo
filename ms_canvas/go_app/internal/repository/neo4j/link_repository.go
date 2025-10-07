@@ -37,17 +37,24 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
 			if updatedAt.IsZero() {
 				updatedAt = createdAt
 			}
-			items = append(items, map[string]any{
-				"src":                  link.Base.SourceId,
-				"dst":                  link.Base.TargetId,
-				"connection_type":      link.ConnectionType,
-				"hierarchy_depth":      link.HierarchyDepth,
-				"exploration_metadata": structToMap(link.Base.ExplorationMetadata),
-				"style_metadata":       structToMap(link.Base.StyleMetadata),
-				"created_at":           createdAt,
-				"updated_at":           updatedAt,
-				"deleted_at":           link.Base.DeletedAt.AsTime(),
-			})
+			item := map[string]any{
+				"id":              link.Base.Id,
+				"src":             link.Base.SourceId,
+				"dst":             link.Base.TargetId,
+				"connection_type": link.ConnectionType,
+				"hierarchy_depth": link.HierarchyDepth,
+				"created_at":      createdAt,
+				"updated_at":      updatedAt,
+				"deleted_at":      link.Base.DeletedAt.AsTime(),
+			}
+			// Only add metadata if not nil (avoid Go typed nil issue with Neo4j)
+			if explorationMeta := structToMap(link.Base.ExplorationMetadata); explorationMeta != nil {
+				item["exploration_metadata"] = explorationMeta
+			}
+			if styleMeta := structToMap(link.Base.StyleMetadata); styleMeta != nil {
+				item["style_metadata"] = styleMeta
+			}
+			items = append(items, item)
 		}
 		params := map[string]any{
 			"items": items,
@@ -57,7 +64,8 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
             MATCH (s:Node {id: item.src})
             MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:HIERARCHICAL_PARENT]->(t)
-            ON CREATE SET 
+            ON CREATE SET
+                r.id = item.id,
                 r.connection_type = item.connection_type,
                 r.hierarchy_depth = item.hierarchy_depth,
                 r.exploration_metadata = item.exploration_metadata,
@@ -65,7 +73,8 @@ func (r *LinkRepo) CreateHierarchicalLinks(ctx context.Context, links []*canvasv
                 r.created_at = datetime(item.created_at),
                 r.updated_at = datetime(item.updated_at),
                 r.deleted_at = CASE WHEN item.deleted_at IS NULL THEN NULL ELSE datetime(item.deleted_at) END
-            ON MATCH SET 
+            ON MATCH SET
+                r.id = item.id,
                 r.connection_type = item.connection_type,
                 r.hierarchy_depth = item.hierarchy_depth,
                 r.exploration_metadata = item.exploration_metadata,
@@ -97,22 +106,29 @@ func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*canvasv1.Se
 			if updatedAt.IsZero() {
 				updatedAt = createdAt
 			}
-			items = append(items, map[string]any{
-				"src":                  link.Base.SourceId,
-				"dst":                  link.Base.TargetId,
-				"connection_type":      link.ConnectionType,
-				"strength_score":       link.StrengthScore,
-				"similarity_score":     link.SimilarityScore,
-				"abstraction_bridge":   link.AbstractionBridge,
-				"hierarchical_bridge":  link.HierarchicalBridge,
-				"semantic_tags":        link.SemanticTags,
-				"description":          link.Description,
-				"exploration_metadata": structToMap(link.Base.ExplorationMetadata),
-				"style_metadata":       structToMap(link.Base.StyleMetadata),
-				"created_at":           createdAt,
-				"updated_at":           updatedAt,
-				"deleted_at":           link.Base.DeletedAt.AsTime(),
-			})
+			item := map[string]any{
+				"id":                  link.Base.Id,
+				"src":                 link.Base.SourceId,
+				"dst":                 link.Base.TargetId,
+				"connection_type":     link.ConnectionType,
+				"strength_score":      link.StrengthScore,
+				"similarity_score":    link.SimilarityScore,
+				"abstraction_bridge":  link.AbstractionBridge,
+				"hierarchical_bridge": link.HierarchicalBridge,
+				"semantic_tags":       link.SemanticTags,
+				"description":         link.Description,
+				"created_at":          createdAt,
+				"updated_at":          updatedAt,
+				"deleted_at":          link.Base.DeletedAt.AsTime(),
+			}
+			// Only add metadata if not nil (avoid Go typed nil issue with Neo4j)
+			if explorationMeta := structToMap(link.Base.ExplorationMetadata); explorationMeta != nil {
+				item["exploration_metadata"] = explorationMeta
+			}
+			if styleMeta := structToMap(link.Base.StyleMetadata); styleMeta != nil {
+				item["style_metadata"] = styleMeta
+			}
+			items = append(items, item)
 		}
 		params := map[string]any{
 			"items": items,
@@ -122,7 +138,8 @@ func (r *LinkRepo) CreateSemanticLinks(ctx context.Context, links []*canvasv1.Se
             MATCH (s:Node {id: item.src})
             MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:SEMANTIC_LINK]->(t)
-            SET r.connection_type = item.connection_type,
+            SET r.id = item.id,
+                r.connection_type = item.connection_type,
                 r.strength_score = item.strength_score,
                 r.similarity_score = item.similarity_score,
                 r.abstraction_bridge = item.abstraction_bridge,
@@ -159,20 +176,27 @@ func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*canvasv1.
 			if updatedAt.IsZero() {
 				updatedAt = createdAt
 			}
-			items = append(items, map[string]any{
-				"src":                  link.Base.SourceId,
-				"dst":                  link.Base.TargetId,
-				"connection_type":      link.ConnectionType,
-				"custom_connection":    link.CustomConnectionType,
-				"confidence_score":     link.ConfidenceScore,
-				"description":          link.Description,
-				"created_by":           link.CreatedBy,
-				"exploration_metadata": structToMap(link.Base.ExplorationMetadata),
-				"style_metadata":       structToMap(link.Base.StyleMetadata),
-				"created_at":           createdAt,
-				"updated_at":           updatedAt,
-				"deleted_at":           link.Base.DeletedAt.AsTime(),
-			})
+			item := map[string]any{
+				"id":                link.Base.Id,
+				"src":               link.Base.SourceId,
+				"dst":               link.Base.TargetId,
+				"connection_type":   link.ConnectionType,
+				"custom_connection": link.CustomConnectionType,
+				"confidence_score":  link.ConfidenceScore,
+				"description":       link.Description,
+				"created_by":        link.CreatedBy,
+				"created_at":        createdAt,
+				"updated_at":        updatedAt,
+				"deleted_at":        link.Base.DeletedAt.AsTime(),
+			}
+			// Only add metadata if not nil (avoid Go typed nil issue with Neo4j)
+			if explorationMeta := structToMap(link.Base.ExplorationMetadata); explorationMeta != nil {
+				item["exploration_metadata"] = explorationMeta
+			}
+			if styleMeta := structToMap(link.Base.StyleMetadata); styleMeta != nil {
+				item["style_metadata"] = styleMeta
+			}
+			items = append(items, item)
 		}
 		params := map[string]any{
 			"items": items,
@@ -182,7 +206,8 @@ func (r *LinkRepo) CreateStructuralLinks(ctx context.Context, links []*canvasv1.
             MATCH (s:Node {id: item.src})
             MATCH (t:Node {id: item.dst})
             MERGE (s)-[r:STRUCTURAL_LINK]->(t)
-            SET r.connection_type = item.connection_type,
+            SET r.id = item.id,
+                r.connection_type = item.connection_type,
                 r.custom_connection_type = item.custom_connection,
                 r.confidence_score = item.confidence_score,
                 r.description = item.description,
@@ -203,7 +228,12 @@ func structToMap(s *structpb.Struct) map[string]any {
 	if s == nil {
 		return nil
 	}
-	return s.AsMap()
+	m := s.AsMap()
+	// Neo4j doesn't accept empty maps as property values
+	if len(m) == 0 {
+		return nil
+	}
+	return m
 }
 
 // GetLinks returns links by IDs with optional filtering.
