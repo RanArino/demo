@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateStructuralLinksRequest, CreateStructuralLinksResponse, DeleteStructuralLinksRequest, DeleteStructuralLinksResponse, GetLinksRequest, GetLinksResponse, GetNeighborsRequest, GetNeighborsResponse, GetNodesRequest, GetNodesResponse, SearchNodesRequest, SearchNodesResponse, SemanticSearchRequest, SemanticSearchResponse, UpdateNodesRequest, UpdateNodesResponse, UpdateStructuralLinksRequest, UpdateStructuralLinksResponse } from "./canvas_pb";
+import { CreateStructuralLinksRequest, CreateStructuralLinksResponse, DeleteStructuralLinksRequest, DeleteStructuralLinksResponse, GetLinksRequest, GetLinksResponse, GetNeighborsRequest, GetNeighborsResponse, GetNodesRequest, GetNodesResponse, SearchNodesRequest, SearchNodesResponse, SemanticSearchRequest, SemanticSearchResponse, UpdateNodesRequest, UpdateNodesResponse, UpdateStructuralLinksRequest, UpdateStructuralLinksResponse } from "../public/v1/canvas_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**

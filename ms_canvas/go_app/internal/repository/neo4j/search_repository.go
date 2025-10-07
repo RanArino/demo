@@ -318,7 +318,6 @@ func (r *SearchRepo) convertNeo4jNodeToProtobufWithScore(nodeInterface interface
 			Base:            base,
 			ContentSourceId: props["content_source_id"].(string),
 			SequenceIndex:   int32(props["sequence_index"].(int64)),
-			Content:         props["content"].(string),
 		}
 		if chunkType, ok := props["chunk_type"].(string); ok {
 			chunkNode.ChunkType = chunkType

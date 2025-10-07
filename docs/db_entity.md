@@ -428,7 +428,7 @@ CREATE (n:ChunkNode {
   
   // Hierarchy and abstraction
   abstraction_level: -2,                // Negative integers (-1, -2,...) the minimum level is always the chunk of the content source, without any abstraction and AI summary.
-  context_type: "content_chunk",        // chunk_cluster|content_chunk
+  context_type: "chunk",        // cluster|chunk
   chunk_type: "paragraph",              // paragraph|section|table|code_block|list
   chunk_index: 5,                       // Sequential order within content source
   

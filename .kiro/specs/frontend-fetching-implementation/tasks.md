@@ -57,38 +57,72 @@
 ### 3. Canvas Service gRPC Setup
 > Create the frontend gRPC client to communicate directly with ms_canvas service, following the same pattern as ms_knowledge and ms_user.
 
-- [ ] **3.1. Add MS_CANVAS_GRPC_URL environment variable**
+- [x] **3.1. Add MS_CANVAS_GRPC_URL environment variable**
   > Configure the direct gRPC URL for ms_canvas service in frontend environment variables (localhost:50054).
   >
   > **Related Requirements:** 1.1
+  >
+  > **Modified Files:** `docker-compose.yml`
+  >
+  > **Verification:** Added MS_CANVAS_GRPC_URL_INTERNAL=ms_canvas:50054 to frontend environment and fixed port mapping from 50054:50051 to 50054:50054
 
-- [ ] **3.2. Implement gRPC client for canvas**
+- [x] **3.2. Implement gRPC client for canvas**
   > Implement `canvasClient.ts` with gRPC transport that connects directly to ms_canvas service (GetNodes, SemanticSearch, SearchNodes).
   >
   > **Related Requirements:** 1.2, 1.3, 1.4, 1.5
+  >
+  > **Modified Files:** `frontend/src/api/server-client.ts`
+  >
+  > **Verification:** Added CanvasClientManager singleton with getCanvasInstance() method following same pattern as ms_user and ms_knowledge services
 
-- [ ] **3.3. Add authentication to gRPC calls**
+- [x] **3.3. Add authentication to gRPC calls**
   > Ensure Clerk tokens are included in gRPC metadata for authentication.
   >
   > **Related Requirements:** 1.5
+  >
+  > **Modified Files:** `frontend/src/api/actions/canvasActions.ts`
+  >
+  > **Verification:** All canvas server actions use createAuthHeaders() utility to include Clerk JWT tokens with proper error handling
 
 ### 4. Server Actions for Canvas Operations
 > Server Actions call ms_canvas gRPC endpoints directly (no additional API routes required).
 
-- [ ] **4.1. Create canvasActions.ts with getNodes action**
+- [x] **4.1. Create canvasActions.ts with getNodes action**
   > Implement a server action to fetch nodes by IDs using gRPC client with dual-layer caching and auth.
   >
   > **Related Requirements:** 1.2, 1.5
+  >
+  > **Modified Files:** `frontend/src/api/actions/canvasActions.ts`
+  >
+  > **Verification:** Implemented getNodes() server action with GetNodesRequest protobuf, dual-layer caching (React cache + Next.js unstable_cache), authentication, input validation, and error handling
 
-- [ ] **4.2. Add semanticSearch action**
+- [x] **4.2. Add semanticSearch action**
   > Implement server action for semantic search using gRPC client with proper validation and error handling.
   >
   > **Related Requirements:** 1.3, 1.6
+  >
+  > **Modified Files:** `frontend/src/api/actions/canvasActions.ts`
+  >
+  > **Verification:** Implemented semanticSearch() server action with SemanticSearchRequest protobuf, query/spaceId validation, topK and nodeTypes parameters, score-based results, and comprehensive error handling
 
-- [ ] **4.3. Add searchNodes action**
+- [x] **4.3. Add searchNodes action**
   > Implement server action for spatial and filter-based search using gRPC client, keeping parity with backend.
   >
   > **Related Requirements:** 1.4
+  >
+  > **Modified Files:** `frontend/src/api/actions/canvasActions.ts`
+  >
+  > **Verification:** Implemented searchNodes() server action with SearchNodesRequest protobuf, flexible NodeFilter and SpatialBoundingBox construction, limit parameter, and full backend parity
+
+### Additional Implementation: Test Page
+> Created comprehensive test page for validating all canvas server actions.
+
+- [x] **Canvas Test Page**
+  > Simple UI to test getNodes, semanticSearch, and searchNodes functionality with proper error handling and results display.
+  >
+  > **Modified Files:** `frontend/src/app/canvas-test/page.tsx`
+  >
+  > **Verification:** Created `/canvas-test` route with complete UI for testing all three server actions, input validation, error states, loading indicators, and formatted results display with quick stats
 
 ## Feature C: Frontend Component Integration
 

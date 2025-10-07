@@ -527,7 +527,6 @@ func (s *nodeServiceImpl) convertV1ChunkNodeToPublic(v1Node *v1.ChunkNode) *v1.N
 				ChunkType:       v1Node.ChunkType,
 				StartPosition:   v1Node.StartPosition,
 				EndPosition:     v1Node.EndPosition,
-				Content:         v1Node.Content,
 				TokenCount:      v1Node.TokenCount,
 			},
 		},
