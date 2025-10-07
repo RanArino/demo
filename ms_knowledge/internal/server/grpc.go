@@ -439,6 +439,16 @@ func (s *GRPCServer) domainContentSourceToProto(content *domain.ContentSource) *
 		processedBlobHash = *content.ProcessedBlobHash
 	}
 
+	var contentSummary string
+	if content.ContentSummary != nil {
+		contentSummary = *content.ContentSummary
+	}
+
+	var keywords []string
+	if content.Keywords != nil {
+		keywords = content.Keywords
+	}
+
 	return &knowledgev1.ContentSource{
 		Id:                content.ID.String(),
 		SpaceId:           content.SpaceID.String(),
@@ -450,6 +460,8 @@ func (s *GRPCServer) domainContentSourceToProto(content *domain.ContentSource) *
 		Title:             content.Title,
 		OriginalBlobHash:  content.OriginalBlobHash,
 		ProcessedBlobHash: processedBlobHash,
+		ContentSummary:    contentSummary,
+		Keywords:          keywords,
 		CreatedAt:         timestamppb.New(content.CreatedAt),
 		UpdatedAt:         timestamppb.New(content.UpdatedAt),
 	}
