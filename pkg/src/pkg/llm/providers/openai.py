@@ -39,6 +39,11 @@ class OpenAIProvider(LLMProvider):
         self.temperature = temperature
         self.top_p = top_p
 
+    def _is_reasoning_model(self) -> bool:
+        """Check if the model is a GPT-5 reasoning model that doesn't support sampling parameters."""
+        model_lower = self.model.lower()
+        return model_lower.startswith("gpt-5") or model_lower.startswith("o1") or model_lower.startswith("o3")
+
     def generate_insights(
         self,
         document_text: str,
@@ -66,12 +71,13 @@ class OpenAIProvider(LLMProvider):
                 "response_format": {"type": "json_object"},
             }
 
-            # Only add temperature/top_p if not using default value of 1.0
-            # (gpt-5-mini-2025-08-07 only supports temperature=1)
-            if self.temperature != 1.0:
-                kwargs["temperature"] = self.temperature
-            if self.top_p != 1.0:
-                kwargs["top_p"] = self.top_p
+            # GPT-5 reasoning models (gpt-5, o1, o3) don't support temperature/top_p parameters
+            # For other models, only add temperature/top_p if not using default value of 1.0
+            if not self._is_reasoning_model():
+                if self.temperature != 1.0:
+                    kwargs["temperature"] = self.temperature
+                if self.top_p != 1.0:
+                    kwargs["top_p"] = self.top_p
 
             response: ChatCompletion = self.client.chat.completions.create(**kwargs)
 
