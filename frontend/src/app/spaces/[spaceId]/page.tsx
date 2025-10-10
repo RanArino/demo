@@ -42,7 +42,6 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
         <div className="flex-1">
           <SpaceCanvas 
             space={space} 
-            contentSources={contentSources} 
             className="h-full" 
           />
         </div>
