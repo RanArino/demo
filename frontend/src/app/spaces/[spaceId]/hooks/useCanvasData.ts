@@ -10,6 +10,47 @@ export function useCanvasData(spaceId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const retryTimeoutRef = useRef<number | null>(null);
+  const retryTickerRef = useRef<number | null>(null);
+  const attemptsRef = useRef(0);
+  const [retryInMs, setRetryInMs] = useState<number | null>(null);
+
+  const clearRetry = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      window.clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    if (retryTickerRef.current) {
+      window.clearInterval(retryTickerRef.current);
+      retryTickerRef.current = null;
+    }
+    setRetryInMs(null);
+  }, []);
+
+  const scheduleRetry = useCallback(() => {
+    const attempt = attemptsRef.current;
+    const base = 2000; // 2s
+    const maxDelay = 60000; // 60s
+    const delay = Math.min(maxDelay, Math.floor(base * Math.pow(2, Math.max(0, attempt - 1))));
+    const start = performance.now();
+    setRetryInMs(delay);
+    if (retryTickerRef.current) {
+      window.clearInterval(retryTickerRef.current);
+    }
+    retryTickerRef.current = window.setInterval(() => {
+      const elapsed = performance.now() - start;
+      const remaining = Math.max(0, delay - elapsed);
+      setRetryInMs(remaining);
+    }, 250);
+    if (retryTimeoutRef.current) {
+      window.clearTimeout(retryTimeoutRef.current);
+    }
+    retryTimeoutRef.current = window.setTimeout(() => {
+      retryTimeoutRef.current = null;
+      setRetryInMs(null);
+      fetchNodes();
+    }, delay);
+  }, []);
 
   const fetchNodes = useCallback(async () => {
     controllerRef.current?.abort();
@@ -30,37 +71,51 @@ export function useCanvasData(spaceId: string) {
       const payload = (await response.json()) as CanvasApiResponse;
       setNodes(payload.nodes ?? []);
       setErrorMessage(null);
+      attemptsRef.current = 0;
+      clearRetry();
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return;
+        return; // ignore
       }
       const message = error instanceof Error ? error.message : 'Failed to load canvas data';
       setErrorMessage(message);
+      attemptsRef.current += 1;
+      scheduleRetry();
     } finally {
       setIsLoading(false);
     }
-  }, [spaceId]);
+  }, [spaceId, clearRetry, scheduleRetry]);
 
   useEffect(() => {
     setIsLoading(true);
     fetchNodes();
     return () => {
       controllerRef.current?.abort();
+      clearRetry();
     };
-  }, [fetchNodes]);
+  }, [fetchNodes, clearRetry]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      fetchNodes();
+      // only poll when no retry is scheduled
+      if (retryInMs == null) {
+        fetchNodes();
+      }
     }, 10_000);
 
     return () => window.clearInterval(intervalId);
-  }, [fetchNodes]);
+  }, [fetchNodes, retryInMs]);
 
   return {
     nodes,
     isLoading,
     errorMessage,
-    reload: fetchNodes,
+    reload: () => {
+      attemptsRef.current = 0;
+      clearRetry();
+      setIsLoading(true);
+      fetchNodes();
+    },
+    retryInMs,
   };
 }
