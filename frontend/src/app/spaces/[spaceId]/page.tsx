@@ -39,7 +39,8 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
         style={{ marginLeft: 'var(--sidebar-offset, 0px)' }}
       >
         {/* Main Canvas Area - Full width */}
-        <div className="flex-1">
+        {/* min-h-0 is critical so the flex child can shrink without forcing overflow */}
+        <div className="flex-1 min-h-0">
           <SpaceCanvas 
             space={space} 
             className="h-full" 
