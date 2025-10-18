@@ -85,6 +85,8 @@ export class CanvasScene {
   private hoveredNodeId?: string;
   private hoverLinkLines?: THREE.LineSegments;
   private readonly contentToChunkMeshes = new Map<string, MeshWithData[]>();
+  private readonly nodeContentSourceIndex = new Map<string, string>();
+  private readonly chunkFallbackAnchors = new Map<string, THREE.Vector3>();
   private onFpsUpdate?: (fps: number) => void;
   private cursorLight: THREE.PointLight;
   private cursorTrail: Array<{ mesh: THREE.Mesh; life: number }> = [];
@@ -516,13 +518,8 @@ export class CanvasScene {
 
     const contentPositionOverrides = this.resolveContentPositionOverrides(nodes);
     const chunkLayout = this.resolveChunkLayout(nodes, contentPositionOverrides);
-    const contentBySourceId = new Map<string, CanvasRenderableNode>();
-    nodes.forEach((node) => {
-      if (node.kind === 'content') {
-        contentBySourceId.set(node.contentSourceId, node);
-      }
-    });
     this.contentToChunkMeshes.clear();
+    this.nodeContentSourceIndex.clear();
 
     nodes.forEach((node) => {
       if (!node.visibility) {
@@ -572,17 +569,21 @@ export class CanvasScene {
       }
 
       if (node.kind === 'content') {
-        if (!this.contentToChunkMeshes.has(node.id)) {
-          this.contentToChunkMeshes.set(node.id, []);
+        const sourceKey = this.normalizeContentSourceId(node.contentSourceId);
+        if (sourceKey) {
+          this.nodeContentSourceIndex.set(node.id, sourceKey);
+          if (!this.contentToChunkMeshes.has(sourceKey)) {
+            this.contentToChunkMeshes.set(sourceKey, []);
+          }
         }
       } else if (node.kind === 'chunk') {
-        const parentContent = contentBySourceId.get(node.contentSourceId);
-        const parentContentId = parentContent?.id;
-        if (parentContentId) {
-          const list = this.contentToChunkMeshes.get(parentContentId) ?? [];
+        const sourceKey = this.normalizeContentSourceId(node.contentSourceId);
+        if (sourceKey) {
+          this.nodeContentSourceIndex.set(node.id, sourceKey);
+          const list = this.contentToChunkMeshes.get(sourceKey) ?? [];
           list.push(mesh);
-          this.contentToChunkMeshes.set(parentContentId, list);
-          (mesh.userData as MeshWithData['userData'] & { parentContentId?: string }).parentContentId = parentContentId;
+          this.contentToChunkMeshes.set(sourceKey, list);
+          (mesh.userData as MeshWithData['userData'] & { parentContentSourceId?: string }).parentContentSourceId = sourceKey;
         }
       }
     });
@@ -778,7 +779,12 @@ export class CanvasScene {
       return;
     }
 
-    const chunkMeshes = this.contentToChunkMeshes.get(node.id);
+    const sourceId = this.nodeContentSourceIndex.get(node.id);
+    if (!sourceId) {
+      return;
+    }
+
+    const chunkMeshes = this.contentToChunkMeshes.get(sourceId);
     if (!chunkMeshes || chunkMeshes.length === 0) {
       return;
     }
@@ -1415,9 +1421,9 @@ export class CanvasScene {
     });
 
     if (this.hoverLinkLines && this.hoveredNodeId) {
-      const hoveredMesh = this.nodeMeshes.get(this.hoveredNodeId);
-      if (hoveredMesh) {
-        const visibleChunks = (this.contentToChunkMeshes.get(this.hoveredNodeId) ?? []).filter((chunk) => chunk.visible);
+      const sourceId = this.nodeContentSourceIndex.get(this.hoveredNodeId);
+      if (sourceId) {
+        const visibleChunks = (this.contentToChunkMeshes.get(sourceId) ?? []).filter((chunk) => chunk.visible);
         if (visibleChunks.length === 0) {
           this.clearHoverLinks();
         }
@@ -1451,6 +1457,8 @@ export class CanvasScene {
     this.nodeMeshes.clear();
     this.originalPositions.clear();
     this.contentToChunkMeshes.clear();
+    this.nodeContentSourceIndex.clear();
+    this.chunkFallbackAnchors.clear();
     this.positionAnimations.clear();
     this.scaleAnimations.clear();
     this.nodeGroup.children.forEach((child) => {
@@ -1615,7 +1623,10 @@ export class CanvasScene {
 
     nodes.forEach((node) => {
       if (node.kind === 'content') {
-        contentBySourceId.set(node.contentSourceId, node);
+        const sourceKey = this.normalizeContentSourceId(node.contentSourceId);
+        if (sourceKey) {
+          contentBySourceId.set(sourceKey, node);
+        }
       }
     });
 
@@ -1624,7 +1635,7 @@ export class CanvasScene {
       if (node.kind !== 'chunk') {
         return;
       }
-      const key = node.contentSourceId;
+      const key = this.normalizeContentSourceId(node.contentSourceId) ?? `__chunk:${node.id}`;
       const list = chunkGroups.get(key);
       if (list) {
         list.push(node);
@@ -1633,26 +1644,47 @@ export class CanvasScene {
       }
     });
 
+    const groupKeys = new Set(chunkGroups.keys());
+    for (const key of Array.from(this.chunkFallbackAnchors.keys())) {
+      if (!groupKeys.has(key)) {
+        this.chunkFallbackAnchors.delete(key);
+      }
+    }
+
     chunkGroups.forEach((chunks, key) => {
-      const parent = contentBySourceId.get(key);
-      if (!parent) {
-        chunks.forEach((chunk) => {
-          const fallback = Math.max(0.6, Math.min(chunk.display.size ?? this.nodeSizeDefaults.chunk, this.nodeSizeDefaults.chunk * 0.7));
-          sizes.set(chunk.id, fallback);
-        });
+      if (chunks.length === 0) {
         return;
       }
 
-      const baseCenter = contentOverrides.get(parent.id) ?? new THREE.Vector3(parent.position.x, parent.position.y, parent.position.z);
-      const parentSize = parent.display.size ?? this.nodeSizeDefaults.content;
+      const parent = contentBySourceId.get(key);
+      let baseCenter: THREE.Vector3;
+      let parentSize = parent?.display.size ?? this.nodeSizeDefaults.content;
+
+      if (parent) {
+        const override = contentOverrides.get(parent.id);
+        baseCenter = override ? override.clone() : new THREE.Vector3(parent.position.x, parent.position.y, parent.position.z);
+        this.chunkFallbackAnchors.delete(key);
+      } else {
+        baseCenter = this.computeChunkFallbackAnchor(key, chunks);
+        const maxChunkSize = chunks.reduce((acc, chunk) => Math.max(acc, chunk.display.size ?? this.nodeSizeDefaults.chunk), this.nodeSizeDefaults.chunk);
+        parentSize = Math.max(parentSize, maxChunkSize * 5);
+      }
+
       const sortedChunks = [...chunks].sort((a, b) => a.sequenceIndex - b.sequenceIndex);
       const radiusFactor = Math.min(0.85, 0.45 + Math.log2(sortedChunks.length + 1) * 0.1);
       const radius = Math.max(parentSize * 0.45, parentSize * radiusFactor);
-      const generated = generateFibonacciSpherePositions(sortedChunks.length, radius, baseCenter);
       const densityFactor = Math.max(1, Math.sqrt(sortedChunks.length) / 4);
 
+      let generated: THREE.Vector3[];
+      if (sortedChunks.length === 1) {
+        generated = [this.computeSingleChunkPosition(key, baseCenter, radius)];
+      } else {
+        generated = generateFibonacciSpherePositions(sortedChunks.length, radius, baseCenter.clone());
+      }
+
       sortedChunks.forEach((chunk, index) => {
-        positions.set(chunk.id, generated[index]);
+        const position = generated[index] ?? baseCenter;
+        positions.set(chunk.id, position.clone());
         const baseSize = chunk.display.size ?? this.nodeSizeDefaults.chunk;
         const capByParent = parentSize * 0.18 / densityFactor;
         const size = Math.max(0.6, Math.min(baseSize, capByParent));
@@ -1661,6 +1693,66 @@ export class CanvasScene {
     });
 
     return { positions, sizes };
+  }
+
+  private normalizeContentSourceId(value?: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private computeDeterministicPolar(seed: string): { angle: number; radiusFactor: number } {
+    if (!seed) {
+      return { angle: Math.PI * 0.25, radiusFactor: 0.5 };
+    }
+
+    let hash = 2166136261;
+    for (let index = 0; index < seed.length; index += 1) {
+      hash ^= seed.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    const unsigned = hash >>> 0;
+    const angle = ((unsigned & 0xffff) / 0xffff) * Math.PI * 2;
+    const radiusFactor = (((unsigned >>> 16) & 0xffff) / 0xffff);
+    return { angle, radiusFactor: Number.isFinite(radiusFactor) ? radiusFactor : 0.5 };
+  }
+
+  private computeChunkFallbackAnchor(key: string, chunks: CanvasChunkNode[]): THREE.Vector3 {
+    const cached = this.chunkFallbackAnchors.get(key);
+    if (cached) {
+      return cached.clone();
+    }
+
+    const centroid = chunks.reduce((acc, chunk) => {
+      const pos = new THREE.Vector3(chunk.position.x, chunk.position.y, chunk.position.z);
+      return acc.add(pos);
+    }, new THREE.Vector3());
+
+    if (chunks.length > 0) {
+      centroid.multiplyScalar(1 / chunks.length);
+    }
+
+    const hasValidCentroid = Number.isFinite(centroid.x) && Number.isFinite(centroid.y) && Number.isFinite(centroid.z);
+    let anchor = centroid;
+
+    if (!hasValidCentroid || centroid.lengthSq() < 400) {
+      const { angle, radiusFactor } = this.computeDeterministicPolar(key);
+      const baseRadius = 180 + radiusFactor * 140;
+      const y = hasValidCentroid ? centroid.y : -24;
+      anchor = new THREE.Vector3(Math.cos(angle) * baseRadius, y, Math.sin(angle) * baseRadius);
+    }
+
+    this.chunkFallbackAnchors.set(key, anchor.clone());
+    return anchor.clone();
+  }
+
+  private computeSingleChunkPosition(key: string, center: THREE.Vector3, radius: number): THREE.Vector3 {
+    const { angle } = this.computeDeterministicPolar(key);
+    const effectiveRadius = Math.max(radius, this.nodeSizeDefaults.content * 0.5);
+    const offset = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)).multiplyScalar(effectiveRadius);
+    return center.clone().add(offset);
   }
 
   private determineNodeSize(node: CanvasRenderableNode, chunkSizes: Map<string, number>): number {
