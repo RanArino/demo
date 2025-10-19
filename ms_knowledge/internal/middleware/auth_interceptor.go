@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwks"
@@ -32,7 +33,7 @@ func NewAuthInterceptor(clerkSecretKey string, userClient userv1.UserServiceClie
 	if userClient == nil {
 		panic("userClient is required for AuthInterceptor")
 	}
-	
+
 	jwksClient := jwks.NewClient(&clerk.ClientConfig{
 		BackendConfig: clerk.BackendConfig{Key: &clerkSecretKey},
 	})
@@ -50,14 +51,18 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		if !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
 		}
-		
+
 		authHeader := md.Get("authorization")
 		if len(authHeader) == 0 {
 			return nil, status.Errorf(codes.Unauthenticated, "authorization token is not provided")
 		}
-		
+
 		token := strings.TrimPrefix(authHeader[0], "Bearer ")
-		claims, err := jwt.Verify(ctx, &jwt.VerifyParams{Token: token, JWKSClient: i.jwksClient})
+		claims, err := jwt.Verify(ctx, &jwt.VerifyParams{
+			Token:      token,
+			JWKSClient: i.jwksClient,
+			Leeway:     30 * time.Second,
+		})
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "token verification failed: %v", err)
 		}
@@ -96,7 +101,7 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		// Inject internal user ID into context
 		ctx = context.WithValue(ctx, domain.OwnerIDKey, internalUserID)
-		
+
 		// Override role with the one from User service (server-side source of truth)
 		if userRole != "" {
 			ctx = context.WithValue(ctx, domain.RoleKey, userRole)
