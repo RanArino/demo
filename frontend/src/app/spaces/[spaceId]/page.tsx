@@ -40,10 +40,10 @@ export default async function SpaceDetailPage({ params }: SpaceDetailPageProps) 
       >
         {/* Main Canvas Area - Full width */}
         {/* min-h-0 is critical so the flex child can shrink without forcing overflow */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 min-w-0">
           <SpaceCanvas 
             space={space} 
-            className="h-full" 
+            className="h-full w-full" 
           />
         </div>
 
