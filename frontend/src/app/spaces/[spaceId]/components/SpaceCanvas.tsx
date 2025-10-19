@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Space } from '@/api/generated/v1/knowledge_pb';
 import { Badge } from '@/components/ui/badge';
@@ -45,21 +45,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
   const [edgePanThresholdPref, setEdgePanThresholdPref] = useState(0.12);
   const [zoomAggressiveness, setZoomAggressivenessPref] = useState(0.3);
   const [showSettings, setShowSettings] = useState(false);
-  const [linkVisibility, setLinkVisibility] = useState<{ clusterEdges: boolean; semanticEdges: boolean }>({
-    clusterEdges: false,
-    semanticEdges: false,
-  });
-
-  const totalCounts = useMemo(() => {
-    return nodes.reduce(
-      (acc, node) => {
-        acc.total += 1;
-        acc[node.kind] += 1;
-        return acc;
-      },
-      { total: 0, cluster: 0, content: 0, chunk: 0 }
-    );
-  }, [nodes]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -79,7 +64,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
         edgePanSpeed?: number;
         edgePanThreshold?: number;
         zoomAggressiveness?: number;
-        links?: { clusterEdges: boolean; semanticEdges: boolean };
       };
       if (typeof prefs.grid === 'boolean') {
         setIsGridVisible(prefs.grid);
@@ -105,9 +89,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
       if (typeof prefs.zoomAggressiveness === 'number') {
         setZoomAggressivenessPref(prefs.zoomAggressiveness);
       }
-      if (prefs.links) {
-        setLinkVisibility((prev) => ({ ...prev, ...prefs.links }));
-      }
     } catch (error) {
       console.warn('[SpaceCanvas] Failed to load preferences', error);
     }
@@ -126,10 +107,9 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
       edgePanSpeed: edgePanSpeedPref,
       edgePanThreshold: edgePanThresholdPref,
       zoomAggressiveness,
-      links: linkVisibility,
     };
     window.localStorage.setItem('canvas-ui-preferences', JSON.stringify(prefs));
-  }, [isGridVisible, isMinimapVisible, isMultiViewVisible, isLayeredView, layerVisibility, edgePanSpeedPref, edgePanThresholdPref, zoomAggressiveness, linkVisibility]);
+  }, [isGridVisible, isMinimapVisible, isMultiViewVisible, isLayeredView, layerVisibility, edgePanSpeedPref, edgePanThresholdPref, zoomAggressiveness]);
 
   useEffect(() => {
     const container = canvasContainerRef.current;
@@ -161,7 +141,7 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
     });
     scene.setEdgePanConfig({ speed: edgePanSpeedPref, threshold: edgePanThresholdPref });
     scene.setZoomAggressiveness(zoomAggressiveness);
-    scene.setLinksConfig({ clusterEdges: linkVisibility.clusterEdges, semanticEdges: linkVisibility.semanticEdges });
+    scene.setLinksConfig({ clusterEdges: false, semanticEdges: false });
     scene.updateSize();
 
     const resizeObserver = new ResizeObserver(() => {
@@ -176,7 +156,7 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [isMinimapVisible, isMultiViewVisible, isLayeredView, layerVisibility, edgePanSpeedPref, edgePanThresholdPref, zoomAggressiveness, linkVisibility]);
+  }, [isMinimapVisible, isMultiViewVisible, isLayeredView, layerVisibility, edgePanSpeedPref, edgePanThresholdPref, zoomAggressiveness]);
 
   useEffect(() => {
     if (!sceneRef.current) {
@@ -236,10 +216,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
   }, [zoomAggressiveness]);
 
   useEffect(() => {
-    sceneRef.current?.setLinksConfig({ clusterEdges: linkVisibility.clusterEdges, semanticEdges: linkVisibility.semanticEdges });
-  }, [linkVisibility]);
-
-  useEffect(() => {
     if (sceneRef.current) {
       sceneRef.current.updateNodes(nodes);
     }
@@ -280,10 +256,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
       ...prev,
       [kind]: !prev[kind],
     }));
-  };
-
-  const toggleLinks = (key: 'clusterEdges' | 'semanticEdges') => () => {
-    setLinkVisibility((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const multiViewPresets = [
@@ -371,52 +343,15 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
   };
 
   return (
-    <div className={cn('flex h-full flex-col bg-slate-950 text-slate-100', className)}>
-      <header className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
-        <div>
+    <div className={cn('flex h-full min-h-0 min-w-0 flex-col bg-slate-950 text-slate-100', className)}>
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 px-5 py-3">
+        <div className="min-w-0 flex-1">
           <h1 className="text-lg font-semibold text-slate-50">{space.title || 'Space Canvas'}</h1>
           {space.description && (
             <p className="text-sm text-slate-400 line-clamp-2">{space.description}</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="border-slate-700 bg-slate-900 text-slate-200">
-            {totalCounts.total} nodes
-          </Badge>
-          <div className="hidden items-center gap-1 sm:flex">
-            <Badge variant="outline" className="border-slate-700 bg-slate-900 text-slate-300">
-              {totalCounts.cluster} clusters
-            </Badge>
-            <Badge variant="outline" className="border-slate-700 bg-slate-900 text-slate-300">
-              {totalCounts.content} content
-            </Badge>
-            <Badge variant="outline" className="border-slate-700 bg-slate-900 text-slate-300">
-              {totalCounts.chunk} chunks
-            </Badge>
-          </div>
-          <div className="hidden items-center gap-1 xl:flex">
-            {(
-              [
-                { key: 'clusterEdges', label: 'Cluster Links' },
-                { key: 'semanticEdges', label: 'Semantic Links' },
-              ] as Array<{ key: 'clusterEdges' | 'semanticEdges'; label: string }>
-            ).map(({ key, label }) => (
-              <Button
-                key={key}
-                variant="ghost"
-                size="sm"
-                onClick={toggleLinks(key)}
-                className={cn(
-                  'h-8 px-3 text-xs font-medium uppercase tracking-wide text-slate-200 hover:bg-slate-800',
-                  linkVisibility[key] ? 'bg-slate-800/50' : 'opacity-60'
-                )}
-                aria-pressed={linkVisibility[key]}
-                aria-label={`${linkVisibility[key] ? 'Hide' : 'Show'} ${label.toLowerCase()}`}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <div className="hidden items-center gap-1 lg:flex">
             {(
               [
@@ -674,21 +609,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
           </div>
         )}
 
-        {(linkVisibility.clusterEdges || linkVisibility.semanticEdges) && (
-          <div className="pointer-events-none absolute top-4 left-4 z-10 rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-[11px] text-slate-200">
-            <div className="font-semibold mb-1">Legend</div>
-            {linkVisibility.clusterEdges && (
-              <div className="flex items-center gap-2">
-                <span className="inline-block h-0.5 w-4 bg-slate-400" /> Cluster Links
-              </div>
-            )}
-            {linkVisibility.semanticEdges && (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="inline-block h-0.5 w-4 bg-emerald-400" /> Semantic Links
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
