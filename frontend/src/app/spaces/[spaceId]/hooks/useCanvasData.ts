@@ -96,15 +96,25 @@ export function useCanvasData(spaceId: string) {
   }, [fetchNodes, clearRetry]);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      // only poll when no retry is scheduled
-      if (retryInMs == null) {
-        fetchNodes();
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
       }
-    }, 10_000);
+      clearRetry();
+      fetchNodes();
+    };
+    const handleFocus = () => {
+      handleVisibility();
+    };
 
-    return () => window.clearInterval(intervalId);
-  }, [fetchNodes, retryInMs]);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchNodes, clearRetry]);
 
   return {
     nodes,
