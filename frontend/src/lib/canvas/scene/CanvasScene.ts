@@ -619,7 +619,7 @@ export class CanvasScene {
       return;
     }
     this.layeredView = enabled;
-    this.applyLayerLayout();
+    this.applyLayerLayout({ animate: true, duration: 0.9 });
     this.updateMultiViewEntries();
     this.rebuildAdvancedEdges();
   }
@@ -680,19 +680,69 @@ export class CanvasScene {
     }
   }
 
-  private applyLayerLayout(): void {
+  private applyLayerLayout(options?: { animate?: boolean; duration?: number }): void {
+    const animate = options?.animate ?? false;
+    const duration = options?.duration ?? 1;
+
     if (!this.layeredView) {
-      if (this.positionAnimations.size === 0) {
-        this.nodeMeshes.forEach((mesh, id) => {
-          const original = this.originalPositions.get(id);
-          if (original) {
-            mesh.position.copy(original);
-          }
-        });
+      const canSnap = animate || this.positionAnimations.size === 0;
+      if (!canSnap) {
+        return;
       }
+      this.nodeMeshes.forEach((mesh, id) => {
+        const original = this.originalPositions.get(id);
+        if (!original) {
+          return;
+        }
+        if (animate) {
+          const current = mesh.position.clone();
+          if (current.distanceToSquared(original) < 0.0001) {
+            mesh.position.copy(original);
+            this.positionAnimations.delete(id);
+            return;
+          }
+          this.positionAnimations.set(id, {
+            start: current,
+            end: original.clone(),
+            elapsed: 0,
+            duration,
+          });
+        } else {
+          mesh.position.copy(original);
+          this.positionAnimations.delete(id);
+        }
+      });
       return;
     }
 
+    const targetPositions = this.resolveLayeredTargets();
+
+    this.nodeMeshes.forEach((mesh, id) => {
+      const target = targetPositions.get(id);
+      if (!target) {
+        return;
+      }
+      if (animate) {
+        const current = mesh.position.clone();
+        if (current.distanceToSquared(target) < 0.0001) {
+          mesh.position.copy(target);
+          this.positionAnimations.delete(id);
+          return;
+        }
+        this.positionAnimations.set(id, {
+          start: current,
+          end: target.clone(),
+          elapsed: 0,
+          duration,
+        });
+      } else {
+        mesh.position.copy(target);
+        this.positionAnimations.delete(id);
+      }
+    });
+  }
+
+  private resolveLayeredTargets(): Map<string, THREE.Vector3> {
     const clusters: MeshWithData[] = [];
     const contents: MeshWithData[] = [];
     const chunksPrimary: MeshWithData[] = [];
@@ -707,12 +757,10 @@ export class CanvasScene {
         clusters.push(mesh);
       } else if (node.kind === 'content') {
         contents.push(mesh);
+      } else if (node.contextType === 'chunk') {
+        chunksSecondary.push(mesh);
       } else {
-        if (node.contextType === 'chunk') {
-          chunksSecondary.push(mesh);
-        } else {
-          chunksPrimary.push(mesh);
-        }
+        chunksPrimary.push(mesh);
       }
     });
 
@@ -731,38 +779,48 @@ export class CanvasScene {
       return aOrig.x - bOrig.x;
     };
 
-    clusters.sort(sortByOriginalX).forEach((mesh, index) => {
-      const orig = this.originalPositions.get(mesh.userData.node.id);
-      if (!orig) {
-        return;
-      }
-      mesh.position.set(orig.x, clusterBase + index * clusterSpacing, orig.z);
-    });
+    const targets = new Map<string, THREE.Vector3>();
+
+    clusters
+      .sort(sortByOriginalX)
+      .forEach((mesh, index) => {
+        const nodeId = mesh.userData.node.id;
+        const orig = this.originalPositions.get(nodeId);
+        if (!orig) {
+          return;
+        }
+        targets.set(nodeId, new THREE.Vector3(orig.x, clusterBase + index * clusterSpacing, orig.z));
+      });
 
     contents.forEach((mesh) => {
-      const orig = this.originalPositions.get(mesh.userData.node.id);
+      const nodeId = mesh.userData.node.id;
+      const orig = this.originalPositions.get(nodeId);
       if (!orig) {
         return;
       }
-      mesh.position.set(orig.x, contentLayer, orig.z);
+      targets.set(nodeId, new THREE.Vector3(orig.x, contentLayer, orig.z));
     });
 
     chunksPrimary.forEach((mesh) => {
-      const orig = this.originalPositions.get(mesh.userData.node.id);
+      const nodeId = mesh.userData.node.id;
+      const orig = this.originalPositions.get(nodeId);
       if (!orig) {
         return;
       }
-      mesh.position.set(orig.x, chunkPrimaryLayer, orig.z);
+      targets.set(nodeId, new THREE.Vector3(orig.x, chunkPrimaryLayer, orig.z));
     });
 
     chunksSecondary.forEach((mesh, index) => {
-      const orig = this.originalPositions.get(mesh.userData.node.id);
+      const nodeId = mesh.userData.node.id;
+      const orig = this.originalPositions.get(nodeId);
       if (!orig) {
         return;
       }
       const offset = index % 2 === 0 ? 10 : -10;
-      mesh.position.set(orig.x + offset, chunkSecondaryLayer, orig.z);
+      targets.set(nodeId, new THREE.Vector3(orig.x + offset, chunkSecondaryLayer, orig.z));
     });
+
+    return targets;
   }
 
   private updateHoverLinks(mesh?: MeshWithData): void {
