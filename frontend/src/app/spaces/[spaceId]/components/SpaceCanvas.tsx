@@ -124,23 +124,6 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
     });
 
     sceneRef.current = scene;
-    scene.setMinimapContainer(isMinimapVisible ? minimapContainerRef.current : null);
-    const multiViewConfigs = isMultiViewVisible
-      ? [
-          { id: 'top', type: 'top' as const, container: multiViewTopRef.current },
-          { id: 'side', type: 'side' as const, container: multiViewSideRef.current },
-          { id: 'iso', type: 'iso' as const, container: multiViewIsoRef.current },
-          { id: 'front', type: 'front' as const, container: multiViewFrontRef.current },
-        ]
-      : [];
-
-    scene.setMultiViewConfigs(multiViewConfigs);
-    scene.setLayeredView(isLayeredView);
-    (Object.entries(layerVisibility) as Array<[CanvasNodeKind, boolean]>).forEach(([kind, visible]) => {
-      scene.setLayerVisibility(kind, visible);
-    });
-    scene.setEdgePanConfig({ speed: edgePanSpeedPref, threshold: edgePanThresholdPref });
-    scene.setZoomAggressiveness(zoomAggressiveness);
     scene.setLinksConfig({ clusterEdges: false, semanticEdges: false });
     scene.updateSize();
 
@@ -156,7 +139,7 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [isMinimapVisible, isMultiViewVisible, isLayeredView, layerVisibility, edgePanSpeedPref, edgePanThresholdPref, zoomAggressiveness]);
+  }, []);
 
   useEffect(() => {
     if (!sceneRef.current) {
