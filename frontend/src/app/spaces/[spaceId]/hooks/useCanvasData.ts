@@ -14,6 +14,16 @@ export function useCanvasData(spaceId: string) {
   const retryTickerRef = useRef<number | null>(null);
   const attemptsRef = useRef(0);
   const [retryInMs, setRetryInMs] = useState<number | null>(null);
+  const isActiveRef = useRef(true);
+  const isFetchingRef = useRef(false);
+  const fetchNodesRef = useRef<() => Promise<void>>();
+  const lastVisibilityStateRef = useRef<DocumentVisibilityState | null>(null);
+
+  useEffect(() => {
+    return () => {
+      isActiveRef.current = false;
+    };
+  }, []);
 
   const clearRetry = useCallback(() => {
     if (retryTimeoutRef.current) {
@@ -48,11 +58,16 @@ export function useCanvasData(spaceId: string) {
     retryTimeoutRef.current = window.setTimeout(() => {
       retryTimeoutRef.current = null;
       setRetryInMs(null);
-      fetchNodes();
+      fetchNodesRef.current?.();
     }, delay);
   }, []);
 
   const fetchNodes = useCallback(async () => {
+    if (isFetchingRef.current) {
+      return;
+    }
+    isFetchingRef.current = true;
+    setIsLoading(true);
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -69,22 +84,33 @@ export function useCanvasData(spaceId: string) {
       }
 
       const payload = (await response.json()) as CanvasApiResponse;
+      if (!isActiveRef.current) {
+        return;
+      }
       setNodes(payload.nodes ?? []);
       setErrorMessage(null);
       attemptsRef.current = 0;
       clearRetry();
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return; // ignore
+        return;
+      }
+      if (!isActiveRef.current) {
+        return;
       }
       const message = error instanceof Error ? error.message : 'Failed to load canvas data';
       setErrorMessage(message);
       attemptsRef.current += 1;
       scheduleRetry();
     } finally {
-      setIsLoading(false);
+      if (isActiveRef.current) {
+        setIsLoading(false);
+      }
+      isFetchingRef.current = false;
     }
   }, [spaceId, clearRetry, scheduleRetry]);
+
+  fetchNodesRef.current = fetchNodes;
 
   useEffect(() => {
     setIsLoading(true);
@@ -96,14 +122,24 @@ export function useCanvasData(spaceId: string) {
   }, [fetchNodes, clearRetry]);
 
   useEffect(() => {
+    lastVisibilityStateRef.current = document.visibilityState;
     const handleVisibility = () => {
+      const state = document.visibilityState;
+      if (state !== 'visible') {
+        lastVisibilityStateRef.current = state;
+        return;
+      }
+      if (lastVisibilityStateRef.current === 'visible') {
+        return;
+      }
+      lastVisibilityStateRef.current = state;
+      clearRetry();
+      fetchNodesRef.current?.();
+    };
+    const handleFocus = () => {
       if (document.visibilityState !== 'visible') {
         return;
       }
-      clearRetry();
-      fetchNodes();
-    };
-    const handleFocus = () => {
       handleVisibility();
     };
 
