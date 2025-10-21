@@ -757,7 +757,7 @@ export class CanvasScene {
         clusters.push(mesh);
       } else if (node.kind === 'content') {
         contents.push(mesh);
-      } else if (node.contextType === 'chunk') {
+      } else if (node.kind === 'chunk') {
         chunksSecondary.push(mesh);
       } else {
         chunksPrimary.push(mesh);
