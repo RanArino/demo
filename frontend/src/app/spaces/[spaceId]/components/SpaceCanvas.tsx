@@ -248,31 +248,73 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
     { key: 'front' as const, label: 'Front', ref: multiViewFrontRef },
   ];
 
-  const selectionDetails = selectedNode
+  type SelectionDetail = { label: string; value: string; scrollable?: boolean; multiline?: boolean };
+
+  const selectionDetails: SelectionDetail[] = selectedNode
     ? (() => {
+        const clean = (value?: string | null) => {
+          if (!value) return undefined;
+          const trimmed = value.trim();
+          return trimmed.length > 0 ? trimmed : undefined;
+        };
+
+        if (selectedNode.kind === 'content') {
+          const details: SelectionDetail[] = [];
+          const title = clean(selectedNode.documentTitle) ?? clean(selectedNode.title);
+          if (title) {
+            details.push({ label: 'Title', value: title });
+          }
+          const chatContent =
+            clean(selectedNode.chatContent) ??
+            clean(selectedNode.displayContent) ??
+            'Not available';
+          details.push({ label: 'Chat content', value: chatContent, scrollable: true, multiline: true });
+          details.push({ label: 'Node ID', value: selectedNode.id });
+          if (selectedNode.contentSourceId) {
+            details.push({ label: 'Content source ID', value: selectedNode.contentSourceId });
+          }
+          return details;
+        }
+
+        if (selectedNode.kind === 'chunk') {
+          const details: SelectionDetail[] = [];
+          const chatContent =
+            clean(selectedNode.chatContent) ??
+            clean(selectedNode.displayContent) ??
+            'Not available';
+          details.push({ label: 'Chat content', value: chatContent, scrollable: true, multiline: true });
+          details.push({ label: 'Node ID', value: selectedNode.id });
+          if (selectedNode.contentSourceId) {
+            details.push({ label: 'Content source ID', value: selectedNode.contentSourceId });
+          }
+          details.push({ label: 'Sequence number', value: String(selectedNode.sequenceIndex + 1) });
+          return details;
+        }
+
         const base = [
           { label: 'Node ID', value: selectedNode.id },
           { label: 'Type', value: selectedNode.kind },
           { label: 'Abstraction', value: selectedNode.abstractionLevel.toString() },
           { label: 'Position', value: `${selectedNode.position.x}, ${selectedNode.position.y}, ${selectedNode.position.z}` },
-        ];
-        const specifics: { label: string; value: string }[] = [];
-        if (selectedNode.kind === 'content') {
-          if (selectedNode.documentTitle) specifics.push({ label: 'Title', value: selectedNode.documentTitle });
-          if (selectedNode.mediaType) specifics.push({ label: 'Media', value: selectedNode.mediaType });
-          if (typeof selectedNode.tokenCount === 'number') specifics.push({ label: 'Tokens', value: String(selectedNode.tokenCount) });
-          if (selectedNode.contentSourceId) specifics.push({ label: 'Source ID', value: selectedNode.contentSourceId });
-          if (selectedNode.documentUrl) specifics.push({ label: 'URL', value: selectedNode.documentUrl });
-        } else if (selectedNode.kind === 'chunk') {
-          specifics.push({ label: 'Sequence', value: String(selectedNode.sequenceIndex) });
-          if (selectedNode.chunkType) specifics.push({ label: 'Chunk Type', value: selectedNode.chunkType });
-          if (selectedNode.contentSourceId) specifics.push({ label: 'Source ID', value: selectedNode.contentSourceId });
-        } else if (selectedNode.kind === 'cluster') {
+        ] as SelectionDetail[];
+
+        const specifics: SelectionDetail[] = [];
+        if (selectedNode.kind === 'cluster') {
           specifics.push({ label: 'Scope', value: selectedNode.clusterScope });
-          if (typeof selectedNode.memberCount === 'number') specifics.push({ label: 'Members', value: String(selectedNode.memberCount) });
+          if (typeof selectedNode.memberCount === 'number') {
+            specifics.push({ label: 'Members', value: String(selectedNode.memberCount) });
+          }
         }
-        if (selectedNode.title && !specifics.some(d => d.label === 'Title')) base.push({ label: 'Title', value: selectedNode.title });
-        if (selectedNode.displayContent) specifics.push({ label: 'Display', value: selectedNode.displayContent });
+        if (selectedNode.title && !specifics.some((d) => d.label === 'Title')) {
+          base.push({ label: 'Title', value: selectedNode.title });
+        }
+        const displayOrChat =
+          clean(selectedNode.displayContent) ??
+          clean(selectedNode.chatContent);
+        if (displayOrChat) {
+          specifics.push({ label: 'Display', value: displayOrChat, scrollable: true, multiline: true });
+        }
+
         return [...base, ...specifics];
       })()
     : [];
@@ -554,13 +596,21 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
             </div>
             <dl className="mt-3 space-y-2 text-xs text-slate-300">
               {selectionDetails.map((detail) => (
-                <div key={detail!.label}>
-                  <dt className="font-medium text-slate-400">{detail!.label}</dt>
-                  <dd className="mt-0.5 break-words text-slate-200">{detail!.value}</dd>
+                <div key={detail.label}>
+                  <dt className="font-medium text-slate-400">{detail.label}</dt>
+                  <dd
+                    className={cn(
+                      'mt-0.5 break-words text-slate-200',
+                      detail.multiline && 'whitespace-pre-wrap',
+                      detail.scrollable && 'max-h-40 overflow-y-auto pr-1'
+                    )}
+                  >
+                    {detail.value}
+                  </dd>
                 </div>
               ))}
             </dl>
-            {selectedNode.keywords.length > 0 && (
+            {selectedNode.kind === 'content' && selectedNode.keywords.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1">
                 {selectedNode.keywords.slice(0, 6).map((keyword) => (
                   <Badge
