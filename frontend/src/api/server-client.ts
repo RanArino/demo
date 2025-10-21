@@ -13,6 +13,7 @@ class GRPCClientManager {
   private static userInstance: PromiseClient<typeof UserService> | null = null;
   private static knowledgeInstance: PromiseClient<typeof KnowledgeService> | null = null;
   private static canvasInstance: PromiseClient<typeof CanvasPublic> | null = null;
+  private static inContainer: boolean | undefined;
 
   // Resolve a gRPC base URL with sensible fallbacks and IPv6-safe localhost handling
   private static resolveBaseUrl(
@@ -54,9 +55,52 @@ class GRPCClientManager {
   }
 
   private static isInDocker(): boolean {
+    if (this.inContainer !== undefined) {
+      return this.inContainer;
+    }
     try {
-      return fs.existsSync('/.dockerenv');
+      // Common container environment markers
+      if (fs.existsSync('/.dockerenv') || fs.existsSync('/run/.containerenv')) {
+        this.inContainer = true;
+        return true;
+      }
+
+      // Kubernetes environment
+      if ((process.env as Record<string, string | undefined>).KUBERNETES_SERVICE_HOST) {
+        this.inContainer = true;
+        return true;
+      }
+
+      // Heuristic environment hints often set by container tooling
+      const env = process.env as Record<string, string | undefined>;
+      const envHints = ['CONTAINER', 'DOCKER_CONTAINER', 'RUNNING_IN_CONTAINER'];
+      if (envHints.some((key) => {
+        const v = env[key];
+        return typeof v === 'string' && v !== '0' && v.toLowerCase() !== 'false';
+      })) {
+        this.inContainer = true;
+        return true;
+      }
+
+      // cgroup inspection (Linux)
+      const cgroupFiles = ['/proc/1/cgroup', '/proc/self/cgroup'];
+      for (const file of cgroupFiles) {
+        if (!fs.existsSync(file)) continue;
+        try {
+          const content = fs.readFileSync(file, 'utf8');
+          if (/(docker|kubepods|containerd|podman|lxc)/i.test(content)) {
+            this.inContainer = true;
+            return true;
+          }
+        } catch {
+          // ignore and continue
+        }
+      }
+
+      this.inContainer = false;
+      return false;
     } catch {
+      this.inContainer = false;
       return false;
     }
   }
