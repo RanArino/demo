@@ -234,6 +234,21 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
     window.setTimeout(() => setIsLayeredSwitching(false), 300);
   };
 
+  const openExternalUrl = (raw?: string) => {
+    if (!raw) return;
+    try {
+      const url = new URL(raw);
+      const scheme = url.protocol.replace(':', '').toLowerCase();
+      if (scheme !== 'http' && scheme !== 'https') return;
+      const win = window.open(url.toString(), '_blank', 'noopener,noreferrer');
+      if (win) {
+        win.opener = null;
+      }
+    } catch {
+      // ignore invalid URLs
+    }
+  };
+
   const toggleLayerVisibility = (kind: CanvasNodeKind) => () => {
     setLayerVisibility((prev) => ({
       ...prev,
@@ -633,7 +648,7 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
                   Open Preview
                 </Button>
                 {selectedNode.documentUrl && (
-                  <Button size="sm" variant="outline" onClick={() => window.open(selectedNode.documentUrl!, '_blank')}>
+                  <Button size="sm" variant="outline" onClick={() => openExternalUrl(selectedNode.documentUrl!)}>
                     Open URL
                   </Button>
                 )}
