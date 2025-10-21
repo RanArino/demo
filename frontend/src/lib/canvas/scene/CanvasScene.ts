@@ -1878,7 +1878,8 @@ export class CanvasScene {
 
     const base =
       clean(node.title) ??
-      clean(node.displayContent);
+      clean(node.displayContent) ??
+      clean(node.chatContent);
 
     let resolved = base;
 
@@ -1887,12 +1888,14 @@ export class CanvasScene {
         resolved =
           clean(node.documentTitle) ??
           clean(node.displayContent) ??
+          clean(node.chatContent) ??
           (node.keywords.length > 0 ? node.keywords.slice(0, 3).join(', ') : null) ??
           clean(node.contentSourceId);
       } else if (node.kind === 'cluster') {
         resolved =
           clean(node.clusterScope) ??
           clean(node.displayContent) ??
+          clean(node.chatContent) ??
           (node.keywords.length > 0 ? node.keywords.slice(0, 3).join(', ') : null);
       }
     }
@@ -2020,7 +2023,7 @@ export class CanvasScene {
       } else if (node.kind === 'cluster') {
         headingText = node.clusterScope ?? 'Cluster';
       } else {
-        headingText = node.title ?? node.displayContent ?? node.kind.toUpperCase();
+        headingText = node.title ?? node.displayContent ?? node.chatContent ?? node.kind.toUpperCase();
       }
     }
     title.textContent = this.truncate(headingText ?? node.kind.toUpperCase(), 70);
@@ -2085,7 +2088,10 @@ export class CanvasScene {
       contentBlock.style.whiteSpace = 'pre-wrap';
       contentBlock.style.fontSize = '11px';
       contentBlock.style.color = '#cbd5f5';
-      const sourceText = node.displayContent || 'No content available';
+      contentBlock.style.maxHeight = '160px';
+      contentBlock.style.overflowY = 'auto';
+      contentBlock.style.paddingRight = '4px';
+      const sourceText = node.chatContent || node.displayContent || 'No content available';
       contentBlock.textContent = this.truncate(sourceText, 240);
       body.appendChild(contentBlock);
     } else if (node.kind === 'chunk') {
@@ -2093,7 +2099,10 @@ export class CanvasScene {
       chunkBlock.style.whiteSpace = 'pre-wrap';
       chunkBlock.style.fontSize = '11px';
       chunkBlock.style.color = '#cbd5f5';
-      const sourceText = node.displayContent || 'No content available';
+      chunkBlock.style.maxHeight = '160px';
+      chunkBlock.style.overflowY = 'auto';
+      chunkBlock.style.paddingRight = '4px';
+      const sourceText = node.chatContent || node.displayContent || 'No content available';
       chunkBlock.textContent = this.truncate(sourceText, 240);
       body.appendChild(chunkBlock);
     } else if (node.kind === 'cluster') {
