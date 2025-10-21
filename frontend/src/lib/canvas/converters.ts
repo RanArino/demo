@@ -54,6 +54,8 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       return null;
     }
 
+    const chatContent = base.chatContent ?? undefined;
+
     const converted: CanvasClusterNode = {
       id: base.id,
       kind: 'cluster',
@@ -62,7 +64,8 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       display: toDisplay('cluster', base.displayProps),
       keywords: base.keywords,
       title: raw.title ?? base.displayContent ?? raw.clusterScope,
-      displayContent: base.displayContent,
+      displayContent: base.displayContent ?? chatContent,
+      chatContent,
       visibility: base.visibility ?? true,
       spaceId: base.spaceId,
       clusterScope: raw.clusterScope,
@@ -80,6 +83,8 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       return null;
     }
 
+    const chatContent = base.chatContent ?? undefined;
+
     const converted: CanvasContentNode = {
       id: base.id,
       kind: 'content',
@@ -88,7 +93,8 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       display: toDisplay('content', base.displayProps),
       keywords: base.keywords,
       title: raw.title ?? base.displayContent,
-      displayContent: base.displayContent,
+      displayContent: base.displayContent ?? chatContent,
+      chatContent,
       visibility: base.visibility ?? true,
       spaceId: base.spaceId,
       contentSourceId: raw.contentSourceId,
@@ -111,6 +117,8 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       return null;
     }
 
+    const chatContent = base.chatContent ?? undefined;
+
     const converted: CanvasChunkNode = {
       id: base.id,
       kind: 'chunk',
@@ -118,8 +126,9 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       position: toVec3(base.position3d),
       display: toDisplay('chunk', base.displayProps),
       keywords: base.keywords,
-      title: base.displayContent ?? raw.chunkType,
-      displayContent: base.displayContent,
+      title: base.displayContent ?? chatContent ?? raw.chunkType,
+      displayContent: base.displayContent ?? chatContent,
+      chatContent,
       visibility: base.visibility ?? true,
       contentSourceId: raw.contentSourceId,
       sequenceIndex: raw.sequenceIndex,

@@ -22,6 +22,7 @@ export interface CanvasNodeCommon {
   keywords: string[];
   title?: string;
   displayContent?: string;
+  chatContent?: string;
   visibility: boolean;
   contextType?: string;
 }
