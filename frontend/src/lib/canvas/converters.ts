@@ -1,4 +1,5 @@
 import type { Node, SpatialCoordinates, DisplayProps } from '@/api/generated/v1/canvas_pb';
+import type { Struct } from '@bufbuild/protobuf';
 import type {
   CanvasDisplayProps,
   CanvasRenderableNode,
@@ -101,9 +102,7 @@ export function convertProtoNode(node: Node): CanvasRenderableNode | null {
       mediaType: raw.mediaType,
       tokenCount: raw.tokenCount,
       contextType: base.contextType,
-      documentUrl: raw.actionData?.fields && 'url' in raw.actionData.fields
-        ? (raw.actionData.fields.url as { stringValue?: string })?.stringValue
-        : undefined,
+      documentUrl: getStructStringField(raw.actionData, 'url'),
       documentTitle: raw.title ?? base.displayContent ?? undefined,
     };
 
@@ -159,4 +158,17 @@ export function convertProtoNodes(nodes: Node[] | undefined | null): CanvasRende
   });
 
   return result;
+}
+
+function getStructStringField(struct: Struct | undefined, key: string): string | undefined {
+  if (!struct) {
+    return undefined;
+  }
+  const fields: unknown = (struct as unknown as { fields?: unknown }).fields;
+  if (!fields || typeof fields !== 'object') {
+    return undefined;
+  }
+  const value = (fields as Record<string, unknown>)[key] as { stringValue?: unknown } | undefined;
+  const str = value?.stringValue;
+  return typeof str === 'string' && str.trim() !== '' ? str : undefined;
 }
