@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/client"
@@ -62,6 +63,7 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		claims, err := jwt.Verify(ctx, &jwt.VerifyParams{
 			Token:      token,
 			JWKSClient: i.jwksClient,
+			Leeway:     30 * time.Second,
 		})
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "token verification failed: %v", err)
