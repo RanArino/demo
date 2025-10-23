@@ -9,11 +9,12 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { unstable_cache } from 'next/cache';
-import { cache } from 'react';
 import { getCanvasServiceClient } from '../server-client';
 import {
   GetNodesRequest,
   GetNodesResponse,
+  GetNeighborsRequest,
+  GetNeighborsResponse,
   SemanticSearchRequest,
   SemanticSearchResponse,
   SearchNodesRequest,
@@ -21,6 +22,9 @@ import {
   NodeFilter,
   SpatialBoundingBox,
   Node,
+  LinkQuery,
+  Direction,
+  LinkType,
 } from '../generated/v1/canvas_pb';
 import {
   createAuthHeaders,
@@ -43,6 +47,14 @@ type ActionResult<T> =
 type HeaderResult =
   | { success: true; headers: Headers }
   | { success: false; error: ApiError };
+
+type GetNeighborsInput = {
+  ids: string[];
+  direction?: Direction;
+  limitPerNode?: number;
+  linkTypes?: LinkType[];
+  includeProperties?: boolean;
+};
 
 async function buildCanvasHeaders(userId: string): Promise<HeaderResult> {
   const headers = await createAuthHeaders();
@@ -121,6 +133,63 @@ export async function getNodes(ids: string[]): Promise<ActionResult<{ nodes: Nod
   } catch (error) {
     if (isUnauthorizedError(error)) {
       logAuthFailure('getNodes', error);
+    }
+    return { success: false, error: sanitizeError(error) };
+  }
+}
+
+/**
+ * Core implementation for retrieving neighbors. Keeps logic here so we can reuse between cached/uncached flows later.
+ */
+async function getNeighborsCore(input: GetNeighborsInput, headers: Headers): Promise<ActionResult<GetNeighborsResponse>> {
+  try {
+    const client = getCanvasServiceClient();
+    const request = new GetNeighborsRequest({
+      ids: input.ids,
+      direction: input.direction ?? Direction.OUTGOING,
+      limitPerNode: input.limitPerNode ?? 0,
+      includeProperties: input.includeProperties ?? false,
+      query: input.linkTypes && input.linkTypes.length > 0 ? new LinkQuery({ linkTypes: input.linkTypes }) : undefined,
+    });
+
+    const response = await client.getNeighbors(request, { headers }) as GetNeighborsResponse;
+
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error('[getNeighborsCore] Error:', error);
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getNeighbors', error);
+    }
+    return { success: false, error: sanitizeError(error) };
+  }
+}
+
+/**
+ * Server action wrapper for neighbor retrieval. Currently uncached because traversal requests depend on cursors and incremental loading.
+ */
+export async function getNeighbors(input: GetNeighborsInput): Promise<ActionResult<GetNeighborsResponse>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+    }
+
+    if (!input.ids || input.ids.length === 0) {
+      return { success: false, error: { code: 'INVALID_ARGUMENT', message: 'Source node IDs are required' } };
+    }
+
+    const headerResult = await buildCanvasHeaders(userId);
+    if (!headerResult.success) {
+      return headerResult;
+    }
+
+    return await getNeighborsCore(input, headerResult.headers);
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('getNeighbors', error);
     }
     return { success: false, error: sanitizeError(error) };
   }
@@ -314,6 +383,46 @@ export async function searchNodes(input: {
   } catch (error) {
     if (isUnauthorizedError(error)) {
       logAuthFailure('searchNodes', error);
+    }
+    return { success: false, error: sanitizeError(error) };
+  }
+}
+
+export async function searchNodesUncached(input: {
+  filter?: {
+    spaceId?: string;
+    abstractionLevelMin?: number;
+    abstractionLevelMax?: number;
+    contextType?: string;
+    keywords?: string[];
+  };
+  spatialBbox?: {
+    minCoords?: { x?: number; y?: number; z?: number };
+    maxCoords?: { x?: number; y?: number; z?: number };
+  };
+  limit?: number;
+}): Promise<ActionResult<SearchNodesResponse>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+    }
+
+    const headerResult = await buildCanvasHeaders(userId);
+    if (!headerResult.success) {
+      return headerResult;
+    }
+
+    const normalizedInput = {
+      filter: input.filter || {},
+      spatialBbox: input.spatialBbox || {},
+      limit: input.limit || 100,
+    };
+
+    return await searchNodesCore(normalizedInput, headerResult.headers);
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('searchNodesUncached', error);
     }
     return { success: false, error: sanitizeError(error) };
   }
