@@ -286,18 +286,19 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 			"openai_config": openAIConfig,
 		}
 		now := time.Now().UTC().Format(time.RFC3339)
-		for _, c := range chunks {
+        for _, c := range chunks {
 			id := c.Base.Id
-			item := map[string]interface{}{
-				"id":                id,
-				"content_source_id": c.ContentSourceId,
-				"space_id":          c.Base.SpaceId,
-				"sequence_index":    c.SequenceIndex,
-				"start_position":    c.StartPosition,
-				"end_position":      c.EndPosition,
-				"context_type":      "chunk",
-				"now":               now,
-			}
+            item := map[string]interface{}{
+                "id":                id,
+                "content_source_id": c.ContentSourceId,
+                "space_id":          c.Base.SpaceId,
+                "sequence_index":    c.SequenceIndex,
+                "start_position":    c.StartPosition,
+                "end_position":      c.EndPosition,
+                "context_type":      "chunk",
+                "abstraction_level": c.Base.AbstractionLevel,
+                "now":               now,
+            }
 
 			if c.Base != nil && c.Base.ChatContent != nil {
 				item["chat_content"] = *c.Base.ChatContent
@@ -316,25 +317,27 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 		}
 		_, err := tx.Run(ctx, `
 			UNWIND $items AS item
-			MERGE (n:ChunkNode:Node {id: item.id})
-			ON CREATE SET
-				n.content_source_id = item.content_source_id,
-				n.space_id = item.space_id,
-				n.sequence_index = item.sequence_index,
-				n.location = item.location,
-				n.start_position = item.start_position,
-				n.end_position = item.end_position,
-				n.context_type = item.context_type,
-				n.chat_content = item.chat_content,
-				n.created_at = datetime(item.now),
-				n.updated_at = datetime(item.now)
-			ON MATCH SET
-				n.location = item.location,
-				n.space_id = COALESCE(item.space_id, n.space_id),
-				n.sequence_index = item.sequence_index,
-				n.context_type = item.context_type,
-				n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END,
-				n.updated_at = datetime(item.now)
+            MERGE (n:ChunkNode:Node {id: item.id})
+            ON CREATE SET
+                n.content_source_id = item.content_source_id,
+                n.space_id = item.space_id,
+                n.sequence_index = item.sequence_index,
+                n.location = item.location,
+                n.start_position = item.start_position,
+                n.end_position = item.end_position,
+                n.context_type = item.context_type,
+                n.abstraction_level = item.abstraction_level,
+                n.chat_content = item.chat_content,
+                n.created_at = datetime(item.now),
+                n.updated_at = datetime(item.now)
+            ON MATCH SET
+                n.location = item.location,
+                n.space_id = COALESCE(item.space_id, n.space_id),
+                n.sequence_index = item.sequence_index,
+                n.context_type = item.context_type,
+                n.abstraction_level = COALESCE(item.abstraction_level, n.abstraction_level),
+                n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END,
+                n.updated_at = datetime(item.now)
 
 			WITH collect(n) AS nodes, [x IN collect(item.chat_content) WHERE x IS NOT NULL AND x <> ""] AS contents, $openai_config AS openaiConfig
 
@@ -374,22 +377,26 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 			"openai_config": openAIConfig,
 		}
 		now := time.Now().UTC().Format(time.RFC3339)
-		for _, content := range contents {
-			item := map[string]interface{}{
-				"id":                content.Base.Id,
-				"content_source_id": content.ContentSourceId,
-				"now":               now,
-			}
+        for _, content := range contents {
+            item := map[string]interface{}{
+                "id":                content.Base.Id,
+                "content_source_id": content.ContentSourceId,
+                "now":               now,
+            }
 
 			// Add base/optional fields when available
 			if content.Base != nil {
-				item["space_id"] = content.Base.SpaceId
-				if len(content.Base.Keywords) > 0 {
-					item["keywords"] = content.Base.Keywords
-				}
-				if content.Base.ChatContent != nil {
-					item["chat_content"] = *content.Base.ChatContent
-				}
+                item["space_id"] = content.Base.SpaceId
+                item["abstraction_level"] = content.Base.AbstractionLevel
+                if content.Base.ContextType != "" {
+                    item["context_type"] = content.Base.ContextType
+                }
+                if len(content.Base.Keywords) > 0 {
+                    item["keywords"] = content.Base.Keywords
+                }
+                if content.Base.ChatContent != nil {
+                    item["chat_content"] = *content.Base.ChatContent
+                }
 				if len(content.Base.Embedding) > 0 {
 					item["embedding"] = content.Base.Embedding
 				}
@@ -402,16 +409,20 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 		}
 
 		// Single atomic query handling create/update and conditional embedding generation server-side.
-		_, err := tx.Run(ctx, `
+        _, err := tx.Run(ctx, `
             UNWIND $items AS item
             MERGE (n:ContentNode:Node {content_source_id: item.content_source_id})
             ON CREATE SET
                 n.id = item.id,
                 n.space_id = item.space_id,
+                n.abstraction_level = item.abstraction_level,
+                n.context_type = item.context_type,
                 n.created_at = datetime(item.now)
             ON MATCH SET
                 n.id = item.id,
                 n.space_id = item.space_id,
+                n.abstraction_level = COALESCE(item.abstraction_level, n.abstraction_level),
+                n.context_type = COALESCE(item.context_type, n.context_type),
                 n.updated_at = datetime(item.now)
             SET
                 n.updated_at = datetime(item.now),

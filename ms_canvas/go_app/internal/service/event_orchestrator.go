@@ -143,13 +143,15 @@ func (e *EventOrchestrator) createContentNode(ctx context.Context, event events.
 	contentNodeID := uuid.New().String()
 	now := timestamppb.New(time.Now())
 
-	baseNode := &v1.BaseNode{
-		Id:        contentNodeID,
-		SpaceId:   event.SpaceID.String(),
-		CreatedAt: now,
-		UpdatedAt: now,
-		Keywords:  event.Keywords,
-	}
+    baseNode := &v1.BaseNode{
+        Id:               contentNodeID,
+        SpaceId:          event.SpaceID.String(),
+        CreatedAt:        now,
+        UpdatedAt:        now,
+        Keywords:         event.Keywords,
+        AbstractionLevel: 0,             // Content is top layer (cluster=1, content=0)
+        ContextType:      "content",     // explicit context for filtering
+    }
 
 	if event.Summary != "" {
 		baseNode.ChatContent = &event.Summary
@@ -281,17 +283,18 @@ func (e *EventOrchestrator) createChunkNodes(ctx context.Context, chunks []pytho
 	chunkNodes := make([]*v1.ChunkNode, len(chunks))
 	now := timestamppb.New(time.Now())
 
-	for i, chunk := range chunks {
+    for i, chunk := range chunks {
 		chunkNodeID := uuid.New().String()
 
-		baseNode := &v1.BaseNode{
-			Id:          chunkNodeID,
-			SpaceId:     event.SpaceID.String(),
-			CreatedAt:   now,
-			UpdatedAt:   now,
-			Keywords:    event.Keywords,
-			ContextType: "chunk",
-		}
+        baseNode := &v1.BaseNode{
+            Id:               chunkNodeID,
+            SpaceId:          event.SpaceID.String(),
+            CreatedAt:        now,
+            UpdatedAt:        now,
+            Keywords:         event.Keywords,
+            ContextType:      "chunk",
+            AbstractionLevel: -1, // Chunks are more concrete than content
+        }
 
 		// store chunk text on BaseNode.chat_content
 		if chunk.Content != "" {
