@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { CanvasRenderableNode, CanvasNodeKind } from '@/lib/canvas';
 import { CanvasScene } from '@/lib/canvas';
-import { useCanvasData } from '../hooks/useCanvasData';
+import { useCanvasStream } from '../hooks/useCanvasStream';
 import { Grid3x3, Grid, LayoutGrid, Map as MapIcon, RefreshCw } from 'lucide-react';
 
 interface SpaceCanvasProps {
@@ -27,7 +27,7 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
   const sceneRef = useRef<CanvasScene | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-  const { nodes, isLoading, errorMessage, reload: reloadNodes, retryInMs } = useCanvasData(space.id);
+  const { nodes, isLoading, errorMessage, reload: reloadNodes, retryInMs, progress } = useCanvasStream(space.id);
   const [selectedNode, setSelectedNode] = useState<CanvasRenderableNode | null>(null);
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isMinimapVisible, setIsMinimapVisible] = useState(true);
@@ -390,6 +390,19 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
           {space.description && (
             <p className="text-sm text-slate-400 line-clamp-2">{space.description}</p>
           )}
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-wide text-slate-500">
+            {(
+              [
+                { key: 'cluster', label: 'Clusters' },
+                { key: 'content', label: 'Documents' },
+                { key: 'chunk', label: 'Chunks' },
+              ] as Array<{ key: CanvasNodeKind; label: string }>
+            ).map(({ key, label }) => (
+              <Badge key={key} variant="outline" className="border-slate-700/60 bg-slate-900/40 text-[11px] font-semibold text-slate-300">
+                {label}: {progress[key] ?? 0}
+              </Badge>
+            ))}
+          </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <div className="hidden items-center gap-1 lg:flex">
