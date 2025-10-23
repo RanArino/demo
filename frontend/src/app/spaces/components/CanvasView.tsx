@@ -12,9 +12,9 @@ import {
   Calendar,
   FileText,
   Box,
-  Eye
+  Eye,
+  Trash2,
 } from 'lucide-react';
-import { EditSpaceForm } from './EditSpaceForm';
 import { formatCount } from '@/lib/utils';
 
 interface CanvasViewProps {
@@ -44,14 +44,7 @@ export default function CanvasView({
     setCurrentIndex((prev) => (prev - 1 + spaces.length) % spaces.length);
   };
 
-  const formatDate = (date: Date | string | undefined | null) => {
-    if (!date) return '—';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (!(d instanceof Date) || isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString();
-  };
-
-  const formatTimestamp = (timestamp: any) => {
+  const formatTimestamp = (timestamp: Space['createdAt'] | string | null | undefined) => {
     const date = safeTimestampToDate(timestamp);
     return date ? date.toLocaleDateString() : '—';
   };
@@ -80,6 +73,8 @@ export default function CanvasView({
   }
 
   const currentSpace = spaces[currentIndex];
+  const isDeleteInProgress = isDeleting === currentSpace.id;
+  const keywordPreview = currentSpace.keywords.slice(0, 4);
 
   if (spaces.length === 0) {
     return (
@@ -151,20 +146,26 @@ export default function CanvasView({
             {/* Main Space Card */}
             <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 hover:scale-105">
               {/* Settings Button */}
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent aria-describedby={undefined}>
-                    <DialogHeader>
-                      <DialogTitle>Edit Space</DialogTitle>
-                    </DialogHeader>
-                    <EditSpaceForm space={currentSpace} />
-                  </DialogContent>
-                </Dialog>
+              <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onEdit(currentSpace.id)}
+                  aria-label="Edit space"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => onDelete(currentSpace.id)}
+                  disabled={isDeleteInProgress}
+                  aria-label="Delete space"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
 
               {/* Space Icon and Title */}
@@ -180,11 +181,11 @@ export default function CanvasView({
                   <Eye className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 mb-2">Mind Map Preview</p>
                   <div className="flex flex-wrap gap-1 justify-center">
-                    {/* {currentSpace.keywords.slice(0, 4).map((keyword) => (
+                    {keywordPreview.map((keyword) => (
                       <Badge key={keyword} variant="outline" className="text-xs">
                         {keyword}
                       </Badge>
-                    ))} */}
+                    ))}
                   </div>
                 </div>
               </div>
@@ -222,22 +223,22 @@ export default function CanvasView({
                       <DialogTitle>Quick Preview - {currentSpace.title}</DialogTitle>
                     </DialogHeader>
                     <div className="p-6">
-                      <div className="bg-gray-50 rounded-xl p-8 min-h-[400px] flex items-center justify-center border-2 border-dashed border-gray-200">
-                        <div className="text-center">
-                          <div className="text-8xl mb-4">📚</div>
-                          <h3 className="text-3xl font-bold mb-4">{currentSpace.title}</h3>
-                          <p className="text-gray-600 mb-6 max-w-md">{currentSpace.description}</p>
-                          <div className="flex flex-wrap gap-2 justify-center mb-6">
-                            {/* {currentSpace.keywords.map((keyword) => (
-                              <Badge key={keyword} variant="outline">
-                                {keyword}
-                              </Badge>
-                            ))} */}
-                          </div>
-                          <Button
-                            className="bg-blue-600 hover:bg-blue-700"
-                            onClick={() => onSelect(currentSpace.id)}
-                          >
+                  <div className="bg-gray-50 rounded-xl p-8 min-h-[400px] flex items-center justify-center border-2 border-dashed border-gray-200">
+                    <div className="text-center">
+                      <div className="text-8xl mb-4">📚</div>
+                      <h3 className="text-3xl font-bold mb-4">{currentSpace.title}</h3>
+                      <p className="text-gray-600 mb-6 max-w-md">{currentSpace.description}</p>
+                      <div className="flex flex-wrap gap-2 justify-center mb-6">
+                        {currentSpace.keywords.map((keyword) => (
+                          <Badge key={keyword} variant="outline">
+                            {keyword}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => onSelect(currentSpace.id)}
+                      >
                             Open Canvas
                           </Button>
                         </div>
@@ -251,6 +252,14 @@ export default function CanvasView({
                   onClick={() => onSelect(currentSpace.id)}
                 >
                   Open Canvas
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => onDelete(currentSpace.id)}
+                  disabled={isDeleteInProgress}
+                >
+                  {isDeleteInProgress ? 'Deleting…' : 'Delete Space'}
                 </Button>
               </div>
             </div>
