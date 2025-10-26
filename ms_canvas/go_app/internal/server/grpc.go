@@ -187,6 +187,30 @@ func (s *canvasPublicServer) GetNeighbors(ctx context.Context, req *canvasv1.Get
 	}, nil
 }
 
+// ListNodesByLink implements the ListNodesByLink RPC.
+func (s *canvasPublicServer) ListNodesByLink(ctx context.Context, req *canvasv1.ListNodesByLinkRequest) (*canvasv1.ListNodesByLinkResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
+	}
+	if len(req.Parents) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "at least one parent is required")
+	}
+	if req.Traversal == nil || req.Traversal.Query == nil {
+		return nil, status.Error(codes.InvalidArgument, "traversal.query is required")
+	}
+
+	if req.Traversal.GetMaxHops() > 1 {
+		return nil, status.Error(codes.InvalidArgument, "max_hops greater than 1 is not supported")
+	}
+
+	resp, err := s.nodeService.ListNodesByLink(ctx, req)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list nodes by link: %v", err)
+	}
+
+	return resp, nil
+}
+
 // SemanticSearch implements the SemanticSearch RPC
 func (s *canvasPublicServer) SemanticSearch(ctx context.Context, req *canvasv1.SemanticSearchRequest) (*canvasv1.SemanticSearchResponse, error) {
 	if req.Query == "" {

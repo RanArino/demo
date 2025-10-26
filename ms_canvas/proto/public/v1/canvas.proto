@@ -14,6 +14,7 @@ service CanvasPublic {
   // Nodes (Node Creation and Deletion depends on content source status)
   rpc GetNodes(GetNodesRequest) returns (GetNodesResponse);
   rpc GetNeighbors(GetNeighborsRequest) returns (GetNeighborsResponse);
+  rpc ListNodesByLink(ListNodesByLinkRequest) returns (ListNodesByLinkResponse);
   rpc SearchNodes(SearchNodesRequest) returns (SearchNodesResponse);
   rpc UpdateNodes(UpdateNodesRequest) returns (UpdateNodesResponse);
   // Links
@@ -265,6 +266,62 @@ message GetNeighborsRequest {
 message GetNeighborsResponse {
   // Key is the source node ID from the request, value is its neighbors
   map<string, NeighborsList> results = 1;
+}
+
+// ===== ListNodesByLink =====
+// Allows clients to resolve child/parent nodes by traversing a specific link type
+// using flexible parent identifiers and link metadata filters.
+message NodeReference {
+  // Optional space scoping; when provided it prevents cross-space traversal.
+  optional string space_id = 1;
+  optional NodeType node_type = 2;
+
+  oneof identifier {
+    string node_id = 3;
+    string content_source_id = 4;
+    string external_id = 5;
+  }
+}
+
+message LinkTraversalSpec {
+  Direction direction = 1; // OUTGOING by default
+  LinkQuery query = 2;     // Required: identifies link labels + metadata
+
+  // Number of hops to traverse. For this iteration we only support 1, but the
+  // field allows forward compatibility.
+  optional int32 max_hops = 3;
+
+  // Some clients only care about nodes and can skip the link payload to reduce bandwidth.
+  optional bool include_link_metadata = 4;
+}
+
+message ParentNodeChildren {
+  NodeReference parent = 1;
+  repeated Neighbor neighbors = 2;
+
+  // Encodes where to resume within this parent (base64 JSON: {"parentIndex":number,"offset":number}).
+  optional string page_token = 3;
+}
+
+message ListNodesByLinkRequest {
+  repeated NodeReference parents = 1;
+  LinkTraversalSpec traversal = 2;
+
+  // Optional metadata filter applied to the traversed (child) nodes before returning.
+  optional NodeFilter child_filter = 3;
+
+  // Soft limits; per-parent limit applies before the global max_total cap.
+  optional int32 limit_per_parent = 4;
+  optional int32 max_total = 5;
+
+  // Continues from a previous response. The token is base64 JSON of
+  // {"parentIndex":number,"offset":number} representing where to resume.
+  optional string page_token = 6;
+}
+
+message ListNodesByLinkResponse {
+  repeated ParentNodeChildren batches = 1;
+  optional string next_page_token = 2;
 }
 
 // ===== SearchNodes =====

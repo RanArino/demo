@@ -519,32 +519,40 @@ func (r *LinkRepo) buildDynamicLinkQuery(nodeIDs []string, direction canvasv1.Di
 	if query != nil && query.Filter != nil {
 		switch f := query.Filter.Filter.(type) {
 		case *canvasv1.LinkFilter_Base:
-			if f.Base.SourceId != nil {
-				params["source_id"] = *f.Base.SourceId
-			}
-			if f.Base.TargetId != nil {
-				params["target_id"] = *f.Base.TargetId
+			if base := f.Base; base != nil {
+				if base.SourceId != nil {
+					params["source_id"] = *base.SourceId
+				}
+				if base.TargetId != nil {
+					params["target_id"] = *base.TargetId
+				}
 			}
 		case *canvasv1.LinkFilter_Hierarchical:
-			if f.Hierarchical.Base.SourceId != nil {
-				params["source_id"] = *f.Hierarchical.Base.SourceId
-			}
-			if f.Hierarchical.Base.TargetId != nil {
-				params["target_id"] = *f.Hierarchical.Base.TargetId
+			if base := f.Hierarchical.Base; base != nil {
+				if base.SourceId != nil {
+					params["source_id"] = *base.SourceId
+				}
+				if base.TargetId != nil {
+					params["target_id"] = *base.TargetId
+				}
 			}
 		case *canvasv1.LinkFilter_Semantic:
-			if f.Semantic.Base.SourceId != nil {
-				params["source_id"] = *f.Semantic.Base.SourceId
-			}
-			if f.Semantic.Base.TargetId != nil {
-				params["target_id"] = *f.Semantic.Base.TargetId
+			if base := f.Semantic.Base; base != nil {
+				if base.SourceId != nil {
+					params["source_id"] = *base.SourceId
+				}
+				if base.TargetId != nil {
+					params["target_id"] = *base.TargetId
+				}
 			}
 		case *canvasv1.LinkFilter_Structural:
-			if f.Structural.Base.SourceId != nil {
-				params["source_id"] = *f.Structural.Base.SourceId
-			}
-			if f.Structural.Base.TargetId != nil {
-				params["target_id"] = *f.Structural.Base.TargetId
+			if base := f.Structural.Base; base != nil {
+				if base.SourceId != nil {
+					params["source_id"] = *base.SourceId
+				}
+				if base.TargetId != nil {
+					params["target_id"] = *base.TargetId
+				}
 			}
 		}
 	}
@@ -620,11 +628,13 @@ func (r *LinkRepo) buildHierarchicalQueryPart(filter interface{}) string {
 				baseWhere += " AND t.id = $target_id"
 			}
 		case *canvasv1.HierarchicalLinkFilter:
-			if f.Base.SourceId != nil {
-				baseWhere += " AND s.id = $source_id"
-			}
-			if f.Base.TargetId != nil {
-				baseWhere += " AND t.id = $target_id"
+			if base := f.Base; base != nil {
+				if base.SourceId != nil {
+					baseWhere += " AND s.id = $source_id"
+				}
+				if base.TargetId != nil {
+					baseWhere += " AND t.id = $target_id"
+				}
 			}
 		}
 	}
@@ -660,11 +670,13 @@ func (r *LinkRepo) buildSemanticQueryPart(filter interface{}) string {
 				baseWhere += " AND t.id = $target_id"
 			}
 		case *canvasv1.SemanticLinkFilter:
-			if f.Base.SourceId != nil {
-				baseWhere += " AND s.id = $source_id"
-			}
-			if f.Base.TargetId != nil {
-				baseWhere += " AND t.id = $target_id"
+			if base := f.Base; base != nil {
+				if base.SourceId != nil {
+					baseWhere += " AND s.id = $source_id"
+				}
+				if base.TargetId != nil {
+					baseWhere += " AND t.id = $target_id"
+				}
 			}
 		}
 	}
@@ -705,11 +717,13 @@ func (r *LinkRepo) buildStructuralQueryPart(filter interface{}) string {
 				baseWhere += " AND t.id = $target_id"
 			}
 		case *canvasv1.StructuralLinkFilter:
-			if f.Base.SourceId != nil {
-				baseWhere += " AND s.id = $source_id"
-			}
-			if f.Base.TargetId != nil {
-				baseWhere += " AND t.id = $target_id"
+			if base := f.Base; base != nil {
+				if base.SourceId != nil {
+					baseWhere += " AND s.id = $source_id"
+				}
+				if base.TargetId != nil {
+					baseWhere += " AND t.id = $target_id"
+				}
 			}
 		}
 	}

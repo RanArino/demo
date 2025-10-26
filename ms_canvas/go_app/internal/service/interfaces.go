@@ -20,6 +20,9 @@ type NodeService interface {
 
 	// GetNeighbors retrieves neighboring nodes for given node IDs
 	GetNeighbors(ctx context.Context, ids []string, direction canvaspublicv1.Direction, query *canvaspublicv1.LinkQuery, limitPerNode int32, includeProperties bool) (map[string]*canvaspublicv1.NeighborsList, error)
+
+	// ListNodesByLink traverses one hop of a given link type using flexible parent identifiers.
+	ListNodesByLink(ctx context.Context, req *canvaspublicv1.ListNodesByLinkRequest) (*canvaspublicv1.ListNodesByLinkResponse, error)
 }
 
 // SearchService defines the interface for search operations

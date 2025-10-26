@@ -38,9 +38,10 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 	result, err := sess.ExecuteRead(ctx, func(tx neo.ManagedTransaction) (interface{}, error) {
 		params := map[string]interface{}{}
 
-		// Build WHERE clause for filtering and decide MATCH clause for efficiency
+		// Build WHERE clause for filtering.
 		var whereConditions []string
-		matchClause := "MATCH (n:Node)"
+		// Do not force the generic :Node label here; legacy data may lack it.
+		matchClause := "MATCH (n)"
 
 		// Add ID filter only if IDs are provided
 		if len(ids) > 0 {
@@ -51,7 +52,6 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 		if filter != nil {
 			if filter.SpaceId != nil && *filter.SpaceId != "" {
 				params["space_id"] = *filter.SpaceId
-				// Use property binding in MATCH for index-friendly lookup and to exclude nodes lacking space_id
 				matchClause = "MATCH (n:Node {space_id: $space_id})"
 			}
 			if filter.AbstractionLevelMin != nil {
@@ -102,6 +102,115 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 				params["updated_before"] = *filter.UpdatedBefore
 				whereConditions = append(whereConditions, "n.updated_at <= datetime($updated_before)")
 			}
+
+			if filter.ContentFilter != nil {
+				cf := filter.ContentFilter
+				var contentClauses []string
+				contentClauses = append(contentClauses, "n:ContentNode")
+				if cf.ContentSourceId != nil && *cf.ContentSourceId != "" {
+					params["content_filter_content_source_id"] = *cf.ContentSourceId
+					contentClauses = append(contentClauses, "n.content_source_id = $content_filter_content_source_id")
+				}
+				if cf.Title != nil && *cf.Title != "" {
+					params["content_filter_title"] = *cf.Title
+					contentClauses = append(contentClauses, "n.title = $content_filter_title")
+				}
+				if cf.MediaType != nil && *cf.MediaType != "" {
+					params["content_filter_media_type"] = *cf.MediaType
+					contentClauses = append(contentClauses, "n.media_type = $content_filter_media_type")
+				}
+				if cf.Source != nil && *cf.Source != "" {
+					params["content_filter_source"] = *cf.Source
+					contentClauses = append(contentClauses, "n.source = $content_filter_source")
+				}
+				if cf.TokenCountMin != nil {
+					params["content_filter_token_count_min"] = *cf.TokenCountMin
+					contentClauses = append(contentClauses, "n.token_count >= $content_filter_token_count_min")
+				}
+				if cf.TokenCountMax != nil {
+					params["content_filter_token_count_max"] = *cf.TokenCountMax
+					contentClauses = append(contentClauses, "n.token_count <= $content_filter_token_count_max")
+				}
+				whereConditions = append(whereConditions, "("+strings.Join(contentClauses, " AND ")+")")
+			}
+
+			if filter.ChunkFilter != nil {
+				chf := filter.ChunkFilter
+				var chunkClauses []string
+				chunkClauses = append(chunkClauses, "n:ChunkNode")
+				if chf.ContentSourceId != nil && *chf.ContentSourceId != "" {
+					params["chunk_filter_content_source_id"] = *chf.ContentSourceId
+					chunkClauses = append(chunkClauses, "n.content_source_id = $chunk_filter_content_source_id")
+				}
+				if chf.SequenceIndexMin != nil {
+					params["chunk_filter_sequence_index_min"] = *chf.SequenceIndexMin
+					chunkClauses = append(chunkClauses, "n.sequence_index >= $chunk_filter_sequence_index_min")
+				}
+				if chf.SequenceIndexMax != nil {
+					params["chunk_filter_sequence_index_max"] = *chf.SequenceIndexMax
+					chunkClauses = append(chunkClauses, "n.sequence_index <= $chunk_filter_sequence_index_max")
+				}
+				if chf.ChunkType != nil && *chf.ChunkType != "" {
+					params["chunk_filter_chunk_type"] = *chf.ChunkType
+					chunkClauses = append(chunkClauses, "n.chunk_type = $chunk_filter_chunk_type")
+				}
+				if chf.StartPositionMin != nil {
+					params["chunk_filter_start_position_min"] = *chf.StartPositionMin
+					chunkClauses = append(chunkClauses, "n.start_position >= $chunk_filter_start_position_min")
+				}
+				if chf.StartPositionMax != nil {
+					params["chunk_filter_start_position_max"] = *chf.StartPositionMax
+					chunkClauses = append(chunkClauses, "n.start_position <= $chunk_filter_start_position_max")
+				}
+				if chf.EndPositionMin != nil {
+					params["chunk_filter_end_position_min"] = *chf.EndPositionMin
+					chunkClauses = append(chunkClauses, "n.end_position >= $chunk_filter_end_position_min")
+				}
+				if chf.EndPositionMax != nil {
+					params["chunk_filter_end_position_max"] = *chf.EndPositionMax
+					chunkClauses = append(chunkClauses, "n.end_position <= $chunk_filter_end_position_max")
+				}
+				if chf.TokenCountMin != nil {
+					params["chunk_filter_token_count_min"] = *chf.TokenCountMin
+					chunkClauses = append(chunkClauses, "n.token_count >= $chunk_filter_token_count_min")
+				}
+				if chf.TokenCountMax != nil {
+					params["chunk_filter_token_count_max"] = *chf.TokenCountMax
+					chunkClauses = append(chunkClauses, "n.token_count <= $chunk_filter_token_count_max")
+				}
+				whereConditions = append(whereConditions, "("+strings.Join(chunkClauses, " AND ")+")")
+			}
+
+			if filter.ClusterFilter != nil {
+				clf := filter.ClusterFilter
+				var clusterClauses []string
+				clusterClauses = append(clusterClauses, "n:ClusterNode")
+				if clf.ClusterScope != nil && *clf.ClusterScope != "" {
+					params["cluster_filter_cluster_scope"] = *clf.ClusterScope
+					clusterClauses = append(clusterClauses, "n.cluster_scope = $cluster_filter_cluster_scope")
+				}
+				if clf.Title != nil && *clf.Title != "" {
+					params["cluster_filter_title"] = *clf.Title
+					clusterClauses = append(clusterClauses, "n.title = $cluster_filter_title")
+				}
+				if clf.MemberCountMin != nil {
+					params["cluster_filter_member_count_min"] = *clf.MemberCountMin
+					clusterClauses = append(clusterClauses, "n.member_count >= $cluster_filter_member_count_min")
+				}
+				if clf.MemberCountMax != nil {
+					params["cluster_filter_member_count_max"] = *clf.MemberCountMax
+					clusterClauses = append(clusterClauses, "n.member_count <= $cluster_filter_member_count_max")
+				}
+				if clf.CoverageScoreMin != nil {
+					params["cluster_filter_coverage_score_min"] = *clf.CoverageScoreMin
+					clusterClauses = append(clusterClauses, "n.coverage_score >= $cluster_filter_coverage_score_min")
+				}
+				if clf.CoverageScoreMax != nil {
+					params["cluster_filter_coverage_score_max"] = *clf.CoverageScoreMax
+					clusterClauses = append(clusterClauses, "n.coverage_score <= $cluster_filter_coverage_score_max")
+				}
+				whereConditions = append(whereConditions, "("+strings.Join(clusterClauses, " AND ")+")")
+			}
 		}
 
 		whereClause := ""
@@ -112,12 +221,12 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 		query := `
             ` + matchClause + `
 			` + whereClause + `
-			RETURN
-				n.id as id,
-				labels(n) as labels,
-				n.content_source_id as content_source_id,
-				n.space_id as space_id,
-				n.abstraction_level as abstraction_level,
+            RETURN
+                n.id as id,
+                labels(n) as labels,
+                n.content_source_id as content_source_id,
+                n.space_id as space_id,
+                n.abstraction_level as abstraction_level,
 				n.context_type as context_type,
 				n.embedding as embedding,
 				n.keywords as keywords,
@@ -143,8 +252,8 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 				n.coverage_score as coverage_score,
 				// Position
 				n.location as location
-			ORDER BY n.id
-		`
+            ORDER BY n.abstraction_level DESC, n.created_at ASC, n.id ASC
+        `
 
 		result, err := tx.Run(ctx, query, params)
 		if err != nil {
@@ -296,6 +405,7 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 				"start_position":    c.StartPosition,
 				"end_position":      c.EndPosition,
 				"context_type":      "chunk",
+				"abstraction_level": c.Base.AbstractionLevel,
 				"now":               now,
 			}
 
@@ -316,25 +426,27 @@ func (r *NodeRepo) CreateChunkNodes(ctx context.Context, chunks []*canvasv1.Chun
 		}
 		_, err := tx.Run(ctx, `
 			UNWIND $items AS item
-			MERGE (n:ChunkNode:Node {id: item.id})
-			ON CREATE SET
-				n.content_source_id = item.content_source_id,
-				n.space_id = item.space_id,
-				n.sequence_index = item.sequence_index,
-				n.location = item.location,
-				n.start_position = item.start_position,
-				n.end_position = item.end_position,
-				n.context_type = item.context_type,
-				n.chat_content = item.chat_content,
-				n.created_at = datetime(item.now),
-				n.updated_at = datetime(item.now)
-			ON MATCH SET
-				n.location = item.location,
-				n.space_id = COALESCE(item.space_id, n.space_id),
-				n.sequence_index = item.sequence_index,
-				n.context_type = item.context_type,
-				n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END,
-				n.updated_at = datetime(item.now)
+            MERGE (n:ChunkNode:Node {id: item.id})
+            ON CREATE SET
+                n.content_source_id = item.content_source_id,
+                n.space_id = item.space_id,
+                n.sequence_index = item.sequence_index,
+                n.location = item.location,
+                n.start_position = item.start_position,
+                n.end_position = item.end_position,
+                n.context_type = item.context_type,
+                n.abstraction_level = item.abstraction_level,
+                n.chat_content = item.chat_content,
+                n.created_at = datetime(item.now),
+                n.updated_at = datetime(item.now)
+            ON MATCH SET
+                n.location = item.location,
+                n.space_id = COALESCE(item.space_id, n.space_id),
+                n.sequence_index = item.sequence_index,
+                n.context_type = item.context_type,
+                n.abstraction_level = COALESCE(item.abstraction_level, n.abstraction_level),
+                n.chat_content = CASE WHEN item.chat_content IS NOT NULL THEN item.chat_content ELSE n.chat_content END,
+                n.updated_at = datetime(item.now)
 
 			WITH collect(n) AS nodes, [x IN collect(item.chat_content) WHERE x IS NOT NULL AND x <> ""] AS contents, $openai_config AS openaiConfig
 
@@ -384,6 +496,10 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
 			// Add base/optional fields when available
 			if content.Base != nil {
 				item["space_id"] = content.Base.SpaceId
+				item["abstraction_level"] = content.Base.AbstractionLevel
+				if content.Base.ContextType != "" {
+					item["context_type"] = content.Base.ContextType
+				}
 				if len(content.Base.Keywords) > 0 {
 					item["keywords"] = content.Base.Keywords
 				}
@@ -408,10 +524,14 @@ func (r *NodeRepo) CreateContentNodes(ctx context.Context, contents []*canvasv1.
             ON CREATE SET
                 n.id = item.id,
                 n.space_id = item.space_id,
+                n.abstraction_level = item.abstraction_level,
+                n.context_type = item.context_type,
                 n.created_at = datetime(item.now)
             ON MATCH SET
                 n.id = item.id,
                 n.space_id = item.space_id,
+                n.abstraction_level = COALESCE(item.abstraction_level, n.abstraction_level),
+                n.context_type = COALESCE(item.context_type, n.context_type),
                 n.updated_at = datetime(item.now)
             SET
                 n.updated_at = datetime(item.now),

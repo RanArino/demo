@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
@@ -10,21 +12,24 @@ import (
 	"demo/ms_canvas/go_app/internal/repository"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/proto"
 )
 
 // NodeService handles node CRUD operations
 
 // nodeServiceImpl implements NodeService
 type nodeServiceImpl struct {
-	nodeRepo repository.NodeRepository
-	linkRepo repository.LinkRepository
+	nodeRepo      repository.NodeRepository
+	linkRepo      repository.LinkRepository
+	traversalRepo repository.TraversalRepository
 }
 
 // NewNodeService creates a new NodeService with repository dependencies
-func NewNodeService(nodeRepo repository.NodeRepository, linkRepo repository.LinkRepository) NodeService {
+func NewNodeService(nodeRepo repository.NodeRepository, linkRepo repository.LinkRepository, traversalRepo repository.TraversalRepository) NodeService {
 	return &nodeServiceImpl{
-		nodeRepo: nodeRepo,
-		linkRepo: linkRepo,
+		nodeRepo:      nodeRepo,
+		linkRepo:      linkRepo,
+		traversalRepo: traversalRepo,
 	}
 }
 
@@ -359,6 +364,124 @@ func (s *nodeServiceImpl) SearchNodes(ctx context.Context, filter *v1.NodeFilter
 	return nodes, nil
 }
 
+// ListNodesByLink traverses a single hop from the provided parents and returns matching children.
+func (s *nodeServiceImpl) ListNodesByLink(ctx context.Context, req *v1.ListNodesByLinkRequest) (*v1.ListNodesByLinkResponse, error) {
+	if req == nil {
+		return nil, fmt.Errorf("request cannot be nil")
+	}
+	if len(req.Parents) == 0 {
+		return nil, fmt.Errorf("at least one parent is required")
+	}
+	if req.Traversal == nil || req.Traversal.Query == nil {
+		return nil, fmt.Errorf("traversal.query is required")
+	}
+	if req.Traversal.GetMaxHops() > 1 {
+		return nil, fmt.Errorf("max_hops greater than 1 is not supported")
+	}
+	if s.traversalRepo == nil {
+		return nil, fmt.Errorf("traversal repository is not configured")
+	}
+
+	perParentLimit := req.GetLimitPerParent()
+	if perParentLimit <= 0 {
+		perParentLimit = 100
+	} else if perParentLimit > 500 {
+		perParentLimit = 500
+	}
+
+	maxTotal := req.GetMaxTotal()
+	if maxTotal <= 0 {
+		maxTotal = 500
+	} else if maxTotal > 2000 {
+		maxTotal = 2000
+	}
+
+	startParentIdx, startOffset, err := decodeTraversalToken(req.GetPageToken(), len(req.Parents))
+	if err != nil {
+		return nil, err
+	}
+
+	includeLink := true
+	if req.Traversal.IncludeLinkMetadata != nil {
+		includeLink = req.Traversal.GetIncludeLinkMetadata()
+	}
+
+	remaining := int(maxTotal)
+	batches := make([]*v1.ParentNodeChildren, 0, len(req.Parents))
+	var nextToken string
+	var hasNextToken bool
+
+	for idx := startParentIdx; idx < len(req.Parents) && remaining > 0; idx++ {
+		parent := req.Parents[idx]
+		offset := startOffset
+		if idx != startParentIdx {
+			offset = 0
+		}
+
+		limitForParent := int32(perParentLimit)
+		if remaining < int(limitForParent) {
+			limitForParent = int32(remaining)
+		}
+		fetchLimit := limitForParent
+		if fetchLimit > 0 {
+			fetchLimit++ // fetch one extra to detect more children for this parent
+		}
+
+		neighbors, err := s.traversalRepo.ListNodesByLink(ctx, parent, req.Traversal, req.ChildFilter, offset, fetchLimit)
+		if err != nil {
+			return nil, err
+		}
+
+		hasMoreForParent := limitForParent > 0 && int32(len(neighbors)) > limitForParent
+		if hasMoreForParent {
+			neighbors = neighbors[:limitForParent]
+		}
+
+		if !includeLink {
+			for _, n := range neighbors {
+				n.Link = nil
+			}
+		}
+
+		batch := &v1.ParentNodeChildren{
+			Parent:    parent,
+			Neighbors: make([]*v1.Neighbor, 0, len(neighbors)),
+		}
+
+		for _, neighbor := range neighbors {
+			batch.Neighbors = append(batch.Neighbors, &v1.Neighbor{
+				Node:     neighbor.Node,
+				LinkType: neighbor.LinkType,
+				Link:     neighbor.Link,
+			})
+		}
+
+		batches = append(batches, batch)
+		remaining -= len(batch.Neighbors)
+		startOffset = 0
+
+		if hasMoreForParent {
+			tok := encodeTraversalToken(idx, offset+limitForParent)
+			batch.PageToken = proto.String(tok)
+			nextToken = tok
+			hasNextToken = true
+			break
+		}
+
+		if remaining <= 0 && idx+1 < len(req.Parents) {
+			nextToken = encodeTraversalToken(idx+1, 0)
+			hasNextToken = true
+			break
+		}
+	}
+
+	resp := &v1.ListNodesByLinkResponse{Batches: batches}
+	if hasNextToken {
+		resp.NextPageToken = proto.String(nextToken)
+	}
+	return resp, nil
+}
+
 // Helper functions for node conversion
 
 // convertV1NodeToPublic converts a v1.Node to v1.Node
@@ -400,6 +523,46 @@ func getNodeID(node *v1.Node) string {
 		}
 	}
 	return "unknown"
+}
+
+type traversalCursor struct {
+	ParentIndex int   `json:"parentIndex"`
+	Offset      int32 `json:"offset"`
+}
+
+func encodeTraversalToken(parentIndex int, offset int32) string {
+	if parentIndex < 0 {
+		parentIndex = 0
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	payload, err := json.Marshal(traversalCursor{ParentIndex: parentIndex, Offset: offset})
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(payload)
+}
+
+func decodeTraversalToken(token string, parentCount int) (int, int32, error) {
+	if token == "" {
+		return 0, 0, nil
+	}
+	decoded, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid page_token: %w", err)
+	}
+	var cursor traversalCursor
+	if err := json.Unmarshal(decoded, &cursor); err != nil {
+		return 0, 0, fmt.Errorf("invalid page_token: %w", err)
+	}
+	if cursor.ParentIndex < 0 || cursor.ParentIndex >= parentCount {
+		return 0, 0, fmt.Errorf("page_token parent index out of range")
+	}
+	if cursor.Offset < 0 {
+		cursor.Offset = 0
+	}
+	return cursor.ParentIndex, cursor.Offset, nil
 }
 
 // Conversion functions for ContentNode
