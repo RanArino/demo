@@ -36,6 +36,7 @@ interface CanvasStreamState {
   retryInMs: number | null;
   reload: () => void;
   progress: Record<CanvasNodeKind, number>;
+  mergeNodes: (batch: CanvasRenderableNode[]) => void;
 }
 
 const STREAM_ENDPOINT = (spaceId: string) => `/api/spaces/${spaceId}/canvas/stream`;
@@ -128,6 +129,16 @@ export function useCanvasStream(spaceId: string): CanvasStreamState {
       flushNodes();
     }, 32);
   }, [flushNodes]);
+
+  const mergeNodes = useCallback((batch: CanvasRenderableNode[]) => {
+    if (!batch || batch.length === 0) {
+      return;
+    }
+    const stats = graphStoreRef.current.merge(batch);
+    if (stats.added > 0 || stats.updated > 0) {
+      scheduleFlush();
+    }
+  }, [scheduleFlush]);
 
   // Streaming -------------------------------------------------------------
 
@@ -297,5 +308,6 @@ export function useCanvasStream(spaceId: string): CanvasStreamState {
     retryInMs,
     reload,
     progress,
+    mergeNodes,
   };
 }
