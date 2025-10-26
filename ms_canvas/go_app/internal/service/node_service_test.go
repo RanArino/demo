@@ -6,10 +6,13 @@ import (
 	"testing"
 
 	v1 "demo/ms_canvas/go_app/api/proto/public/v1"
+	"demo/ms_canvas/go_app/internal/repository"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -115,6 +118,15 @@ func (m *MockLinkRepoForNodeService) DeleteLinks(ctx context.Context, linkIDs []
 func (m *MockLinkRepoForNodeService) DeleteLinksForNodes(ctx context.Context, nodeIDs []string) error {
 	args := m.Called(ctx, nodeIDs)
 	return args.Error(0)
+}
+
+type MockTraversalRepo struct {
+	mock.Mock
+}
+
+func (m *MockTraversalRepo) ListNodesByLink(ctx context.Context, parent *v1.NodeReference, traversal *v1.LinkTraversalSpec, childFilter *v1.NodeFilter, offset, limit int32) ([]*repository.LinkNeighbor, error) {
+	args := m.Called(ctx, parent, traversal, childFilter, offset, limit)
+	return args.Get(0).([]*repository.LinkNeighbor), args.Error(1)
 }
 
 // Helper functions to create test data
@@ -292,7 +304,7 @@ func TestNodeService_GetNodes(t *testing.T) {
 	t.Run("Success - GetNodes with valid IDs", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 		nodeID2 := uuid.New().String()
 		node1 := createTestContentNode(nodeID1)
@@ -315,7 +327,7 @@ func TestNodeService_GetNodes(t *testing.T) {
 	t.Run("Success - GetNodes with invalid ID", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		invalidID := "invalid-uuid"
 
 		// Setup expectations
@@ -333,7 +345,7 @@ func TestNodeService_GetNodes(t *testing.T) {
 	t.Run("Error - Repository error", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 		repoError := errors.New("database connection failed")
 
@@ -357,7 +369,7 @@ func TestNodeService_GetNeighbors(t *testing.T) {
 	t.Run("Success - GetNeighbors with links", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		links := createTestLinks()
 		// Extract node IDs from the test links
 		nodeID1 := links[0].GetStructural().Base.SourceId
@@ -392,7 +404,7 @@ func TestNodeService_GetNeighbors(t *testing.T) {
 	t.Run("Success - GetNeighbors with no links", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 
 		// Setup expectations
@@ -416,7 +428,7 @@ func TestNodeService_GetNeighbors(t *testing.T) {
 	t.Run("Error - Link repository error", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 		repoError := errors.New("link repository error")
 
@@ -437,7 +449,7 @@ func TestNodeService_GetNeighbors(t *testing.T) {
 	t.Run("Error - Node repository error", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		links := createTestLinks()
 		// Extract node IDs from the test links
 		nodeID1 := links[0].GetStructural().Base.SourceId
@@ -471,7 +483,7 @@ func TestNodeService_UpdateNodes(t *testing.T) {
 	t.Run("Success - UpdateNodes with mixed types", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 		nodeID2 := uuid.New().String()
 		contentNode := createTestContentNode(nodeID1)
@@ -501,7 +513,7 @@ func TestNodeService_UpdateNodes(t *testing.T) {
 	t.Run("Success - UpdateNodes with content nodes only", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 		contentNode := createTestContentNode(nodeID1)
 		nodes := []*v1.Node{contentNode}
@@ -525,7 +537,7 @@ func TestNodeService_UpdateNodes(t *testing.T) {
 	t.Run("Success - UpdateNodes with cluster nodes only", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		clusterNodeID := uuid.New().String()
 		clusterNode := createTestClusterNode(clusterNodeID)
 		nodes := []*v1.Node{clusterNode}
@@ -548,7 +560,7 @@ func TestNodeService_UpdateNodes(t *testing.T) {
 	t.Run("Error - Repository error on content node update", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID1 := uuid.New().String()
 		contentNode := createTestContentNode(nodeID1)
 		nodes := []*v1.Node{contentNode}
@@ -574,7 +586,7 @@ func TestNodeService_UpdateNodes(t *testing.T) {
 	t.Run("Error - Repository error on chunk node update", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodeID2 := uuid.New().String()
 		chunkNode := createTestChunkNode(nodeID2)
 		nodes := []*v1.Node{chunkNode}
@@ -600,7 +612,7 @@ func TestNodeService_UpdateNodes(t *testing.T) {
 	t.Run("Success - UpdateNodes with empty list", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 		nodes := []*v1.Node{}
 
 		// Execute
@@ -623,7 +635,7 @@ func TestNodeService_SearchNodes(t *testing.T) {
 	t.Run("Success - SearchNodes", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 
 		filter := &v1.NodeFilter{
 			SpaceId:  stringPtr("test-space"),
@@ -665,7 +677,7 @@ func TestNodeService_SearchNodes(t *testing.T) {
 	t.Run("Error - Repository error", func(t *testing.T) {
 		mockNodeRepo := &MockNodeRepo{}
 		mockLinkRepo := &MockLinkRepoForNodeService{}
-		service := NewNodeService(mockNodeRepo, mockLinkRepo)
+		service := NewNodeService(mockNodeRepo, mockLinkRepo, nil)
 
 		filter := &v1.NodeFilter{
 			SpaceId:  stringPtr("test-space"),
@@ -698,6 +710,85 @@ func TestNodeService_SearchNodes(t *testing.T) {
 
 		mockNodeRepo.AssertExpectations(t)
 	})
+}
+
+func TestNodeService_ListNodesByLink_Success(t *testing.T) {
+	nodeRepo := new(MockNodeRepo)
+	linkRepo := new(MockLinkRepoForNodeService)
+	traversalRepo := new(MockTraversalRepo)
+	service := NewNodeService(nodeRepo, linkRepo, traversalRepo)
+
+	parent := &v1.NodeReference{Identifier: &v1.NodeReference_NodeId{NodeId: "parent-1"}}
+	req := &v1.ListNodesByLinkRequest{
+		Parents: []*v1.NodeReference{parent},
+		Traversal: &v1.LinkTraversalSpec{
+			Direction: v1.Direction_DIRECTION_OUTGOING,
+			Query:     &v1.LinkQuery{},
+		},
+		LimitPerParent: proto.Int32(1),
+		MaxTotal:       proto.Int32(2),
+	}
+
+	lneigh := []*repository.LinkNeighbor{
+		{
+			Node:     &v1.Node{Node: &v1.Node_Content{Content: &v1.ContentNode{Base: &v1.BaseNode{Id: "child-1"}}}},
+			LinkType: v1.LinkType_LINK_TYPE_HIERARCHICAL,
+		},
+	}
+	traversalRepo.On("ListNodesByLink", mock.Anything, parent, req.Traversal, req.ChildFilter, int32(0), int32(2)).
+		Return(lneigh, nil).Once()
+
+	resp, err := service.ListNodesByLink(context.Background(), req)
+	require.NoError(t, err)
+	require.Len(t, resp.Batches, 1)
+	assert.Len(t, resp.Batches[0].Neighbors, 1)
+	assert.Nil(t, resp.NextPageToken)
+
+	traversalRepo.AssertExpectations(t)
+}
+
+func TestNodeService_ListNodesByLink_Pagination(t *testing.T) {
+	nodeRepo := new(MockNodeRepo)
+	linkRepo := new(MockLinkRepoForNodeService)
+	traversalRepo := new(MockTraversalRepo)
+	service := NewNodeService(nodeRepo, linkRepo, traversalRepo)
+
+	parent := &v1.NodeReference{Identifier: &v1.NodeReference_NodeId{NodeId: "parent-9"}}
+	req := &v1.ListNodesByLinkRequest{
+		Parents: []*v1.NodeReference{parent},
+		Traversal: &v1.LinkTraversalSpec{
+			Direction:           v1.Direction_DIRECTION_OUTGOING,
+			Query:               &v1.LinkQuery{},
+			IncludeLinkMetadata: proto.Bool(false),
+		},
+		LimitPerParent: proto.Int32(1),
+		MaxTotal:       proto.Int32(1),
+	}
+
+	lneigh := []*repository.LinkNeighbor{
+		{
+			Node:     &v1.Node{Node: &v1.Node_Content{Content: &v1.ContentNode{Base: &v1.BaseNode{Id: "child-a"}}}},
+			LinkType: v1.LinkType_LINK_TYPE_HIERARCHICAL,
+			Link:     &v1.Link{Link: &v1.Link_Hierarchical{Hierarchical: &v1.HierarchicalLink{}}},
+		},
+		{
+			Node:     &v1.Node{Node: &v1.Node_Content{Content: &v1.ContentNode{Base: &v1.BaseNode{Id: "child-b"}}}},
+			LinkType: v1.LinkType_LINK_TYPE_HIERARCHICAL,
+			Link:     &v1.Link{Link: &v1.Link_Hierarchical{Hierarchical: &v1.HierarchicalLink{}}},
+		},
+	}
+	traversalRepo.On("ListNodesByLink", mock.Anything, parent, req.Traversal, req.ChildFilter, int32(0), int32(2)).
+		Return(lneigh, nil).Once()
+
+	resp, err := service.ListNodesByLink(context.Background(), req)
+	require.NoError(t, err)
+	require.Len(t, resp.Batches, 1)
+	assert.Len(t, resp.Batches[0].Neighbors, 1)
+	assert.NotNil(t, resp.NextPageToken)
+	assert.Nil(t, resp.Batches[0].Neighbors[0].Link)
+	assert.NotNil(t, resp.Batches[0].PageToken)
+
+	traversalRepo.AssertExpectations(t)
 }
 
 func TestHelperFunctions(t *testing.T) {
