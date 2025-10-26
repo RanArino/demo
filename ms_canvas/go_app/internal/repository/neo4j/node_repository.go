@@ -52,7 +52,7 @@ func (r *NodeRepo) GetNodes(ctx context.Context, ids []string, filter *canvasv1.
 		if filter != nil {
 			if filter.SpaceId != nil && *filter.SpaceId != "" {
 				params["space_id"] = *filter.SpaceId
-				whereConditions = append(whereConditions, "n.space_id = $space_id")
+				matchClause = "MATCH (n:Node {space_id: $space_id})"
 			}
 			if filter.AbstractionLevelMin != nil {
 				params["abstraction_level_min"] = *filter.AbstractionLevelMin
