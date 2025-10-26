@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Space } from '@/api/generated/v1/knowledge_pb';
 import { Badge } from '@/components/ui/badge';
@@ -26,8 +26,10 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
   const multiViewFrontRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<CanvasScene | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const childFetchStateRef = useRef(new Map<string, { status: 'idle' | 'loading' | 'loaded'; cursor?: string }>());
+  const childFetchControllersRef = useRef(new Map<string, AbortController>());
 
-  const { nodes, isLoading, errorMessage, reload: reloadNodes, retryInMs, progress } = useCanvasStream(space.id);
+  const { nodes, isLoading, errorMessage, reload: reloadNodes, retryInMs, progress, mergeNodes } = useCanvasStream(space.id);
   const [selectedNode, setSelectedNode] = useState<CanvasRenderableNode | null>(null);
   const [isGridVisible, setIsGridVisible] = useState(true);
   const [isMinimapVisible, setIsMinimapVisible] = useState(true);
@@ -111,6 +113,74 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
     window.localStorage.setItem('canvas-ui-preferences', JSON.stringify(prefs));
   }, [isGridVisible, isMinimapVisible, isMultiViewVisible, isLayeredView, layerVisibility, edgePanSpeedPref, edgePanThresholdPref, zoomAggressiveness]);
 
+  const fetchChildren = useCallback(async (node: CanvasRenderableNode | null) => {
+    if (!node) {
+      return;
+    }
+    if (node.kind === 'chunk') {
+      return;
+    }
+    const cacheKey = node.id || ('contentSourceId' in node ? node.contentSourceId : undefined);
+    if (!cacheKey) {
+      return;
+    }
+    const current = childFetchStateRef.current.get(cacheKey);
+    if (current?.status === 'loading') {
+      return;
+    }
+    if (current?.status === 'loaded' && !current.cursor) {
+      return;
+    }
+
+    const controller = new AbortController();
+    childFetchControllersRef.current.set(cacheKey, controller);
+    childFetchStateRef.current.set(cacheKey, { status: 'loading', cursor: current?.cursor });
+
+    try {
+      const response = await fetch(`/api/spaces/${space.id}/canvas/children`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parentId: node.id,
+          contentSourceId: node.kind === 'content' ? node.contentSourceId : undefined,
+          parentType: node.kind,
+          spaceId: node.spaceId ?? space.id,
+          pageToken: current?.cursor ?? null,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const payload = await response.json() as { nodes?: CanvasRenderableNode[]; nextPageToken?: string | null };
+      if (Array.isArray(payload.nodes) && payload.nodes.length > 0) {
+        mergeNodes(payload.nodes);
+      }
+
+      if (payload.nextPageToken) {
+        childFetchStateRef.current.set(cacheKey, { status: 'idle', cursor: payload.nextPageToken });
+      } else {
+        childFetchStateRef.current.set(cacheKey, { status: 'loaded' });
+      }
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        console.warn('[SpaceCanvas] Failed to fetch child nodes', error);
+      }
+      childFetchStateRef.current.set(cacheKey, { status: 'idle', cursor: current?.cursor });
+    } finally {
+      childFetchControllersRef.current.delete(cacheKey);
+    }
+  }, [mergeNodes, space.id]);
+
+  const handleNodeSelect = useCallback((node: CanvasRenderableNode | null) => {
+    setSelectedNode(node);
+    fetchChildren(node);
+  }, [fetchChildren]);
+
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container || sceneRef.current) {
@@ -119,7 +189,7 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
 
     const scene = new CanvasScene({
       container,
-      onNodeSelect: (node) => setSelectedNode(node),
+      onNodeSelect: handleNodeSelect,
       onFpsUpdate: (value) => setFps(value),
     });
 
@@ -139,7 +209,22 @@ export default function SpaceCanvas({ space, className }: SpaceCanvasProps) {
       scene.dispose();
       sceneRef.current = null;
     };
+  }, [handleNodeSelect]);
+
+  useEffect(() => {
+    const controllers = childFetchControllersRef.current;
+    return () => {
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+    };
   }, []);
+
+  useEffect(() => {
+    const controllers = childFetchControllersRef.current;
+    controllers.forEach((controller) => controller.abort());
+    controllers.clear();
+    childFetchStateRef.current.clear();
+  }, [space.id]);
 
   useEffect(() => {
     if (!sceneRef.current) {
