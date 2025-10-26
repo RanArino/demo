@@ -15,6 +15,7 @@ import (
 	"demo/ms_canvas/go_app/internal/config"
 	"demo/ms_canvas/go_app/internal/events/kafka"
 	"demo/ms_canvas/go_app/internal/gateway/python"
+	"demo/ms_canvas/go_app/internal/repository"
 	"demo/ms_canvas/go_app/internal/repository/neo4j"
 	"demo/ms_canvas/go_app/internal/server"
 	"demo/ms_canvas/go_app/internal/service"
@@ -89,6 +90,7 @@ func main() {
 
 	nodeRepo := neo4j.NewNodeRepoWithConfig(drv, cfg)
 	linkRepo := neo4j.NewLinkRepo(drv)
+	traversalRepo := repository.NewTraversalRepository(nodeRepo, linkRepo)
 	searchRepo := neo4j.NewSearchRepoWithConfig(drv, cfg)
 
 	// Initialize Python gateway for ML operations
@@ -109,7 +111,7 @@ func main() {
 
 	// Initialize services for gRPC server
 	searchService := service.NewSearchService(searchRepo)
-	nodeService := service.NewNodeService(nodeRepo, linkRepo)
+	nodeService := service.NewNodeService(nodeRepo, linkRepo, traversalRepo)
 	linkService := service.NewLinkService(linkRepo)
 
 	// Create Kafka consumer with the EventOrchestrator as event handler
