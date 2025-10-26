@@ -15,6 +15,8 @@ import {
   GetNodesResponse,
   GetNeighborsRequest,
   GetNeighborsResponse,
+  ListNodesByLinkRequest,
+  ListNodesByLinkResponse,
   SemanticSearchRequest,
   SemanticSearchResponse,
   SearchNodesRequest,
@@ -23,6 +25,10 @@ import {
   SpatialBoundingBox,
   Node,
   LinkQuery,
+  LinkFilter,
+  LinkTraversalSpec,
+  NodeReference,
+  NodeType,
   Direction,
   LinkType,
 } from '../generated/v1/canvas_pb';
@@ -56,6 +62,26 @@ type GetNeighborsInput = {
   includeProperties?: boolean;
 };
 
+type ParentReferenceInput = {
+  nodeId?: string;
+  contentSourceId?: string;
+  externalId?: string;
+  spaceId?: string;
+  nodeType?: NodeType;
+};
+
+type ListNodesByLinkInput = {
+  parents: ParentReferenceInput[];
+  direction?: Direction;
+  linkTypes?: LinkType[];
+  linkFilter?: LinkFilter;
+  childFilter?: NodeFilter;
+  limitPerParent?: number;
+  maxTotal?: number;
+  pageToken?: string;
+  includeLinkMetadata?: boolean;
+};
+
 async function buildCanvasHeaders(userId: string): Promise<HeaderResult> {
   const headers = await createAuthHeaders();
 
@@ -77,6 +103,25 @@ async function buildCanvasHeaders(userId: string): Promise<HeaderResult> {
     success: true,
     headers,
   };
+}
+
+function buildNodeReference(input: ParentReferenceInput): NodeReference {
+  const reference = new NodeReference({
+    spaceId: input.spaceId,
+    nodeType: input.nodeType,
+  });
+
+  if (input.nodeId) {
+    reference.identifier = { case: 'nodeId', value: input.nodeId };
+  } else if (input.contentSourceId) {
+    reference.identifier = { case: 'contentSourceId', value: input.contentSourceId };
+  } else if (input.externalId) {
+    reference.identifier = { case: 'externalId', value: input.externalId };
+  } else {
+    reference.identifier = { case: undefined };
+  }
+
+  return reference;
 }
 
 // ===== Server Actions =====
@@ -190,6 +235,55 @@ export async function getNeighbors(input: GetNeighborsInput): Promise<ActionResu
   } catch (error) {
     if (isUnauthorizedError(error)) {
       logAuthFailure('getNeighbors', error);
+    }
+    return { success: false, error: sanitizeError(error) };
+  }
+}
+
+export async function listNodesByLink(input: ListNodesByLinkInput): Promise<ActionResult<ListNodesByLinkResponse>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } };
+    }
+
+    if (!input.parents || input.parents.length === 0) {
+      return { success: false, error: { code: 'INVALID_ARGUMENT', message: 'At least one parent reference is required' } };
+    }
+
+    const headerResult = await buildCanvasHeaders(userId);
+    if (!headerResult.success) {
+      return headerResult;
+    }
+
+    const traversal = new LinkTraversalSpec({
+      direction: input.direction ?? Direction.OUTGOING,
+      query: new LinkQuery({
+        linkTypes: input.linkTypes && input.linkTypes.length > 0 ? input.linkTypes : [LinkType.HIERARCHICAL],
+        filter: input.linkFilter,
+      }),
+      includeLinkMetadata: input.includeLinkMetadata ?? true,
+    });
+
+    const request = new ListNodesByLinkRequest({
+      parents: input.parents.map(buildNodeReference),
+      traversal,
+      childFilter: input.childFilter,
+      limitPerParent: input.limitPerParent,
+      maxTotal: input.maxTotal,
+      pageToken: input.pageToken,
+    });
+
+    const client = getCanvasServiceClient();
+    const response = await client.listNodesByLink(request, { headers: headerResult.headers }) as ListNodesByLinkResponse;
+
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      logAuthFailure('listNodesByLink', error);
     }
     return { success: false, error: sanitizeError(error) };
   }
