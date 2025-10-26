@@ -53,6 +53,18 @@ type SearchRepository interface {
 	MultiHopSearch(ctx context.Context, spaceID uuid.UUID, queryEmbedding []float32, topK int32) (*MultiHopSearchResponse, error)
 }
 
+// TraversalRepository exposes higher-order graph traversal helpers.
+type TraversalRepository interface {
+	ListNodesByLink(ctx context.Context, parent *canvasv1.NodeReference, traversal *canvasv1.LinkTraversalSpec, childFilter *canvasv1.NodeFilter, offset, limit int32) ([]*LinkNeighbor, error)
+}
+
+// LinkNeighbor represents a node returned by link traversal plus the originating link metadata.
+type LinkNeighbor struct {
+	Node     *canvasv1.Node
+	Link     *canvasv1.Link
+	LinkType canvasv1.LinkType
+}
+
 // MultiHopSearchResponse contains results from each abstraction level
 type MultiHopSearchResponse struct {
 	ClusterResults []*canvasv1.Node `json:"cluster_results"`
