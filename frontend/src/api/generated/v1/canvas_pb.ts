@@ -1659,6 +1659,313 @@ export class GetNeighborsResponse extends Message<GetNeighborsResponse> {
 }
 
 /**
+ * ===== ListNodesByLink =====
+ * Allows clients to resolve child/parent nodes by traversing a specific link type
+ * using flexible parent identifiers and link metadata filters.
+ *
+ * @generated from message canvas.public.v1.NodeReference
+ */
+export class NodeReference extends Message<NodeReference> {
+  /**
+   * Optional space scoping; when provided it prevents cross-space traversal.
+   *
+   * @generated from field: optional string space_id = 1;
+   */
+  spaceId?: string;
+
+  /**
+   * @generated from field: optional canvas.public.v1.NodeType node_type = 2;
+   */
+  nodeType?: NodeType;
+
+  /**
+   * @generated from oneof canvas.public.v1.NodeReference.identifier
+   */
+  identifier: {
+    /**
+     * @generated from field: string node_id = 3;
+     */
+    value: string;
+    case: "nodeId";
+  } | {
+    /**
+     * @generated from field: string content_source_id = 4;
+     */
+    value: string;
+    case: "contentSourceId";
+  } | {
+    /**
+     * @generated from field: string external_id = 5;
+     */
+    value: string;
+    case: "externalId";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<NodeReference>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "canvas.public.v1.NodeReference";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "space_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 2, name: "node_type", kind: "enum", T: proto3.getEnumType(NodeType), opt: true },
+    { no: 3, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 4, name: "content_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 5, name: "external_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NodeReference {
+    return new NodeReference().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NodeReference {
+    return new NodeReference().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NodeReference {
+    return new NodeReference().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NodeReference | PlainMessage<NodeReference> | undefined, b: NodeReference | PlainMessage<NodeReference> | undefined): boolean {
+    return proto3.util.equals(NodeReference, a, b);
+  }
+}
+
+/**
+ * @generated from message canvas.public.v1.LinkTraversalSpec
+ */
+export class LinkTraversalSpec extends Message<LinkTraversalSpec> {
+  /**
+   * OUTGOING by default
+   *
+   * @generated from field: canvas.public.v1.Direction direction = 1;
+   */
+  direction = Direction.OUTGOING;
+
+  /**
+   * Required: identifies link labels + metadata
+   *
+   * @generated from field: canvas.public.v1.LinkQuery query = 2;
+   */
+  query?: LinkQuery;
+
+  /**
+   * Number of hops to traverse. For this iteration we only support 1, but the
+   * field allows forward compatibility.
+   *
+   * @generated from field: optional int32 max_hops = 3;
+   */
+  maxHops?: number;
+
+  /**
+   * Some clients only care about nodes and can skip the link payload to reduce bandwidth.
+   *
+   * @generated from field: optional bool include_link_metadata = 4;
+   */
+  includeLinkMetadata?: boolean;
+
+  constructor(data?: PartialMessage<LinkTraversalSpec>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "canvas.public.v1.LinkTraversalSpec";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "direction", kind: "enum", T: proto3.getEnumType(Direction) },
+    { no: 2, name: "query", kind: "message", T: LinkQuery },
+    { no: 3, name: "max_hops", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+    { no: 4, name: "include_link_metadata", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkTraversalSpec {
+    return new LinkTraversalSpec().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LinkTraversalSpec {
+    return new LinkTraversalSpec().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LinkTraversalSpec {
+    return new LinkTraversalSpec().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LinkTraversalSpec | PlainMessage<LinkTraversalSpec> | undefined, b: LinkTraversalSpec | PlainMessage<LinkTraversalSpec> | undefined): boolean {
+    return proto3.util.equals(LinkTraversalSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message canvas.public.v1.ParentNodeChildren
+ */
+export class ParentNodeChildren extends Message<ParentNodeChildren> {
+  /**
+   * @generated from field: canvas.public.v1.NodeReference parent = 1;
+   */
+  parent?: NodeReference;
+
+  /**
+   * @generated from field: repeated canvas.public.v1.Neighbor neighbors = 2;
+   */
+  neighbors: Neighbor[] = [];
+
+  /**
+   * Encodes where to resume within this parent (base64 JSON: {"parentIndex":number,"offset":number}).
+   *
+   * @generated from field: optional string page_token = 3;
+   */
+  pageToken?: string;
+
+  constructor(data?: PartialMessage<ParentNodeChildren>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "canvas.public.v1.ParentNodeChildren";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "parent", kind: "message", T: NodeReference },
+    { no: 2, name: "neighbors", kind: "message", T: Neighbor, repeated: true },
+    { no: 3, name: "page_token", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ParentNodeChildren {
+    return new ParentNodeChildren().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ParentNodeChildren {
+    return new ParentNodeChildren().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ParentNodeChildren {
+    return new ParentNodeChildren().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ParentNodeChildren | PlainMessage<ParentNodeChildren> | undefined, b: ParentNodeChildren | PlainMessage<ParentNodeChildren> | undefined): boolean {
+    return proto3.util.equals(ParentNodeChildren, a, b);
+  }
+}
+
+/**
+ * @generated from message canvas.public.v1.ListNodesByLinkRequest
+ */
+export class ListNodesByLinkRequest extends Message<ListNodesByLinkRequest> {
+  /**
+   * @generated from field: repeated canvas.public.v1.NodeReference parents = 1;
+   */
+  parents: NodeReference[] = [];
+
+  /**
+   * @generated from field: canvas.public.v1.LinkTraversalSpec traversal = 2;
+   */
+  traversal?: LinkTraversalSpec;
+
+  /**
+   * Optional metadata filter applied to the traversed (child) nodes before returning.
+   *
+   * @generated from field: optional canvas.public.v1.NodeFilter child_filter = 3;
+   */
+  childFilter?: NodeFilter;
+
+  /**
+   * Soft limits; per-parent limit applies before the global max_total cap.
+   *
+   * @generated from field: optional int32 limit_per_parent = 4;
+   */
+  limitPerParent?: number;
+
+  /**
+   * @generated from field: optional int32 max_total = 5;
+   */
+  maxTotal?: number;
+
+  /**
+   * Continues from a previous response. The token is base64 JSON of
+   * {"parentIndex":number,"offset":number} representing where to resume.
+   *
+   * @generated from field: optional string page_token = 6;
+   */
+  pageToken?: string;
+
+  constructor(data?: PartialMessage<ListNodesByLinkRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "canvas.public.v1.ListNodesByLinkRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "parents", kind: "message", T: NodeReference, repeated: true },
+    { no: 2, name: "traversal", kind: "message", T: LinkTraversalSpec },
+    { no: 3, name: "child_filter", kind: "message", T: NodeFilter, opt: true },
+    { no: 4, name: "limit_per_parent", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+    { no: 5, name: "max_total", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+    { no: 6, name: "page_token", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNodesByLinkRequest {
+    return new ListNodesByLinkRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNodesByLinkRequest {
+    return new ListNodesByLinkRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNodesByLinkRequest {
+    return new ListNodesByLinkRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListNodesByLinkRequest | PlainMessage<ListNodesByLinkRequest> | undefined, b: ListNodesByLinkRequest | PlainMessage<ListNodesByLinkRequest> | undefined): boolean {
+    return proto3.util.equals(ListNodesByLinkRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message canvas.public.v1.ListNodesByLinkResponse
+ */
+export class ListNodesByLinkResponse extends Message<ListNodesByLinkResponse> {
+  /**
+   * @generated from field: repeated canvas.public.v1.ParentNodeChildren batches = 1;
+   */
+  batches: ParentNodeChildren[] = [];
+
+  /**
+   * @generated from field: optional string next_page_token = 2;
+   */
+  nextPageToken?: string;
+
+  constructor(data?: PartialMessage<ListNodesByLinkResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "canvas.public.v1.ListNodesByLinkResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "batches", kind: "message", T: ParentNodeChildren, repeated: true },
+    { no: 2, name: "next_page_token", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNodesByLinkResponse {
+    return new ListNodesByLinkResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNodesByLinkResponse {
+    return new ListNodesByLinkResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNodesByLinkResponse {
+    return new ListNodesByLinkResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListNodesByLinkResponse | PlainMessage<ListNodesByLinkResponse> | undefined, b: ListNodesByLinkResponse | PlainMessage<ListNodesByLinkResponse> | undefined): boolean {
+    return proto3.util.equals(ListNodesByLinkResponse, a, b);
+  }
+}
+
+/**
  * ===== SearchNodes =====
  * Searches for nodes based on metadata criteria and spatial bounds
  *

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/public/v1/canvas.proto
+// source: public/v1/canvas.proto
 
 package canvaspublicv1
 
@@ -22,6 +22,7 @@ const (
 	CanvasPublic_SemanticSearch_FullMethodName        = "/canvas.public.v1.CanvasPublic/SemanticSearch"
 	CanvasPublic_GetNodes_FullMethodName              = "/canvas.public.v1.CanvasPublic/GetNodes"
 	CanvasPublic_GetNeighbors_FullMethodName          = "/canvas.public.v1.CanvasPublic/GetNeighbors"
+	CanvasPublic_ListNodesByLink_FullMethodName       = "/canvas.public.v1.CanvasPublic/ListNodesByLink"
 	CanvasPublic_SearchNodes_FullMethodName           = "/canvas.public.v1.CanvasPublic/SearchNodes"
 	CanvasPublic_UpdateNodes_FullMethodName           = "/canvas.public.v1.CanvasPublic/UpdateNodes"
 	CanvasPublic_GetLinks_FullMethodName              = "/canvas.public.v1.CanvasPublic/GetLinks"
@@ -41,6 +42,7 @@ type CanvasPublicClient interface {
 	// Nodes (Node Creation and Deletion depends on content source status)
 	GetNodes(ctx context.Context, in *GetNodesRequest, opts ...grpc.CallOption) (*GetNodesResponse, error)
 	GetNeighbors(ctx context.Context, in *GetNeighborsRequest, opts ...grpc.CallOption) (*GetNeighborsResponse, error)
+	ListNodesByLink(ctx context.Context, in *ListNodesByLinkRequest, opts ...grpc.CallOption) (*ListNodesByLinkResponse, error)
 	SearchNodes(ctx context.Context, in *SearchNodesRequest, opts ...grpc.CallOption) (*SearchNodesResponse, error)
 	UpdateNodes(ctx context.Context, in *UpdateNodesRequest, opts ...grpc.CallOption) (*UpdateNodesResponse, error)
 	// Links
@@ -84,6 +86,16 @@ func (c *canvasPublicClient) GetNeighbors(ctx context.Context, in *GetNeighborsR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetNeighborsResponse)
 	err := c.cc.Invoke(ctx, CanvasPublic_GetNeighbors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *canvasPublicClient) ListNodesByLink(ctx context.Context, in *ListNodesByLinkRequest, opts ...grpc.CallOption) (*ListNodesByLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNodesByLinkResponse)
+	err := c.cc.Invoke(ctx, CanvasPublic_ListNodesByLink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,6 +173,7 @@ type CanvasPublicServer interface {
 	// Nodes (Node Creation and Deletion depends on content source status)
 	GetNodes(context.Context, *GetNodesRequest) (*GetNodesResponse, error)
 	GetNeighbors(context.Context, *GetNeighborsRequest) (*GetNeighborsResponse, error)
+	ListNodesByLink(context.Context, *ListNodesByLinkRequest) (*ListNodesByLinkResponse, error)
 	SearchNodes(context.Context, *SearchNodesRequest) (*SearchNodesResponse, error)
 	UpdateNodes(context.Context, *UpdateNodesRequest) (*UpdateNodesResponse, error)
 	// Links
@@ -188,6 +201,9 @@ func (UnimplementedCanvasPublicServer) GetNodes(context.Context, *GetNodesReques
 }
 func (UnimplementedCanvasPublicServer) GetNeighbors(context.Context, *GetNeighborsRequest) (*GetNeighborsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNeighbors not implemented")
+}
+func (UnimplementedCanvasPublicServer) ListNodesByLink(context.Context, *ListNodesByLinkRequest) (*ListNodesByLinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNodesByLink not implemented")
 }
 func (UnimplementedCanvasPublicServer) SearchNodes(context.Context, *SearchNodesRequest) (*SearchNodesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchNodes not implemented")
@@ -278,6 +294,24 @@ func _CanvasPublic_GetNeighbors_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CanvasPublicServer).GetNeighbors(ctx, req.(*GetNeighborsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CanvasPublic_ListNodesByLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNodesByLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CanvasPublicServer).ListNodesByLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CanvasPublic_ListNodesByLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CanvasPublicServer).ListNodesByLink(ctx, req.(*ListNodesByLinkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -410,6 +444,10 @@ var CanvasPublic_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CanvasPublic_GetNeighbors_Handler,
 		},
 		{
+			MethodName: "ListNodesByLink",
+			Handler:    _CanvasPublic_ListNodesByLink_Handler,
+		},
+		{
 			MethodName: "SearchNodes",
 			Handler:    _CanvasPublic_SearchNodes_Handler,
 		},
@@ -435,5 +473,5 @@ var CanvasPublic_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/public/v1/canvas.proto",
+	Metadata: "public/v1/canvas.proto",
 }

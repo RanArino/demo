@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateStructuralLinksRequest, CreateStructuralLinksResponse, DeleteStructuralLinksRequest, DeleteStructuralLinksResponse, GetLinksRequest, GetLinksResponse, GetNeighborsRequest, GetNeighborsResponse, GetNodesRequest, GetNodesResponse, SearchNodesRequest, SearchNodesResponse, SemanticSearchRequest, SemanticSearchResponse, UpdateNodesRequest, UpdateNodesResponse, UpdateStructuralLinksRequest, UpdateStructuralLinksResponse } from "./canvas_pb";
+import { CreateStructuralLinksRequest, CreateStructuralLinksResponse, DeleteStructuralLinksRequest, DeleteStructuralLinksResponse, GetLinksRequest, GetLinksResponse, GetNeighborsRequest, GetNeighborsResponse, GetNodesRequest, GetNodesResponse, ListNodesByLinkRequest, ListNodesByLinkResponse, SearchNodesRequest, SearchNodesResponse, SemanticSearchRequest, SemanticSearchResponse, UpdateNodesRequest, UpdateNodesResponse, UpdateStructuralLinksRequest, UpdateStructuralLinksResponse } from "./canvas_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -43,6 +43,15 @@ export const CanvasPublic = {
       name: "GetNeighbors",
       I: GetNeighborsRequest,
       O: GetNeighborsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc canvas.public.v1.CanvasPublic.ListNodesByLink
+     */
+    listNodesByLink: {
+      name: "ListNodesByLink",
+      I: ListNodesByLinkRequest,
+      O: ListNodesByLinkResponse,
       kind: MethodKind.Unary,
     },
     /**
